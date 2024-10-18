@@ -1,11 +1,7 @@
 export type Setting = {
   id?: string;
   name?: string;
-  content?:
-    | EmailsSetting
-    | NotifyTemplates
-    | NotifyChannels
-    | SSLProviderSetting;
+  content?: EmailsSetting | NotifyTemplates | NotifyChannels | SSLProviderSetting;
 };
 
 export type EmailsSetting = {
@@ -23,18 +19,21 @@ export type NotifyTemplate = {
 
 export type NotifyChannels = {
   dingtalk?: NotifyChannel;
+  lark?: NotifyChannel;
   telegram?: NotifyChannel;
   webhook?: NotifyChannel;
 };
 
-export type NotifyChannel =
-  | NotifyChannelDingTalk
-  | NotifyChannelTelegram
-  | NotifyChannelWebhook;
+export type NotifyChannel = NotifyChannelDingTalk | NotifyChannelLark | NotifyChannelTelegram | NotifyChannelWebhook;
 
 export type NotifyChannelDingTalk = {
   accessToken: string;
   secret: string;
+  enabled: boolean;
+};
+
+export type NotifyChannelLark = {
+  webhookUrl: string;
   enabled: boolean;
 };
 

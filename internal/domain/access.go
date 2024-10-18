@@ -16,6 +16,13 @@ type HuaweiCloudAccess struct {
 	SecretAccessKey string `json:"secretAccessKey"`
 }
 
+type AwsAccess struct {
+	Region          string `json:"region"`
+	AccessKeyId     string `json:"accessKeyId"`
+	SecretAccessKey string `json:"secretAccessKey"`
+	HostedZoneId    string `json:"hostedZoneId"`
+}
+
 type CloudflareAccess struct {
 	DnsApiToken string `json:"dnsApiToken"`
 }
@@ -33,4 +40,3 @@ type GodaddyAccess struct {
 	ApiKey    string `json:"apiKey"`
 	ApiSecret string `json:"apiSecret"`
 }
-

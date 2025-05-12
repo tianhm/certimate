@@ -350,7 +350,7 @@ const ApplyNodeConfigForm = forwardRef<ApplyNodeConfigFormInstance, ApplyNodeCon
             />
           </Form.Item>
 
-          <Form.Item className="mb-0">
+          <Form.Item className="mb-0" htmlFor="null">
             <label className="mb-1 block">
               <div className="flex w-full items-center justify-between gap-4">
                 <div className="max-w-full grow truncate">
@@ -391,6 +391,7 @@ const ApplyNodeConfigForm = forwardRef<ApplyNodeConfigFormInstance, ApplyNodeCon
                   return !!provider?.usages?.includes(ACCESS_USAGES.DNS);
                 }}
                 placeholder={t("workflow_node.apply.form.provider_access.placeholder")}
+                showSearch
                 onChange={handleProviderAccessSelect}
               />
             </Form.Item>
@@ -399,14 +400,14 @@ const ApplyNodeConfigForm = forwardRef<ApplyNodeConfigFormInstance, ApplyNodeCon
 
         {nestedFormEl}
 
-        <Divider className="my-1">
+        <Divider size="small">
           <Typography.Text className="text-xs font-normal" type="secondary">
             {t("workflow_node.apply.form.certificate_config.label")}
           </Typography.Text>
         </Divider>
 
         <Form className={className} style={style} {...formProps} disabled={disabled} layout="vertical" scrollToFirstError onValuesChange={handleFormChange}>
-          <Form.Item className="mb-0">
+          <Form.Item className="mb-0" htmlFor="null">
             <label className="mb-1 block">
               <div className="flex w-full items-center justify-between gap-4">
                 <div className="max-w-full grow truncate">
@@ -435,7 +436,7 @@ const ApplyNodeConfigForm = forwardRef<ApplyNodeConfigFormInstance, ApplyNodeCon
             </Form.Item>
           </Form.Item>
 
-          <Form.Item className="mb-0" hidden={!showCAProviderAccess}>
+          <Form.Item className="mb-0" htmlFor="null" hidden={!showCAProviderAccess}>
             <label className="mb-1 block">
               <div className="flex w-full items-center justify-between gap-4">
                 <div className="max-w-full grow truncate">
@@ -472,6 +473,7 @@ const ApplyNodeConfigForm = forwardRef<ApplyNodeConfigFormInstance, ApplyNodeCon
                   return !!provider?.usages?.includes(ACCESS_USAGES.CA);
                 }}
                 placeholder={t("workflow_node.apply.form.ca_provider_access.placeholder")}
+                showSearch
               />
             </Form.Item>
           </Form.Item>
@@ -487,7 +489,7 @@ const ApplyNodeConfigForm = forwardRef<ApplyNodeConfigFormInstance, ApplyNodeCon
           </Form.Item>
         </Form>
 
-        <Divider className="my-1">
+        <Divider size="small">
           <Typography.Text className="text-xs font-normal" type="secondary">
             {t("workflow_node.apply.form.advanced_config.label")}
           </Typography.Text>
@@ -594,7 +596,7 @@ const ApplyNodeConfigForm = forwardRef<ApplyNodeConfigFormInstance, ApplyNodeCon
           </Form.Item>
         </Form>
 
-        <Divider className="my-1">
+        <Divider size="small">
           <Typography.Text className="text-xs font-normal" type="secondary">
             {t("workflow_node.apply.form.strategy_config.label")}
           </Typography.Text>
@@ -703,7 +705,7 @@ const DomainsModalInput = memo(({ value, trigger, onChange }: { value?: string; 
       {...formProps}
       layout="vertical"
       form={formInst}
-      modalProps={{ destroyOnClose: true }}
+      modalProps={{ destroyOnHidden: true }}
       title={t("workflow_node.apply.form.domains.multiple_input_modal.title")}
       trigger={trigger}
       validateTrigger="onSubmit"
@@ -743,7 +745,7 @@ const NameserversModalInput = memo(({ trigger, value, onChange }: { trigger?: Re
       {...formProps}
       layout="vertical"
       form={formInst}
-      modalProps={{ destroyOnClose: true }}
+      modalProps={{ destroyOnHidden: true }}
       title={t("workflow_node.apply.form.nameservers.multiple_input_modal.title")}
       trigger={trigger}
       validateTrigger="onSubmit"

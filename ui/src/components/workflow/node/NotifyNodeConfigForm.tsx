@@ -180,7 +180,7 @@ const NotifyNodeConfigForm = forwardRef<NotifyNodeConfigFormInstance, NotifyNode
           <Input.TextArea autoSize={{ minRows: 3, maxRows: 5 }} placeholder={t("workflow_node.notify.form.message.placeholder")} />
         </Form.Item>
 
-        <Form.Item className="mb-0">
+        <Form.Item className="mb-0" htmlFor="null">
           <label className="mb-1 block">
             <div className="flex w-full items-center justify-between gap-4">
               <div className="max-w-full grow truncate line-through">{t("workflow_node.notify.form.channel.label")}</div>
@@ -224,7 +224,7 @@ const NotifyNodeConfigForm = forwardRef<NotifyNodeConfigFormInstance, NotifyNode
           />
         </Form.Item>
 
-        <Form.Item className="mb-0">
+        <Form.Item className="mb-0" htmlFor="null">
           <label className="mb-1 block">
             <div className="flex w-full items-center justify-between gap-4">
               <div className="max-w-full grow truncate">
@@ -260,13 +260,14 @@ const NotifyNodeConfigForm = forwardRef<NotifyNodeConfigFormInstance, NotifyNode
                 return !!provider?.usages?.includes(ACCESS_USAGES.NOTIFICATION);
               }}
               placeholder={t("workflow_node.notify.form.provider_access.placeholder")}
+              showSearch
               onChange={handleProviderAccessSelect}
             />
           </Form.Item>
         </Form.Item>
 
         <Show when={!!nestedFormEl}>
-          <Divider className="my-1">
+          <Divider size="small">
             <Typography.Text className="text-xs font-normal" type="secondary">
               {t("workflow_node.notify.form.params_config.label")}
             </Typography.Text>

@@ -1,7 +1,7 @@
 import { forwardRef, memo, useEffect, useImperativeHandle, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PlusOutlined as PlusOutlinedIcon, QuestionCircleOutlined as QuestionCircleOutlinedIcon } from "@ant-design/icons";
-import { Alert, Button, Divider, Flex, Form, type FormInstance, Select, Switch, Tooltip, Typography } from "antd";
+import { Button, Divider, Flex, Form, type FormInstance, Select, Switch, Tooltip, Typography } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
@@ -391,7 +391,9 @@ const DeployNodeConfigForm = forwardRef<DeployNodeConfigFormInstance, DeployNode
         <Form className={className} style={style} {...formProps} disabled={disabled} layout="vertical" scrollToFirstError onValuesChange={handleFormChange}>
           <Show
             when={!!fieldProvider}
-            fallback={<DeploymentProviderPicker autoFocus placeholder={t("workflow_node.deploy.search.provider.placeholder")} onSelect={handleProviderPick} />}
+            fallback={
+              <DeploymentProviderPicker autoFocus placeholder={t("workflow_node.deploy.form.provider.search.placeholder")} onSelect={handleProviderPick} />
+            }
           >
             <Form.Item name="provider" label={t("workflow_node.deploy.form.provider.label")} rules={[formRule]}>
               <DeploymentProviderSelect
@@ -404,7 +406,7 @@ const DeployNodeConfigForm = forwardRef<DeployNodeConfigFormInstance, DeployNode
               />
             </Form.Item>
 
-            <Form.Item className="mb-0" hidden={!showProviderAccess}>
+            <Form.Item className="mb-0" htmlFor="null" hidden={!showProviderAccess}>
               <label className="mb-1 block">
                 <div className="flex w-full items-center justify-between gap-4">
                   <div className="max-w-full grow truncate">
@@ -446,18 +448,10 @@ const DeployNodeConfigForm = forwardRef<DeployNodeConfigFormInstance, DeployNode
                     return !!provider?.usages?.includes(ACCESS_USAGES.HOSTING);
                   }}
                   placeholder={t("workflow_node.deploy.form.provider_access.placeholder")}
+                  showSearch
                 />
               </Form.Item>
             </Form.Item>
-
-            <Show when={fieldProvider === DEPLOYMENT_PROVIDERS.LOCAL}>
-              <Form.Item>
-                <Alert
-                  type="info"
-                  message={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.provider_access.guide_for_local") }}></span>}
-                />
-              </Form.Item>
-            </Show>
 
             <Form.Item
               name="certificate"
@@ -484,7 +478,7 @@ const DeployNodeConfigForm = forwardRef<DeployNodeConfigFormInstance, DeployNode
         </Form>
 
         <Show when={!!nestedFormEl}>
-          <Divider className="my-1">
+          <Divider size="small">
             <Typography.Text className="text-xs font-normal" type="secondary">
               {t("workflow_node.deploy.form.params_config.label")}
             </Typography.Text>
@@ -494,7 +488,7 @@ const DeployNodeConfigForm = forwardRef<DeployNodeConfigFormInstance, DeployNode
         </Show>
 
         <Show when={!!fieldProvider}>
-          <Divider className="my-1">
+          <Divider size="small">
             <Typography.Text className="text-xs font-normal" type="secondary">
               {t("workflow_node.deploy.form.strategy_config.label")}
             </Typography.Text>

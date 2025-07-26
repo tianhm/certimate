@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { IconArrowBackUp, IconDots, IconPlayerPlay } from "@tabler/icons-react";
 import { Alert, App, Button, Card, Dropdown, Space } from "antd";
@@ -10,7 +10,7 @@ import WorkflowElementsContainer from "@/components/workflow/WorkflowElementsCon
 import { isAllNodesValidated } from "@/domain/workflow";
 import { WORKFLOW_RUN_STATUSES } from "@/domain/workflowRun";
 import { useZustandShallowSelector } from "@/hooks";
-import { subscribe as subscribeWorkflow, unsubscribe as unsubscribeWorkflow } from "@/repository/workflow";
+import { subscribe as subscribeWorkflow } from "@/repository/workflow";
 import { useWorkflowStore } from "@/stores/workflow";
 import { getErrMsg } from "@/utils/error";
 
@@ -19,30 +19,32 @@ const WorkflowDetailDesign = () => {
 
   const { message, modal, notification } = App.useApp();
 
-  const { workflow, ...workflowState } = useWorkflowStore(useZustandShallowSelector(["workflow", "publish", "rollback"]));
+  const { workflow, ...workflowState } = useWorkflowStore(useZustandShallowSelector(["workflow", "init", "publish", "rollback"]));
 
   const [isPendingOrRunning, setIsPendingOrRunning] = useState(false);
-  const lastRunStatus = useMemo(() => workflow.lastRunStatus, [workflow]);
-
   const [allowRollback, setAllowRollback] = useState(false);
   const [allowPublish, setAllowPublish] = useState(false);
   const [allowRun, setAllowRun] = useState(false);
 
   useEffect(() => {
-    setIsPendingOrRunning(lastRunStatus == WORKFLOW_RUN_STATUSES.PENDING || lastRunStatus == WORKFLOW_RUN_STATUSES.RUNNING);
-  }, [lastRunStatus]);
+    const pending = workflow.lastRunStatus === WORKFLOW_RUN_STATUSES.PENDING || workflow.lastRunStatus === WORKFLOW_RUN_STATUSES.RUNNING;
+    setIsPendingOrRunning(pending);
+  }, [workflow]);
 
   useEffect(() => {
     if (isPendingOrRunning) {
+      let unsubscribeFn: Awaited<ReturnType<typeof subscribeWorkflow>> | undefined = undefined;
       subscribeWorkflow(workflow.id, (cb) => {
         if (cb.record.lastRunStatus !== WORKFLOW_RUN_STATUSES.PENDING && cb.record.lastRunStatus !== WORKFLOW_RUN_STATUSES.RUNNING) {
           setIsPendingOrRunning(false);
-          unsubscribeWorkflow(workflow.id);
+          unsubscribeFn?.();
         }
+      }).then((res) => {
+        unsubscribeFn = res;
       });
 
       return () => {
-        unsubscribeWorkflow(workflow.id);
+        unsubscribeFn?.();
       };
     }
   }, [workflow.id, isPendingOrRunning]);

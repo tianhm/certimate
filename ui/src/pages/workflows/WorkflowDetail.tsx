@@ -36,10 +36,10 @@ const WorkflowDetail = () => {
     ["design", "workflow.detail.design.tab", <IconRobot size="1em" />],
     ["runs", "workflow.detail.runs.tab", <IconHistory size="1em" />],
   ] satisfies [string, string, React.ReactElement][];
-  const [tabValue, setTabValue] = useState(tabs[0][0]);
+  const [tabValue, setTabValue] = useState<string>();
   useEffect(() => {
     const subpath = location.pathname.split("/")[3];
-    if (!tabs.map((tab) => tab[0]).includes(subpath)) {
+    if (!subpath) {
       navigate(`/workflows/${workflowId}/${tabs[0][0]}`, { replace: true });
       return;
     }
@@ -50,6 +50,8 @@ const WorkflowDetail = () => {
   const handleTabChange = (value: string) => {
     setTabValue(value);
     navigate(`/workflows/${workflowId}/${value}`);
+
+    workflowState.init(workflow.id); // reload state
   };
 
   const handleEnableClick = async () => {

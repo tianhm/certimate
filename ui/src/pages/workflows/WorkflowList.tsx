@@ -108,8 +108,8 @@ const WorkflowList = () => {
         } else {
           return (
             <Flex gap="small">
-              <WorkflowStatusIcon color={true} size="1.25em" status={lastRunStatus!} />
-              <Typography.Text>{lastRunTime ? dayjs(record.lastRunTime!).format("YYYY-MM-DD HH:mm:ss") : ""}</Typography.Text>
+              <WorkflowStatusIcon color={true} size="1.25em" status={lastRunStatus} />
+              <Typography.Text>{lastRunTime ? dayjs(lastRunTime).format("YYYY-MM-DD HH:mm:ss") : ""}</Typography.Text>
             </Flex>
           );
         }
@@ -231,6 +231,7 @@ const WorkflowList = () => {
         sort: sort,
         page: page,
         perPage: pageSize,
+        expand: true,
       });
     },
     {

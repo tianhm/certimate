@@ -1,17 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
-import { IconChevronDown, IconHistory, IconRobot, IconTrash } from "@tabler/icons-react";
-import { App, Button, Dropdown, Flex, Form, Input, Segmented, Skeleton } from "antd";
-import { createSchemaFieldRule } from "antd-zod";
-import { z } from "zod";
+import { IconEdit, IconHistory, IconRobot } from "@tabler/icons-react";
+import { App, Button, Input, type InputRef, Segmented, Skeleton } from "antd";
 
-import ModalForm from "@/components/ModalForm";
 import Show from "@/components/Show";
-import { isAllNodesValidated } from "@/domain/workflow";
-import { useAntdForm, useZustandShallowSelector } from "@/hooks";
-import { remove as removeWorkflow } from "@/repository/workflow";
+import { useZustandShallowSelector } from "@/hooks";
 import { useWorkflowStore } from "@/stores/workflow";
+import { mergeCls } from "@/utils/css";
 import { getErrMsg } from "@/utils/error";
 
 const WorkflowDetail = () => {
@@ -20,10 +16,8 @@ const WorkflowDetail = () => {
 
   const { t } = useTranslation();
 
-  const { message, modal, notification } = App.useApp();
-
   const { id: workflowId } = useParams();
-  const { workflow, initialized, ...workflowState } = useWorkflowStore(useZustandShallowSelector(["workflow", "initialized", "init", "destroy", "setEnabled"]));
+  const { workflow, initialized, ...workflowState } = useWorkflowStore(useZustandShallowSelector(["workflow", "initialized", "init", "destroy"]));
   useEffect(() => {
     workflowState.init(workflowId!);
 
@@ -54,86 +48,12 @@ const WorkflowDetail = () => {
     workflowState.init(workflow.id); // reload state
   };
 
-  const handleEnableClick = async () => {
-    if (!workflow.enabled && (!workflow.content || !isAllNodesValidated(workflow.content))) {
-      message.warning(t("workflow.action.enable.errmsg.uncompleted"));
-      return;
-    }
-
-    try {
-      await workflowState.setEnabled(!workflow.enabled);
-    } catch (err) {
-      console.error(err);
-      notification.error({ message: t("common.text.request_error"), description: getErrMsg(err) });
-    }
-  };
-
-  const handleDeleteClick = () => {
-    modal.confirm({
-      title: <span className="text-error">{t("workflow.action.delete.modal.title", { name: workflow.name })}</span>,
-      content: <span dangerouslySetInnerHTML={{ __html: t("workflow.action.delete.modal.content") }} />,
-      icon: (
-        <span className="anticon" role="img">
-          <IconTrash className="text-error" size="1em" />
-        </span>
-      ),
-      okText: t("common.button.confirm"),
-      okButtonProps: { danger: true },
-      onOk: async () => {
-        try {
-          const resp = await removeWorkflow(workflow);
-          if (resp) {
-            navigate("/workflows", { replace: true });
-          }
-        } catch (err) {
-          console.error(err);
-          notification.error({ message: t("common.text.request_error"), description: getErrMsg(err) });
-        }
-      },
-    });
-  };
-
   return (
     <div className="flex size-full flex-col">
       <div className="px-6 py-4">
         <div className="relative mx-auto max-w-320">
-          <div className="flex justify-between gap-2">
-            <div>
-              <h1>{workflow.name || "\u00A0"}</h1>
-              <p className="mb-0 text-base text-gray-500">{workflow.description || "\u00A0"}</p>
-            </div>
-            <Flex className="my-2" gap="small">
-              {initialized
-                ? [
-                    <WorkflowBaseInfoModal key="edit" trigger={<Button>{t("common.button.edit")}</Button>} />,
-                    <Button key="enable" onClick={handleEnableClick}>
-                      {workflow.enabled ? t("workflow.action.disable.button") : t("workflow.action.enable.button")}
-                    </Button>,
-                    <Dropdown
-                      key="more"
-                      menu={{
-                        items: [
-                          {
-                            key: "delete",
-                            label: t("workflow.action.delete.button"),
-                            danger: true,
-                            icon: <IconTrash size="1.25em" />,
-                            onClick: () => {
-                              handleDeleteClick();
-                            },
-                          },
-                        ],
-                      }}
-                      trigger={["click"]}
-                    >
-                      <Button icon={<IconChevronDown size="1.25em" />} iconPosition="end">
-                        {t("common.button.more")}
-                      </Button>
-                    </Dropdown>,
-                  ]
-                : []}
-            </Flex>
-          </div>
+          <WorkflowDetailBaseName />
+          <WorkflowDetailBaseDescription />
 
           <div className="absolute -bottom-12 left-1/2 z-1 -translate-x-1/2">
             <Segmented
@@ -149,7 +69,7 @@ const WorkflowDetail = () => {
               }))}
               size="large"
               value={tabValue}
-              defaultValue="orchestration"
+              defaultValue="design"
               onChange={handleTabChange}
             />
           </div>
@@ -172,69 +92,156 @@ const WorkflowDetail = () => {
   );
 };
 
-const WorkflowBaseInfoModal = ({ trigger }: { trigger?: React.ReactNode }) => {
+const WorkflowDetailBaseName = () => {
   const { t } = useTranslation();
 
   const { notification } = App.useApp();
 
-  const { workflow, ...workflowState } = useWorkflowStore(useZustandShallowSelector(["workflow", "setBaseInfo"]));
+  const { workflow, setBaseInfo: setWorkflowBaseInfo } = useWorkflowStore(useZustandShallowSelector(["workflow", "setBaseInfo"]));
 
-  const formSchema = z.object({
-    name: z
-      .string(t("workflow.detail.baseinfo.form.name.placeholder"))
-      .min(1, t("workflow.detail.baseinfo.form.name.placeholder"))
-      .max(64, t("common.errmsg.string_max", { max: 64 })),
-    description: z
-      .string(t("workflow.detail.baseinfo.form.description.placeholder"))
-      .max(256, t("common.errmsg.string_max", { max: 256 }))
-      .nullish(),
-  });
-  const formRule = createSchemaFieldRule(formSchema);
-  const {
-    form: formInst,
-    formPending,
-    formProps,
-    submit: submitForm,
-  } = useAntdForm<z.infer<typeof formSchema>>({
-    initialValues: { name: workflow.name, description: workflow.description },
-    onSubmit: async (values) => {
-      try {
-        await workflowState.setBaseInfo(values.name!, values.description!);
-      } catch (err) {
-        notification.error({ message: t("common.text.request_error"), description: getErrMsg(err) });
+  const inputRef = useRef<InputRef>(null);
 
-        throw err;
-      }
-    },
-  });
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState("");
 
-  const handleFormFinish = async () => {
-    return submitForm();
+  useEffect(() => {
+    setEditing(false);
+  }, [workflow.id]);
+
+  const handleEditClick = () => {
+    setEditing(true);
+    setValue(workflow.name);
+    setTimeout(() => {
+      inputRef.current?.focus({ cursor: "all" });
+    }, 0);
+  };
+
+  const handleValueChange = (value: string) => {
+    setValue(value);
+  };
+
+  const handleValueConfirm = async (value: string) => {
+    value = value.trim();
+    if (value === (workflow.name || "")) {
+      setEditing(false);
+      return;
+    }
+
+    setEditing(false);
+
+    try {
+      await setWorkflowBaseInfo(value, workflow.description!);
+    } catch (err) {
+      notification.error({ message: t("common.text.request_error"), description: getErrMsg(err) });
+
+      throw err;
+    }
   };
 
   return (
-    <>
-      <ModalForm
-        disabled={formPending}
-        layout="vertical"
-        form={formInst}
-        modalProps={{ destroyOnHidden: true }}
-        okText={t("common.button.save")}
-        title={t(`workflow.detail.baseinfo.modal.title`)}
-        trigger={trigger}
-        width={480}
-        {...formProps}
-        onFinish={handleFormFinish}
+    <div className="group relative flex items-center gap-1">
+      <h1
+        className={mergeCls({
+          invisible: editing,
+        })}
       >
-        <Form.Item name="name" label={t("workflow.detail.baseinfo.form.name.label")} rules={[formRule]}>
-          <Input placeholder={t("workflow.detail.baseinfo.form.name.placeholder")} />
-        </Form.Item>
+        {workflow.name || "\u00A0"}
+      </h1>
+      <Button
+        className={mergeCls("mb-2 opacity-0 transition-opacity group-hover:opacity-100", {
+          invisible: editing,
+        })}
+        icon={<IconEdit size="1.25em" stroke="1.25" />}
+        type="text"
+        onClick={handleEditClick}
+      />
+      <Input
+        className={mergeCls("absolute top-0 left-0", editing ? "block" : "hidden")}
+        ref={inputRef}
+        size="large"
+        value={value}
+        variant="filled"
+        onBlur={(e) => handleValueConfirm(e.target.value)}
+        onChange={(e) => handleValueChange(e.target.value)}
+        onPressEnter={(e) => e.currentTarget.blur()}
+      />
+    </div>
+  );
+};
 
-        <Form.Item name="description" label={t("workflow.detail.baseinfo.form.description.label")} rules={[formRule]}>
-          <Input placeholder={t("workflow.detail.baseinfo.form.description.placeholder")} />
-        </Form.Item>
-      </ModalForm>
-    </>
+const WorkflowDetailBaseDescription = () => {
+  const { t } = useTranslation();
+
+  const { notification } = App.useApp();
+
+  const { workflow, setBaseInfo: setWorkflowBaseInfo } = useWorkflowStore(useZustandShallowSelector(["workflow", "setBaseInfo"]));
+
+  const inputRef = useRef<InputRef>(null);
+
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState("");
+
+  useEffect(() => {
+    setEditing(false);
+  }, [workflow.id]);
+
+  const handleEditClick = () => {
+    setEditing(true);
+    setValue(workflow.description || "");
+    setTimeout(() => {
+      inputRef.current?.focus({ cursor: "all" });
+    }, 0);
+  };
+
+  const handleValueChange = (value: string) => {
+    setValue(value);
+  };
+
+  const handleValueConfirm = async (value: string) => {
+    value = value.trim();
+    if (value === (workflow.description || "")) {
+      setEditing(false);
+      return;
+    }
+
+    setEditing(false);
+
+    try {
+      await setWorkflowBaseInfo(workflow.name!, value);
+    } catch (err) {
+      notification.error({ message: t("common.text.request_error"), description: getErrMsg(err) });
+
+      throw err;
+    }
+  };
+
+  return (
+    <div className="group relative flex items-center gap-1">
+      <p
+        className={mergeCls("text-base text-gray-500", {
+          invisible: editing,
+        })}
+      >
+        {workflow.description || "\u00A0"}
+      </p>
+      <Button
+        className={mergeCls("mb-4 opacity-0 transition-opacity group-hover:opacity-100", {
+          invisible: editing,
+        })}
+        icon={<IconEdit size="1.25em" stroke="1.25" />}
+        type="text"
+        onClick={handleEditClick}
+      />
+      <Input
+        className={mergeCls("absolute top-0 left-0", editing ? "block" : "hidden")}
+        ref={inputRef}
+        value={value}
+        variant="filled"
+        onBlur={(e) => handleValueConfirm(e.target.value)}
+        onChange={(e) => handleValueChange(e.target.value)}
+        onPressEnter={(e) => e.currentTarget.blur()}
+      />
+    </div>
   );
 };
 

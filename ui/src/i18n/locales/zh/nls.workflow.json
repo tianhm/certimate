@@ -56,7 +56,7 @@
   "workflow.new.templates.template.empty.title": "空白模板",
   "workflow.new.templates.template.empty.description": "从零开始自定义工作流的任务内容。",
   "workflow.new.templates.default_name": "未命名工作流",
-  "workflow.new.templates.default_description": "于 {{date}} 创建",
+  "workflow.new.templates.default_description": "创建于 {{date}}",
 
   "workflow.detail.baseinfo.modal.title": "编辑基本信息",
   "workflow.detail.baseinfo.form.name.label": "名称",

@@ -147,6 +147,7 @@ func createSSLDeployerProvider(options *deployerProviderOptions) (core.SSLDeploy
 					ApiVersion:               access.ApiVersion,
 					ApiKey:                   access.ApiKey,
 					AllowInsecureConnections: access.AllowInsecureConnections,
+					NodeName:                 xmaps.GetString(options.ProviderServiceConfig, "nodeName"),
 					ResourceType:             p1PanelSite.ResourceType(xmaps.GetOrDefaultString(options.ProviderServiceConfig, "resourceType", string(p1PanelSite.RESOURCE_TYPE_WEBSITE))),
 					WebsiteId:                xmaps.GetInt64(options.ProviderServiceConfig, "websiteId"),
 					CertificateId:            xmaps.GetInt64(options.ProviderServiceConfig, "certificateId"),

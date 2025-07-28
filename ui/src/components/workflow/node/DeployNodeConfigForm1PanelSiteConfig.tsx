@@ -6,6 +6,7 @@ import { z } from "zod";
 import Show from "@/components/Show";
 
 type DeployNodeConfigForm1PanelSiteConfigFieldValues = Nullish<{
+  nodeName?: string;
   resourceType: string;
   websiteId?: string | number;
   certificateId?: string | number;
@@ -38,6 +39,7 @@ const DeployNodeConfigForm1PanelSiteConfig = ({
   const { t } = useTranslation();
 
   const formSchema = z.object({
+    nodeName: z.string().nullish(),
     resourceType: z.literal([RESOURCE_TYPE_WEBSITE, RESOURCE_TYPE_CERTIFICATE], t("workflow_node.deploy.form.1panel_site_resource_type.placeholder")),
     websiteId: z
       .union([z.string(), z.number().int()])
@@ -71,6 +73,15 @@ const DeployNodeConfigForm1PanelSiteConfig = ({
       name={formName}
       onValuesChange={handleFormChange}
     >
+      <Form.Item
+        name="nodeName"
+        label={t("workflow_node.deploy.form.1panel_site_node_name.label")}
+        rules={[formRule]}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.1panel_site_node_name.tooltip") }}></span>}
+      >
+        <Input allowClear placeholder={t("workflow_node.deploy.form.1panel_site_node_name.placeholder")} />
+      </Form.Item>
+
       <Form.Item name="resourceType" label={t("workflow_node.deploy.form.1panel_site_resource_type.label")} rules={[formRule]}>
         <Select placeholder={t("workflow_node.deploy.form.1panel_site_resource_type.placeholder")}>
           <Select.Option key={RESOURCE_TYPE_WEBSITE} value={RESOURCE_TYPE_WEBSITE}>

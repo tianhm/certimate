@@ -24,6 +24,9 @@ type SSLDeployerProviderConfig struct {
 	ApiKey string `json:"apiKey"`
 	// 是否允许不安全的连接。
 	AllowInsecureConnections bool `json:"allowInsecureConnections,omitempty"`
+	// 子节点名称。
+	// 选填。
+	NodeName string `json:"nodeName,omitempty"`
 	// 部署资源类型。
 	ResourceType ResourceType `json:"resourceType"`
 	// 网站 ID。
@@ -48,7 +51,7 @@ func NewSSLDeployerProvider(config *SSLDeployerProviderConfig) (*SSLDeployerProv
 		return nil, errors.New("the configuration of the ssl deployer provider is nil")
 	}
 
-	client, err := createSDKClient(config.ServerUrl, config.ApiVersion, config.ApiKey, config.AllowInsecureConnections)
+	client, err := createSDKClient(config.ServerUrl, config.ApiVersion, config.ApiKey, config.AllowInsecureConnections, config.NodeName)
 	if err != nil {
 		return nil, fmt.Errorf("could not create sdk client: %w", err)
 	}
@@ -244,7 +247,7 @@ const (
 	sdkVersionV2 = "v2"
 )
 
-func createSDKClient(serverUrl, apiVersion, apiKey string, skipTlsVerify bool) (any, error) {
+func createSDKClient(serverUrl, apiVersion, apiKey string, skipTlsVerify bool, nodeName string) (any, error) {
 	if apiVersion == sdkVersionV1 {
 		client, err := onepanelsdk.NewClient(serverUrl, apiKey)
 		if err != nil {
@@ -257,9 +260,19 @@ func createSDKClient(serverUrl, apiVersion, apiKey string, skipTlsVerify bool) (
 
 		return client, nil
 	} else if apiVersion == sdkVersionV2 {
-		client, err := onepanelsdkv2.NewClient(serverUrl, apiKey)
-		if err != nil {
-			return nil, err
+		var client *onepanelsdkv2.Client
+		if nodeName == "" {
+			temp, err := onepanelsdkv2.NewClient(serverUrl, apiKey)
+			if err != nil {
+				return nil, err
+			}
+			client = temp
+		} else {
+			temp, err := onepanelsdkv2.NewClientWithNode(serverUrl, apiKey, nodeName)
+			if err != nil {
+				return nil, err
+			}
+			client = temp
 		}
 
 		if skipTlsVerify {

@@ -47,6 +47,20 @@ func NewClient(serverUrl, apiKey string) (*Client, error) {
 	return &Client{client}, nil
 }
 
+func NewClientWithNode(serverUrl, apiKey, node string) (*Client, error) {
+	client, err := NewClient(serverUrl, apiKey)
+	if err != nil {
+		return nil, err
+	}
+
+	if node == "" {
+		node = "local"
+	}
+	client.client.SetHeader("CurrentNode", node)
+
+	return client, nil
+}
+
 func (c *Client) SetTimeout(timeout time.Duration) *Client {
 	c.client.SetTimeout(timeout)
 	return c

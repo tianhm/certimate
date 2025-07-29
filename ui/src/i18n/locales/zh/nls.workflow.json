@@ -28,7 +28,7 @@
   "workflow.action.rollback.button": "回退更改",
   "workflow.action.rollback.modal.title": "回退更改",
   "workflow.action.rollback.modal.content": "确定要回退到最近一次发布的版本吗？",
-  "workflow.action.run.button": "执行",
+  "workflow.action.run.button": "立即执行",
   "workflow.action.run.modal.title": "执行工作流",
   "workflow.action.run.modal.content": "你有尚未发布的更改。确定要以最近一次发布的版本继续执行吗？",
   "workflow.action.run.prompt": "执行中……请稍后查看执行历史",
@@ -39,7 +39,7 @@
   "workflow.props.trigger.scheduled": "定时",
   "workflow.props.trigger.manual": "手动",
   "workflow.props.last_run_at": "最近执行时间",
-  "workflow.props.state": "启用",
+  "workflow.props.state": "是否启用",
   "workflow.props.state.filter.all": "全部",
   "workflow.props.state.filter.enabled": "启用",
   "workflow.props.state.filter.disabled": "未启用",
@@ -58,12 +58,10 @@
   "workflow.new.templates.default_name": "未命名工作流",
   "workflow.new.templates.default_description": "创建于 {{date}}",
 
-  "workflow.detail.baseinfo.modal.title": "编辑基本信息",
-  "workflow.detail.baseinfo.form.name.label": "名称",
-  "workflow.detail.baseinfo.form.name.placeholder": "请输入工作流名称",
-  "workflow.detail.baseinfo.form.description.label": "描述（可选）",
-  "workflow.detail.baseinfo.form.description.placeholder": "请输入工作流描述",
+  "workflow.detail.baseinfo.name.placeholder": "请输入工作流名称",
+  "workflow.detail.baseinfo.description.placeholder": "请输入工作流描述",
   "workflow.detail.design.tab": "流程编排",
+  "workflow.detail.design_legacy.tab": "旧版编辑器",
   "workflow.detail.design.draft.alert": "当前编排有未发布的更改。",
   "workflow.detail.runs.tab": "执行历史"
 }

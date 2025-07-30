@@ -274,7 +274,7 @@ const WorkflowDetailRuns = () => {
   };
 
   return (
-    <div className="mx-auto max-w-320">
+    <div className="container">
       <div className="pt-9">
         <Alert className="mb-4" message={<span dangerouslySetInnerHTML={{ __html: t("workflow_run.deletion.alert") }}></span>} showIcon type="info" />
         <Alert className="mb-4" message={<span dangerouslySetInnerHTML={{ __html: t("workflow_run.cancellation.alert") }}></span>} showIcon type="info" />

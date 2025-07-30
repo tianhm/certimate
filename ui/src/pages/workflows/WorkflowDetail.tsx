@@ -93,7 +93,7 @@ const WorkflowDetail = () => {
   return (
     <div className="flex size-full flex-col">
       <div className="px-6 py-4" ref={divHeaderRef}>
-        <div className="relative z-11 mx-auto flex max-w-320 justify-between gap-4">
+        <div className="relative z-11 container flex justify-between gap-4">
           <div className="flex-1">
             <WorkflowDetailBaseName />
             <WorkflowDetailBaseDescription />
@@ -135,7 +135,7 @@ const WorkflowDetail = () => {
         <Show
           when={initialized}
           fallback={
-            <div className="mx-auto max-w-320 pt-12">
+            <div className="container pt-12">
               <Skeleton active />
             </div>
           }

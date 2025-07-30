@@ -39,9 +39,11 @@ const Dashboard = () => {
 
   return (
     <div className="px-6 py-4">
-      <div className="mx-auto max-w-320">
+      <div className="container">
         <h1>{t("dashboard.page.title")}</h1>
+      </div>
 
+      <div className="container">
         <div className="my-[6px]">
           <StatisticCards />
         </div>

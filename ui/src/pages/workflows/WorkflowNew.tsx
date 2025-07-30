@@ -72,12 +72,12 @@ const WorkflowNew = () => {
 
   return (
     <div className="px-6 py-4">
-      <div className="mx-auto max-w-320">
+      <div className="container">
         <h1>{t("workflow.new.title")}</h1>
         <p className="text-base text-gray-500">{t("workflow.new.subtitle")}</p>
       </div>
 
-      <div className="mx-auto max-w-320">
+      <div className="container">
         <Typography.Text type="secondary">
           <div className="mb-4 text-xl">{t("workflow.new.templates.title")}</div>
         </Typography.Text>

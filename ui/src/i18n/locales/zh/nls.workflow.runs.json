@@ -10,7 +10,7 @@
   "workflow_run.deletion.alert": "执行记录中包含工作流各节点的执行结果，删除后可能导致因找不到前次执行结果而触发重新申请或部署证书。如无必要请勿提前删除，建议保留至少 180 天。",
   "workflow_run.cancellation.alert": "如遇进程意外中止、服务器超时等原因，你可以手动取消长时间挂起的执行，避免阻塞后续执行。",
 
-  "workflow_run.nodata.description": "当前未找到任何执行记录。请先运行此工作流。",
+  "workflow_run.nodata.description": "当前未找到任何执行记录。请先执行此工作流。",
 
   "workflow_run.props.id": "ID",
   "workflow_run.props.status": "状态",

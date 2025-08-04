@@ -99,7 +99,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	deployCertificateInstanceReq.CertificateId = common.StringPtr(upres.CertId)
 	deployCertificateInstanceReq.ResourceType = common.StringPtr("cos")
 	deployCertificateInstanceReq.Status = common.Int64Ptr(1)
-	deployCertificateInstanceReq.InstanceIdList = common.StringPtrs([]string{fmt.Sprintf("%s#%s#%s", d.config.Region, d.config.Bucket, d.config.Domain)})
+	deployCertificateInstanceReq.InstanceIdList = common.StringPtrs([]string{fmt.Sprintf("%s|%s|%s", d.config.Region, d.config.Bucket, d.config.Domain)})
 	deployCertificateInstanceResp, err := d.sdkClient.SSL.DeployCertificateInstance(deployCertificateInstanceReq)
 	d.logger.Debug("sdk request 'ssl.DeployCertificateInstance'", slog.Any("request", deployCertificateInstanceReq), slog.Any("response", deployCertificateInstanceResp))
 	if err != nil {

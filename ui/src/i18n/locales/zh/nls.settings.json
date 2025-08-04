@@ -56,8 +56,8 @@
 
   "settings.persistence.tab": "数据持久化",
   "settings.persistence.title": "定期清理数据",
-  "settings.persistence.form.workflow_runs_max_days.label": "工作流执行历史保留天数",
-  "settings.persistence.form.workflow_runs_max_days.placeholder": "请输入执行历史保留天数",
+  "settings.persistence.form.workflow_runs_max_days.label": "工作流运行历史保留天数",
+  "settings.persistence.form.workflow_runs_max_days.placeholder": "请输入运行历史保留天数",
   "settings.persistence.form.workflow_runs_max_days.unit": "天",
   "settings.persistence.form.workflow_runs_max_days.extra": "设置为 <b>0</b> 表示永久保留，不会自动清理。建议设置为 <b>180</b> 天以上。",
   "settings.persistence.form.expired_certificates_max_days.label": "证书过期后保留天数",

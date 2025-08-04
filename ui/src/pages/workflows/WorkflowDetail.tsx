@@ -3,10 +3,11 @@ import { useTranslation } from "react-i18next";
 import { Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
 import { IconEdit, IconHistory, IconPlayerPlay, IconRobot } from "@tabler/icons-react";
 import { useSize } from "ahooks";
-import { App, Button, Input, type InputRef, Segmented, Skeleton, Space } from "antd";
+import { App, Button, Input, type InputRef, Segmented, Skeleton } from "antd";
 
 import { startRun as startWorkflowRun } from "@/api/workflows";
 import Show from "@/components/Show";
+import { isAllNodesValidated } from "@/domain/workflow";
 import { WORKFLOW_RUN_STATUSES } from "@/domain/workflowRun";
 import { useZustandShallowSelector } from "@/hooks";
 import { useWorkflowStore } from "@/stores/workflow";
@@ -19,10 +20,10 @@ const WorkflowDetail = () => {
 
   const { t } = useTranslation();
 
-  const { message, modal } = App.useApp();
+  const { message, modal, notification } = App.useApp();
 
   const { id: workflowId } = useParams();
-  const { workflow, initialized, ...workflowState } = useWorkflowStore(useZustandShallowSelector(["workflow", "initialized", "init", "destroy"]));
+  const { workflow, initialized, ...workflowState } = useWorkflowStore(useZustandShallowSelector(["workflow", "initialized", "init", "destroy", "setEnabled"]));
   useEffect(() => {
     workflowState.init(workflowId!);
 
@@ -35,6 +36,7 @@ const WorkflowDetail = () => {
   const divHeaderSize = useSize(divHeaderRef);
 
   const tabs = [
+    ["design-legacy", "workflow.detail.design_legacy.tab", <IconRobot size="1em" />], // TODO: 正式发布时移除
     ["design", "workflow.detail.design.tab", <IconRobot size="1em" />],
     ["runs", "workflow.detail.runs.tab", <IconHistory size="1em" />],
   ] satisfies [string, string, React.ReactElement][];
@@ -90,6 +92,20 @@ const WorkflowDetail = () => {
     });
   };
 
+  const handleActiveClick = async () => {
+    try {
+      if (!workflow.enabled && (!workflow.content || !isAllNodesValidated(workflow.content))) {
+        message.warning(t("workflow.action.enable.errmsg.uncompleted"));
+        return;
+      }
+
+      await workflowState.setEnabled(!workflow.enabled);
+    } catch (err) {
+      console.error(err);
+      notification.error({ message: t("common.text.request_error"), description: getErrMsg(err) });
+    }
+  };
+
   return (
     <div className="flex size-full flex-col">
       <div className="px-6 py-4" ref={divHeaderRef}>
@@ -117,11 +133,14 @@ const WorkflowDetail = () => {
             </div>
           </div>
           <div className="py-2">
-            <Space.Compact>
-              <Button disabled={runButtonDisabled} icon={<IconPlayerPlay size="1.25em" />} loading={runButtonLoading} type="primary" onClick={handleRunClick}>
-                {t("workflow.action.run.button")}
-              </Button>
-            </Space.Compact>
+            <Show when={initialized}>
+              <div className="flex items-center gap-2">
+                <Button onClick={handleActiveClick}>{workflow.enabled ? t("workflow.action.disable.button") : t("workflow.action.enable.button")}</Button>
+                <Button disabled={runButtonDisabled} icon={<IconPlayerPlay size="1.25em" />} loading={runButtonLoading} type="primary" onClick={handleRunClick}>
+                  {t("workflow.action.run.button")}
+                </Button>
+              </div>
+            </Show>
           </div>
         </div>
       </div>
@@ -152,7 +171,7 @@ const WorkflowDetailBaseName = () => {
 
   const { notification } = App.useApp();
 
-  const { workflow, setBaseInfo: setWorkflowBaseInfo } = useWorkflowStore(useZustandShallowSelector(["workflow", "setBaseInfo"]));
+  const { workflow, initialized, setBaseInfo: setWorkflowBaseInfo } = useWorkflowStore(useZustandShallowSelector(["workflow", "initialized", "setBaseInfo"]));
 
   const inputRef = useRef<InputRef>(null);
 
@@ -194,7 +213,7 @@ const WorkflowDetailBaseName = () => {
   };
 
   return (
-    <div className="group relative flex items-center gap-1">
+    <div className="group/input relative flex items-center gap-1">
       <h1
         className={mergeCls("break-all", {
           invisible: editing,
@@ -202,14 +221,16 @@ const WorkflowDetailBaseName = () => {
       >
         {workflow.name || "\u00A0"}
       </h1>
-      <Button
-        className={mergeCls("mb-2 opacity-0 transition-opacity group-hover:opacity-100", {
-          invisible: editing,
-        })}
-        icon={<IconEdit size="1.25em" stroke="1.25" />}
-        type="text"
-        onClick={handleEditClick}
-      />
+      {initialized && (
+        <Button
+          className={mergeCls("mb-2 opacity-0 transition-opacity group-hover/input:opacity-100", {
+            invisible: editing,
+          })}
+          icon={<IconEdit size="1.25em" stroke="1.25" />}
+          type="text"
+          onClick={handleEditClick}
+        />
+      )}
       <Input
         className={mergeCls("absolute top-0 left-0", editing ? "block" : "hidden")}
         ref={inputRef}
@@ -231,7 +252,7 @@ const WorkflowDetailBaseDescription = () => {
 
   const { notification } = App.useApp();
 
-  const { workflow, setBaseInfo: setWorkflowBaseInfo } = useWorkflowStore(useZustandShallowSelector(["workflow", "setBaseInfo"]));
+  const { workflow, initialized, setBaseInfo: setWorkflowBaseInfo } = useWorkflowStore(useZustandShallowSelector(["workflow", "initialized", "setBaseInfo"]));
 
   const inputRef = useRef<InputRef>(null);
 
@@ -273,7 +294,7 @@ const WorkflowDetailBaseDescription = () => {
   };
 
   return (
-    <div className="group relative flex items-center gap-1">
+    <div className="group/input relative flex items-center gap-1">
       <p
         className={mergeCls("text-base text-gray-500", {
           invisible: editing,
@@ -281,14 +302,16 @@ const WorkflowDetailBaseDescription = () => {
       >
         {workflow.description || "\u00A0"}
       </p>
-      <Button
-        className={mergeCls("mb-4 opacity-0 transition-opacity group-hover:opacity-100", {
-          invisible: editing,
-        })}
-        icon={<IconEdit size="1.25em" stroke="1.25" />}
-        type="text"
-        onClick={handleEditClick}
-      />
+      {initialized && (
+        <Button
+          className={mergeCls("mb-4 opacity-0 transition-opacity group-hover/input:opacity-100", {
+            invisible: editing,
+          })}
+          icon={<IconEdit size="1.25em" stroke="1.25" />}
+          type="text"
+          onClick={handleEditClick}
+        />
+      )}
       <Input
         className={mergeCls("absolute top-0 left-0", editing ? "block" : "hidden")}
         ref={inputRef}

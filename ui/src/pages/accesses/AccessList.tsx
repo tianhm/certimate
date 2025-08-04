@@ -143,9 +143,9 @@ const AccessList = () => {
     renderCell(checked, _, index, node) {
       if (!checked) {
         return (
-          <div className="group">
-            <div className="group-hover:hidden">{(page - 1) * pageSize + index + 1}</div>
-            <div className="hidden group-hover:block">{node}</div>
+          <div className="group/selection">
+            <div className="group-hover/selection:hidden">{(page - 1) * pageSize + index + 1}</div>
+            <div className="hidden group-hover/selection:block">{node}</div>
           </div>
         );
       }

@@ -15,6 +15,7 @@ import SettingsPersistence from "@/pages/settings/SettingsPersistence";
 import SettingsSSLProvider from "@/pages/settings/SettingsSSLProvider";
 import WorkflowDetail from "@/pages/workflows/WorkflowDetail";
 import WorkflowDetailDesign from "@/pages/workflows/WorkflowDetailDesign";
+import WorkflowDetailDesignLegacy from "@/pages/workflows/WorkflowDetailDesignLegacy";
 import WorkflowDetailRuns from "@/pages/workflows/WorkflowDetailRuns";
 import WorkflowList from "@/pages/workflows/WorkflowList";
 import WorkflowNew from "@/pages/workflows/WorkflowNew";
@@ -55,6 +56,10 @@ export const router = createHashRouter([
           {
             path: "/workflows/:id/design",
             element: <WorkflowDetailDesign />,
+          },
+          {
+            path: "/workflows/:id/design-legacy",
+            element: <WorkflowDetailDesignLegacy />,
           },
           {
             path: "/workflows/:id/runs",

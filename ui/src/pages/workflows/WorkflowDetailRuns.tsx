@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { IconBrowserShare, IconHistory, IconPlayerPause, IconTrash } from "@tabler/icons-react";
+import { IconBrowserShare, IconDotsVertical, IconHistory, IconPlayerPause, IconTrash } from "@tabler/icons-react";
 import { useRequest } from "ahooks";
-import { Alert, App, Button, Skeleton, Table, type TableProps, Tooltip } from "antd";
+import { Alert, App, Button, Dropdown, Skeleton, Table, type TableProps, Tooltip } from "antd";
 import dayjs from "dayjs";
 import { ClientResponseError } from "pocketbase";
 
@@ -98,53 +98,63 @@ const WorkflowDetailRuns = () => {
       key: "$action",
       align: "end",
       fixed: "right",
-      width: 120,
+      width: 64,
       render: (_, record) => {
-        const allowCancel = record.status === WORKFLOW_RUN_STATUSES.PENDING || record.status === WORKFLOW_RUN_STATUSES.RUNNING;
-        const aloowDelete =
-          record.status === WORKFLOW_RUN_STATUSES.SUCCEEDED ||
-          record.status === WORKFLOW_RUN_STATUSES.FAILED ||
-          record.status === WORKFLOW_RUN_STATUSES.CANCELED;
+        const cancelDisabled = !([WORKFLOW_RUN_STATUSES.PENDING, WORKFLOW_RUN_STATUSES.RUNNING] as string[]).includes(record.status);
+        const deleteDisabled = !cancelDisabled;
 
         return (
-          <div className="flex items-center justify-end">
-            <Tooltip title={t("workflow_run.action.view.button")}>
-              <Button
-                color="primary"
-                icon={<IconBrowserShare size="1.25em" />}
-                variant="text"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleRecordDetailClick(record);
-                }}
-              />
-            </Tooltip>
-            <Tooltip title={t("workflow_run.action.cancel.button")}>
-              <Button
-                color="default"
-                disabled={!allowCancel}
-                icon={<IconPlayerPause size="1.25em" />}
-                variant="text"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleRecordCancelClick(record);
-                }}
-              />
-            </Tooltip>
-            <Tooltip title={t("workflow_run.action.delete.button")}>
-              <Button
-                color="danger"
-                danger
-                disabled={!aloowDelete}
-                icon={<IconTrash size="1.25em" />}
-                variant="text"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleRecordDeleteClick(record);
-                }}
-              />
-            </Tooltip>
-          </div>
+          <Dropdown
+            menu={{
+              items: [
+                {
+                  key: "view",
+                  label: t("workflow_run.action.view.button"),
+                  icon: (
+                    <span className="anticon scale-125">
+                      <IconBrowserShare size="1em" />
+                    </span>
+                  ),
+                  onClick: () => {
+                    handleRecordDetailClick(record);
+                  },
+                },
+                {
+                  key: "cancel",
+                  label: t("workflow_run.action.cancel.button"),
+                  icon: (
+                    <span className="anticon scale-125">
+                      <IconPlayerPause size="1em" />
+                    </span>
+                  ),
+                  disabled: cancelDisabled,
+                  onClick: () => {
+                    handleRecordCancelClick(record);
+                  },
+                },
+                {
+                  type: "divider",
+                },
+                {
+                  key: "delete",
+                  label: t("workflow_run.action.delete.button"),
+                  icon: (
+                    <span className="anticon scale-125">
+                      <IconTrash size="1em" />
+                    </span>
+                  ),
+                  danger: true,
+                  disabled: deleteDisabled,
+                  onClick: () => {
+                    handleRecordDeleteClick(record);
+                  },
+                },
+              ],
+            }}
+            trigger={["click"]}
+          >
+            <Button icon={<IconDotsVertical size="1.25em" />} type="text" />
+          </Dropdown>
         );
       },
       onCell: () => {

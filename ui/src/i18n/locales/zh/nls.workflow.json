@@ -1,6 +1,6 @@
 {
   "workflow.page.title": "工作流",
-  "workflow.page.subtitle": "工作流是自动化流程的节点集合。当满足触发条件时，工作流开始顺序执行各节点以完成复杂的任务。",
+  "workflow.page.subtitle": "工作流是自动化流程的节点集合。当满足触发条件时，工作流开始顺序运行各节点以完成复杂的任务。",
 
   "workflow.nodata.title": "暂无工作流",
   "workflow.nodata.description": "当前未找到工作流。请先创建。",
@@ -28,17 +28,17 @@
   "workflow.action.rollback.button": "回退更改",
   "workflow.action.rollback.modal.title": "回退更改",
   "workflow.action.rollback.modal.content": "确定要回退到最近一次发布的版本吗？",
-  "workflow.action.run.button": "立即执行",
-  "workflow.action.run.modal.title": "执行工作流",
-  "workflow.action.run.modal.content": "你有尚未发布的更改。确定要以最近一次发布的版本继续执行吗？",
-  "workflow.action.run.prompt": "执行中……请稍后查看执行历史",
+  "workflow.action.run.button": "运行",
+  "workflow.action.run.modal.title": "运行工作流",
+  "workflow.action.run.modal.content": "你有尚未发布的更改。确定要以最近一次发布的版本继续运行吗？",
+  "workflow.action.run.prompt": "运行中……请稍后查看运行历史",
 
   "workflow.props.name": "名称",
   "workflow.props.description": "描述",
   "workflow.props.trigger": "触发方式",
   "workflow.props.trigger.scheduled": "定时",
   "workflow.props.trigger.manual": "手动",
-  "workflow.props.last_run_at": "最近执行时间",
+  "workflow.props.last_run_at": "最近运行时间",
   "workflow.props.state": "是否启用",
   "workflow.props.state.filter.all": "全部",
   "workflow.props.state.filter.enabled": "启用",
@@ -60,8 +60,18 @@
 
   "workflow.detail.baseinfo.name.placeholder": "请输入工作流名称",
   "workflow.detail.baseinfo.description.placeholder": "请输入工作流描述",
-  "workflow.detail.design.tab": "流程编排",
-  "workflow.detail.design_legacy.tab": "旧版编辑器",
-  "workflow.detail.design.draft.alert": "当前编排有未发布的更改。",
-  "workflow.detail.runs.tab": "执行历史"
+  "workflow.detail.design_legacy.tab": "流程编排（旧版）",
+  "workflow.detail.design.tab": "流程编排 (TODO)",
+  "workflow.detail.design.toolbar.zoom": "缩放",
+  "workflow.detail.design.toolbar.zoomin": "放大",
+  "workflow.detail.design.toolbar.zoomout": "缩小",
+  "workflow.detail.design.toolbar.auto_fit": "自适应视图",
+  "workflow.detail.design.toolbar.horizontal_layout": "横向布局",
+  "workflow.detail.design.toolbar.vertical_layout": "竖向布局",
+  "workflow.detail.design.toolbar.hand_mode": "触摸模式",
+  "workflow.detail.design.toolbar.pointer_mode": "指针模式",
+  "workflow.detail.design.nodes.placeholder": "请完成配置",
+  "workflow.detail.design.unpublished_draft.alert": "当前编排有未发布的更改。",
+  "workflow.detail.design.unsaved_changes.confirm": "你有尚未保存的更改。确定要关闭面板吗？",
+  "workflow.detail.runs.tab": "运行历史"
 }

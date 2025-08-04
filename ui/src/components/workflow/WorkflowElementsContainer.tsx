@@ -30,15 +30,19 @@ const WorkflowElementsContainer = ({ className, style, disabled }: WorkflowEleme
         </div>
       </div>
 
-      <div className="absolute right-6 bottom-4 z-2">
-        <Card className="rounded-lg p-2 shadow-lg" styles={{ body: { padding: 0 } }}>
-          <div className="flex items-center gap-2">
-            <Button icon={<IconMinus size="1.25em" />} disabled={scale <= MIN_SCALE} onClick={() => setScale((s) => Math.max(MIN_SCALE, s - STEP_SCALE))} />
-            <Typography.Text className="min-w-12 text-center">{Math.round(scale * 100)}%</Typography.Text>
-            <Button icon={<IconPlus size="1.25em" />} disabled={scale >= MAX_SCALE} onClick={() => setScale((s) => Math.min(MAX_SCALE, s + STEP_SCALE))} />
-            <Button icon={<IconMaximize size="1.25em" />} onClick={() => setScale(1)} />
+      <div className="absolute bottom-4 z-2 w-full px-4">
+        <div className="container">
+          <div className="flex justify-end">
+            <Card className="rounded-lg p-2 shadow-lg" styles={{ body: { padding: 0 } }}>
+              <div className="flex items-center gap-2">
+                <Button icon={<IconMinus size="1.25em" />} disabled={scale <= MIN_SCALE} onClick={() => setScale((s) => Math.max(MIN_SCALE, s - STEP_SCALE))} />
+                <Typography.Text className="min-w-12 text-center">{Math.round(scale * 100)}%</Typography.Text>
+                <Button icon={<IconPlus size="1.25em" />} disabled={scale >= MAX_SCALE} onClick={() => setScale((s) => Math.min(MAX_SCALE, s + STEP_SCALE))} />
+                <Button icon={<IconMaximize size="1.25em" />} onClick={() => setScale(1)} />
+              </div>
+            </Card>
           </div>
-        </Card>
+        </div>
       </div>
     </div>
   );

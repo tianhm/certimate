@@ -68,6 +68,7 @@
   "workflow.detail.design.toolbar.auto_fit": "Auto fit view",
   "workflow.detail.design.toolbar.horizontal_layout": "Horizontal Layout",
   "workflow.detail.design.toolbar.vertical_layout": "Vertical Layout",
+  "workflow.detail.design.toolbar.minimap": "Minimap",
   "workflow.detail.design.toolbar.hand_mode": "Hand mode",
   "workflow.detail.design.toolbar.pointer_mode": "Pointer mode",
   "workflow.detail.design.nodes.placeholder": "Please configure",

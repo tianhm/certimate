@@ -8,6 +8,7 @@ import {
   type FlowDocumentJSON,
   FlowTextKey,
 } from "@flowgram.ai/fixed-layout-editor";
+import { createMinimapPlugin } from "@flowgram.ai/minimap-plugin";
 import "@flowgram.ai/fixed-layout-editor/index.css";
 import { useDeepCompareEffect } from "ahooks";
 import { theme } from "antd";
@@ -91,6 +92,13 @@ const Editor = ({ className, style, children, initialData, readonly }: EditorPro
           },
         };
       },
+
+      plugins: () => [
+        createMinimapPlugin({
+          disableLayer: true,
+          enableDisplayAllNodes: true,
+        }),
+      ],
 
       onAllLayersRendered: (ctx) => {
         // 画布初始化后向下滚动一点，露出可能被 Alert 遮挡的部分

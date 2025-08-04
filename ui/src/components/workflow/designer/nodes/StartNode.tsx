@@ -1,6 +1,5 @@
 import { getI18n } from "react-i18next";
 import { IconRocket } from "@tabler/icons-react";
-import { Typography } from "antd";
 
 import { WORKFLOW_TRIGGERS } from "@/domain/workflow";
 

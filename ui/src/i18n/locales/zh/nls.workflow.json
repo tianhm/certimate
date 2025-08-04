@@ -68,6 +68,7 @@
   "workflow.detail.design.toolbar.auto_fit": "自适应视图",
   "workflow.detail.design.toolbar.horizontal_layout": "横向布局",
   "workflow.detail.design.toolbar.vertical_layout": "竖向布局",
+  "workflow.detail.design.toolbar.minimap": "小地图",
   "workflow.detail.design.toolbar.hand_mode": "触摸模式",
   "workflow.detail.design.toolbar.pointer_mode": "指针模式",
   "workflow.detail.design.nodes.placeholder": "请完成配置",

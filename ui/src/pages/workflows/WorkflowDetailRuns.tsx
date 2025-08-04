@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { IconBrowserShare, IconDotsVertical, IconHistory, IconPlayerPause, IconTrash } from "@tabler/icons-react";
 import { useRequest } from "ahooks";
-import { Alert, App, Button, Dropdown, Skeleton, Table, type TableProps, Tooltip } from "antd";
+import { Alert, App, Button, Dropdown, Skeleton, Table, type TableProps } from "antd";
 import dayjs from "dayjs";
 import { ClientResponseError } from "pocketbase";
 

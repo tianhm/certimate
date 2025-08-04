@@ -99,7 +99,7 @@ export const NodeMenuButton = ({ className, style, ...props }: ButtonProps) => {
 
   return playground.config.readonlyOrDisabled ? null : (
     <Dropdown menu={{ items: menuItems }} trigger={["click"]} arrow={false}>
-      <Button className={className} style={style} ghost icon={<IconDotsVertical color="grey" size="1.25em" />} type="text" {...props} />
+      <Button className={className} style={style} icon={<IconDotsVertical color="grey" size="1.25em" />} type="text" {...props} />
     </Dropdown>
   );
 };

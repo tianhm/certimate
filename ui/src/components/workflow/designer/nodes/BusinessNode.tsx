@@ -1,6 +1,6 @@
 import { getI18n } from "react-i18next";
 import { IconCloudUpload, IconContract, IconDeviceDesktopSearch, IconPackage, IconSend } from "@tabler/icons-react";
-import { Avatar, Typography } from "antd";
+import { Avatar } from "antd";
 import { nanoid } from "nanoid";
 
 import { deploymentProvidersMap, notificationProvidersMap } from "@/domain/provider";

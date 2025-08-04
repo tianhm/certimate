@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { EditorState, FlowLayoutDefault, useClientContext, usePlaygroundTools, useRefresh } from "@flowgram.ai/fixed-layout-editor";
-import { IconHandStop, IconLayoutCards, IconMaximize, IconMinus, IconPlus, IconPointer } from "@tabler/icons-react";
+import { IconHandStop, IconLayoutCards, IconMatrix, IconMaximize, IconMinus, IconPlus } from "@tabler/icons-react";
 import { Button, Tooltip } from "antd";
 
 import { mergeCls } from "@/utils/css";
+
+import Minimap from "./Minimap";
 
 export interface ToolbarProps {
   className?: string;
@@ -25,6 +27,8 @@ const Toolbar = ({ className, style }: ToolbarProps) => {
     return () => disposable.dispose();
   }, [playground]);
 
+  const [isMinimapVisible, setIsMinimapVisible] = useState(window.screen.availWidth >= 1024);
+
   const [isMouseFriendly, setIsMouseFriendly] = useState(playground.editorState.is(EditorState.STATE_MOUSE_FRIENDLY_SELECT.id));
 
   const handleToggleLayout = useCallback(() => {
@@ -34,6 +38,10 @@ const Toolbar = ({ className, style }: ToolbarProps) => {
       tools.changeLayout(FlowLayoutDefault.VERTICAL_FIXED_LAYOUT);
     }
   }, [tools.isVertical]);
+
+  const handleToggleMinimap = useCallback(() => {
+    setIsMinimapVisible((prev) => !prev);
+  }, [isMinimapVisible]);
 
   const handleToggleMouseFriendly = useCallback(() => {
     if (isMouseFriendly) {
@@ -47,7 +55,16 @@ const Toolbar = ({ className, style }: ToolbarProps) => {
 
   return (
     <div className={className} style={style}>
-      <div className="flex items-center gap-2">
+      <div className="relative flex items-center gap-2">
+        <Tooltip title={isMouseFriendly ? t("workflow.detail.design.toolbar.hand_mode") : t("workflow.detail.design.toolbar.pointer_mode")}>
+          <Button
+            ghost={isMouseFriendly}
+            icon={<IconHandStop size="1.25em" />}
+            type={isMouseFriendly ? "primary" : "default"}
+            onClick={handleToggleMouseFriendly}
+          />
+        </Tooltip>
+
         <Tooltip title={t("workflow.detail.design.toolbar.zoomout")}>
           <Button icon={<IconMinus size="1.25em" />} onClick={() => tools.zoomout()} />
         </Tooltip>
@@ -67,9 +84,10 @@ const Toolbar = ({ className, style }: ToolbarProps) => {
           <Button icon={<IconLayoutCards className={mergeCls({ ["rotate-90"]: tools.isVertical })} size="1.25em" />} onClick={handleToggleLayout} />
         </Tooltip>
 
-        <Tooltip title={isMouseFriendly ? t("workflow.detail.design.toolbar.hand_mode") : t("workflow.detail.design.toolbar.pointer_mode")}>
-          <Button icon={isMouseFriendly ? <IconHandStop size="1.25em" /> : <IconPointer size="1.25em" />} onClick={handleToggleMouseFriendly} />
+        <Tooltip title={t("workflow.detail.design.toolbar.minimap")}>
+          <Button icon={<IconMatrix size="1.25em" />} ghost={isMinimapVisible} type={isMinimapVisible ? "primary" : "default"} onClick={handleToggleMinimap} />
         </Tooltip>
+        {isMinimapVisible && <Minimap className="absolute right-0 bottom-[42px]" />}
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ export const TryCatchNodeRegistry: NodeRegistry = {
 
   meta: {
     helpText: getI18n().t("workflow_node.try_catch.help"),
+    labelText: getI18n().t("workflow_node.try_catch.label"),
 
     icon: IconArrowsSplit,
     iconColor: "#fff",
@@ -66,10 +67,11 @@ export const CatchBlockNodeRegistry: NodeRegistry = {
   type: NodeType.CatchBlock,
 
   meta: {
+    labelText: getI18n().t("workflow_node.catch_block.label"),
+
     draggable: false,
 
     addDisable: true,
-    copyDisable: true,
   },
 
   formMeta: {

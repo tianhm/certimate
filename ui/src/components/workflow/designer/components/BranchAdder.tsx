@@ -32,7 +32,7 @@ const BranchAdder = ({ node }: BranchAdderProps) => {
           id: nanoid(),
           type: FlowNodeBaseType.BLOCK,
           data: {
-            name: "Branch",
+            name: t("workflow_node.branch_block.default_name"),
           },
         });
         break;

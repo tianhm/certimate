@@ -13,11 +13,14 @@ const Adder = ({ from, hoverActivated }: AdderProps) => {
 
   const menuItems = getFlowNodeRegistries()
     .filter((registry) => {
+      if (registry.meta?.addDisable != null) {
+        return !registry.meta.addDisable;
+      }
+      return true;
+    })
+    .filter((registry) => {
       if (registry.canAdd != null) {
         return registry.canAdd(ctx, from);
-      }
-      if (registry.meta?.addDisable != null) {
-        return registry.meta.addDisable;
       }
       return true;
     })
@@ -26,18 +29,14 @@ const Adder = ({ from, hoverActivated }: AdderProps) => {
 
       return {
         key: registry.type,
-        label: registry.type,
+        label: registry.meta?.labelText ?? registry.type,
         icon: (
           <span className="anticon scale-125">
             <Icon size="1em" />
           </span>
         ),
         onClick: () => {
-          const props = registry.onAdd!(ctx, from);
-          const block = operation.addFromNode(from, {
-            ...props,
-            blocks: props?.blocks ?? [],
-          });
+          const block = operation.addFromNode(from, registry.onAdd!(ctx, from));
 
           setTimeout(() => {
             playground.scrollToView({

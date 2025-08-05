@@ -13,12 +13,14 @@ export const ConditionNodeRegistry: NodeRegistry = {
 
   meta: {
     helpText: getI18n().t("workflow_node.condition.help"),
+    labelText: getI18n().t("workflow_node.condition.label"),
 
     icon: IconSitemap,
     iconColor: "#fff",
     iconBgColor: "#373c43",
 
     expandable: false,
+    deleteDisable: false,
   },
 
   formMeta: {
@@ -64,6 +66,8 @@ export const BranchBlockNodeRegistry: NodeRegistry = {
   extend: FlowNodeBaseType.BLOCK,
 
   meta: {
+    labelText: getI18n().t("workflow_node.branch_block.label"),
+
     addDisable: true,
     copyDisable: true,
   },

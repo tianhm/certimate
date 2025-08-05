@@ -20,4 +20,6 @@ export const getFlowNodeRegistries = () => {
   ];
 };
 
+export { duplicateNodeJSON } from "./_shared";
+
 export type * from "./typings";

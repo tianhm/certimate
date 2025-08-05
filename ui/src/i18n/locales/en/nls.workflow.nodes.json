@@ -996,9 +996,9 @@
   "workflow_node.branch.label": "Parallel/Conditional branch",
   "workflow_node.branch.default_name": "Branch",
 
-  "workflow_node.condition.label": "Branch",
+  "workflow_node.condition.label": "Parallel/Conditional branch",
   "workflow_node.condition.help": "When the specified conditions are met, enter the corresponding branch. The failure of a node in a certain branch does not affect the continuation of parallel branch execution.",
-  "workflow_node.condition.default_name": "Branch",
+  "workflow_node.condition.default_name": "Parallel",
   "workflow_node.condition.default_name.template_certtest_on_expire_soon": "If the certificate will expire soon ...",
   "workflow_node.condition.default_name.template_certtest_on_expired": "If the certificate has expired ...",
   "workflow_node.condition.form.expression.label": "Conditions to enter the branch",

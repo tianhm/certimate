@@ -11,6 +11,7 @@ export const EndNodeRegistry: NodeRegistry = {
 
   meta: {
     helpText: getI18n().t("workflow_node.end.help"),
+    labelText: getI18n().t("workflow_node.end.label"),
 
     icon: IconLogout,
     iconColor: "#fff",

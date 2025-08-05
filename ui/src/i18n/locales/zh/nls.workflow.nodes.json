@@ -994,9 +994,9 @@
   "workflow_node.branch.label": "并行/条件分支",
   "workflow_node.branch.default_name": "分支",
 
-  "workflow_node.condition.label": "分支",
+  "workflow_node.condition.label": "并行/条件分支",
   "workflow_node.condition.help": "当满足指定的条件时，进入相应分支。某一分支中的节点执行失败不影响平行分支继续执行。",
-  "workflow_node.condition.default_name": "分支",
+  "workflow_node.condition.default_name": "并行",
   "workflow_node.condition.default_name.template_certtest_on_expire_soon": "若网站证书即将到期 ...",
   "workflow_node.condition.default_name.template_certtest_on_expired": "若网站证书已到期 ...",
   "workflow_node.condition.form.expression.label": "分支进入条件",

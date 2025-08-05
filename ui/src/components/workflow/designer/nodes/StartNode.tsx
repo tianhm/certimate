@@ -11,6 +11,7 @@ export const StartNodeRegistry: NodeRegistry = {
 
   meta: {
     helpText: getI18n().t("workflow_node.start.help"),
+    labelText: getI18n().t("workflow_node.start.label"),
 
     icon: IconRocket,
     iconColor: "#fff",

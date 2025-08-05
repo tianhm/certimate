@@ -39,6 +39,7 @@ export interface DocumentJSON {
 export interface NodeMeta extends FlowNodeMeta {
   style?: React.CSSProperties;
   helpText?: React.ReactNode;
+  labelText?: React.ReactNode;
   icon?: React.Component;
   iconColor?: string;
   iconBgColor?: string;

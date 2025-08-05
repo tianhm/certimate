@@ -13,6 +13,7 @@ export const BizApplyNodeRegistry: NodeRegistry = {
 
   meta: {
     helpText: getI18n().t("workflow_node.apply.help"),
+    labelText: getI18n().t("workflow_node.apply.label"),
 
     icon: IconContract,
     iconColor: "#fff",
@@ -47,6 +48,7 @@ export const BizUploadNodeRegistry: NodeRegistry = {
 
   meta: {
     helpText: getI18n().t("workflow_node.upload.help"),
+    labelText: getI18n().t("workflow_node.upload.label"),
 
     icon: IconCloudUpload,
     iconColor: "#fff",
@@ -81,6 +83,7 @@ export const BizMonitorNodeRegistry: NodeRegistry = {
 
   meta: {
     helpText: getI18n().t("workflow_node.monitor.help"),
+    labelText: getI18n().t("workflow_node.monitor.label"),
 
     icon: IconDeviceDesktopSearch,
     iconColor: "#fff",
@@ -116,6 +119,7 @@ export const BizDeployNodeRegistry: NodeRegistry = {
 
   meta: {
     helpText: getI18n().t("workflow_node.deploy.help"),
+    labelText: getI18n().t("workflow_node.deploy.label"),
 
     icon: IconPackage,
     iconColor: "#fff",
@@ -163,6 +167,7 @@ export const BizNotifyNodeRegistry: NodeRegistry = {
 
   meta: {
     helpText: getI18n().t("workflow_node.notify.help"),
+    labelText: getI18n().t("workflow_node.notify.label"),
 
     icon: IconSend,
     iconColor: "#fff",

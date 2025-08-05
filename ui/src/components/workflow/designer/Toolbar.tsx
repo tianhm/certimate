@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { EditorState, FlowLayoutDefault, useClientContext, usePlaygroundTools, useRefresh } from "@flowgram.ai/fixed-layout-editor";
 import { IconHandStop, IconLayoutCards, IconMatrix, IconMaximize, IconMinus, IconPlus } from "@tabler/icons-react";
-import { Button, Tooltip } from "antd";
+import { Button, Dropdown, Tooltip } from "antd";
 
 import { mergeCls } from "@/utils/css";
 
@@ -68,11 +68,28 @@ const Toolbar = ({ className, style }: ToolbarProps) => {
         <Tooltip title={t("workflow.detail.design.toolbar.zoomout")}>
           <Button icon={<IconMinus size="1.25em" />} onClick={() => tools.zoomout()} />
         </Tooltip>
-        <Tooltip title={t("workflow.detail.design.toolbar.zoom")}>
-          <Button className="w-16 text-center" onClick={() => tools.updateZoom(1)}>
-            {Math.round(tools.zoom * 100)}%
-          </Button>
-        </Tooltip>
+        <Dropdown
+          menu={{
+            items: [
+              ...[200, 100, 75, 50, 25].map((zoom) => ({
+                key: `${zoom}%`,
+                label: `${zoom}%`,
+                onClick: () => tools.updateZoom(zoom / 100),
+              })),
+              {
+                type: "divider",
+              },
+              {
+                key: "auto",
+                label: t("workflow.detail.design.toolbar.auto_fit"),
+                onClick: () => tools.fitView(),
+              },
+            ],
+          }}
+          trigger={["click"]}
+        >
+          <Button className="w-16 text-center">{Math.round(tools.zoom * 100)}%</Button>
+        </Dropdown>
         <Tooltip title={t("workflow.detail.design.toolbar.zoomin")}>
           <Button icon={<IconPlus size="1.25em" />} onClick={() => tools.zoomin()} />
         </Tooltip>

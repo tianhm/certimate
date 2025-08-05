@@ -62,7 +62,6 @@
   "workflow.detail.baseinfo.description.placeholder": "请输入工作流描述",
   "workflow.detail.design_legacy.tab": "流程编排（旧版）",
   "workflow.detail.design.tab": "流程编排 (TODO)",
-  "workflow.detail.design.toolbar.zoom": "缩放",
   "workflow.detail.design.toolbar.zoomin": "放大",
   "workflow.detail.design.toolbar.zoomout": "缩小",
   "workflow.detail.design.toolbar.auto_fit": "自适应视图",

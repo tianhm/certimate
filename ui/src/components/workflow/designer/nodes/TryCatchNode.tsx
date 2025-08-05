@@ -1,9 +1,9 @@
 ﻿import { getI18n } from "react-i18next";
-import { ValidateTrigger } from "@flowgram.ai/fixed-layout-editor";
+import { Field, type FieldRenderProps, ValidateTrigger } from "@flowgram.ai/fixed-layout-editor";
 import { IconArrowsSplit, IconCircleX } from "@tabler/icons-react";
 import { nanoid } from "nanoid";
 
-import { BaseNode, BlockNode } from "./_shared";
+import { BaseNode, BranchLikeNode } from "./_shared";
 import { type NodeRegistry, NodeType } from "./typings";
 
 export const TryCatchNodeRegistry: NodeRegistry = {
@@ -76,16 +76,18 @@ export const CatchBlockNodeRegistry: NodeRegistry = {
 
   formMeta: {
     validateTrigger: ValidateTrigger.onChange,
-    render: ({ form }) => {
+    render: () => {
       return (
-        <BlockNode>
+        <BranchLikeNode>
           <div className="flex items-center justify-center gap-2">
             <div className="flex items-center justify-center">
               <IconCircleX color="var(--color-error)" size="1.25em" stroke="1.25" />
             </div>
-            <div className="truncate">{form.getValueIn<string>("name") || "\u00A0"}</div>
+            <div className="truncate">
+              <Field name="name">{({ field: { value } }: FieldRenderProps<string>) => <>{value || "\u00A0"}</>}</Field>
+            </div>
           </div>
-        </BlockNode>
+        </BranchLikeNode>
       );
     },
   },

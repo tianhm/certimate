@@ -16,7 +16,7 @@ import { theme } from "antd";
 import { getFlowComponents } from "./components";
 import NodeRender from "./NodeRender";
 import { getFlowNodeRegistries } from "./nodes";
-import { BlockNode } from "./nodes/_shared";
+import { BranchLikeNode } from "./nodes/_shared";
 import "./flowgram.css";
 
 export interface EditorProps {
@@ -88,7 +88,7 @@ const Editor = ({ className, style, children, initialData, readonly }: EditorPro
             defaultExpanded: true,
           },
           formMeta: {
-            render: () => <BlockNode>{type}</BlockNode>,
+            render: () => <BranchLikeNode>{type}</BranchLikeNode>,
           },
         };
       },

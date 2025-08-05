@@ -174,7 +174,6 @@ const WorkflowDetailBaseName = () => {
   const { workflow, initialized, setBaseInfo: setWorkflowBaseInfo } = useWorkflowStore(useZustandShallowSelector(["workflow", "initialized", "setBaseInfo"]));
 
   const inputRef = useRef<InputRef>(null);
-
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState("");
 
@@ -196,7 +195,7 @@ const WorkflowDetailBaseName = () => {
 
   const handleValueConfirm = async (value: string) => {
     value = value.trim();
-    if (value === (workflow.name || "")) {
+    if (!value || value === (workflow.name || "")) {
       setEditing(false);
       return;
     }
@@ -253,7 +252,6 @@ const WorkflowDetailBaseDescription = () => {
   const { workflow, initialized, setBaseInfo: setWorkflowBaseInfo } = useWorkflowStore(useZustandShallowSelector(["workflow", "initialized", "setBaseInfo"]));
 
   const inputRef = useRef<InputRef>(null);
-
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState("");
 

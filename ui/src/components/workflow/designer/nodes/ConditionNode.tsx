@@ -91,7 +91,7 @@ export const BranchBlockNodeRegistry: NodeRegistry = {
   },
 
   canDelete: (_, node) => {
-    return node.parent!.blocks.length >= 2;
+    return node.parent != null && node.parent.blocks.length >= 2;
   },
 
   onAdd() {

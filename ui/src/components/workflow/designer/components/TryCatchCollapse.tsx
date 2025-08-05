@@ -60,8 +60,6 @@ const TryCatchCollapse = ({ node, ...props }: TryCatchCollapseProps) => {
       >
         {node.getService(FlowRendererRegistry).getText(FlowTextKey.CATCH_TEXT)}
       </div>
-
-      {/* {renderCollapse()} */}
     </div>
   );
 };

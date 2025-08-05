@@ -66,6 +66,8 @@ export const CatchBlockNodeRegistry: NodeRegistry = {
   type: NodeType.CatchBlock,
 
   meta: {
+    draggable: false,
+
     addDisable: true,
     copyDisable: true,
   },
@@ -88,7 +90,9 @@ export const CatchBlockNodeRegistry: NodeRegistry = {
 
   canAdd: () => false,
 
-  canDelete: (_, node) => node.parent != null && node.parent.blocks.length >= 2,
+  canDelete: (_, node) => {
+    return node.parent != null && node.parent.blocks.length >= 2;
+  },
 
   onAdd() {
     const { t } = getI18n();
@@ -96,7 +100,15 @@ export const CatchBlockNodeRegistry: NodeRegistry = {
     return {
       id: nanoid(),
       type: NodeType.CatchBlock,
-      blocks: [],
+      blocks: [
+        {
+          id: nanoid(),
+          type: NodeType.End,
+          data: {
+            name: t("workflow_node.end.default_name"),
+          },
+        },
+      ],
       data: {
         name: t("workflow_node.catch_block.default_name"),
       },

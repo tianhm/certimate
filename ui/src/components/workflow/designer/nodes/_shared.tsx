@@ -1,11 +1,12 @@
-import { useMemo } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useClientContext, useNodeRender } from "@flowgram.ai/fixed-layout-editor";
+import { useClientContext } from "@flowgram.ai/fixed-layout-editor";
 import { IconCopy, IconDotsVertical, IconGripVertical, IconLabel, IconX } from "@tabler/icons-react";
-import { Button, type ButtonProps, Card, Dropdown, type MenuProps, Popover, Tooltip, Typography, theme } from "antd";
+import { Button, type ButtonProps, Card, Dropdown, Popover, Tooltip, Typography, theme } from "antd";
 import { mergeCls } from "@/utils/css";
 
 import { type NodeRegistry } from "./typings";
+import { NodeRenderContext } from "../NodeRenderContext";
 
 export const BaseNode = ({ className, style, children }: { className?: string; style?: React.CSSProperties; children?: React.ReactNode }) => {
   const { token: themeToken } = theme.useToken();
@@ -13,7 +14,7 @@ export const BaseNode = ({ className, style, children }: { className?: string; s
   const ctx = useClientContext();
   const { playground } = ctx;
 
-  const nodeRender = useNodeRender();
+  const nodeRender = useContext(NodeRenderContext);
   const nodeRegistry = nodeRender.node.getNodeRegistry<NodeRegistry>();
 
   const NodeIcon = nodeRegistry.meta?.icon;
@@ -70,7 +71,7 @@ export const BlockNode = ({ className, style, children }: { className?: string; 
   const ctx = useClientContext();
   const { playground } = ctx;
 
-  const nodeRender = useNodeRender();
+  const nodeRender = useContext(NodeRenderContext);
   const nodeRegistry = nodeRender.node.getNodeRegistry<NodeRegistry>();
 
   return (
@@ -92,70 +93,72 @@ export const BlockNode = ({ className, style, children }: { className?: string; 
 };
 
 export const NodeMenuButton = ({ className, style, ...props }: ButtonProps) => {
-  const ctx = useClientContext();
-  const { playground } = ctx;
-
-  const menuItems = useNodeMenuItems();
-
-  return playground.config.readonlyOrDisabled ? null : (
-    <Dropdown menu={{ items: menuItems }} trigger={["click"]} arrow={false}>
-      <Button className={className} style={style} icon={<IconDotsVertical color="grey" size="1.25em" />} type="text" {...props} />
-    </Dropdown>
-  );
-};
-
-export const useNodeMenuItems = () => {
   const { t } = useTranslation();
 
   const ctx = useClientContext();
-  const { operation } = ctx;
+  const { playground } = ctx;
 
-  const nodeRender = useNodeRender();
-  const nodeRegistry = nodeRender.node.getNodeRegistry<NodeRegistry>();
+  const { node, deleteNode, isBlockIcon, isBlockOrderIcon } = useContext(NodeRenderContext);
+  const nodeRegistry = node.getNodeRegistry<NodeRegistry>();
 
-  const nodeDeleteDisabled = useMemo(() => {
+  const getLatestNodeDeleteDisabledState = () => {
     if (nodeRegistry.canDelete != null) {
-      return !nodeRegistry.canDelete(ctx, nodeRender.node);
+      return !nodeRegistry.canDelete(ctx, node);
     }
-    return nodeRegistry.meta!.deleteDisable;
-  }, [nodeRegistry, nodeRender.node]);
+    return !!nodeRegistry.meta?.deleteDisable;
+  };
+  const [nodeDeleteDisabled, setNodeDeleteDisabled] = useState(() => getLatestNodeDeleteDisabledState());
+  useEffect(() => {
+    // 这里不能使用 useMemo() 来决定 nodeDeleteDisabled，因为依赖项没有发生改变（对象引用始终是同一个）
+    // 因此需要使用 useEffect() 来监听 node 和 node.parent 的变化，并更新 nodeDeleteDisabled 的状态
+    const disposable1 = node.onEntityChange(() => setNodeDeleteDisabled(getLatestNodeDeleteDisabledState()));
+    const disposable2 = node.parent?.onEntityChange(() => setNodeDeleteDisabled(getLatestNodeDeleteDisabledState()));
+    return () => {
+      disposable1?.dispose();
+      disposable2?.dispose();
+    };
+  }, []);
 
-  const menuItems = useMemo<Required<MenuProps>["items"]>(() => {
-    return [
-      {
-        key: "rename",
-        label: t("workflow_node.action.rename_node"),
-        icon: <IconLabel size="1em" />,
-        onClick: () => {
-          operation.deleteNode(nodeRender.node);
-          alert("TODO: rename");
-        },
-      },
-      {
-        key: "duplicate",
-        label: t("workflow_node.action.duplicate_node"),
-        icon: <IconCopy size="1em" />,
-        onClick: () => {
-          operation.deleteNode(nodeRender.node);
-          alert("TODO: duplicate");
-        },
-      },
-      {
-        type: "divider",
-      },
-      {
-        key: "remove",
-        label: t("workflow_node.action.remove_node"),
-        icon: <IconX size="1em" />,
-        danger: true,
-        disabled: nodeDeleteDisabled,
-        onClick: () => {
-          operation.deleteNode(nodeRender.node);
-          alert("TODO: remove");
-        },
-      },
-    ];
-  }, [nodeRender.node, nodeDeleteDisabled]);
-
-  return menuItems;
+  return playground.config.readonlyOrDisabled ? null : (
+    <Dropdown
+      arrow={false}
+      destroyOnHidden
+      menu={{
+        items: [
+          {
+            key: "rename",
+            label: isBlockIcon || isBlockOrderIcon ? t("workflow.detail.design.nodes.rename_branch") : t("workflow.detail.design.nodes.rename_node"),
+            icon: <IconLabel size="1em" />,
+            onClick: () => {
+              alert("TODO: rename");
+            },
+          },
+          {
+            key: "duplicate",
+            label: isBlockIcon || isBlockOrderIcon ? t("workflow.detail.design.nodes.duplicate_branch") : t("workflow.detail.design.nodes.duplicate_node"),
+            icon: <IconCopy size="1em" />,
+            onClick: () => {
+              alert("TODO: duplicate");
+            },
+          },
+          {
+            type: "divider",
+          },
+          {
+            key: "remove",
+            label: isBlockIcon || isBlockOrderIcon ? t("workflow.detail.design.nodes.remove_branch") : t("workflow.detail.design.nodes.remove_node"),
+            icon: <IconX size="1em" />,
+            danger: true,
+            disabled: nodeDeleteDisabled,
+            onClick: () => {
+              deleteNode();
+            },
+          },
+        ],
+      }}
+      trigger={["click"]}
+    >
+      <Button className={className} style={style} icon={<IconDotsVertical color="grey" size="1.25em" />} type="text" {...props} />
+    </Dropdown>
+  );
 };

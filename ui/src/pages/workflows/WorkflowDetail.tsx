@@ -214,14 +214,12 @@ const WorkflowDetailBaseName = () => {
 
   return (
     <div className="group/input relative flex items-center gap-1">
-      <h1
-        className={mergeCls("break-all", {
-          invisible: editing,
-        })}
-      >
-        {workflow.name || "\u00A0"}
+      <h1 className={mergeCls("break-all", { invisible: editing })}>
+        <Show when={initialized} fallback={"\u00A0"}>
+          {workflow.name || t("workflow.detail.baseinfo.name.placeholder")}
+        </Show>
       </h1>
-      {initialized && (
+      <Show when={initialized}>
         <Button
           className={mergeCls("mb-2 opacity-0 transition-opacity group-hover/input:opacity-100", {
             invisible: editing,
@@ -230,7 +228,7 @@ const WorkflowDetailBaseName = () => {
           type="text"
           onClick={handleEditClick}
         />
-      )}
+      </Show>
       <Input
         className={mergeCls("absolute top-0 left-0", editing ? "block" : "hidden")}
         ref={inputRef}
@@ -295,14 +293,12 @@ const WorkflowDetailBaseDescription = () => {
 
   return (
     <div className="group/input relative flex items-center gap-1">
-      <p
-        className={mergeCls("text-base text-gray-500", {
-          invisible: editing,
-        })}
-      >
-        {workflow.description || "\u00A0"}
+      <p className={mergeCls("text-base text-gray-500", { invisible: editing })}>
+        <Show when={initialized} fallback={"\u00A0"}>
+          {workflow.description || t("workflow.detail.baseinfo.description.placeholder")}
+        </Show>
       </p>
-      {initialized && (
+      <Show when={initialized}>
         <Button
           className={mergeCls("mb-4 opacity-0 transition-opacity group-hover/input:opacity-100", {
             invisible: editing,
@@ -311,7 +307,7 @@ const WorkflowDetailBaseDescription = () => {
           type="text"
           onClick={handleEditClick}
         />
-      )}
+      </Show>
       <Input
         className={mergeCls("absolute top-0 left-0", editing ? "block" : "hidden")}
         ref={inputRef}

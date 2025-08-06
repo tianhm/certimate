@@ -55,6 +55,10 @@ const Editor = ({ className, style, children, initialData, readonly }: EditorPro
         preventGlobalGesture: true,
       },
 
+      selectBox: {
+        enable: false,
+      },
+
       scroll: {
         enableScrollLimit: true,
       },

@@ -11,7 +11,7 @@ import { mergeCls } from "@/utils/css";
 import { type NodeJSON, type NodeRegistry, NodeType } from "./typings";
 import { NodeRenderContext } from "../NodeRenderContext";
 
-const useNodeRenamingInputHooks = ({ nodeRender }: { nodeRender: ContextType<typeof NodeRenderContext> }) => {
+const useNodeRenamingInput = ({ nodeRender }: { nodeRender: ContextType<typeof NodeRenderContext> }) => {
   const inputRef = useRef<InputRef>(null);
   const [inputVisible, setInputVisible] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -87,7 +87,7 @@ export const BaseNode = ({ className, style, children }: BaseNodeProps) => {
     onClick: handleNodeRenameClick,
     onChange: handleNodeNameChange,
     onConfirm: handleNodeNameConfirm,
-  } = useNodeRenamingInputHooks({ nodeRender });
+  } = useNodeRenamingInput({ nodeRender });
 
   return (
     <div className={mergeCls("relative w-[320px] group/node", className)} style={style}>
@@ -163,7 +163,7 @@ export const BranchLikeNode = ({ className, style, children }: BranchLikeNodePro
     onClick: handleNodeRenameClick,
     onChange: handleNodeNameChange,
     onConfirm: handleNodeNameConfirm,
-  } = useNodeRenamingInputHooks({ nodeRender });
+  } = useNodeRenamingInput({ nodeRender });
 
   return (
     <Popover

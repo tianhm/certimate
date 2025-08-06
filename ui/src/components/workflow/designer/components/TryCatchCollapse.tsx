@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   type CustomLabelProps,
   FlowNodeRenderData,
@@ -16,15 +15,11 @@ const TryCatchCollapse = ({ node, ...props }: TryCatchCollapseProps) => {
   const nodeActivateData = node.getData(FlowNodeRenderData)!;
   const nodeTransformData = node.getData(FlowNodeTransformData)!;
 
-  const [hoverActivated, setHoverActivated] = useState(false);
-
   const handleMouseEnter = () => {
-    setHoverActivated(true);
     nodeActivateData.activated = true;
   };
 
   const handleMouseLeave = () => {
-    setHoverActivated(false);
     nodeActivateData.activated = false;
   };
 
@@ -51,7 +46,7 @@ const TryCatchCollapse = ({ node, ...props }: TryCatchCollapseProps) => {
         data-label-id={props.labelId}
         style={{
           fontSize: 12,
-          color: hoverActivated ? baseActivatedColor : baseColor,
+          color: nodeActivateData.activated || nodeActivateData.lineActivated ? baseActivatedColor : baseColor,
           textAlign: "center",
           lineHeight: "20px",
           whiteSpace: "nowrap",

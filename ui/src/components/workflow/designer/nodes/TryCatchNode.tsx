@@ -1,5 +1,5 @@
 ﻿import { getI18n } from "react-i18next";
-import { Field, type FieldRenderProps, ValidateTrigger } from "@flowgram.ai/fixed-layout-editor";
+import { Field, ValidateTrigger } from "@flowgram.ai/fixed-layout-editor";
 import { IconArrowsSplit, IconCircleX } from "@tabler/icons-react";
 import { nanoid } from "nanoid";
 
@@ -84,7 +84,7 @@ export const CatchBlockNodeRegistry: NodeRegistry = {
               <IconCircleX color="var(--color-error)" size="1.25em" stroke="1.25" />
             </div>
             <div className="truncate">
-              <Field name="name">{({ field: { value } }: FieldRenderProps<string>) => <>{value || "\u00A0"}</>}</Field>
+              <Field<string> name="name">{({ field: { value } }) => <>{value || "\u00A0"}</>}</Field>
             </div>
           </div>
         </BranchLikeNode>

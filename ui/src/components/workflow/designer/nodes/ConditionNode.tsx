@@ -1,5 +1,5 @@
 import { getI18n } from "react-i18next";
-import { Field, type FieldRenderProps, FlowNodeBaseType, FlowNodeSplitType, ValidateTrigger } from "@flowgram.ai/fixed-layout-editor";
+import { Field, FlowNodeBaseType, FlowNodeSplitType, ValidateTrigger } from "@flowgram.ai/fixed-layout-editor";
 import { IconFilter, IconFilterFilled, IconSitemap } from "@tabler/icons-react";
 import { nanoid } from "nanoid";
 
@@ -79,14 +79,14 @@ export const BranchBlockNodeRegistry: NodeRegistry = {
         <BranchLikeNode>
           <div className="flex items-center justify-center gap-2">
             <div className="flex items-center justify-center">
-              <Field name="config.expression">
-                {({ field: { value } }: FieldRenderProps<object>) => (
+              <Field<object> name="config.expression">
+                {({ field: { value } }) => (
                   <>{value ? <IconFilterFilled color="var(--color-primary)" size="1.25em" stroke="1.25" /> : <IconFilter size="1.25em" stroke="1.25" />}</>
                 )}
               </Field>
             </div>
             <div className="truncate">
-              <Field name="name">{({ field: { value } }: FieldRenderProps<string>) => <>{value || "\u00A0"}</>}</Field>
+              <Field<string> name="name">{({ field: { value } }) => <>{value || "\u00A0"}</>}</Field>
             </div>
           </div>
         </BranchLikeNode>
@@ -102,14 +102,22 @@ export const BranchBlockNodeRegistry: NodeRegistry = {
     return node.parent != null && node.parent.blocks.length >= 2;
   },
 
-  onAdd() {
+  onAdd(_, from) {
     const { t } = getI18n();
+
+    let nodeName = t("workflow_node.branch_block.default_name");
+    if (from != null) {
+      const siblingLength = from.blocks?.find((b) => b.isInlineBlocks)?.blocks?.length;
+      if (siblingLength != null) {
+        nodeName = `${nodeName} ${siblingLength + 1}`;
+      }
+    }
 
     return {
       id: nanoid(),
       type: NodeType.BranchBlock,
       data: {
-        name: t("workflow_node.branch_block.default_name"),
+        name: nodeName,
       },
     };
   },

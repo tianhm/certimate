@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
-import { FlowNodeBaseType, type FlowNodeEntity, type AdderProps as FlowgramAdderProps, useClientContext } from "@flowgram.ai/fixed-layout-editor";
+import { type FlowNodeEntity, type AdderProps as FlowgramAdderProps, useClientContext } from "@flowgram.ai/fixed-layout-editor";
 import { Button } from "antd";
-import { nanoid } from "nanoid";
 
 import { BranchBlockNodeRegistry } from "../nodes/ConditionNode";
 import { CatchBlockNodeRegistry } from "../nodes/TryCatchNode";
@@ -28,13 +27,6 @@ const BranchAdder = ({ node }: BranchAdderProps) => {
 
       default:
         console.warn(`[certimate] unsupported node type for adding branch: '${node.flowNodeType}'`);
-        block = operation.addBlock(node, {
-          id: nanoid(),
-          type: FlowNodeBaseType.BLOCK,
-          data: {
-            name: t("workflow_node.branch_block.default_name"),
-          },
-        });
         break;
     }
 

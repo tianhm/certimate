@@ -1,6 +1,6 @@
 import { type ContextType, useContext, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Field, type FieldRenderProps, type FlowNodeEntity, useClientContext } from "@flowgram.ai/fixed-layout-editor";
+import { Field, type FlowNodeEntity, useClientContext } from "@flowgram.ai/fixed-layout-editor";
 import { IconCopy, IconDotsVertical, IconGripVertical, IconLabel, IconX } from "@tabler/icons-react";
 import { Button, type ButtonProps, Card, Dropdown, Input, type InputRef, Popover, Tooltip, theme } from "antd";
 import { Immer } from "immer";
@@ -102,7 +102,7 @@ export const BaseNode = ({ className, style, children }: BaseNodeProps) => {
           )}
           <div className="flex-1 overflow-hidden">
             <div className="truncate">
-              <Field name="name">{({ field: { value } }: FieldRenderProps<string>) => <>{value || "\u00A0"}</>}</Field>
+              <Field<string> name="name">{({ field: { value } }) => <>{value || "\u00A0"}</>}</Field>
             </div>
             {children != null && (
               <div className="truncate text-xs" style={{ color: themeToken.colorTextTertiary }}>
@@ -189,9 +189,7 @@ export const BranchLikeNode = ({ className, style, children }: BranchLikeNodePro
       <div className={mergeCls("relative w-[240px] group/node", className)} style={style}>
         <Card className="rounded-xl shadow-sm" styles={{ body: { padding: 0 } }} hoverable>
           <div className={mergeCls("overflow-hidden px-3 py-2", inputVisible ? "invisible" : "visible")}>
-            <div className="truncate text-center">
-              {children ?? <Field name="name">{({ field: { value } }: FieldRenderProps<string>) => <>{value || "\u00A0"}</>}</Field>}
-            </div>
+            <div className="truncate text-center">{children ?? <Field<string> name="name">{({ field: { value } }) => <>{value || "\u00A0"}</>}</Field>}</div>
           </div>
         </Card>
         {!playground.config.readonlyOrDisabled && nodeRegistry.meta?.draggable === true && (

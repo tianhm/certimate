@@ -1,4 +1,5 @@
 import { getI18n } from "react-i18next";
+import { Field } from "@flowgram.ai/fixed-layout-editor";
 import { IconCloudUpload, IconContract, IconDeviceDesktopSearch, IconPackage, IconSend } from "@tabler/icons-react";
 import { Avatar } from "antd";
 import { nanoid } from "nanoid";
@@ -21,12 +22,14 @@ export const BizApplyNodeRegistry: NodeRegistry = {
   },
 
   formMeta: {
-    render: ({ form }) => {
+    render: () => {
       const { t } = getI18n();
 
-      const fieldDomains = form.getValueIn<string>("config.domains");
-
-      return <BaseNode>{fieldDomains ? fieldDomains.split(";").join("; ") : t("workflow.detail.design.nodes.placeholder")}</BaseNode>;
+      return (
+        <BaseNode>
+          <Field<string> name="config.domains">{({ field: { value } }) => <>{value || t("workflow.detail.design.nodes.placeholder")}</>}</Field>
+        </BaseNode>
+      );
     },
   },
 
@@ -56,12 +59,14 @@ export const BizUploadNodeRegistry: NodeRegistry = {
   },
 
   formMeta: {
-    render: ({ form }) => {
+    render: () => {
       const { t } = getI18n();
 
-      const fieldDomains = form.getValueIn<string>("config.domains");
-
-      return <BaseNode>{fieldDomains ? fieldDomains.split(";").join("; ") : t("workflow.detail.design.nodes.placeholder")}</BaseNode>;
+      return (
+        <BaseNode>
+          <Field<string> name="config.domains">{({ field: { value } }) => <>{value || t("workflow.detail.design.nodes.placeholder")}</>}</Field>
+        </BaseNode>
+      );
     },
   },
 
@@ -127,22 +132,26 @@ export const BizDeployNodeRegistry: NodeRegistry = {
   },
 
   formMeta: {
-    render: ({ form }) => {
+    render: () => {
       const { t } = getI18n();
-
-      const fieldProvider = form.getValueIn<string>("config.provider");
 
       return (
         <BaseNode>
           <div className="flex items-center justify-between gap-1">
-            {fieldProvider ? (
-              <>
-                <div className="flex-1 truncate">{t(deploymentProvidersMap.get(fieldProvider)?.name ?? "")}</div>
-                <Avatar shape="square" src={deploymentProvidersMap.get(fieldProvider)?.icon} size={20} />
-              </>
-            ) : (
-              t("workflow.detail.design.nodes.placeholder")
-            )}
+            <Field<string> name="config.provider">
+              {({ field: { value } }) => (
+                <>
+                  {value ? (
+                    <>
+                      <div className="flex-1 truncate">{t(deploymentProvidersMap.get(value)?.name ?? "")}</div>
+                      <Avatar shape="square" src={deploymentProvidersMap.get(value)?.icon} size={20} />
+                    </>
+                  ) : (
+                    t("workflow.detail.design.nodes.placeholder")
+                  )}
+                </>
+              )}
+            </Field>
           </div>
         </BaseNode>
       );
@@ -175,22 +184,26 @@ export const BizNotifyNodeRegistry: NodeRegistry = {
   },
 
   formMeta: {
-    render: ({ form }) => {
+    render: () => {
       const { t } = getI18n();
-
-      const fieldProvider = form.getValueIn<string>("config.provider");
 
       return (
         <BaseNode>
           <div className="flex items-center justify-between gap-1">
-            {fieldProvider ? (
-              <>
-                <div className="flex-1 truncate">{t(notificationProvidersMap.get(fieldProvider)?.name ?? "")}</div>
-                <Avatar shape="square" src={notificationProvidersMap.get(fieldProvider)?.icon} size="small" />
-              </>
-            ) : (
-              t("workflow.detail.design.nodes.placeholder")
-            )}
+            <Field<string> name="config.provider">
+              {({ field: { value } }) => (
+                <>
+                  {value ? (
+                    <>
+                      <div className="flex-1 truncate">{t(notificationProvidersMap.get(value)?.name ?? "")}</div>
+                      <Avatar shape="square" src={notificationProvidersMap.get(value)?.icon} size={20} />
+                    </>
+                  ) : (
+                    t("workflow.detail.design.nodes.placeholder")
+                  )}
+                </>
+              )}
+            </Field>
           </div>
         </BaseNode>
       );

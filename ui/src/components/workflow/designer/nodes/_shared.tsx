@@ -1,6 +1,6 @@
 import { type ContextType, useContext, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Field, type FlowNodeEntity, useClientContext } from "@flowgram.ai/fixed-layout-editor";
+import { Field, type FlowNodeEntity, FlowNodeRenderData, useClientContext } from "@flowgram.ai/fixed-layout-editor";
 import { IconCopy, IconDotsVertical, IconGripVertical, IconLabel, IconX } from "@tabler/icons-react";
 import { Button, type ButtonProps, Card, Dropdown, Input, type InputRef, Popover, Tooltip, theme } from "antd";
 import { Immer } from "immer";
@@ -63,6 +63,7 @@ export const BaseNode = ({ className, style, children }: BaseNodeProps) => {
   const { playground } = ctx;
 
   const nodeRender = useContext(NodeRenderContext);
+  const nodeRenderData = nodeRender.node.getData(FlowNodeRenderData)!;
   const nodeRegistry = nodeRender.node.getNodeRegistry<NodeRegistry>();
 
   const NodeIcon = nodeRegistry.meta?.icon;
@@ -89,9 +90,24 @@ export const BaseNode = ({ className, style, children }: BaseNodeProps) => {
     onConfirm: handleNodeNameConfirm,
   } = useNodeRenamingInput({ nodeRender });
 
+  const [hovered, setHovered] = useState(false);
+
   return (
-    <div className={mergeCls("relative w-[320px] group/node", className)} style={style}>
-      <Card className="rounded-xl shadow-sm" styles={{ body: { padding: 0 } }} hoverable>
+    <div
+      className={mergeCls("relative w-[320px] group/node", className)}
+      style={style}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <Card
+        className="rounded-xl shadow-sm"
+        style={{
+          borderColor: hovered ? "var(--color-info)" : nodeRenderData.activated || nodeRenderData.lineActivated ? "var(--color-primary)" : undefined,
+          borderWidth: "2px",
+        }}
+        styles={{ body: { padding: 0 } }}
+        hoverable
+      >
         <div className={mergeCls("flex items-center gap-1 overflow-hidden p-3", inputVisible ? "invisible" : "visible")}>
           {nodeRegistry.meta?.helpText == null ? (
             renderNodeIcon()
@@ -154,6 +170,7 @@ export const BranchLikeNode = ({ className, style, children }: BranchLikeNodePro
   const { playground } = ctx;
 
   const nodeRender = useContext(NodeRenderContext);
+  const nodeRenderData = nodeRender.node.getData(FlowNodeRenderData)!;
   const nodeRegistry = nodeRender.node.getNodeRegistry<NodeRegistry>();
 
   const {
@@ -164,6 +181,8 @@ export const BranchLikeNode = ({ className, style, children }: BranchLikeNodePro
     onChange: handleNodeNameChange,
     onConfirm: handleNodeNameConfirm,
   } = useNodeRenamingInput({ nodeRender });
+
+  const [hovered, setHovered] = useState(false);
 
   return (
     <Popover
@@ -186,8 +205,21 @@ export const BranchLikeNode = ({ className, style, children }: BranchLikeNodePro
       }
       placement="right"
     >
-      <div className={mergeCls("relative w-[240px] group/node", className)} style={style}>
-        <Card className="rounded-xl shadow-sm" styles={{ body: { padding: 0 } }} hoverable>
+      <div
+        className={mergeCls("relative w-[240px] group/node", className)}
+        style={style}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      >
+        <Card
+          className="rounded-xl shadow-sm"
+          style={{
+            borderColor: hovered ? "var(--color-info)" : nodeRenderData.activated || nodeRenderData.lineActivated ? "var(--color-primary)" : undefined,
+            borderWidth: "2px",
+          }}
+          styles={{ body: { padding: 0 } }}
+          hoverable
+        >
           <div className={mergeCls("overflow-hidden px-3 py-2", inputVisible ? "invisible" : "visible")}>
             <div className="truncate text-center">{children ?? <Field<string> name="name">{({ field: { value } }) => <>{value || "\u00A0"}</>}</Field>}</div>
           </div>
@@ -353,7 +385,6 @@ export const duplicateNodeJSON = (node: NodeJSON, options?: { withCopySuffix?: b
       draft.data ??= {};
       draft.id = nanoid();
       draft.data.name = withCopySuffix ? `${draft.data?.name || ""}-copy` : `${draft.data?.name || ""}`;
-      delete draft.data.disabled;
 
       nodeIdMap.set(node.id, draft.id); // 原节点 ID 映射到新节点 ID
 

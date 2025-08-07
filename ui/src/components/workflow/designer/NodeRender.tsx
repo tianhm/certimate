@@ -7,19 +7,21 @@ import { type NodeRegistry } from "./nodes/typings";
 export interface NodeProps extends NodeRenderProps {}
 
 const Node = (_: NodeProps) => {
+  const refresh = useRefresh();
+
   const ctx = useClientContext();
 
   const nodeRender = useNodeRender();
 
-  const refresh = useRefresh();
+  useEffect(() => {
+    const disposable = ctx.document.originTree.onTreeChange(() => refresh());
+    return () => disposable.dispose();
+  }, []);
+
   useEffect(() => {
     const disposable = nodeRender.form?.onFormValuesChange?.(() => refresh());
     return () => disposable?.dispose();
   }, [nodeRender.form]);
-  useEffect(() => {
-    const toDispose = ctx.document.originTree.onTreeChange(() => refresh());
-    return () => toDispose.dispose();
-  }, []);
 
   return (
     <div

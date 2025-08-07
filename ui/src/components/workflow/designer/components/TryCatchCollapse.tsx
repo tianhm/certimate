@@ -12,15 +12,15 @@ export interface TryCatchCollapseProps extends CustomLabelProps {}
 const TryCatchCollapse = ({ node, ...props }: TryCatchCollapseProps) => {
   const { baseColor, baseActivatedColor } = useBaseColor();
 
-  const nodeActivateData = node.getData(FlowNodeRenderData)!;
+  const nodeRenderData = node.getData(FlowNodeRenderData)!;
   const nodeTransformData = node.getData(FlowNodeTransformData)!;
 
   const handleMouseEnter = () => {
-    nodeActivateData.activated = true;
+    nodeRenderData.activated = true;
   };
 
   const handleMouseLeave = () => {
-    nodeActivateData.activated = false;
+    nodeRenderData.activated = false;
   };
 
   if (!nodeTransformData || !nodeTransformData.parent) {
@@ -46,7 +46,7 @@ const TryCatchCollapse = ({ node, ...props }: TryCatchCollapseProps) => {
         data-label-id={props.labelId}
         style={{
           fontSize: 12,
-          color: nodeActivateData.activated || nodeActivateData.lineActivated ? baseActivatedColor : baseColor,
+          color: nodeRenderData.activated || nodeRenderData.lineActivated ? baseActivatedColor : baseColor,
           textAlign: "center",
           lineHeight: "20px",
           whiteSpace: "nowrap",

@@ -1,5 +1,5 @@
 import { getI18n } from "react-i18next";
-import { Field } from "@flowgram.ai/fixed-layout-editor";
+import { FeedbackLevel, Field } from "@flowgram.ai/fixed-layout-editor";
 import { IconCloudUpload, IconContract, IconDeviceDesktopSearch, IconPackage, IconSend } from "@tabler/icons-react";
 import { Avatar } from "antd";
 import { nanoid } from "nanoid";
@@ -22,12 +22,47 @@ export const BizApplyNodeRegistry: NodeRegistry = {
   },
 
   formMeta: {
+    validate: {
+      ["config.domains"]: ({ value }) => {
+        if (!value) {
+          return {
+            message: "required",
+            level: FeedbackLevel.Error,
+          };
+        }
+      },
+      ["config.contactEmail"]: ({ value }) => {
+        if (!value) {
+          return {
+            message: "required",
+            level: FeedbackLevel.Error,
+          };
+        }
+      },
+      ["config.provider"]: ({ value }) => {
+        if (!value) {
+          return {
+            message: "required",
+            level: FeedbackLevel.Error,
+          };
+        }
+      },
+      ["config.providerAccessId"]: ({ value }) => {
+        if (!value) {
+          return {
+            message: "required",
+            level: FeedbackLevel.Error,
+          };
+        }
+      },
+    },
+
     render: () => {
       const { t } = getI18n();
 
       return (
         <BaseNode>
-          <Field<string> name="config.domains">{({ field: { value } }) => <>{value || t("workflow.detail.design.nodes.placeholder")}</>}</Field>
+          <Field<string> name="config.domains">{({ field: { value } }) => <>{value || t("workflow.detail.design.editor.placeholder")}</>}</Field>
         </BaseNode>
       );
     },
@@ -59,12 +94,31 @@ export const BizUploadNodeRegistry: NodeRegistry = {
   },
 
   formMeta: {
+    validate: {
+      ["config.certificate"]: ({ value }) => {
+        if (!value) {
+          return {
+            message: "required",
+            level: FeedbackLevel.Error,
+          };
+        }
+      },
+      ["config.privateKey"]: ({ value }) => {
+        if (!value) {
+          return {
+            message: "required",
+            level: FeedbackLevel.Error,
+          };
+        }
+      },
+    },
+
     render: () => {
       const { t } = getI18n();
 
       return (
         <BaseNode>
-          <Field<string> name="config.domains">{({ field: { value } }) => <>{value || t("workflow.detail.design.nodes.placeholder")}</>}</Field>
+          <Field<string> name="config.domains">{({ field: { value } }) => <>{value || t("workflow.detail.design.editor.placeholder")}</>}</Field>
         </BaseNode>
       );
     },
@@ -96,13 +150,24 @@ export const BizMonitorNodeRegistry: NodeRegistry = {
   },
 
   formMeta: {
+    validate: {
+      ["config.host"]: ({ value }) => {
+        if (!value) {
+          return {
+            message: "required",
+            level: FeedbackLevel.Error,
+          };
+        }
+      },
+    },
+
     render: ({ form }) => {
       const { t } = getI18n();
 
       const fieldDomain = form.getValueIn<string>("config.domain");
       const fieldHost = form.getValueIn<string>("config.host");
 
-      return <BaseNode>{fieldDomain || fieldHost ? fieldDomain || fieldHost : t("workflow.detail.design.nodes.placeholder")}</BaseNode>;
+      return <BaseNode>{fieldDomain || fieldHost ? fieldDomain || fieldHost : t("workflow.detail.design.editor.placeholder")}</BaseNode>;
     },
   },
 
@@ -132,6 +197,25 @@ export const BizDeployNodeRegistry: NodeRegistry = {
   },
 
   formMeta: {
+    validate: {
+      ["config.provider"]: ({ value }) => {
+        if (!value) {
+          return {
+            message: "required",
+            level: FeedbackLevel.Error,
+          };
+        }
+      },
+      ["config.providerAccessId"]: ({ value }) => {
+        if (!value) {
+          return {
+            message: "required",
+            level: FeedbackLevel.Error,
+          };
+        }
+      },
+    },
+
     render: () => {
       const { t } = getI18n();
 
@@ -147,7 +231,7 @@ export const BizDeployNodeRegistry: NodeRegistry = {
                       <Avatar shape="square" src={deploymentProvidersMap.get(value)?.icon} size={20} />
                     </>
                   ) : (
-                    t("workflow.detail.design.nodes.placeholder")
+                    t("workflow.detail.design.editor.placeholder")
                   )}
                 </>
               )}
@@ -184,6 +268,41 @@ export const BizNotifyNodeRegistry: NodeRegistry = {
   },
 
   formMeta: {
+    validate: {
+      ["config.subject"]: ({ value }) => {
+        if (!value) {
+          return {
+            message: "required",
+            level: FeedbackLevel.Error,
+          };
+        }
+      },
+      ["config.message"]: ({ value }) => {
+        if (!value) {
+          return {
+            message: "required",
+            level: FeedbackLevel.Error,
+          };
+        }
+      },
+      ["config.provider"]: ({ value }) => {
+        if (!value) {
+          return {
+            message: "required",
+            level: FeedbackLevel.Error,
+          };
+        }
+      },
+      ["config.providerAccessId"]: ({ value }) => {
+        if (!value) {
+          return {
+            message: "required",
+            level: FeedbackLevel.Error,
+          };
+        }
+      },
+    },
+
     render: () => {
       const { t } = getI18n();
 
@@ -199,7 +318,7 @@ export const BizNotifyNodeRegistry: NodeRegistry = {
                       <Avatar shape="square" src={notificationProvidersMap.get(value)?.icon} size={20} />
                     </>
                   ) : (
-                    t("workflow.detail.design.nodes.placeholder")
+                    t("workflow.detail.design.editor.placeholder")
                   )}
                 </>
               )}

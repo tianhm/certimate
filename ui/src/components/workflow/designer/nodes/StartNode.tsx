@@ -1,4 +1,5 @@
 import { getI18n } from "react-i18next";
+import { FeedbackLevel } from "@flowgram.ai/fixed-layout-editor";
 import { IconRocket } from "@tabler/icons-react";
 
 import { WORKFLOW_TRIGGERS } from "@/domain/workflow";
@@ -28,6 +29,25 @@ export const StartNodeRegistry: NodeRegistry = {
   },
 
   formMeta: {
+    validate: {
+      ["config.trigger"]: ({ value }) => {
+        if (!value) {
+          return {
+            message: "required",
+            level: FeedbackLevel.Error,
+          };
+        }
+      },
+      ["config.triggerCron"]: ({ value, formValues }) => {
+        if (!value && formValues.config.trigger === WORKFLOW_TRIGGERS.SCHEDULED) {
+          return {
+            message: "required",
+            level: FeedbackLevel.Error,
+          };
+        }
+      },
+    },
+
     render: ({ form }) => {
       const { t } = getI18n();
 
@@ -49,7 +69,7 @@ export const StartNodeRegistry: NodeRegistry = {
                 <div>{fieldTrigger === WORKFLOW_TRIGGERS.SCHEDULED ? fieldTriggerCron || "\u00A0" : ""}</div>
               </>
             ) : (
-              t("workflow.detail.design.nodes.placeholder")
+              t("workflow.detail.design.editor.placeholder")
             )}
           </div>
         </BaseNode>

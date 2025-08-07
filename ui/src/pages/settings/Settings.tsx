@@ -16,7 +16,7 @@ const Settings = () => {
     ["ssl-provider", "settings.sslprovider.tab", <IconPlugConnected size="1em" />],
     ["persistence", "settings.persistence.tab", <IconDatabaseCog size="1em" />],
   ] satisfies [string, string, React.ReactElement][];
-  const [menuKey, setMenuKey] = useState<string>(menus[0][0]);
+  const [menuKey, setMenuKey] = useState<string>(() => location.pathname.split("/")[2]);
   useEffect(() => {
     const subpath = location.pathname.split("/")[2];
     if (!subpath) {

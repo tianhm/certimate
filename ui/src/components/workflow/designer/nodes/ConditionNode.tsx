@@ -3,7 +3,7 @@ import { Field, FlowNodeBaseType, FlowNodeSplitType, ValidateTrigger } from "@fl
 import { IconFilter, IconFilterFilled, IconSitemap } from "@tabler/icons-react";
 import { nanoid } from "nanoid";
 
-import { BaseNode, BranchLikeNode } from "./_shared";
+import { BaseNode, BranchNode } from "./_shared";
 import { type NodeRegistry, NodeType } from "./typings";
 
 export const ConditionNodeRegistry: NodeRegistry = {
@@ -76,7 +76,7 @@ export const BranchBlockNodeRegistry: NodeRegistry = {
     validateTrigger: ValidateTrigger.onChange,
     render: () => {
       return (
-        <BranchLikeNode>
+        <BranchNode>
           <div className="flex items-center justify-center gap-2">
             <div className="flex items-center justify-center">
               <Field<object> name="config.expression">
@@ -89,7 +89,7 @@ export const BranchBlockNodeRegistry: NodeRegistry = {
               <Field<string> name="name">{({ field: { value } }) => <>{value || "\u00A0"}</>}</Field>
             </div>
           </div>
-        </BranchLikeNode>
+        </BranchNode>
       );
     },
   },

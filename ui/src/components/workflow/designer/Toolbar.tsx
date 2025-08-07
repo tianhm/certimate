@@ -22,9 +22,10 @@ const Toolbar = ({ className, style }: ToolbarProps) => {
   const tools = usePlaygroundTools({ minZoom: 0.1, maxZoom: 3, padding: 48 });
 
   const refresh = useRefresh();
+
   useEffect(() => {
-    const disposable = playground.config.onReadonlyOrDisabledChange(() => refresh());
-    return () => disposable.dispose();
+    const d = playground.config.onReadonlyOrDisabledChange(() => refresh());
+    return () => d.dispose();
   }, [playground]);
 
   const [isMinimapVisible, setIsMinimapVisible] = useState(window.screen.availWidth >= 1024);

@@ -1,16 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getI18n, useTranslation } from "react-i18next";
 import { type FlowDocumentJSON } from "@flowgram.ai/document";
 import { IconArrowBackUp, IconDots } from "@tabler/icons-react";
 import { useDeepCompareEffect } from "ahooks";
 import { Alert, App, Button, Card, Dropdown, Space, theme } from "antd";
 import { nanoid } from "nanoid";
-import { isEqual } from "radash";
+import { debounce, isEqual } from "radash";
 
 import Show from "@/components/Show";
-import WorkflowDesigner from "@/components/workflow/designer/Editor";
-import WorkflowDesignerToolbar from "@/components/workflow/designer/Toolbar";
-import { type WorkflowNode, WorkflowNodeType, isAllNodesValidated } from "@/domain/workflow";
+import WorkflowEditor, { type EditorInstance as WorkflowEditorInstance } from "@/components/workflow/designer/Editor";
+import WorkflowEditorToolbar from "@/components/workflow/designer/Toolbar";
+import { type WorkflowNode, WorkflowNodeType } from "@/domain/workflow";
 import { WORKFLOW_RUN_STATUSES } from "@/domain/workflowRun";
 import { useZustandShallowSelector } from "@/hooks";
 import { useWorkflowStore } from "@/stores/workflow";
@@ -22,7 +22,7 @@ const WorkflowDetailDesign = () => {
   const { token: themeToken } = theme.useToken();
   const { message, modal, notification } = App.useApp();
 
-  const { workflow, ...workflowState } = useWorkflowStore(useZustandShallowSelector(["workflow", "init", "publish", "rollback"]));
+  const { workflow } = useWorkflowStore(useZustandShallowSelector(["workflow", "publish", "rollback"]));
 
   const [isPendingOrRunning, setIsPendingOrRunning] = useState(false);
   const [allowRollback, setAllowRollback] = useState(false);
@@ -40,18 +40,32 @@ const WorkflowDetailDesign = () => {
     setAllowPublish(!isPendingOrRunning && hasChanges);
   }, [workflow.content, workflow.draft, workflow.hasDraft, isPendingOrRunning]);
 
+  const editorRef = useRef<WorkflowEditorInstance>(null);
   const [editorData, setEditorData] = useState<FlowDocumentJSON>();
   useDeepCompareEffect(() => {
-    setEditorData({ nodes: compactWorkflowDraft(workflow.draft) });
+    const data = { nodes: compactWorkflowDraft(workflow.draft) };
+    editorRef.current?.document?.fromJSON(data);
+    setEditorData(data);
   }, [workflow.draft]);
+
+  const onEditorDocumentChange = debounce({ delay: 300 }, () => {
+    if (!editorRef.current || editorRef.current.document.disposed) return;
+
+    console.log("document changed", editorRef.current!.document.toJSON());
+  });
+
+  useEffect(() => {
+    const disposable = editorRef.current?.document?.originTree?.onTreeChange(onEditorDocumentChange);
+    return () => disposable?.dispose();
+  }, []);
 
   const handleRollbackClick = () => {
     modal.confirm({
-      title: t("workflow.action.rollback.modal.title"),
-      content: t("workflow.action.rollback.modal.content"),
+      title: t("workflow.detail.design.action.rollback.modal.title"),
+      content: t("workflow.detail.design.action.rollback.modal.content"),
       onOk: async () => {
         try {
-          await workflowState.rollback();
+          alert("TODO: rollback");
 
           message.success(t("common.text.operation_succeeded"));
         } catch (err) {
@@ -62,18 +76,18 @@ const WorkflowDetailDesign = () => {
     });
   };
 
-  const handlePublishClick = () => {
-    if (!isAllNodesValidated(workflow.draft!)) {
-      message.warning(t("workflow.action.publish.errmsg.uncompleted"));
+  const handlePublishClick = async () => {
+    if (!(await editorRef.current!.validateAllNodes())) {
+      message.warning(t("workflow.detail.design.uncompleted_design.alert"));
       return;
     }
 
     modal.confirm({
-      title: t("workflow.action.publish.modal.title"),
-      content: t("workflow.action.publish.modal.content"),
+      title: t("workflow.detail.design.action.publish.modal.title"),
+      content: t("workflow.detail.design.action.publish.modal.content"),
       onOk: async () => {
         try {
-          await workflowState.publish();
+          alert("TODO: publish");
 
           message.success(t("common.text.operation_succeeded"));
         } catch (err) {
@@ -96,7 +110,14 @@ const WorkflowDetailDesign = () => {
           },
         }}
       >
-        <WorkflowDesigner initialData={editorData}>
+        <WorkflowEditor
+          ref={editorRef}
+          initialData={editorData}
+          onNodeClick={(ctx, node) => {
+            console.log(ctx, node);
+            console.log(editorRef.current);
+          }}
+        >
           <div className="absolute top-8 z-10 w-full px-4">
             <div className="container">
               <div className="flex items-center justify-end gap-4">
@@ -108,7 +129,7 @@ const WorkflowDetailDesign = () => {
                   </div>
                   <Space.Compact>
                     <Button disabled={!allowPublish} ghost type="primary" onClick={handlePublishClick}>
-                      {t("workflow.action.publish.button")}
+                      {t("workflow.detail.design.action.publish.button")}
                     </Button>
                     <Dropdown
                       menu={{
@@ -116,7 +137,7 @@ const WorkflowDetailDesign = () => {
                           {
                             key: "rollback",
                             disabled: !allowRollback,
-                            label: t("workflow.action.rollback.button"),
+                            label: t("workflow.detail.design.action.rollback.button"),
                             icon: <IconArrowBackUp size="1.25em" />,
                             onClick: handleRollbackClick,
                           },
@@ -134,7 +155,7 @@ const WorkflowDetailDesign = () => {
           <div className="absolute bottom-8 z-10 w-full px-4">
             <div className="container">
               <div className="flex justify-end">
-                <WorkflowDesignerToolbar
+                <WorkflowEditorToolbar
                   style={{
                     backgroundColor: themeToken.colorBgContainer,
                     borderRadius: themeToken.borderRadius,
@@ -143,7 +164,7 @@ const WorkflowDetailDesign = () => {
               </div>
             </div>
           </div>
-        </WorkflowDesigner>
+        </WorkflowEditor>
       </Card>
     </div>
   );
@@ -160,7 +181,7 @@ const compactWorkflowDraft = (root: WorkflowNode | undefined) => {
       id: nanoid(),
       type: "start",
       data: {
-        name: "Start",
+        name: t("workflow_node.start.default_name"),
       },
     });
   } else {

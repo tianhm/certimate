@@ -1,7 +1,14 @@
-import { type ContextType, useContext, useEffect, useRef, useState } from "react";
+import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Field, type FlowNodeEntity, FlowNodeRenderData, useClientContext } from "@flowgram.ai/fixed-layout-editor";
-import { IconCopy, IconDotsVertical, IconGripVertical, IconLabel, IconX } from "@tabler/icons-react";
+import {
+  Field,
+  type FlowNodeEntity,
+  FlowNodeRenderData,
+  type NodeRenderReturnType,
+  useClientContext,
+  useWatchFormState,
+} from "@flowgram.ai/fixed-layout-editor";
+import { IconCopy, IconDotsVertical, IconExclamationCircle, IconGripVertical, IconLabel, IconX } from "@tabler/icons-react";
 import { Button, type ButtonProps, Card, Dropdown, Input, type InputRef, Popover, Tooltip, theme } from "antd";
 import { Immer } from "immer";
 import { nanoid } from "nanoid";
@@ -9,9 +16,9 @@ import { nanoid } from "nanoid";
 import { mergeCls } from "@/utils/css";
 
 import { type NodeJSON, type NodeRegistry, NodeType } from "./typings";
-import { NodeRenderContext } from "../NodeRenderContext";
+import { useNodeRenderContext } from "../NodeRenderContext";
 
-const useNodeRenamingInput = ({ nodeRender }: { nodeRender: ContextType<typeof NodeRenderContext> }) => {
+const useInternalRenamingInput = ({ nodeRender }: { nodeRender: NodeRenderReturnType }) => {
   const inputRef = useRef<InputRef>(null);
   const [inputVisible, setInputVisible] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -50,216 +57,65 @@ const useNodeRenamingInput = ({ nodeRender }: { nodeRender: ContextType<typeof N
   };
 };
 
-export interface BaseNodeProps {
+const InternalNodeCard = ({
+  className,
+  style,
+  children,
+  nodeRender,
+}: {
   className?: string;
   style?: React.CSSProperties;
   children?: React.ReactNode;
-}
-
-export const BaseNode = ({ className, style, children }: BaseNodeProps) => {
-  const { token: themeToken } = theme.useToken();
-
-  const ctx = useClientContext();
-  const { playground } = ctx;
-
-  const nodeRender = useContext(NodeRenderContext);
+  nodeRender: NodeRenderReturnType;
+}) => {
   const nodeRenderData = nodeRender.node.getData(FlowNodeRenderData)!;
-  const nodeRegistry = nodeRender.node.getNodeRegistry<NodeRegistry>();
 
-  const NodeIcon = nodeRegistry.meta?.icon;
-  const renderNodeIcon = () => {
-    return NodeIcon == null ? null : (
-      <div
-        className="mr-2 flex size-9 items-center justify-center rounded-lg bg-white text-primary shadow-md dark:bg-stone-200"
-        style={{
-          color: nodeRegistry.meta?.iconColor,
-          backgroundColor: nodeRegistry.meta?.iconBgColor,
-        }}
-      >
-        <NodeIcon size="1.75em" color={nodeRegistry.meta?.iconColor} stroke="1.25" />
-      </div>
-    );
-  };
+  const isActivated = useMemo(() => nodeRenderData.activated || nodeRenderData.lineActivated, [nodeRenderData.activated, nodeRenderData.lineActivated]);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isInvalid, setIsInvalid] = useState(false);
 
-  const {
-    inputRef,
-    visible: inputVisible,
-    value: inputValue,
-    onClick: handleNodeRenameClick,
-    onChange: handleNodeNameChange,
-    onConfirm: handleNodeNameConfirm,
-  } = useNodeRenamingInput({ nodeRender });
-
-  const [hovered, setHovered] = useState(false);
+  const formState = useWatchFormState(nodeRender.node);
+  useEffect(() => setIsInvalid(!!formState?.invalid), [formState?.invalid]);
 
   return (
-    <div
-      className={mergeCls("relative w-[320px] group/node", className)}
+    <Card
+      className={mergeCls("relative rounded-xl shadow-sm", { "border-primary": isActivated }, className)}
       style={style}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      <Card
-        className="rounded-xl shadow-sm"
-        style={{
-          borderColor: hovered ? "var(--color-info)" : nodeRenderData.activated || nodeRenderData.lineActivated ? "var(--color-primary)" : undefined,
-          borderWidth: "2px",
-        }}
-        styles={{ body: { padding: 0 } }}
-        hoverable
-      >
-        <div className={mergeCls("flex items-center gap-1 overflow-hidden p-3", inputVisible ? "invisible" : "visible")}>
-          {nodeRegistry.meta?.helpText == null ? (
-            renderNodeIcon()
-          ) : (
-            <Tooltip title={<span dangerouslySetInnerHTML={{ __html: nodeRegistry.meta.helpText }}></span>} mouseEnterDelay={1}>
-              <div className="cursor-help">{renderNodeIcon()}</div>
-            </Tooltip>
-          )}
-          <div className="flex-1 overflow-hidden">
-            <div className="truncate">
-              <Field<string> name="name">{({ field: { value } }) => <>{value || "\u00A0"}</>}</Field>
-            </div>
-            {children != null && (
-              <div className="truncate text-xs" style={{ color: themeToken.colorTextTertiary }}>
-                {children}
-              </div>
-            )}
-          </div>
-          <div className="-mr-2 ml-1" onClick={(e) => e.stopPropagation()}>
-            <NodeMenuButton
-              className="opacity-0 transition-opacity group-hover/node:opacity-100"
-              size="small"
-              onMenuSelect={(key) => {
-                switch (key) {
-                  case "rename":
-                    handleNodeRenameClick();
-                    break;
-                }
-              }}
-            />
-          </div>
-        </div>
-      </Card>
-      {!playground.config.readonlyOrDisabled && nodeRegistry.meta?.draggable === true && (
-        <div className="absolute top-1/2 -left-4 hidden -translate-y-1/2 group-hover/node:block">
-          <IconGripVertical size="1em" stroke="1" />
-        </div>
-      )}
-      {!playground.config.readonlyOrDisabled && (
-        <div className={mergeCls("absolute top-1/2 left-2 right-2 -translate-y-1/2", inputVisible ? "block" : "hidden")}>
-          <Input
-            ref={inputRef}
-            maxLength={100}
-            variant="underlined"
-            value={inputValue}
-            onBlur={(e) => handleNodeNameConfirm(e.target.value)}
-            onChange={(e) => handleNodeNameChange(e.target.value)}
-            onPressEnter={(e) => e.currentTarget.blur()}
-          />
-        </div>
-      )}
-    </div>
-  );
-};
-
-export interface BranchLikeNodeProps extends BaseNodeProps {}
-
-export const BranchLikeNode = ({ className, style, children }: BranchLikeNodeProps) => {
-  const ctx = useClientContext();
-  const { playground } = ctx;
-
-  const nodeRender = useContext(NodeRenderContext);
-  const nodeRenderData = nodeRender.node.getData(FlowNodeRenderData)!;
-  const nodeRegistry = nodeRender.node.getNodeRegistry<NodeRegistry>();
-
-  const {
-    inputRef,
-    visible: inputVisible,
-    value: inputValue,
-    onClick: handleNodeRenameClick,
-    onChange: handleNodeNameChange,
-    onConfirm: handleNodeNameConfirm,
-  } = useNodeRenamingInput({ nodeRender });
-
-  const [hovered, setHovered] = useState(false);
-
-  return (
-    <Popover
-      classNames={{ root: "shadow-md" }}
       styles={{ body: { padding: 0 } }}
-      arrow={false}
-      content={
-        inputVisible ? null : (
-          <NodeMenuButton
-            variant="text"
-            onMenuSelect={(key) => {
-              switch (key) {
-                case "rename":
-                  handleNodeRenameClick();
-                  break;
-              }
-            }}
-          />
-        )
-      }
-      placement="right"
+      hoverable
+      onMouseEnter={() => startTransition(() => setIsHovered(true))}
+      onMouseLeave={() => startTransition(() => setIsHovered(false))}
     >
+      <div className="relative z-1">{children}</div>
       <div
-        className={mergeCls("relative w-[240px] group/node", className)}
-        style={style}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-      >
-        <Card
-          className="rounded-xl shadow-sm"
-          style={{
-            borderColor: hovered ? "var(--color-info)" : nodeRenderData.activated || nodeRenderData.lineActivated ? "var(--color-primary)" : undefined,
-            borderWidth: "2px",
-          }}
-          styles={{ body: { padding: 0 } }}
-          hoverable
-        >
-          <div className={mergeCls("overflow-hidden px-3 py-2", inputVisible ? "invisible" : "visible")}>
-            <div className="truncate text-center">{children ?? <Field<string> name="name">{({ field: { value } }) => <>{value || "\u00A0"}</>}</Field>}</div>
-          </div>
-        </Card>
-        {!playground.config.readonlyOrDisabled && nodeRegistry.meta?.draggable === true && (
-          <div className="absolute top-1/2 -left-4 hidden -translate-y-1/2 group-hover/node:block">
-            <IconGripVertical size="1em" stroke="1" />
-          </div>
-        )}
-        {!playground.config.readonlyOrDisabled && (
-          <div className={mergeCls("absolute top-1/2 left-2 right-2 -translate-y-1/2", inputVisible ? "block" : "hidden")}>
-            <Input
-              ref={inputRef}
-              maxLength={100}
-              variant="underlined"
-              value={inputValue}
-              onBlur={(e) => handleNodeNameConfirm(e.target.value)}
-              onChange={(e) => handleNodeNameChange(e.target.value)}
-              onPressEnter={(e) => e.currentTarget.blur()}
-            />
-          </div>
-        )}
-      </div>
-    </Popover>
+        className="absolute z-0 rounded-xl border-solid border-transparent transition-all duration-500"
+        style={{
+          top: "-1px",
+          left: "-1px",
+          right: "-1px",
+          bottom: "-1px",
+          borderWidth: "2px",
+          borderColor: isHovered ? "var(--color-primary)" : isInvalid ? "var(--color-error)" : undefined,
+        }}
+      />
+    </Card>
   );
 };
 
-export interface NodeMenuButtionProps extends ButtonProps {
-  className?: string;
-  style?: React.CSSProperties;
+const InternalNodeMenuButton = ({
+  className,
+  style,
+  onMenuSelect,
+  ...props
+}: ButtonProps & {
   onMenuSelect?: (key: "rename" | "duplicate" | "remove") => void;
-}
-
-export const NodeMenuButton = ({ className, style, onMenuSelect, ...props }: NodeMenuButtionProps) => {
+}) => {
   const { t } = useTranslation();
 
   const ctx = useClientContext();
   const { operation, playground } = ctx;
 
-  const { node, ...nodeRender } = useContext(NodeRenderContext);
+  const { node, ...nodeRender } = useNodeRenderContext();
   const nodeRegistry = node.getNodeRegistry<NodeRegistry>();
 
   const getLatestDuplicateDisabledState = () => {
@@ -286,11 +142,11 @@ export const NodeMenuButton = ({ className, style, onMenuSelect, ...props }: Nod
       setMenuDuplicateDisabled(getLatestDuplicateDisabledState());
       setMenuRemoveDisabled(getLatestRemoveDisabledState());
     };
-    const disposable1 = node.onEntityChange(callback);
-    const disposable2 = node.parent?.onEntityChange?.(callback);
+    const d1 = node.onEntityChange(callback);
+    const d2 = node.parent?.onEntityChange?.(callback);
     return () => {
-      disposable1?.dispose();
-      disposable2?.dispose();
+      d1?.dispose();
+      d2?.dispose();
     };
   }, []);
 
@@ -343,13 +199,13 @@ export const NodeMenuButton = ({ className, style, onMenuSelect, ...props }: Nod
         items: [
           {
             key: "rename",
-            label: nodeRender.isBlockOrderIcon ? t("workflow.detail.design.nodes.rename_branch") : t("workflow.detail.design.nodes.rename_node"),
+            label: nodeRender.isBlockOrderIcon ? t("workflow.detail.design.editor.rename_branch") : t("workflow.detail.design.editor.rename_node"),
             icon: <IconLabel size="1em" />,
             onClick: handleClickRename,
           },
           {
             key: "duplicate",
-            label: nodeRender.isBlockOrderIcon ? t("workflow.detail.design.nodes.duplicate_branch") : t("workflow.detail.design.nodes.duplicate_node"),
+            label: nodeRender.isBlockOrderIcon ? t("workflow.detail.design.editor.duplicate_branch") : t("workflow.detail.design.editor.duplicate_node"),
             icon: <IconCopy size="1em" />,
             disabled: menuDuplicateDisabled,
             onClick: handleClickDuplicate,
@@ -359,7 +215,7 @@ export const NodeMenuButton = ({ className, style, onMenuSelect, ...props }: Nod
           },
           {
             key: "remove",
-            label: nodeRender.isBlockOrderIcon ? t("workflow.detail.design.nodes.remove_branch") : t("workflow.detail.design.nodes.remove_node"),
+            label: nodeRender.isBlockOrderIcon ? t("workflow.detail.design.editor.remove_branch") : t("workflow.detail.design.editor.remove_node"),
             icon: <IconX size="1em" />,
             danger: true,
             disabled: menuRemoveDisabled,
@@ -374,6 +230,191 @@ export const NodeMenuButton = ({ className, style, onMenuSelect, ...props }: Nod
     >
       <Button className={className} style={style} icon={<IconDotsVertical color="grey" size="1.25em" />} type="text" {...props} />
     </Dropdown>
+  );
+};
+
+export interface BaseNodeProps {
+  className?: string;
+  style?: React.CSSProperties;
+  children?: React.ReactNode;
+}
+
+export const BaseNode = ({ className, style, children }: BaseNodeProps) => {
+  const { token: themeToken } = theme.useToken();
+
+  const ctx = useClientContext();
+  const { playground } = ctx;
+
+  const nodeRender = useNodeRenderContext();
+  const nodeRegistry = nodeRender.node.getNodeRegistry<NodeRegistry>();
+
+  const NodeIcon = nodeRegistry.meta?.icon;
+  const renderNodeIcon = () => {
+    return NodeIcon == null ? null : (
+      <div
+        className="mr-2 flex size-9 items-center justify-center rounded-lg bg-white text-primary shadow-md dark:bg-stone-200"
+        style={{
+          color: nodeRegistry.meta?.iconColor,
+          backgroundColor: nodeRegistry.meta?.iconBgColor,
+        }}
+      >
+        <NodeIcon size="1.75em" color={nodeRegistry.meta?.iconColor} stroke="1.25" />
+      </div>
+    );
+  };
+
+  const [isInvalid, setIsInvalid] = useState(false);
+
+  const formState = useWatchFormState(nodeRender.node);
+  useEffect(() => setIsInvalid(!!formState?.invalid), [formState?.invalid]);
+
+  const {
+    inputRef,
+    visible: inputVisible,
+    value: inputValue,
+    onClick: handleNodeRenameClick,
+    onChange: handleNodeNameChange,
+    onConfirm: handleNodeNameConfirm,
+  } = useInternalRenamingInput({ nodeRender });
+
+  return (
+    <Popover
+      classNames={{ root: "shadow-md" }}
+      styles={{ body: { padding: 0 } }}
+      arrow={false}
+      content={
+        inputVisible ? null : (
+          <InternalNodeMenuButton
+            variant="text"
+            onMenuSelect={(key) => {
+              switch (key) {
+                case "rename":
+                  handleNodeRenameClick();
+                  break;
+              }
+            }}
+          />
+        )
+      }
+      placement="rightTop"
+    >
+      <div className="group/node relative">
+        <InternalNodeCard className={mergeCls("w-[320px] ", className)} style={style} nodeRender={nodeRender}>
+          <div className={mergeCls("flex items-center gap-1 overflow-hidden p-3", inputVisible ? "invisible" : "visible")}>
+            {nodeRegistry.meta?.helpText == null ? (
+              renderNodeIcon()
+            ) : (
+              <Tooltip title={<span dangerouslySetInnerHTML={{ __html: nodeRegistry.meta.helpText }}></span>} mouseEnterDelay={1}>
+                <div className="cursor-help">{renderNodeIcon()}</div>
+              </Tooltip>
+            )}
+            <div className="flex-1 overflow-hidden">
+              <div className="truncate">
+                <Field<string> name="name">{({ field: { value } }) => <>{value || "\u00A0"}</>}</Field>
+              </div>
+              {children != null && (
+                <div className="truncate text-xs" style={{ color: themeToken.colorTextTertiary }}>
+                  {children}
+                </div>
+              )}
+            </div>
+            <div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+              {isInvalid && <IconExclamationCircle color="var(--color-error)" size="1.25em" />}
+            </div>
+          </div>
+        </InternalNodeCard>
+
+        {!playground.config.readonlyOrDisabled && nodeRegistry.meta?.draggable === true && (
+          <div className="absolute top-1/2 -left-4 z-1 hidden -translate-y-1/2 group-hover/node:block">
+            <IconGripVertical size="1em" stroke="1" />
+          </div>
+        )}
+
+        {!playground.config.readonlyOrDisabled && (
+          <div className={mergeCls("absolute top-1/2 left-2 right-2 -translate-y-1/2 z-1", inputVisible ? "block" : "hidden")}>
+            <Input
+              ref={inputRef}
+              maxLength={100}
+              variant="underlined"
+              value={inputValue}
+              onBlur={(e) => handleNodeNameConfirm(e.target.value)}
+              onChange={(e) => handleNodeNameChange(e.target.value)}
+              onPressEnter={(e) => e.currentTarget.blur()}
+            />
+          </div>
+        )}
+      </div>
+    </Popover>
+  );
+};
+
+export interface BranchNodeProps extends BaseNodeProps {}
+
+export const BranchNode = ({ className, style, children }: BranchNodeProps) => {
+  const ctx = useClientContext();
+  const { playground } = ctx;
+
+  const nodeRender = useNodeRenderContext();
+  const nodeRegistry = nodeRender.node.getNodeRegistry<NodeRegistry>();
+
+  const {
+    inputRef,
+    visible: inputVisible,
+    value: inputValue,
+    onClick: handleNodeRenameClick,
+    onChange: handleNodeNameChange,
+    onConfirm: handleNodeNameConfirm,
+  } = useInternalRenamingInput({ nodeRender });
+
+  return (
+    <Popover
+      classNames={{ root: "shadow-md" }}
+      styles={{ body: { padding: 0 } }}
+      arrow={false}
+      content={
+        inputVisible ? null : (
+          <InternalNodeMenuButton
+            variant="text"
+            onMenuSelect={(key) => {
+              switch (key) {
+                case "rename":
+                  handleNodeRenameClick();
+                  break;
+              }
+            }}
+          />
+        )
+      }
+      placement="right"
+    >
+      <div className="group/node relative">
+        <InternalNodeCard className={mergeCls("w-[240px]", className)} style={style} nodeRender={nodeRender}>
+          <div className={mergeCls("overflow-hidden px-3 py-2", inputVisible ? "invisible" : "visible")}>
+            <div className="truncate text-center">{children ?? <Field<string> name="name">{({ field: { value } }) => <>{value || "\u00A0"}</>}</Field>}</div>
+          </div>
+        </InternalNodeCard>
+
+        {!playground.config.readonlyOrDisabled && nodeRegistry.meta?.draggable === true && (
+          <div className="absolute top-1/2 -left-4 z-1 hidden -translate-y-1/2 group-hover/node:block">
+            <IconGripVertical size="1em" stroke="1" />
+          </div>
+        )}
+
+        {!playground.config.readonlyOrDisabled && (
+          <div className={mergeCls("absolute top-1/2 left-2 right-2 -translate-y-1/2 z-1", inputVisible ? "block" : "hidden")}>
+            <Input
+              ref={inputRef}
+              maxLength={100}
+              variant="underlined"
+              value={inputValue}
+              onBlur={(e) => handleNodeNameConfirm(e.target.value)}
+              onChange={(e) => handleNodeNameChange(e.target.value)}
+              onPressEnter={(e) => e.currentTarget.blur()}
+            />
+          </div>
+        )}
+      </div>
+    </Popover>
   );
 };
 

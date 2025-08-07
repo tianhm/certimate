@@ -45,7 +45,7 @@ const BranchAdder = ({ node }: BranchAdderProps) => {
       onMouseLeave={() => node.firstChild?.renderData?.toggleMouseLeave()}
     >
       <Button shape="round" size="small" onClick={handleAddBranch}>
-        <span className="text-xs">{t("workflow.detail.design.nodes.add_branch")}</span>
+        <span className="text-xs">{t("workflow.detail.design.editor.add_branch")}</span>
       </Button>
     </div>
   );

@@ -37,8 +37,8 @@ const WorkflowDetailDesign = () => {
 
   const handleRollbackClick = () => {
     modal.confirm({
-      title: t("workflow.action.rollback.modal.title"),
-      content: t("workflow.action.rollback.modal.content"),
+      title: t("workflow.detail.design.action.rollback.modal.title"),
+      content: t("workflow.detail.design.action.rollback.modal.content"),
       onOk: async () => {
         try {
           await workflowState.rollback();
@@ -54,13 +54,13 @@ const WorkflowDetailDesign = () => {
 
   const handlePublishClick = () => {
     if (!isAllNodesValidated(workflow.draft!)) {
-      message.warning(t("workflow.action.publish.errmsg.uncompleted"));
+      message.warning(t("workflow.detail.design.uncompleted_design.alert"));
       return;
     }
 
     modal.confirm({
-      title: t("workflow.action.publish.modal.title"),
-      content: t("workflow.action.publish.modal.content"),
+      title: t("workflow.detail.design.action.publish.modal.title"),
+      content: t("workflow.detail.design.action.publish.modal.content"),
       onOk: async () => {
         try {
           await workflowState.publish();
@@ -98,7 +98,7 @@ const WorkflowDetailDesign = () => {
                   </div>
                   <Space.Compact>
                     <Button disabled={!allowPublish} type="primary" onClick={handlePublishClick}>
-                      {t("workflow.action.publish.button")}
+                      {t("workflow.detail.design.action.publish.button")}
                     </Button>
                     <Dropdown
                       menu={{
@@ -106,7 +106,7 @@ const WorkflowDetailDesign = () => {
                           {
                             key: "rollback",
                             disabled: !allowRollback,
-                            label: t("workflow.action.rollback.button"),
+                            label: t("workflow.detail.design.action.rollback.button"),
                             icon: <IconArrowBackUp size="1.25em" />,
                             onClick: handleRollbackClick,
                           },

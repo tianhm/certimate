@@ -3,7 +3,7 @@ import { Field, ValidateTrigger } from "@flowgram.ai/fixed-layout-editor";
 import { IconArrowsSplit, IconCircleX } from "@tabler/icons-react";
 import { nanoid } from "nanoid";
 
-import { BaseNode, BranchLikeNode } from "./_shared";
+import { BaseNode, BranchNode } from "./_shared";
 import { type NodeRegistry, NodeType } from "./typings";
 
 export const TryCatchNodeRegistry: NodeRegistry = {
@@ -78,7 +78,7 @@ export const CatchBlockNodeRegistry: NodeRegistry = {
     validateTrigger: ValidateTrigger.onChange,
     render: () => {
       return (
-        <BranchLikeNode>
+        <BranchNode>
           <div className="flex items-center justify-center gap-2">
             <div className="flex items-center justify-center">
               <IconCircleX color="var(--color-error)" size="1.25em" stroke="1.25" />
@@ -87,7 +87,7 @@ export const CatchBlockNodeRegistry: NodeRegistry = {
               <Field<string> name="name">{({ field: { value } }) => <>{value || "\u00A0"}</>}</Field>
             </div>
           </div>
-        </BranchLikeNode>
+        </BranchNode>
       );
     },
   },

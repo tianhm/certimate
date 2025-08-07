@@ -1,33 +1,39 @@
 import { useEffect } from "react";
 import { type NodeRenderProps, useClientContext, useNodeRender, useRefresh } from "@flowgram.ai/fixed-layout-editor";
 
-import { NodeRenderContext } from "./NodeRenderContext";
+import { useEditorContext } from "./EditorContext";
+import { NodeRenderContextProvider } from "./NodeRenderContext";
 import { type NodeRegistry } from "./nodes/typings";
 
 export interface NodeProps extends NodeRenderProps {}
 
 const Node = (_: NodeProps) => {
-  const refresh = useRefresh();
-
   const ctx = useClientContext();
+
+  const refresh = useRefresh();
 
   const nodeRender = useNodeRender();
 
   useEffect(() => {
-    const disposable = ctx.document.originTree.onTreeChange(() => refresh());
-    return () => disposable.dispose();
+    const d = ctx.document.originTree.onTreeChange(() => refresh());
+    return () => d.dispose();
   }, []);
 
   useEffect(() => {
-    const disposable = nodeRender.form?.onFormValuesChange?.(() => refresh());
-    return () => disposable?.dispose();
+    const d1 = nodeRender.form?.onFormValuesChange?.(() => refresh());
+    const d2 = nodeRender.form?.onValidate?.(() => refresh());
+    return () => {
+      d1?.dispose();
+      d2?.dispose();
+    };
   }, [nodeRender.form]);
+
+  const { onNodeClick } = useEditorContext();
 
   return (
     <div
       style={{
         opacity: nodeRender.dragging ? 0.3 : 1,
-        outline: nodeRender.form?.state?.invalid ? "1px solid var(--color-error)" : "none",
         ...nodeRender.node.getNodeRegistry<NodeRegistry>().meta?.style,
       }}
       onMouseEnter={nodeRender.onMouseEnter}
@@ -36,8 +42,11 @@ const Node = (_: NodeProps) => {
         nodeRender.startDrag(e);
         e.stopPropagation();
       }}
+      onClick={() => {
+        onNodeClick?.(nodeRender.node);
+      }}
     >
-      <NodeRenderContext.Provider value={nodeRender}>{nodeRender.form?.render()}</NodeRenderContext.Provider>
+      <NodeRenderContextProvider value={nodeRender}>{nodeRender.form?.render()}</NodeRenderContextProvider>
     </div>
   );
 };

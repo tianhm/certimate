@@ -58,6 +58,11 @@
   svg.icon {
     line-height: 1;
   }
+
+  /* Fix antd drawer title overflow */
+  .ant-drawer .ant-drawer-title {
+    overflow: hidden;
+  }
 }
 
 @layer components {

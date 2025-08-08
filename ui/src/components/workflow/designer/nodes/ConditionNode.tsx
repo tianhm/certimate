@@ -19,7 +19,9 @@ export const ConditionNodeRegistry: NodeRegistry = {
     iconColor: "#fff",
     iconBgColor: "#373c43",
 
+    clickable: false,
     expandable: false,
+
     deleteDisable: false,
   },
 
@@ -67,6 +69,12 @@ export const BranchBlockNodeRegistry: NodeRegistry = {
 
   meta: {
     labelText: getI18n().t("workflow_node.branch_block.label"),
+
+    icon: IconSitemap,
+    iconColor: "#fff",
+    iconBgColor: "#373c43",
+
+    clickable: true,
 
     addDisable: true,
     copyDisable: true,

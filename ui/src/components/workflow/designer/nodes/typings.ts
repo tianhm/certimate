@@ -40,13 +40,13 @@ export interface NodeMeta extends FlowNodeMeta {
   style?: React.CSSProperties;
   helpText?: React.ReactNode;
   labelText?: React.ReactNode;
-  icon?: React.Component;
+  icon?: React.ExoticComponent<any> | React.ComponentType<any>;
   iconColor?: string;
   iconBgColor?: string;
+  clickable?: boolean;
 }
 
 export interface NodeRegistry<V extends NodeJSON["data"] = NodeJSON["data"]> extends FlowNodeRegistry<NodeMeta> {
-  meta?: FlowNodeMeta;
   formMeta?: Omit<FormMeta<V>, "render"> & {
     render: (props: FormRenderProps<V>) => React.ReactElement;
   };

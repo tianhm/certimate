@@ -19,6 +19,8 @@ export const BizApplyNodeRegistry: NodeRegistry = {
     icon: IconContract,
     iconColor: "#fff",
     iconBgColor: "#5b65f5",
+
+    clickable: true,
   },
 
   formMeta: {
@@ -91,6 +93,8 @@ export const BizUploadNodeRegistry: NodeRegistry = {
     icon: IconCloudUpload,
     iconColor: "#fff",
     iconBgColor: "#5b65f5",
+
+    clickable: true,
   },
 
   formMeta: {
@@ -147,6 +151,8 @@ export const BizMonitorNodeRegistry: NodeRegistry = {
     icon: IconDeviceDesktopSearch,
     iconColor: "#fff",
     iconBgColor: "#5b65f5",
+
+    clickable: true,
   },
 
   formMeta: {
@@ -194,6 +200,8 @@ export const BizDeployNodeRegistry: NodeRegistry = {
     icon: IconPackage,
     iconColor: "#fff",
     iconBgColor: "#5b65f5",
+
+    clickable: true,
   },
 
   formMeta: {
@@ -265,6 +273,8 @@ export const BizNotifyNodeRegistry: NodeRegistry = {
     icon: IconSend,
     iconColor: "#fff",
     iconBgColor: "#0693d4",
+
+    clickable: true,
   },
 
   formMeta: {

@@ -9,7 +9,8 @@ import { debounce, isEqual } from "radash";
 
 import Show from "@/components/Show";
 import WorkflowEditor, { type EditorInstance as WorkflowEditorInstance } from "@/components/workflow/designer/Editor";
-import WorkflowEditorToolbar from "@/components/workflow/designer/Toolbar";
+import WorkflowNodeDrawer from "@/components/workflow/designer/NodeDrawer";
+import WorkflowToolbar from "@/components/workflow/designer/Toolbar";
 import { type WorkflowNode, WorkflowNodeType } from "@/domain/workflow";
 import { WORKFLOW_RUN_STATUSES } from "@/domain/workflowRun";
 import { useZustandShallowSelector } from "@/hooks";
@@ -58,6 +59,8 @@ const WorkflowDetailDesign = () => {
     const disposable = editorRef.current?.document?.originTree?.onTreeChange(onEditorDocumentChange);
     return () => disposable?.dispose();
   }, []);
+
+  const { setNode: setDrawerNode, setOpen: setNodeDrawerOpen, ...nodeDrawerProps } = WorkflowNodeDrawer.useProps();
 
   const handleRollbackClick = () => {
     modal.confirm({
@@ -113,9 +116,9 @@ const WorkflowDetailDesign = () => {
         <WorkflowEditor
           ref={editorRef}
           initialData={editorData}
-          onNodeClick={(ctx, node) => {
-            console.log(ctx, node);
-            console.log(editorRef.current);
+          onNodeClick={(_, node) => {
+            setDrawerNode(node);
+            setNodeDrawerOpen(true);
           }}
         >
           <div className="absolute top-8 z-10 w-full px-4">
@@ -155,7 +158,7 @@ const WorkflowDetailDesign = () => {
           <div className="absolute bottom-8 z-10 w-full px-4">
             <div className="container">
               <div className="flex justify-end">
-                <WorkflowEditorToolbar
+                <WorkflowToolbar
                   style={{
                     backgroundColor: themeToken.colorBgContainer,
                     borderRadius: themeToken.borderRadius,
@@ -164,6 +167,8 @@ const WorkflowDetailDesign = () => {
               </div>
             </div>
           </div>
+
+          <WorkflowNodeDrawer {...nodeDrawerProps}>TODO:</WorkflowNodeDrawer>
         </WorkflowEditor>
       </Card>
     </div>

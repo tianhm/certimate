@@ -1,4 +1,5 @@
 ﻿import { useTranslation } from "react-i18next";
+import { IconX } from "@tabler/icons-react";
 import { useControllableValue } from "ahooks";
 import { Button, Drawer, type DrawerProps, Flex, Form, type FormProps, type ModalProps } from "antd";
 
@@ -73,6 +74,7 @@ const DrawerForm = <T extends NonNullable<unknown> = any>({
 
   const mergedDrawerProps: DrawerProps = {
     ...drawerProps,
+    closeIcon: false,
     afterOpenChange: (open) => {
       if (!open && !mergedFormProps.preserve) {
         formInst.resetFields();
@@ -109,7 +111,7 @@ const DrawerForm = <T extends NonNullable<unknown> = any>({
       <Drawer
         {...mergedDrawerProps}
         footer={
-          <Flex justify="end" gap="small">
+          <Flex className="px-2" justify="end" gap="small">
             <Button {...cancelButtonProps} onClick={handleCancelClick}>
               {cancelText ?? t("common.button.cancel")}
             </Button>
@@ -120,7 +122,21 @@ const DrawerForm = <T extends NonNullable<unknown> = any>({
         }
         forceRender
         open={open}
-        title={title}
+        title={
+          <Flex align="center" justify="space-between" gap="small">
+            <div className="flex-1 truncate">{title}</div>
+            {mergedDrawerProps.closeIcon !== false && (
+              <Button
+                className="ant-drawer-close"
+                style={{ marginInline: 0 }}
+                icon={mergedDrawerProps.closeIcon ?? <IconX size="1.25em" />}
+                size="small"
+                type="text"
+                onClick={handleCancelClick}
+              />
+            )}
+          </Flex>
+        }
         width={width}
       >
         <Form className={className} style={style} {...mergedFormProps} form={formInst}>

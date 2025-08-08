@@ -17,6 +17,7 @@ export const TryCatchNodeRegistry: NodeRegistry = {
     iconColor: "#fff",
     iconBgColor: "#373c43",
 
+    clickable: false,
     expandable: false,
   },
 
@@ -69,6 +70,7 @@ export const CatchBlockNodeRegistry: NodeRegistry = {
   meta: {
     labelText: getI18n().t("workflow_node.catch_block.label"),
 
+    clickable: false,
     draggable: false,
 
     addDisable: true,

@@ -20,6 +20,7 @@ export const StartNodeRegistry: NodeRegistry = {
 
     isStart: true,
 
+    clickable: true,
     expandable: false,
     selectable: false,
 

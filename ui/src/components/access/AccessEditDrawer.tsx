@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { IconX } from "@tabler/icons-react";
 import { useControllableValue } from "ahooks";
 import { App, Button, Drawer, Flex } from "antd";
 
@@ -99,11 +100,11 @@ const AccessEditDrawer = ({ mode, data, loading, trigger, usage, afterSubmit, ..
 
       <Drawer
         afterOpenChange={setOpen}
-        closable={!formPending}
+        closeIcon={false}
         destroyOnHidden
         footer={
           footerShow ? (
-            <Flex justify="end" gap="small">
+            <Flex className="px-2" justify="end" gap="small">
               <Button onClick={handleCancelClick}>{t("common.button.cancel")}</Button>
               <Button loading={formPending} type="primary" onClick={handleOkClick}>
                 {mode === "edit" ? t("common.button.save") : t("common.button.submit")}
@@ -116,9 +117,23 @@ const AccessEditDrawer = ({ mode, data, loading, trigger, usage, afterSubmit, ..
         loading={loading}
         maskClosable={!formPending}
         open={open}
-        title={t(`access.action.${mode}.modal.title`)}
-        width={720}
-        onClose={() => setOpen(false)}
+        size="large"
+        title={
+          <Flex align="center" justify="space-between" gap="small">
+            <div className="flex-1 truncate">
+              {mode === "edit" && !!data ? t("access.action.edit.modal.title") + ` #${data.id}` : t(`access.action.${mode}.modal.title`)}
+            </div>
+            <Button
+              className="ant-drawer-close"
+              style={{ marginInline: 0 }}
+              icon={<IconX size="1.25em" />}
+              size="small"
+              type="text"
+              onClick={handleCancelClick}
+            />
+          </Flex>
+        }
+        onClose={handleCancelClick}
       >
         <AccessForm ref={formRef} disabled={formPending} initialValues={data} mode={mode} usage={usage} onValuesChange={handleFormValuesChange} />
       </Drawer>

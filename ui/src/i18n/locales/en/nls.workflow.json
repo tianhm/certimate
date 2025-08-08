@@ -72,6 +72,7 @@
   "workflow.detail.design.toolbar.minimap": "Minimap",
   "workflow.detail.design.toolbar.hand_mode": "Hand mode",
   "workflow.detail.design.toolbar.pointer_mode": "Pointer mode",
+  "workflow.detail.design.drawer.node_id.label": "Node ID: ",
   "workflow.detail.design.action.publish.button": "Publish",
   "workflow.detail.design.action.publish.modal.title": "Publish changes",
   "workflow.detail.design.action.publish.modal.content": "Are you sure to publish your changes?",

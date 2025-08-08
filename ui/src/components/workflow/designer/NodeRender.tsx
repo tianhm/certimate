@@ -29,6 +29,12 @@ const Node = (_: NodeProps) => {
   }, [nodeRender.form]);
 
   const { onNodeClick } = useEditorContext();
+  const handleNodeClick = () => {
+    const node = nodeRender.node;
+    if (node.getNodeRegistry<NodeRegistry>().meta?.clickable) {
+      onNodeClick?.(node);
+    }
+  };
 
   return (
     <div
@@ -42,9 +48,7 @@ const Node = (_: NodeProps) => {
         nodeRender.startDrag(e);
         e.stopPropagation();
       }}
-      onClick={() => {
-        onNodeClick?.(nodeRender.node);
-      }}
+      onClick={handleNodeClick}
     >
       <NodeRenderContextProvider value={nodeRender}>{nodeRender.form?.render()}</NodeRenderContextProvider>
     </div>

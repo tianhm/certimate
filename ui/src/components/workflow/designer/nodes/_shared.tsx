@@ -69,6 +69,7 @@ const InternalNodeCard = ({
   nodeRender: NodeRenderReturnType;
 }) => {
   const nodeRenderData = nodeRender.node.getData(FlowNodeRenderData)!;
+  const nodeRegistry = nodeRender.node.getNodeRegistry<NodeRegistry>();
 
   const isActivated = useMemo(() => nodeRenderData.activated || nodeRenderData.lineActivated, [nodeRenderData.activated, nodeRenderData.lineActivated]);
   const [isHovered, setIsHovered] = useState(false);
@@ -79,7 +80,12 @@ const InternalNodeCard = ({
 
   return (
     <Card
-      className={mergeCls("relative rounded-xl shadow-sm", { "border-primary": isActivated }, className)}
+      className={mergeCls(
+        "relative rounded-xl shadow-sm",
+        { "border-primary": isActivated },
+        nodeRegistry.meta?.clickable ? "cursor-pointer" : "cursor-default",
+        className
+      )}
       style={style}
       styles={{ body: { padding: 0 } }}
       hoverable
@@ -299,7 +305,7 @@ export const BaseNode = ({ className, style, children }: BaseNodeProps) => {
       placement="rightTop"
     >
       <div className="group/node relative">
-        <InternalNodeCard className={mergeCls("w-[320px] ", className)} style={style} nodeRender={nodeRender}>
+        <InternalNodeCard className={mergeCls("w-[320px]", className)} style={style} nodeRender={nodeRender}>
           <div className={mergeCls("flex items-center gap-1 overflow-hidden p-3", inputVisible ? "invisible" : "visible")}>
             {nodeRegistry.meta?.helpText == null ? (
               renderNodeIcon()

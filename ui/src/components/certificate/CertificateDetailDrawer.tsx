@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { IconX } from "@tabler/icons-react";
 import { useControllableValue } from "ahooks";
-import { Drawer } from "antd";
+import { Button, Drawer, Flex } from "antd";
 
 import Show from "@/components/Show";
 import { type CertificateModel } from "@/domain/certificate";
@@ -30,12 +31,25 @@ const CertificateDetailDrawer = ({ data, loading, trigger, ...props }: Certifica
 
       <Drawer
         afterOpenChange={setOpen}
+        closeIcon={false}
         destroyOnHidden
         open={open}
         loading={loading}
         placement="right"
-        title={`Certificate #${data?.id}`}
-        width={720}
+        size="large"
+        title={
+          <Flex align="center" justify="space-between" gap="small">
+            <div className="flex-1 truncate">{data ? `Certificate #${data.id}` : "Certificate"}</div>
+            <Button
+              className="ant-drawer-close"
+              style={{ marginInline: 0 }}
+              icon={<IconX size="1.25em" />}
+              size="small"
+              type="text"
+              onClick={() => setOpen(false)}
+            />
+          </Flex>
+        }
         onClose={() => setOpen(false)}
       >
         <Show when={!!data}>

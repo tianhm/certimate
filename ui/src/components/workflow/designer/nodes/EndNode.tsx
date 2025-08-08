@@ -19,6 +19,7 @@ export const EndNodeRegistry: NodeRegistry = {
 
     isNodeEnd: true,
 
+    clickable: false,
     expandable: false,
     selectable: false,
 

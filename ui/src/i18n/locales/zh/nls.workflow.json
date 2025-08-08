@@ -72,6 +72,7 @@
   "workflow.detail.design.toolbar.minimap": "小地图",
   "workflow.detail.design.toolbar.hand_mode": "触摸模式",
   "workflow.detail.design.toolbar.pointer_mode": "指针模式",
+  "workflow.detail.design.drawer.node_id.label": "节点 ID：",
   "workflow.detail.design.action.publish.button": "发布更改",
   "workflow.detail.design.action.publish.modal.title": "发布更改",
   "workflow.detail.design.action.publish.modal.content": "确定要发布更改吗？",

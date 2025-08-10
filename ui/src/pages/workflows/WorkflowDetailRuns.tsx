@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { IconBrowserShare, IconDotsVertical, IconHistory, IconPlayerPause, IconTrash } from "@tabler/icons-react";
+import { IconBrowserShare, IconDots, IconHistory, IconPlayerPause, IconTrash } from "@tabler/icons-react";
 import { useRequest } from "ahooks";
-import { Alert, App, Button, Dropdown, Skeleton, Table, type TableProps } from "antd";
+import { App, Button, Dropdown, Skeleton, Table, type TableProps } from "antd";
 import dayjs from "dayjs";
 import { ClientResponseError } from "pocketbase";
 
 import { cancelRun as cancelWorkflowRun } from "@/api/workflows";
 import Empty from "@/components/Empty";
+import Tips from "@/components/Tips";
 import WorkflowRunDetailDrawer from "@/components/workflow/WorkflowRunDetailDrawer";
 import WorkflowStatusTag from "@/components/workflow/WorkflowStatusTag";
 import { WORKFLOW_TRIGGERS } from "@/domain/workflow";
@@ -153,7 +154,7 @@ const WorkflowDetailRuns = () => {
             }}
             trigger={["click"]}
           >
-            <Button icon={<IconDotsVertical size="1.25em" />} type="text" />
+            <Button icon={<IconDots size="1.25em" />} type="text" />
           </Dropdown>
         );
       },
@@ -286,8 +287,8 @@ const WorkflowDetailRuns = () => {
   return (
     <div className="container">
       <div className="pt-9">
-        <Alert className="mb-4" message={<span dangerouslySetInnerHTML={{ __html: t("workflow_run.deletion.alert") }}></span>} showIcon type="info" />
-        <Alert className="mb-4" message={<span dangerouslySetInnerHTML={{ __html: t("workflow_run.cancellation.alert") }}></span>} showIcon type="info" />
+        <Tips className="mb-4" message={<span dangerouslySetInnerHTML={{ __html: t("workflow_run.deletion.alert") }}></span>} />
+        <Tips className="mb-4" message={<span dangerouslySetInnerHTML={{ __html: t("workflow_run.cancellation.alert") }}></span>} />
 
         <Table<WorkflowRunModel>
           columns={tableColumns}

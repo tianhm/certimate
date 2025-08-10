@@ -31,6 +31,7 @@ export interface EditorProps {
 }
 
 export interface EditorInstance extends FixedLayoutPluginContext {
+  validateNode(node: string | FlowNodeEntity): Promise<boolean>;
   validateAllNodes(): Promise<boolean>;
 }
 
@@ -97,7 +98,7 @@ const Editor = forwardRef<EditorInstance, EditorProps>(({ className, style, chil
             defaultExpanded: true,
           },
           formMeta: {
-            render: () => <BranchNode>{type}</BranchNode>,
+            render: () => <BranchNode description={type} />,
           },
         };
       },
@@ -152,6 +153,14 @@ const Editor = forwardRef<EditorInstance, EditorProps>(({ className, style, chil
       },
       getAll(identifier) {
         return flowgramEditorRef.current!.getAll(identifier);
+      },
+      validateNode(node) {
+        if (typeof node === "string") {
+          node = flowgramEditorRef.current!.document.getNode(node)!;
+        }
+
+        const form = getNodeForm(node);
+        return form ? form.validate().then((res) => res && !form.state.invalid) : Promise.resolve(true);
       },
       validateAllNodes() {
         const nodes = flowgramEditorRef.current!.document.getAllNodes();

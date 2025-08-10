@@ -11,6 +11,10 @@ export interface WorkflowElementsProps {
   disabled?: boolean;
 }
 
+/**
+ *
+ * @deprecated
+ */
 const WorkflowElementsContainer = ({ className, style, disabled }: WorkflowElementsProps) => {
   const [scale, setScale] = useState(1);
 

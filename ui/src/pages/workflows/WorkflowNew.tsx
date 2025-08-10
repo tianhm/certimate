@@ -66,7 +66,7 @@ const WorkflowNew = () => {
       throw err;
     } finally {
       setPending(false);
-      setTemplateSelectKey(undefined);
+      setTemplateSelectKey(void 0);
     }
   };
 

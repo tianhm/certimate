@@ -142,7 +142,7 @@ const MultipleInput = ({
             allowRemove={allowRemove}
             allowUp={allowUp}
             disabled={disabled}
-            defaultValue={undefined}
+            defaultValue={void 0}
             showSortButton={showSortButton}
             value={element}
             onBlur={() => handleInputBlur(index)}
@@ -245,10 +245,10 @@ const MultipleInputItem = forwardRef<MultipleInputItemInstance, MultipleInputIte
           <Input
             {...props}
             ref={inputRef}
-            className={undefined}
-            style={undefined}
+            className={void 0}
+            style={void 0}
             allowClear={allowClear}
-            defaultValue={undefined}
+            defaultValue={void 0}
             value={value}
             onChange={handleInputChange}
           />

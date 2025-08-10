@@ -168,7 +168,7 @@ const WorkflowDetailDesign = () => {
             </div>
           </div>
 
-          <WorkflowNodeDrawer {...nodeDrawerProps}>TODO:</WorkflowNodeDrawer>
+          <WorkflowNodeDrawer {...nodeDrawerProps} />
         </WorkflowEditor>
       </Card>
     </div>

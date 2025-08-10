@@ -1,4 +1,8 @@
-﻿import { BizApplyNodeRegistry, BizDeployNodeRegistry, BizMonitorNodeRegistry, BizNotifyNodeRegistry, BizUploadNodeRegistry } from "./BusinessNode";
+﻿import { BizApplyNodeRegistry } from "./BizApplyNodeRegistry";
+import { BizDeployNodeRegistry } from "./BizDeployNodeRegistry";
+import { BizMonitorNodeRegistry } from "./BizMonitorNodeRegistry";
+import { BizNotifyNodeRegistry } from "./BizNotifyNodeRegistry";
+import { BizUploadNodeRegistry } from "./BizUploadNodeRegistry";
 import { BranchBlockNodeRegistry, ConditionNodeRegistry } from "./ConditionNode";
 import { EndNodeRegistry } from "./EndNode";
 import { StartNodeRegistry } from "./StartNode";

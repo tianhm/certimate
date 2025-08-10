@@ -1,21 +1,27 @@
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { type FlowNodeEntity } from "@flowgram.ai/fixed-layout-editor";
+import { type FlowNodeEntity, getNodeForm } from "@flowgram.ai/fixed-layout-editor";
 import { IconX } from "@tabler/icons-react";
 import { useControllableValue } from "ahooks";
-import { Anchor, type AnchorProps, App, Button, Drawer, Flex, Typography } from "antd";
+import { Anchor, type AnchorProps, App, Button, Drawer, Flex, Form, Typography } from "antd";
+import { isEqual } from "radash";
 
 import { useTriggerElement } from "@/hooks";
 import { getErrMsg } from "@/utils/error";
 
-import { type NodeRegistry } from "./nodes/typings";
+import BizApplyNodeConfigForm from "./forms/BizApplyNodeConfigForm";
+import BizDeployNodeConfigForm from "./forms/BizDeployNodeConfigForm";
+import BizMonitorNodeConfigForm from "./forms/BizMonitorNodeConfigForm";
+import BizNotifyNodeConfigForm from "./forms/BizNotifyNodeConfigForm";
+import BizUploadNodeConfigForm from "./forms/BizUploadNodeConfigForm";
+import BranchBlockNodeConfigForm from "./forms/BranchBlockNodeConfigForm";
+import StartNodeConfigForm from "./forms/StartNodeConfigForm";
+import { type NodeRegistry, NodeType } from "./nodes/typings";
 
 export interface NodeDrawerProps {
   children?: React.ReactNode;
   anchor?: Pick<AnchorProps, "items"> | false;
-  confirmLoading?: boolean;
   loading?: boolean;
-  footer?: boolean;
   node?: FlowNodeEntity;
   open?: boolean;
   trigger?: React.ReactNode;
@@ -23,11 +29,11 @@ export interface NodeDrawerProps {
 }
 
 const NodeDrawer = (_: NodeDrawerProps) => {
-  const { children, anchor, confirmLoading, footer = true, loading, node, trigger, ...props } = _;
+  const { anchor, loading, node, trigger, ...props } = _;
 
   const { t } = useTranslation();
 
-  const { notification } = App.useApp();
+  const { modal, notification } = App.useApp();
 
   const [open, setOpen] = useControllableValue<boolean>(props, {
     valuePropName: "open",
@@ -39,7 +45,9 @@ const NodeDrawer = (_: NodeDrawerProps) => {
 
   const triggerEl = useTriggerElement(trigger, { onClick: () => setOpen(true) });
 
-  // const nodeRender = useNodeRender(node);
+  const [formInst] = Form.useForm();
+  const [formPending, setFormPending] = useState<boolean>(false);
+
   const nodeRegistry = node?.getNodeRegistry<NodeRegistry>();
   const NodeIcon = nodeRegistry?.meta?.icon;
   const renderNodeIcon = () =>
@@ -54,18 +62,48 @@ const NodeDrawer = (_: NodeDrawerProps) => {
         <NodeIcon size="1em" color={nodeRegistry?.meta?.iconColor} stroke="1.25" />
       </div>
     );
+  const renderNodeConfigForm = () => {
+    if (node == null) return null;
+
+    const formProps = { form: formInst, node: node };
+    switch (node.flowNodeType) {
+      case NodeType.Start:
+        return <StartNodeConfigForm {...formProps} />;
+      case NodeType.BizApply:
+        return <BizApplyNodeConfigForm {...formProps} />;
+      case NodeType.BizUpload:
+        return <BizUploadNodeConfigForm {...formProps} />;
+      case NodeType.BizMonitor:
+        return <BizMonitorNodeConfigForm {...formProps} />;
+      case NodeType.BizDeploy:
+        return <BizDeployNodeConfigForm {...formProps} />;
+      case NodeType.BizNotify:
+        return <BizNotifyNodeConfigForm {...formProps} />;
+      case NodeType.BranchBlock:
+        return <BranchBlockNodeConfigForm {...formProps} />;
+      default:
+        console.warn(`[certimate] unsupported workflow node type: ${node.flowNodeType}`);
+        return null;
+    }
+  };
 
   const handleOkClick = async () => {
+    if (node == null) {
+      setOpen(false);
+      return;
+    }
+
     setFormPending(true);
     try {
-      // TODO:
+      await formInst.validateFields();
     } catch (err) {
       setFormPending(false);
       throw err;
     }
 
     try {
-      // TODO:
+      getNodeForm(node)!.setValueIn("config", formInst.getFieldsValue(true));
+      getNodeForm(node)!.validate();
 
       setOpen(false);
     } catch (err) {
@@ -78,9 +116,51 @@ const NodeDrawer = (_: NodeDrawerProps) => {
   };
 
   const handleCancelClick = () => {
-    if (confirmLoading) return;
+    if (formPending) return;
 
     setOpen(false);
+  };
+
+  const handleClose = () => {
+    if (formPending) return;
+
+    const picker = (obj: Record<string, unknown>) => {
+      return Object.entries(obj).reduce(
+        (acc, [key, value]) => {
+          const isEmpty =
+            value === null ||
+            value === undefined ||
+            (typeof value === "string" && value === "") ||
+            (Array.isArray(value) && value.length === 0) ||
+            (typeof value === "object" && !Array.isArray(value) && Object.keys(value).length === 0);
+
+          if (!isEmpty) {
+            acc[key] = value;
+          }
+
+          return acc;
+        },
+        {} as Record<string, unknown>
+      );
+    };
+    const oldValues = picker(node?.toJSON()?.data?.config ?? {});
+    const newValues = picker(formInst.getFieldsValue(true));
+    const changed = !isEqual(oldValues, {}) && !isEqual(oldValues, newValues);
+
+    const { promise, resolve, reject } = Promise.withResolvers();
+    if (changed) {
+      console.log(oldValues, newValues);
+      modal.confirm({
+        title: t("common.text.operation_confirm"),
+        content: t("workflow.detail.design.unsaved_changes.confirm"),
+        onOk: () => resolve(void 0),
+        onCancel: () => reject(),
+      });
+    } else {
+      resolve(void 0);
+    }
+
+    promise.then(() => setOpen(false));
   };
 
   return (
@@ -90,26 +170,23 @@ const NodeDrawer = (_: NodeDrawerProps) => {
       <Drawer
         styles={{
           header: {
-            paddingBottom: anchor != null && anchor !== false ? 0 : undefined,
+            paddingBottom: anchor != null && anchor !== false ? 0 : void 0,
           },
         }}
         afterOpenChange={setOpen}
         closeIcon={false}
         destroyOnHidden
         footer={
-          footer ? (
-            <Flex className="px-2" justify="end" gap="small">
-              <Button onClick={handleCancelClick}>{t("common.button.cancel")}</Button>
-              <Button loading={confirmLoading} type="primary" onClick={handleOkClick}>
-                {t("common.button.save")}
-              </Button>
-            </Flex>
-          ) : (
-            false
-          )
+          <Flex className="px-2" justify="end" gap="small">
+            <Button onClick={handleCancelClick}>{t("common.button.cancel")}</Button>
+            <Button loading={formPending} type="primary" onClick={handleOkClick}>
+              {t("common.button.save")}
+            </Button>
+          </Flex>
         }
+        forceRender={false}
         loading={loading}
-        maskClosable={!confirmLoading}
+        maskClosable={!formPending}
         open={open}
         size="large"
         title={
@@ -117,14 +194,7 @@ const NodeDrawer = (_: NodeDrawerProps) => {
             <Flex align="center" justify="space-between" gap="small">
               <div>{renderNodeIcon()}</div>
               <div className="flex-1 truncate">{node?.toJSON()?.data?.name}</div>
-              <Button
-                className="ant-drawer-close"
-                style={{ marginInline: 0 }}
-                icon={<IconX size="1.25em" />}
-                size="small"
-                type="text"
-                onClick={handleCancelClick}
-              />
+              <Button className="ant-drawer-close" style={{ marginInline: 0 }} icon={<IconX size="1.25em" />} size="small" type="text" onClick={handleClose} />
             </Flex>
             <div className="mt-3 text-sm font-normal">
               <Typography.Text className="text-xs" type="secondary">
@@ -139,9 +209,9 @@ const NodeDrawer = (_: NodeDrawerProps) => {
             )}
           </>
         }
-        onClose={handleCancelClick}
+        onClose={handleClose}
       >
-        <div ref={containerRef}>{children}</div>
+        <div ref={containerRef}>{renderNodeConfigForm()}</div>
       </Drawer>
     </>
   );
@@ -155,7 +225,7 @@ const useProps = () => {
     setOpen(open);
 
     if (!open) {
-      setNode(undefined);
+      setNode(void 0);
     }
   };
 

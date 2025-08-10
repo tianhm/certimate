@@ -1,5 +1,5 @@
 import { getI18n } from "react-i18next";
-import { FeedbackLevel } from "@flowgram.ai/fixed-layout-editor";
+import { FeedbackLevel, Field } from "@flowgram.ai/fixed-layout-editor";
 import { IconRocket } from "@tabler/icons-react";
 
 import { WORKFLOW_TRIGGERS } from "@/domain/workflow";
@@ -49,31 +49,34 @@ export const StartNodeRegistry: NodeRegistry = {
       },
     },
 
-    render: ({ form }) => {
+    render: () => {
       const { t } = getI18n();
 
-      const fieldTrigger = form.getValueIn<string>("config.trigger");
-      const fieldTriggerCron = form.getValueIn<string>("config.triggerCron");
-
       return (
-        <BaseNode>
-          <div className="flex items-center justify-between gap-1">
-            {fieldTrigger ? (
-              <>
-                <div>
-                  {fieldTrigger === WORKFLOW_TRIGGERS.SCHEDULED
-                    ? t("workflow.props.trigger.scheduled")
-                    : fieldTrigger === WORKFLOW_TRIGGERS.MANUAL
-                      ? t("workflow.props.trigger.manual")
-                      : "\u00A0"}
-                </div>
-                <div>{fieldTrigger === WORKFLOW_TRIGGERS.SCHEDULED ? fieldTriggerCron || "\u00A0" : ""}</div>
-              </>
-            ) : (
-              t("workflow.detail.design.editor.placeholder")
-            )}
-          </div>
-        </BaseNode>
+        <BaseNode
+          description={
+            <div className="flex items-center justify-between gap-1">
+              <Field name="config.trigger">
+                {({ field: { value: fieldTrigger } }) => (
+                  <>
+                    <div>
+                      {fieldTrigger === WORKFLOW_TRIGGERS.SCHEDULED
+                        ? t("workflow.props.trigger.scheduled")
+                        : fieldTrigger === WORKFLOW_TRIGGERS.MANUAL
+                          ? t("workflow.props.trigger.manual")
+                          : t("workflow.detail.design.editor.placeholder")}
+                    </div>
+                    <div>
+                      <Field name="config.triggerCron">
+                        {({ field: { value: fieldTriggerCron } }) => <>{fieldTrigger === WORKFLOW_TRIGGERS.SCHEDULED ? fieldTriggerCron || "\u00A0" : ""}</>}
+                      </Field>
+                    </div>
+                  </>
+                )}
+              </Field>
+            </div>
+          }
+        />
       );
     },
   },

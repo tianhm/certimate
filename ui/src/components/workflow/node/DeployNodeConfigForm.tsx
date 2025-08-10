@@ -1,6 +1,7 @@
 import { forwardRef, memo, useEffect, useImperativeHandle, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { IconHelp, IconPlus } from "@tabler/icons-react";
+import { QuestionCircleOutlined as IconQuestionCircleOutlined } from "@ant-design/icons";
+import { IconPlus } from "@tabler/icons-react";
 import { Button, Divider, Flex, Form, type FormInstance, Select, Switch, Tooltip, Typography, theme } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
@@ -482,7 +483,7 @@ const DeployNodeConfigForm = forwardRef<DeployNodeConfigFormInstance, DeployNode
                     <span>{t("workflow_node.deploy.form.provider_access.label")}</span>
                     <Tooltip title={t("workflow_node.deploy.form.provider_access.tooltip")}>
                       <Typography.Text className="ms-1" type="secondary">
-                        <IconHelp size="1.25em" />
+                        <IconQuestionCircleOutlined />
                       </Typography.Text>
                     </Tooltip>
                   </div>

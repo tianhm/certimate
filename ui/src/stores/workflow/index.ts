@@ -22,7 +22,7 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => {
     if (!get().initialized) throw "Workflow not initialized yet";
   };
 
-  let unsubscriber: (() => void) | undefined = undefined;
+  let unsubscriber: (() => void) | undefined;
 
   return {
     workflow: {} as WorkflowModel,
@@ -46,7 +46,7 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => {
 
     destroy: () => {
       unsubscriber?.();
-      unsubscriber = undefined;
+      unsubscriber = void 0;
 
       set({
         workflow: {} as WorkflowModel,

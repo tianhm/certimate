@@ -198,7 +198,7 @@ const SiderMenu = memo(({ onSelect }: { onSelect?: (key: string) => void }) => {
     if (item) {
       setMenuSelectedKey(item.key as string);
     } else {
-      setMenuSelectedKey(undefined);
+      setMenuSelectedKey(void 0);
     }
   }, [location.pathname]);
 

@@ -85,7 +85,7 @@ const SettingsPersistence = () => {
             <Form.Item
               name="workflowRunsMaxDaysRetention"
               label={t("settings.persistence.form.workflow_runs_max_days.label")}
-              extra={<span dangerouslySetInnerHTML={{ __html: t("settings.persistence.form.workflow_runs_max_days.extra") }}></span>}
+              extra={<span dangerouslySetInnerHTML={{ __html: t("settings.persistence.form.workflow_runs_max_days.help") }}></span>}
               rules={[formRule]}
             >
               <InputNumber
@@ -101,7 +101,7 @@ const SettingsPersistence = () => {
             <Form.Item
               name="expiredCertificatesMaxDaysRetention"
               label={t("settings.persistence.form.expired_certificates_max_days.label")}
-              extra={<span dangerouslySetInnerHTML={{ __html: t("settings.persistence.form.expired_certificates_max_days.extra") }}></span>}
+              extra={<span dangerouslySetInnerHTML={{ __html: t("settings.persistence.form.expired_certificates_max_days.help") }}></span>}
               rules={[formRule]}
             >
               <InputNumber

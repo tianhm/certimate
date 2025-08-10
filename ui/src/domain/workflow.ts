@@ -139,7 +139,7 @@ export type WorkflowNodeConfigForStart = {
 
 export const defaultNodeConfigForStart = (): Partial<WorkflowNodeConfigForStart> => {
   return {
-    trigger: WORKFLOW_TRIGGERS.SCHEDULED,
+    trigger: WORKFLOW_TRIGGERS.MANUAL,
     triggerCron: "0 0 * * *",
   };
 };
@@ -192,6 +192,7 @@ export type WorkflowNodeConfigForMonitor = {
 
 export const defaultNodeConfigForMonitor = (): Partial<WorkflowNodeConfigForMonitor> => {
   return {
+    host: "",
     port: 443,
     requestPath: "/",
   };
@@ -221,7 +222,10 @@ export type WorkflowNodeConfigForNotify = {
 };
 
 export const defaultNodeConfigForNotify = (): Partial<WorkflowNodeConfigForNotify> => {
-  return {};
+  return {
+    subject: "",
+    message: "",
+  };
 };
 
 export type WorkflowNodeConfigForCondition = {

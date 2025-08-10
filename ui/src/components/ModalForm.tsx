@@ -75,7 +75,7 @@ const ModalForm = <T extends NonNullable<unknown> = any>({
   });
 
   const mergedFormProps: FormProps = {
-    clearOnDestroy: modalProps?.destroyOnHidden ? true : undefined,
+    clearOnDestroy: modalProps?.destroyOnHidden ? true : void 0,
     ...formProps,
     ...props,
   };

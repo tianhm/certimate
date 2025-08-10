@@ -50,7 +50,7 @@ const AccessNew = () => {
 
   const handleProviderPick = (value: string) => {
     setFormModel((prev) => {
-      return { ...prev, provider: value, config: undefined };
+      return { ...prev, provider: value, config: void 0 };
     });
   };
 
@@ -79,7 +79,7 @@ const AccessNew = () => {
 
   const handleCancelClick = () => {
     setFormModel((prev) => {
-      return { ...prev, provider: undefined, config: undefined, reserve: undefined };
+      return { ...prev, provider: void 0, config: void 0, reserve: void 0 };
     });
   };
 

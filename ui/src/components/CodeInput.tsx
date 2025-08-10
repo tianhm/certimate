@@ -72,7 +72,7 @@ const CodeInput = ({ className, style, disabled, language, ...props }: CodeInput
         border: `1px solid ${isFocusWithin ? (themeToken.Input?.activeBorderColor ?? themeToken.colorPrimaryBorder) : themeToken.colorBorder}`,
         borderRadius: `${themeToken.borderRadius}px`,
         backgroundColor: disabled ? themeToken.colorBgContainerDisabled : themeToken.colorBgContainer,
-        boxShadow: isFocusWithin ? themeToken.Input?.activeShadow : undefined,
+        boxShadow: isFocusWithin ? themeToken.Input?.activeShadow : void 0,
         overflow: "hidden",
       }}
     >

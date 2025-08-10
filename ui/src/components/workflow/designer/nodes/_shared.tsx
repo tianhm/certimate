@@ -101,7 +101,7 @@ const InternalNodeCard = ({
           right: "-1px",
           bottom: "-1px",
           borderWidth: "2px",
-          borderColor: isHovered ? "var(--color-primary)" : isInvalid ? "var(--color-error)" : undefined,
+          borderColor: isHovered ? "var(--color-primary)" : isInvalid ? "var(--color-error)" : void 0,
         }}
       />
     </Card>
@@ -243,9 +243,10 @@ export interface BaseNodeProps {
   className?: string;
   style?: React.CSSProperties;
   children?: React.ReactNode;
+  description?: React.ReactNode;
 }
 
-export const BaseNode = ({ className, style, children }: BaseNodeProps) => {
+export const BaseNode = ({ className, style, children, description }: BaseNodeProps) => {
   const { token: themeToken } = theme.useToken();
 
   const ctx = useClientContext();
@@ -306,28 +307,32 @@ export const BaseNode = ({ className, style, children }: BaseNodeProps) => {
     >
       <div className="group/node relative">
         <InternalNodeCard className={mergeCls("w-[320px]", className)} style={style} nodeRender={nodeRender}>
-          <div className={mergeCls("flex items-center gap-1 overflow-hidden p-3", inputVisible ? "invisible" : "visible")}>
-            {nodeRegistry.meta?.helpText == null ? (
-              renderNodeIcon()
-            ) : (
-              <Tooltip title={<span dangerouslySetInnerHTML={{ __html: nodeRegistry.meta.helpText }}></span>} mouseEnterDelay={1}>
-                <div className="cursor-help">{renderNodeIcon()}</div>
-              </Tooltip>
-            )}
-            <div className="flex-1 overflow-hidden">
-              <div className="truncate">
-                <Field<string> name="name">{({ field: { value } }) => <>{value || "\u00A0"}</>}</Field>
-              </div>
-              {children != null && (
-                <div className="truncate text-xs" style={{ color: themeToken.colorTextTertiary }}>
-                  {children}
-                </div>
+          {children != null ? (
+            children
+          ) : (
+            <div className={mergeCls("flex items-center gap-1 overflow-hidden p-3", inputVisible ? "invisible" : "visible")}>
+              {nodeRegistry.meta?.helpText == null ? (
+                renderNodeIcon()
+              ) : (
+                <Tooltip title={<span dangerouslySetInnerHTML={{ __html: nodeRegistry.meta.helpText }}></span>} mouseEnterDelay={1}>
+                  <div className="cursor-help">{renderNodeIcon()}</div>
+                </Tooltip>
               )}
+              <div className="flex-1 overflow-hidden">
+                <div className="truncate">
+                  <Field<string> name="name">{({ field: { value } }) => <>{value || "\u00A0"}</>}</Field>
+                </div>
+                {description != null && (
+                  <div className="truncate text-xs" style={{ color: themeToken.colorTextTertiary }}>
+                    {description}
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                {isInvalid && <IconExclamationCircle color="var(--color-error)" size="1.25em" />}
+              </div>
             </div>
-            <div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
-              {isInvalid && <IconExclamationCircle color="var(--color-error)" size="1.25em" />}
-            </div>
-          </div>
+          )}
         </InternalNodeCard>
 
         {!playground.config.readonlyOrDisabled && nodeRegistry.meta?.draggable === true && (
@@ -356,7 +361,7 @@ export const BaseNode = ({ className, style, children }: BaseNodeProps) => {
 
 export interface BranchNodeProps extends BaseNodeProps {}
 
-export const BranchNode = ({ className, style, children }: BranchNodeProps) => {
+export const BranchNode = ({ className, style, children, description }: BranchNodeProps) => {
   const ctx = useClientContext();
   const { playground } = ctx;
 
@@ -395,9 +400,15 @@ export const BranchNode = ({ className, style, children }: BranchNodeProps) => {
     >
       <div className="group/node relative">
         <InternalNodeCard className={mergeCls("w-[240px]", className)} style={style} nodeRender={nodeRender}>
-          <div className={mergeCls("overflow-hidden px-3 py-2", inputVisible ? "invisible" : "visible")}>
-            <div className="truncate text-center">{children ?? <Field<string> name="name">{({ field: { value } }) => <>{value || "\u00A0"}</>}</Field>}</div>
-          </div>
+          {children != null ? (
+            children
+          ) : (
+            <div className={mergeCls("overflow-hidden px-3 py-2", inputVisible ? "invisible" : "visible")}>
+              <div className="truncate text-center">
+                {description ?? <Field<string> name="name">{({ field: { value } }) => <>{value || "\u00A0"}</>}</Field>}
+              </div>
+            </div>
+          )}
         </InternalNodeCard>
 
         {!playground.config.readonlyOrDisabled && nodeRegistry.meta?.draggable === true && (

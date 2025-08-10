@@ -1,7 +1,8 @@
 import { forwardRef, memo, useEffect, useImperativeHandle, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
-import { IconChevronRight, IconCircleMinus, IconHelp, IconPlus } from "@tabler/icons-react";
+import { QuestionCircleOutlined as IconQuestionCircleOutlined } from "@ant-design/icons";
+import { IconChevronRight, IconCircleMinus, IconPlus } from "@tabler/icons-react";
 import { useControllableValue } from "ahooks";
 import { AutoComplete, Button, Divider, Flex, Form, type FormInstance, Input, InputNumber, Select, Switch, Tooltip, Typography } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
@@ -320,7 +321,7 @@ const ApplyNodeConfigForm = forwardRef<ApplyNodeConfigFormInstance, ApplyNodeCon
                   <span>{t("workflow_node.apply.form.provider_access.label")}</span>
                   <Tooltip title={t("workflow_node.apply.form.provider_access.tooltip")}>
                     <Typography.Text className="ms-1" type="secondary">
-                      <IconHelp size="1.25em" />
+                      <IconQuestionCircleOutlined />
                     </Typography.Text>
                   </Tooltip>
                 </div>

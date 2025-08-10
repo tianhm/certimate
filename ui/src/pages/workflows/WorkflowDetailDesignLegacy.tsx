@@ -12,6 +12,10 @@ import { useZustandShallowSelector } from "@/hooks";
 import { useWorkflowStore } from "@/stores/workflow";
 import { getErrMsg } from "@/utils/error";
 
+/**
+ *
+ * @deprecated
+ */
 const WorkflowDetailDesign = () => {
   const { t } = useTranslation();
 

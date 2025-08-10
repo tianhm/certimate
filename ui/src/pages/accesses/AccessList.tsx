@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { IconCirclePlus, IconCopy, IconDotsVertical, IconEdit, IconFingerprint, IconPlus, IconReload, IconTrash } from "@tabler/icons-react";
+import { IconCirclePlus, IconCopy, IconDots, IconEdit, IconFingerprint, IconPlus, IconReload, IconTrash } from "@tabler/icons-react";
 import { useRequest } from "ahooks";
 import { App, Avatar, Button, Dropdown, Input, Skeleton, Table, type TableProps, Tabs, Typography, theme } from "antd";
 import dayjs from "dayjs";
@@ -125,7 +125,7 @@ const AccessList = () => {
           }}
           trigger={["click"]}
         >
-          <Button icon={<IconDotsVertical size="1.25em" />} type="text" />
+          <Button icon={<IconDots size="1.25em" />} type="text" />
         </Dropdown>
       ),
       onCell: () => {
@@ -267,7 +267,7 @@ const AccessList = () => {
   };
 
   const handleRecordDuplicateClick = (access: AccessModel) => {
-    setDetailRecord({ ...access, id: undefined, name: `${access.name}-copy` });
+    setDetailRecord({ ...access, id: void 0, name: `${access.name}-copy` });
     setDetailMode("create");
     setDetailOpen(true);
   };

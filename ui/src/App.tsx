@@ -100,6 +100,10 @@ const RootApp = () => {
             ...antdTheme?.components?.Dropdown,
             paddingBlock: 9,
           },
+          Form: {
+            ...antdTheme?.components?.Form,
+            itemMarginBottom: 28,
+          },
         },
       }}
     >

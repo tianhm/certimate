@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { IconBrowserShare, IconCertificate, IconDotsVertical, IconExternalLink, IconReload, IconTrash } from "@tabler/icons-react";
+import { IconBrowserShare, IconCertificate, IconDots, IconExternalLink, IconReload, IconTrash } from "@tabler/icons-react";
 import { useRequest } from "ahooks";
 import { App, Button, Dropdown, Input, Segmented, Skeleton, Table, type TableProps, Typography, theme } from "antd";
 import dayjs from "dayjs";
@@ -52,7 +52,7 @@ const CertificateList = () => {
       key: "validity",
       title: t("certificate.props.validity"),
       sorter: true,
-      sortOrder: sorter.columnKey === "validity" ? sorter.order : undefined,
+      sortOrder: sorter.columnKey === "validity" ? sorter.order : void 0,
       render: (_, record) => {
         const total = dayjs(record.validityNotAfter).diff(dayjs(record.created), "d") + 1;
         const isExpired = dayjs().isAfter(dayjs(record.validityNotAfter));
@@ -172,7 +172,7 @@ const CertificateList = () => {
           }}
           trigger={["click"]}
         >
-          <Button icon={<IconDotsVertical size="1.25em" />} type="text" />
+          <Button icon={<IconDots size="1.25em" />} type="text" />
         </Dropdown>
       ),
       onCell: () => {
@@ -219,7 +219,7 @@ const CertificateList = () => {
       const { columnKey: sorterKey, order: sorterOrder } = sorter;
       let sort: string | undefined;
       sort = sorterKey === "validity" ? "validityNotAfter" : "";
-      sort = sort && (sorterOrder === "ascend" ? `${sort}` : sorterOrder === "descend" ? `-${sort}` : undefined);
+      sort = sort && (sorterOrder === "ascend" ? `${sort}` : sorterOrder === "descend" ? `-${sort}` : void 0);
 
       return listCertificates({
         keyword: filters["keyword"] as string,

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { IconCirclePlus, IconCopy, IconDotsVertical, IconEdit, IconHierarchy3, IconPlus, IconReload, IconTrash } from "@tabler/icons-react";
+import { IconCirclePlus, IconCopy, IconDots, IconEdit, IconHierarchy3, IconPlus, IconReload, IconTrash } from "@tabler/icons-react";
 import { useRequest } from "ahooks";
 import { App, Button, Dropdown, Flex, Input, Segmented, Skeleton, Switch, Table, type TableProps, Typography, theme } from "antd";
 import dayjs from "dayjs";
@@ -77,7 +77,7 @@ const WorkflowList = () => {
     {
       key: "state",
       title: t("workflow.props.state"),
-      defaultFilteredValue: searchParams.has("state") ? [searchParams.get("state") as string] : undefined,
+      defaultFilteredValue: searchParams.has("state") ? [searchParams.get("state") as string] : void 0,
       render: (_, record) => {
         return (
           <Switch
@@ -100,7 +100,7 @@ const WorkflowList = () => {
       key: "lastRun",
       title: t("workflow.props.last_run_at"),
       sorter: true,
-      sortOrder: sorter.columnKey === "lastRun" ? sorter.order : undefined,
+      sortOrder: sorter.columnKey === "lastRun" ? sorter.order : void 0,
       render: (_, record) => {
         const { lastRunStatus, lastRunTime } = record;
         if (!lastRunStatus) {
@@ -176,7 +176,7 @@ const WorkflowList = () => {
           }}
           trigger={["click"]}
         >
-          <Button icon={<IconDotsVertical size="1.25em" />} type="text" />
+          <Button icon={<IconDots size="1.25em" />} type="text" />
         </Dropdown>
       ),
       onCell: () => {
@@ -223,11 +223,11 @@ const WorkflowList = () => {
       const { columnKey: sorterKey, order: sorterOrder } = sorter;
       let sort: string | undefined;
       sort = sorterKey === "lastRun" ? "lastRunTime" : "";
-      sort = sort && (sorterOrder === "ascend" ? `${sort}` : sorterOrder === "descend" ? `-${sort}` : undefined);
+      sort = sort && (sorterOrder === "ascend" ? `${sort}` : sorterOrder === "descend" ? `-${sort}` : void 0);
 
       return listWorkflows({
         keyword: filters["keyword"] as string,
-        enabled: (filters["state"] as string) === "enabled" ? true : (filters["state"] as string) === "disabled" ? false : undefined,
+        enabled: (filters["state"] as string) === "enabled" ? true : (filters["state"] as string) === "disabled" ? false : void 0,
         sort: sort,
         page: page,
         perPage: pageSize,

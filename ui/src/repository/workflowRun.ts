@@ -22,7 +22,7 @@ export const list = async (request: ListRequest) => {
   const page = request.page || 1;
   const perPage = request.perPage || 10;
   return await pb.collection(COLLECTION_NAME_WORKFLOW_RUN).getList<WorkflowRunModel>(page, perPage, {
-    expand: request.expand ? "workflowRef" : undefined,
+    expand: request.expand ? "workflowRef" : void 0,
     filter: filters.join(" && "),
     sort: "-created",
     requestKey: null,

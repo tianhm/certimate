@@ -29,7 +29,7 @@ export const list = async (request: ListRequest) => {
   const perPage = request.perPage || 10;
 
   return await pb.collection(COLLECTION_NAME_WORKFLOW).getList<WorkflowModel>(page, perPage, {
-    expand: request.expand ? "lastRunRef" : undefined,
+    expand: request.expand ? "lastRunRef" : void 0,
     filter: filters.join(" && "),
     sort: sort,
     requestKey: null,

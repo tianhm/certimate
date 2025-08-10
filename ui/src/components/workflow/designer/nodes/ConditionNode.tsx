@@ -1,7 +1,10 @@
 import { getI18n } from "react-i18next";
-import { Field, FlowNodeBaseType, FlowNodeSplitType, ValidateTrigger } from "@flowgram.ai/fixed-layout-editor";
+import { Field, FlowNodeBaseType, FlowNodeSplitType } from "@flowgram.ai/fixed-layout-editor";
 import { IconFilter, IconFilterFilled, IconSitemap } from "@tabler/icons-react";
+import { Typography } from "antd";
 import { nanoid } from "nanoid";
+
+import { type Expr, ExprType } from "@/domain/workflow";
 
 import { BaseNode, BranchNode } from "./_shared";
 import { type NodeRegistry, NodeType } from "./typings";
@@ -26,9 +29,8 @@ export const ConditionNodeRegistry: NodeRegistry = {
   },
 
   formMeta: {
-    validateTrigger: ValidateTrigger.onChange,
     render: () => {
-      return <BaseNode></BaseNode>;
+      return <BaseNode />;
     },
   },
 
@@ -81,23 +83,49 @@ export const BranchBlockNodeRegistry: NodeRegistry = {
   },
 
   formMeta: {
-    validateTrigger: ValidateTrigger.onChange,
     render: () => {
+      const { t } = getI18n();
+
       return (
-        <BranchNode>
-          <div className="flex items-center justify-center gap-2">
-            <div className="flex items-center justify-center">
-              <Field<object> name="config.expression">
-                {({ field: { value } }) => (
-                  <>{value ? <IconFilterFilled color="var(--color-primary)" size="1.25em" stroke="1.25" /> : <IconFilter size="1.25em" stroke="1.25" />}</>
-                )}
-              </Field>
-            </div>
-            <div className="truncate">
-              <Field<string> name="name">{({ field: { value } }) => <>{value || "\u00A0"}</>}</Field>
-            </div>
-          </div>
-        </BranchNode>
+        <BranchNode
+          description={
+            <>
+              <div className="flex items-center justify-center gap-2">
+                <div className="flex items-center justify-center">
+                  <Field<Expr> name="config.expression">
+                    {({ field: { value } }) => (
+                      <>
+                        {value == null ? (
+                          <IconFilter size="1.25em" stroke="1.25" />
+                        ) : (
+                          <IconFilterFilled color="var(--color-primary)" size="1.25em" stroke="1.25" />
+                        )}
+                      </>
+                    )}
+                  </Field>
+                </div>
+                <div className="truncate">
+                  <Field<string> name="name">{({ field: { value } }) => <>{value || "\u00A0"}</>}</Field>
+                </div>
+              </div>
+              <div className="mt-1">
+                <div className="truncate">
+                  <Field<Expr> name="config.expression">
+                    {({ field: { value } }) => (
+                      <Typography.Text className="text-xs" type="secondary">
+                        {value == null
+                          ? t("workflow_node.branch_block.state.no")
+                          : value.type === ExprType.Logical && value.operator === "and"
+                            ? t("workflow_node.branch_block.state.and")
+                            : t("workflow_node.branch_block.state.or")}
+                      </Typography.Text>
+                    )}
+                  </Field>
+                </div>
+              </div>
+            </>
+          }
+        />
       );
     },
   },

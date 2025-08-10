@@ -30,11 +30,7 @@ const Adder = ({ from, hoverActivated }: AdderProps) => {
       return {
         key: registry.type,
         label: registry.meta?.labelText ?? registry.type,
-        icon: (
-          <span className="anticon scale-125">
-            <Icon size="1em" />
-          </span>
-        ),
+        icon: <span className="anticon scale-125">{Icon && <Icon size="1em" />}</span>,
         onClick: () => {
           const block = operation.addFromNode(from, registry.onAdd!(ctx, from));
 

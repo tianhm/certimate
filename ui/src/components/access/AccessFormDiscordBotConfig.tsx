@@ -26,7 +26,7 @@ const AccessFormDiscordBotConfig = ({ form: formInst, formName, disabled, initia
 
   const formSchema = z.object({
     botToken: z
-      .string(t("access.form.discordbot_token.placeholder"))
+      .string()
       .min(1, t("access.form.discordbot_token.placeholder"))
       .max(256, t("common.errmsg.string_max", { max: 256 })),
     channelId: z.string().nullish(),

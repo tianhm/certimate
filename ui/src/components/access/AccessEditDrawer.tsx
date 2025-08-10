@@ -149,7 +149,7 @@ const useProps = () => {
     setOpen(open);
 
     if (!open) {
-      setData(undefined);
+      setData(void 0);
     }
   };
 

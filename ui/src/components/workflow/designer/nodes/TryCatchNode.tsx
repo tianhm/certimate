@@ -1,5 +1,5 @@
 ﻿import { getI18n } from "react-i18next";
-import { Field, ValidateTrigger } from "@flowgram.ai/fixed-layout-editor";
+import { Field } from "@flowgram.ai/fixed-layout-editor";
 import { IconArrowsSplit, IconCircleX } from "@tabler/icons-react";
 import { nanoid } from "nanoid";
 
@@ -22,9 +22,8 @@ export const TryCatchNodeRegistry: NodeRegistry = {
   },
 
   formMeta: {
-    validateTrigger: ValidateTrigger.onChange,
     render: () => {
-      return <BaseNode></BaseNode>;
+      return <BaseNode />;
     },
   },
 
@@ -77,19 +76,20 @@ export const CatchBlockNodeRegistry: NodeRegistry = {
   },
 
   formMeta: {
-    validateTrigger: ValidateTrigger.onChange,
     render: () => {
       return (
-        <BranchNode>
-          <div className="flex items-center justify-center gap-2">
-            <div className="flex items-center justify-center">
-              <IconCircleX color="var(--color-error)" size="1.25em" stroke="1.25" />
+        <BranchNode
+          description={
+            <div className="flex items-center justify-center gap-2">
+              <div className="flex items-center justify-center">
+                <IconCircleX color="var(--color-error)" size="1.25em" stroke="1.25" />
+              </div>
+              <div className="truncate">
+                <Field<string> name="name">{({ field: { value } }) => <>{value || "\u00A0"}</>}</Field>
+              </div>
             </div>
-            <div className="truncate">
-              <Field<string> name="name">{({ field: { value } }) => <>{value || "\u00A0"}</>}</Field>
-            </div>
-          </div>
-        </BranchNode>
+          }
+        />
       );
     },
   },

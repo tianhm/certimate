@@ -114,7 +114,7 @@ const AccessProviderPicker = ({ className, style, autoFocus, placeholder, showOp
                       <Avatar className="bg-stone-100" icon={<img src={provider.icon} />} shape="square" size={28} />
                       <div className="flex-1 overflow-hidden">
                         <div className={mergeCls("max-w-full", showOptionTagAnyhow ? "mb-1 truncate" : "line-clamp-2")}>
-                          <Typography.Text type={provider.builtin ? "secondary" : undefined}>{t(provider.name) || "\u00A0"}</Typography.Text>
+                          <Typography.Text type={provider.builtin ? "secondary" : void 0}>{t(provider.name) || "\u00A0"}</Typography.Text>
                         </div>
                         <Show when={showOptionTagAnyhow}>
                           <div className="origin-left scale-80 whitespace-nowrap">

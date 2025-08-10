@@ -28,7 +28,7 @@ export const EndNodeRegistry: NodeRegistry = {
 
   formMeta: {
     render: () => {
-      return <BaseNode></BaseNode>;
+      return <BaseNode />;
     },
   },
 

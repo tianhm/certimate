@@ -479,7 +479,7 @@ const EmailInput = memo(
   ({ disabled, placeholder, ...props }: { disabled?: boolean; placeholder?: string; value?: string; onChange?: (value: string) => void }) => {
     const { emails, fetchEmails, removeEmail } = useContactEmailsStore();
     useEffect(() => {
-      fetchEmails();
+      fetchEmails(false);
     }, []);
 
     const [value, setValue] = useControllableValue<string>(props, {

@@ -1,7 +1,7 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSize } from "ahooks";
-import { Avatar, Card, Empty, Input, type InputRef, Tag, Typography } from "antd";
+import { Avatar, Card, Empty, Input, type InputRef, Tag, Tooltip, Typography } from "antd";
 
 import Show from "@/components/Show";
 import { ACCESS_USAGES, type AccessProvider, type AccessUsageType, accessProvidersMap } from "@/domain/provider";
@@ -99,7 +99,7 @@ const AccessProviderPicker = ({ className, style, autoFocus, placeholder, showOp
               return (
                 <div key={provider.type}>
                   <Card
-                    className={mergeCls("h-20 w-full overflow-hidden shadow", provider.builtin ? " cursor-not-allowed" : "")}
+                    className={mergeCls("w-full overflow-hidden shadow", provider.builtin ? " cursor-not-allowed" : "", showOptionTagAnyhow ? "h-32" : "h-28")}
                     styles={{ body: { height: "100%", padding: "0.5rem 1rem" } }}
                     hoverable
                     onClick={() => {
@@ -110,14 +110,18 @@ const AccessProviderPicker = ({ className, style, autoFocus, placeholder, showOp
                       handleProviderTypeSelect(provider.type);
                     }}
                   >
-                    <div className="flex size-full items-center gap-4 overflow-hidden">
-                      <Avatar className="bg-stone-100" icon={<img src={provider.icon} />} shape="square" size={28} />
-                      <div className="flex-1 overflow-hidden">
-                        <div className={mergeCls("max-w-full", showOptionTagAnyhow ? "mb-1 truncate" : "line-clamp-2")}>
-                          <Typography.Text type={provider.builtin ? "secondary" : void 0}>{t(provider.name) || "\u00A0"}</Typography.Text>
+                    <div className="flex size-full flex-col items-center justify-center gap-3 overflow-hidden p-2">
+                      <div className="flex items-center justify-center">
+                        <Avatar className="bg-stone-100" icon={<img src={provider.icon} />} shape="square" size={32} />
+                      </div>
+                      <div className="w-full overflow-hidden text-center">
+                        <div className={mergeCls("w-full truncate", { "mb-1": showOptionTagAnyhow })}>
+                          <Tooltip title={t(provider.name)} mouseEnterDelay={1}>
+                            <Typography.Text type={provider.builtin ? "secondary" : void 0}>{t(provider.name) || "\u00A0"}</Typography.Text>
+                          </Tooltip>
                         </div>
                         <Show when={showOptionTagAnyhow}>
-                          <div className="origin-left scale-80 whitespace-nowrap">
+                          <div className="origin-top scale-80 whitespace-nowrap" style={{ marginInlineEnd: "-8px" }}>
                             <Show when={provider.builtin}>
                               <Tag>{t("access.props.provider.builtin")}</Tag>
                             </Show>

@@ -1,10 +1,12 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSize } from "ahooks";
-import { Avatar, Card, Empty, Flex, Input, type InputRef, Tabs, Tooltip, Typography } from "antd";
+import { Avatar, Card, Checkbox, Empty, Flex, Input, type InputRef, Tabs, Tooltip, Typography } from "antd";
 
 import Show from "@/components/Show";
 import { DEPLOYMENT_CATEGORIES, type DeploymentProvider, deploymentProvidersMap } from "@/domain/provider";
+import { useZustandShallowSelector } from "@/hooks";
+import { useAccessesStore } from "@/stores/access";
 import { mergeCls } from "@/utils/css";
 
 export interface DeploymentProviderPickerProps {
@@ -22,8 +24,15 @@ const DeploymentProviderPicker = ({ className, style, autoFocus, onFilter, place
 
   const { t } = useTranslation();
 
+  const { accesses, fetchAccesses } = useAccessesStore(useZustandShallowSelector(["accesses", "fetchAccesses"]));
+  useEffect(() => {
+    fetchAccesses(false);
+  }, []);
+
   const wrapperRef = useRef<HTMLDivElement>(null);
   const wrapperSize = useSize(wrapperRef);
+
+  const [isAvailableOnly, setIsAvailableOnly] = useState(true);
 
   const [category, setCategory] = useState<string>(DEPLOYMENT_CATEGORIES.ALL);
 
@@ -45,6 +54,13 @@ const DeploymentProviderPicker = ({ className, style, autoFocus, onFilter, place
         return true;
       })
       .filter((provider) => {
+        if (isAvailableOnly) {
+          return provider.builtin || accesses.some((access) => access.provider === provider.provider);
+        }
+
+        return true;
+      })
+      .filter((provider) => {
         if (category && category !== DEPLOYMENT_CATEGORIES.ALL) {
           return provider.category === category;
         }
@@ -59,7 +75,7 @@ const DeploymentProviderPicker = ({ className, style, autoFocus, onFilter, place
 
         return true;
       });
-  }, [onFilter, category, keyword]);
+  }, [onFilter, accesses, isAvailableOnly, category, keyword]);
   const providerCols = useMemo(() => {
     if (!wrapperSize) {
       return 1;
@@ -76,6 +92,14 @@ const DeploymentProviderPicker = ({ className, style, autoFocus, onFilter, place
   return (
     <div className={className} style={style} ref={wrapperRef}>
       <Input.Search ref={keywordInputRef} placeholder={placeholder ?? t("common.text.search")} onChange={(e) => setKeyword(e.target.value.trim())} />
+
+      <div className="mt-4">
+        <Flex justify="end">
+          <Checkbox checked={isAvailableOnly} onClick={() => setIsAvailableOnly(!isAvailableOnly)}>
+            {t("provider.text.show_available_hosting_provider_only")}
+          </Checkbox>
+        </Flex>
+      </div>
 
       <div className="mt-4">
         <Flex>
@@ -126,16 +150,16 @@ const DeploymentProviderPicker = ({ className, style, autoFocus, onFilter, place
                           handleProviderTypeSelect(provider.type);
                         }}
                       >
-                        <Tooltip title={t(provider.name)} mouseEnterDelay={1}>
-                          <div className="flex size-full items-center gap-4 overflow-hidden">
-                            <Avatar className="bg-stone-100" icon={<img src={provider.icon} />} shape="square" size={28} />
-                            <div className="flex-1 overflow-hidden">
-                              <div className="line-clamp-2 max-w-full">
+                        <div className="flex size-full items-center gap-4 overflow-hidden">
+                          <Avatar className="bg-stone-100" icon={<img src={provider.icon} />} shape="square" size={28} />
+                          <div className="flex-1 overflow-hidden">
+                            <div className="line-clamp-2 max-w-full">
+                              <Tooltip title={t(provider.name)} mouseEnterDelay={1}>
                                 <Typography.Text>{t(provider.name) || "\u00A0"}</Typography.Text>
-                              </div>
+                              </Tooltip>
                             </div>
                           </div>
-                        </Tooltip>
+                        </div>
                       </Card>
                     </div>
                   );

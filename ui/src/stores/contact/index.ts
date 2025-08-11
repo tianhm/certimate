@@ -15,7 +15,13 @@ export const useContactEmailsStore = create<ContactEmailsStore>((set, get) => {
     loading: false,
     loadedAtOnce: false,
 
-    fetchEmails: async () => {
+    fetchEmails: async (refresh = true) => {
+      if (!refresh) {
+        if (get().loadedAtOnce) {
+          return;
+        }
+      }
+
       fetcher ??= getSettings<EmailsSettingsContent>(SETTINGS_NAMES.EMAILS);
 
       try {

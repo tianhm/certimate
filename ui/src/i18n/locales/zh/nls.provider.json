@@ -193,5 +193,6 @@
   "provider.category.nas": "NAS",
   "provider.category.other": "其他",
 
-  "provider.text.default_ca_provider.label": "（默认）不指定，跟随全局设置"
+  "provider.text.default_ca_provider": "（默认）不指定，跟随全局设置",
+  "provider.text.show_available_hosting_provider_only": "仅显示可用的提供商（已添加过授权凭据）"
 }

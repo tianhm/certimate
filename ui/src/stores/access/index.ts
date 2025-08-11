@@ -6,7 +6,7 @@ import { list as listAccesses, remove as removeAccess, save as saveAccess } from
 
 import { type AccessesState, type AccessesStore } from "./types";
 
-export const useAccessesStore = create<AccessesStore>((set) => {
+export const useAccessesStore = create<AccessesStore>((set, get) => {
   let fetcher: Promise<AccessModel[]> | null = null; // 防止多次重复请求
 
   return {
@@ -14,7 +14,13 @@ export const useAccessesStore = create<AccessesStore>((set) => {
     loading: false,
     loadedAtOnce: false,
 
-    fetchAccesses: async () => {
+    fetchAccesses: async (refresh = true) => {
+      if (!refresh) {
+        if (get().loadedAtOnce) {
+          return;
+        }
+      }
+
       fetcher ??= listAccesses().then((res) => res.items);
 
       try {

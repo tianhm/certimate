@@ -548,7 +548,7 @@ const DeployNodeConfigForm = forwardRef<DeployNodeConfigFormInstance, DeployNode
         <Show when={!!nestedFormEl}>
           <Divider size="small">
             <Typography.Text className="text-xs font-normal" type="secondary">
-              {t("workflow_node.deploy.form.params_config.label")}
+              {t("workflow_node.deploy.form_anchor.deployment.title")}
             </Typography.Text>
           </Divider>
 
@@ -558,7 +558,7 @@ const DeployNodeConfigForm = forwardRef<DeployNodeConfigFormInstance, DeployNode
         <Show when={!!fieldProvider}>
           <Divider size="small">
             <Typography.Text className="text-xs font-normal" type="secondary">
-              {t("workflow_node.deploy.form.strategy_config.label")}
+              {t("workflow_node.deploy.form_anchor.strategy.title")}
             </Typography.Text>
           </Divider>
 

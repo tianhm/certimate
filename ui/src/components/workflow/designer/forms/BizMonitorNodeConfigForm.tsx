@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { getI18n, useTranslation } from "react-i18next";
 import { type FlowNodeEntity, getNodeForm } from "@flowgram.ai/fixed-layout-editor";
-import { Form, type FormInstance, Input, InputNumber } from "antd";
+import { type AnchorProps, Form, type FormInstance, Input, InputNumber } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
@@ -40,34 +40,46 @@ const BizMonitorNodeConfigForm = ({ node, ...props }: BizMonitorNodeConfigFormPr
   return (
     <NodeFormContextProvider value={{ node }}>
       <Form {...formProps} clearOnDestroy={true} form={formInst} layout="vertical" preserve={false} scrollToFirstError>
-        <Form.Item>
-          <Tips message={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.monitor.form.guide") }}></span>} />
-        </Form.Item>
+        <div id="parameters" data-anchor="parameters">
+          <Form.Item>
+            <Tips message={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.monitor.form.guide") }}></span>} />
+          </Form.Item>
 
-        <div className="flex space-x-2">
-          <div className="w-2/3">
-            <Form.Item name="host" label={t("workflow_node.monitor.form.host.label")} rules={[formRule]}>
-              <Input placeholder={t("workflow_node.monitor.form.host.placeholder")} />
-            </Form.Item>
+          <div className="flex space-x-2">
+            <div className="w-2/3">
+              <Form.Item name="host" label={t("workflow_node.monitor.form.host.label")} rules={[formRule]}>
+                <Input placeholder={t("workflow_node.monitor.form.host.placeholder")} />
+              </Form.Item>
+            </div>
+
+            <div className="w-1/3">
+              <Form.Item name="port" label={t("workflow_node.monitor.form.port.label")} rules={[formRule]}>
+                <InputNumber style={{ width: "100%" }} min={1} max={65535} placeholder={t("workflow_node.monitor.form.port.placeholder")} />
+              </Form.Item>
+            </div>
           </div>
 
-          <div className="w-1/3">
-            <Form.Item name="port" label={t("workflow_node.monitor.form.port.label")} rules={[formRule]}>
-              <InputNumber style={{ width: "100%" }} min={1} max={65535} placeholder={t("workflow_node.monitor.form.port.placeholder")} />
-            </Form.Item>
-          </div>
+          <Form.Item name="domain" label={t("workflow_node.monitor.form.domain.label")} rules={[formRule]}>
+            <Input placeholder={t("workflow_node.monitor.form.domain.placeholder")} />
+          </Form.Item>
+
+          <Form.Item name="requestPath" label={t("workflow_node.monitor.form.request_path.label")} rules={[formRule]}>
+            <Input placeholder={t("workflow_node.monitor.form.request_path.placeholder")} />
+          </Form.Item>
         </div>
-
-        <Form.Item name="domain" label={t("workflow_node.monitor.form.domain.label")} rules={[formRule]}>
-          <Input placeholder={t("workflow_node.monitor.form.domain.placeholder")} />
-        </Form.Item>
-
-        <Form.Item name="requestPath" label={t("workflow_node.monitor.form.request_path.label")} rules={[formRule]}>
-          <Input placeholder={t("workflow_node.monitor.form.request_path.placeholder")} />
-        </Form.Item>
       </Form>
     </NodeFormContextProvider>
   );
+};
+
+const getAnchorItems = ({ i18n = getI18n() }: { i18n: ReturnType<typeof getI18n> }): Required<AnchorProps>["items"] => {
+  const { t } = i18n;
+
+  return ["parameters"].map((key) => ({
+    key: key,
+    title: t(`workflow_node.monitor.form_anchor.${key}.tab`),
+    href: "#" + key,
+  }));
 };
 
 const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
@@ -100,6 +112,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n: ReturnType<typeof getI18n> }) =
 };
 
 const _default = Object.assign(BizMonitorNodeConfigForm, {
+  getAnchorItems,
   getSchema,
 });
 

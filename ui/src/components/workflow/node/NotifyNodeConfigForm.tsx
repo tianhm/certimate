@@ -244,7 +244,7 @@ const NotifyNodeConfigForm = forwardRef<NotifyNodeConfigFormInstance, NotifyNode
 
         <Divider size="small">
           <Typography.Text className="text-xs font-normal" type="secondary">
-            {t("workflow_node.notify.form.strategy_config.label")}
+            {t("workflow_node.notify.form_anchor.strategy.title")}
           </Typography.Text>
         </Divider>
 

@@ -3,7 +3,7 @@ import { getI18n, useTranslation } from "react-i18next";
 import { QuestionCircleOutlined as IconQuestionCircleOutlined } from "@ant-design/icons";
 import { type FlowNodeEntity, getNodeForm } from "@flowgram.ai/fixed-layout-editor";
 import { IconPlus } from "@tabler/icons-react";
-import { Button, Divider, Flex, Form, type FormInstance, Select, Switch, Tooltip, Typography, theme } from "antd";
+import { type AnchorProps, Button, Divider, Flex, Form, type FormInstance, Select, Switch, Tooltip, Typography, theme } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
@@ -403,120 +403,136 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
         </Show>
 
         <div style={{ display: fieldProvider ? "block" : "none" }}>
-          <Form.Item name="provider" label={t("workflow_node.deploy.form.provider.label")} rules={[formRule]}>
-            <DeploymentProviderSelect
-              allowClear
-              disabled={!!initialValues?.provider}
-              placeholder={t("workflow_node.deploy.form.provider.placeholder")}
-              showSearch
-              onSelect={handleProviderSelect}
-              onClear={handleProviderSelect}
-            />
-          </Form.Item>
-
-          <Form.Item hidden={!showProviderAccess} noStyle>
-            <label className="mb-1 block">
-              <div className="flex w-full items-center justify-between gap-4">
-                <div className="max-w-full grow truncate">
-                  <span>{t("workflow_node.deploy.form.provider_access.label")}</span>
-                  <Tooltip title={t("workflow_node.deploy.form.provider_access.tooltip")}>
-                    <Typography.Text className="ms-1" type="secondary">
-                      <IconQuestionCircleOutlined />
-                    </Typography.Text>
-                  </Tooltip>
-                </div>
-                <div className="text-right">
-                  <AccessEditDrawer
-                    data={{ provider: deploymentProvidersMap.get(fieldProvider!)?.provider }}
-                    mode="create"
-                    trigger={
-                      <Button size="small" type="link">
-                        {t("workflow_node.deploy.form.provider_access.button")}
-                        <IconPlus size="1.25em" />
-                      </Button>
-                    }
-                    usage="hosting"
-                    afterSubmit={(record) => {
-                      const provider = accessProvidersMap.get(record.provider);
-                      if (provider?.usages?.includes(ACCESS_USAGES.HOSTING)) {
-                        formInst.setFieldValue("providerAccessId", record.id);
-                      }
-                    }}
-                  />
-                </div>
-              </div>
-            </label>
-            <Form.Item name="providerAccessId" rules={[formRule]}>
-              <AccessSelect
-                placeholder={t("workflow_node.deploy.form.provider_access.placeholder")}
+          <div id="parameters" data-anchor="parameters">
+            <Form.Item name="provider" label={t("workflow_node.deploy.form.provider.label")} rules={[formRule]}>
+              <DeploymentProviderSelect
+                allowClear
+                disabled={!!initialValues?.provider}
+                placeholder={t("workflow_node.deploy.form.provider.placeholder")}
                 showSearch
-                onFilter={(_, option) => {
-                  if (option.reserve) return false;
-                  if (fieldProvider) return deploymentProvidersMap.get(fieldProvider)?.provider === option.provider;
-
-                  const provider = accessProvidersMap.get(option.provider);
-                  return !!provider?.usages?.includes(ACCESS_USAGES.HOSTING);
-                }}
+                onSelect={handleProviderSelect}
+                onClear={handleProviderSelect}
               />
             </Form.Item>
-          </Form.Item>
 
-          <Form.Item
-            name="certificate"
-            label={t("workflow_node.deploy.form.certificate.label")}
-            rules={[formRule]}
-            tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.certificate.tooltip") }}></span>}
-          >
-            <Select
-              labelRender={({ label, value }) => {
-                if (value != null) {
-                  const group = certificateCandidates.find((group) => group.options.some((option) => option.value === value));
-                  return `${group?.label} - ${label}`;
-                }
+            <Form.Item hidden={!showProviderAccess} noStyle>
+              <label className="mb-1 block">
+                <div className="flex w-full items-center justify-between gap-4">
+                  <div className="max-w-full grow truncate">
+                    <span>{t("workflow_node.deploy.form.provider_access.label")}</span>
+                    <Tooltip title={t("workflow_node.deploy.form.provider_access.tooltip")}>
+                      <Typography.Text className="ms-1" type="secondary">
+                        <IconQuestionCircleOutlined />
+                      </Typography.Text>
+                    </Tooltip>
+                  </div>
+                  <div className="text-right">
+                    <AccessEditDrawer
+                      data={{ provider: deploymentProvidersMap.get(fieldProvider!)?.provider }}
+                      mode="create"
+                      trigger={
+                        <Button size="small" type="link">
+                          {t("workflow_node.deploy.form.provider_access.button")}
+                          <IconPlus size="1.25em" />
+                        </Button>
+                      }
+                      usage="hosting"
+                      afterSubmit={(record) => {
+                        const provider = accessProvidersMap.get(record.provider);
+                        if (provider?.usages?.includes(ACCESS_USAGES.HOSTING)) {
+                          formInst.setFieldValue("providerAccessId", record.id);
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+              </label>
+              <Form.Item name="providerAccessId" rules={[formRule]}>
+                <AccessSelect
+                  placeholder={t("workflow_node.deploy.form.provider_access.placeholder")}
+                  showSearch
+                  onFilter={(_, option) => {
+                    if (option.reserve) return false;
+                    if (fieldProvider) return deploymentProvidersMap.get(fieldProvider)?.provider === option.provider;
 
-                return <span style={{ color: themeToken.colorTextPlaceholder }}>{t("workflow_node.deploy.form.certificate.placeholder")}</span>;
-              }}
-              options={certificateCandidates}
-              placeholder={t("workflow_node.deploy.form.certificate.placeholder")}
-            />
-          </Form.Item>
-
-          <FormNestedFieldsContextProvider value={{ parentNamePath: "providerConfig" }}>
-            {NestedProviderConfigFields && (
-              <>
-                <Divider size="small">
-                  <Typography.Text className="text-xs font-normal" type="secondary">
-                    {t("workflow_node.deploy.form.params_config.label")}
-                  </Typography.Text>
-                </Divider>
-
-                <NestedProviderConfigFields />
-              </>
-            )}
-          </FormNestedFieldsContextProvider>
-
-          <Divider size="small">
-            <Typography.Text className="text-xs font-normal" type="secondary">
-              {t("workflow_node.deploy.form.strategy_config.label")}
-            </Typography.Text>
-          </Divider>
-
-          <Form.Item label={t("workflow_node.deploy.form.skip_on_last_succeeded.label")}>
-            <Flex align="center" gap={8} wrap="wrap">
-              <div>{t("workflow_node.deploy.form.skip_on_last_succeeded.prefix")}</div>
-              <Form.Item name="skipOnLastSucceeded" noStyle rules={[formRule]}>
-                <Switch
-                  checkedChildren={t("workflow_node.deploy.form.skip_on_last_succeeded.switch.on")}
-                  unCheckedChildren={t("workflow_node.deploy.form.skip_on_last_succeeded.switch.off")}
+                    const provider = accessProvidersMap.get(option.provider);
+                    return !!provider?.usages?.includes(ACCESS_USAGES.HOSTING);
+                  }}
                 />
               </Form.Item>
-              <div>{t("workflow_node.deploy.form.skip_on_last_succeeded.suffix")}</div>
-            </Flex>
-          </Form.Item>
+            </Form.Item>
+
+            <Form.Item
+              name="certificate"
+              label={t("workflow_node.deploy.form.certificate.label")}
+              rules={[formRule]}
+              tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.certificate.tooltip") }}></span>}
+            >
+              <Select
+                labelRender={({ label, value }) => {
+                  if (value != null) {
+                    const group = certificateCandidates.find((group) => group.options.some((option) => option.value === value));
+                    return `${group?.label} - ${label}`;
+                  }
+
+                  return <span style={{ color: themeToken.colorTextPlaceholder }}>{t("workflow_node.deploy.form.certificate.placeholder")}</span>;
+                }}
+                options={certificateCandidates}
+                placeholder={t("workflow_node.deploy.form.certificate.placeholder")}
+              />
+            </Form.Item>
+          </div>
+
+          <div id="deployment" data-anchor="deployment">
+            <FormNestedFieldsContextProvider value={{ parentNamePath: "providerConfig" }}>
+              {NestedProviderConfigFields && (
+                <>
+                  <Divider size="small">
+                    <Typography.Text className="text-xs font-normal" type="secondary">
+                      {t("workflow_node.deploy.form_anchor.deployment.title")}
+                    </Typography.Text>
+                  </Divider>
+
+                  <NestedProviderConfigFields />
+                </>
+              )}
+            </FormNestedFieldsContextProvider>
+          </div>
+
+          <div id="strategy" data-anchor="strategy">
+            <Divider size="small">
+              <Typography.Text className="text-xs font-normal" type="secondary">
+                {t("workflow_node.deploy.form_anchor.strategy.title")}
+              </Typography.Text>
+            </Divider>
+
+            <Form.Item label={t("workflow_node.deploy.form.skip_on_last_succeeded.label")}>
+              <Flex align="center" gap={8} wrap="wrap">
+                <div>{t("workflow_node.deploy.form.skip_on_last_succeeded.prefix")}</div>
+                <Form.Item name="skipOnLastSucceeded" noStyle rules={[formRule]}>
+                  <Switch
+                    checkedChildren={t("workflow_node.deploy.form.skip_on_last_succeeded.switch.on")}
+                    unCheckedChildren={t("workflow_node.deploy.form.skip_on_last_succeeded.switch.off")}
+                  />
+                </Form.Item>
+                <div>{t("workflow_node.deploy.form.skip_on_last_succeeded.suffix")}</div>
+              </Flex>
+            </Form.Item>
+          </div>
         </div>
       </Form>
     </NodeFormContextProvider>
   );
+};
+
+const getAnchorItems = ({ i18n = getI18n() }: { i18n: ReturnType<typeof getI18n> }): Required<AnchorProps>["items"] => {
+  const { t } = i18n;
+
+  return ["parameters", "deployment", "strategy"].map((key) => ({
+    key: key,
+    title: t(`workflow_node.deploy.form_anchor.${key}.tab`),
+    href: "#" + key,
+  }));
 };
 
 const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
@@ -553,6 +569,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n: ReturnType<typeof getI18n> }) =
 };
 
 const _default = Object.assign(BizDeployNodeConfigForm, {
+  getAnchorItems,
   getSchema,
 });
 

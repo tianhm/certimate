@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { type FlowNodeEntity, getNodeForm } from "@flowgram.ai/fixed-layout-editor";
 import { IconX } from "@tabler/icons-react";
@@ -20,7 +20,6 @@ import { type NodeRegistry, NodeType } from "./nodes/typings";
 
 export interface NodeDrawerProps {
   children?: React.ReactNode;
-  anchor?: Pick<AnchorProps, "items"> | false;
   loading?: boolean;
   node?: FlowNodeEntity;
   open?: boolean;
@@ -29,9 +28,9 @@ export interface NodeDrawerProps {
 }
 
 const NodeDrawer = (_: NodeDrawerProps) => {
-  const { anchor, loading, node, trigger, ...props } = _;
+  const { loading, node, trigger, ...props } = _;
 
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
 
   const { modal, notification } = App.useApp();
 
@@ -86,6 +85,27 @@ const NodeDrawer = (_: NodeDrawerProps) => {
         return null;
     }
   };
+
+  const drawerAnchorItems = useMemo<Required<AnchorProps>["items"] | undefined>(() => {
+    if (node == null) return;
+
+    switch (node.flowNodeType) {
+      case NodeType.Start:
+        return StartNodeConfigForm.getAnchorItems({ i18n });
+      case NodeType.BizApply:
+        return BizApplyNodeConfigForm.getAnchorItems({ i18n });
+      case NodeType.BizUpload:
+        return BizUploadNodeConfigForm.getAnchorItems({ i18n });
+      case NodeType.BizMonitor:
+        return BizMonitorNodeConfigForm.getAnchorItems({ i18n });
+      case NodeType.BizDeploy:
+        return BizDeployNodeConfigForm.getAnchorItems({ i18n });
+      case NodeType.BizNotify:
+        return BizNotifyNodeConfigForm.getAnchorItems({ i18n });
+      case NodeType.BranchBlock:
+        return BranchBlockNodeConfigForm.getAnchorItems({ i18n });
+    }
+  }, [node]);
 
   const handleOkClick = async () => {
     if (node == null) {
@@ -170,7 +190,7 @@ const NodeDrawer = (_: NodeDrawerProps) => {
       <Drawer
         styles={{
           header: {
-            paddingBottom: anchor != null && anchor !== false ? 0 : void 0,
+            paddingBottom: drawerAnchorItems != null ? 0 : void 0,
           },
         }}
         afterOpenChange={setOpen}
@@ -202,16 +222,32 @@ const NodeDrawer = (_: NodeDrawerProps) => {
                 <span>{node?.id}</span>
               </Typography.Text>
             </div>
-            {anchor != null && anchor !== false && (
-              <div className="mt-3 text-sm font-normal">
-                <Anchor affix={false} getContainer={() => containerRef.current!} direction="horizontal" items={anchor.items} />
+            {drawerAnchorItems != null && (
+              <div className="-mx-[2px] mt-3 text-sm font-normal">
+                <Anchor
+                  affix={false}
+                  getContainer={() => containerRef.current!}
+                  direction="horizontal"
+                  items={drawerAnchorItems}
+                  onClick={(e, link) => {
+                    // https://github.com/ant-design/ant-design/issues/10577
+                    // https://github.com/ant-design/ant-design/issues/15326
+                    e.preventDefault();
+
+                    // 锚点元素需同时包含 `id` 和 `data-anchor` 两个属性
+                    const el = document.querySelector(`[data-anchor="${link.href.replace(/^#/g, "")}"]`);
+                    el?.scrollIntoView({ block: "start", behavior: "smooth" });
+                  }}
+                />
               </div>
             )}
           </>
         }
         onClose={handleClose}
       >
-        <div ref={containerRef}>{renderNodeConfigForm()}</div>
+        <div ref={containerRef} style={{ height: "100%", overflow: "auto" }}>
+          {renderNodeConfigForm()}
+        </div>
       </Drawer>
     </>
   );

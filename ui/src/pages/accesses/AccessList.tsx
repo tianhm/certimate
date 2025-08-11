@@ -228,6 +228,7 @@ const AccessList = () => {
       onSuccess: (res) => {
         setTableData(res.items);
         setTableTotal(res.totalItems);
+        setTableSelectedRowKeys([]);
       },
     }
   );
@@ -316,7 +317,6 @@ const AccessList = () => {
         try {
           const resp = await deleteAccess(records);
           if (resp) {
-            setTableSelectedRowKeys([]);
             setTableData((prev) => prev.filter((item) => !records.some((record) => record.id === item.id)));
             setTableTotal((prev) => prev - records.length);
             refreshData();
@@ -391,6 +391,7 @@ const AccessList = () => {
                 <Skeleton />
               ) : (
                 <Empty
+                  className="py-24"
                   title={t("access.nodata.title")}
                   description={t("access.nodata.description")}
                   icon={<IconFingerprint size={24} />}

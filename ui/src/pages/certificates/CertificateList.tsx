@@ -250,11 +250,11 @@ const CertificateList = () => {
 
           return prev;
         });
-        setTableSelectedRowKeys([]);
       },
       onSuccess: (res) => {
         setTableData(res.items);
         setTableTotal(res.totalItems);
+        setTableSelectedRowKeys([]);
       },
       onError: (err) => {
         if (err instanceof ClientResponseError && err.isAbort) {
@@ -340,7 +340,6 @@ const CertificateList = () => {
         try {
           const resp = await removeCertificate(records);
           if (resp) {
-            setTableSelectedRowKeys([]);
             setTableData((prev) => prev.filter((item) => !records.some((record) => record.id === item.id)));
             setTableTotal((prev) => prev - records.length);
             refreshData();
@@ -405,6 +404,7 @@ const CertificateList = () => {
                 <Skeleton />
               ) : (
                 <Empty
+                  className="py-24"
                   title={t("certificate.nodata.title")}
                   description={loadedError ? getErrMsg(loadedError) : t("certificate.nodata.description")}
                   icon={<IconCertificate size={24} />}

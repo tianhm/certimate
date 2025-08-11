@@ -259,6 +259,7 @@ const WorkflowList = () => {
       onSuccess: (res) => {
         setTableData(res.items);
         setTableTotal(res.totalItems);
+        setTableSelectedRowKeys([]);
       },
       onError: (err) => {
         if (err instanceof ClientResponseError && err.isAbort) {
@@ -400,7 +401,6 @@ const WorkflowList = () => {
         try {
           const resp = await removeWorkflow(records);
           if (resp) {
-            setTableSelectedRowKeys([]);
             setTableData((prev) => prev.filter((item) => !records.some((record) => record.id === item.id)));
             setTableTotal((prev) => prev - records.length);
             refreshData();
@@ -469,6 +469,7 @@ const WorkflowList = () => {
                 <Skeleton />
               ) : (
                 <Empty
+                  className="py-24"
                   title={t("workflow.nodata.title")}
                   description={loadedError ? getErrMsg(loadedError) : t("workflow.nodata.description")}
                   icon={<IconHierarchy3 size={24} />}

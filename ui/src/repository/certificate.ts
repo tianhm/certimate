@@ -64,7 +64,7 @@ export const remove = async (record: MaybeModelRecordWithId<CertificateModel> | 
       batch.collection(COLLECTION_NAME_CERTIFICATE).update(item.id, { deleted: deletedAt });
     }
     const res = await batch.send();
-    return res.every((e) => e.status === 200);
+    return res.every((e) => e.status >= 200 && e.status < 400);
   } else {
     await pb.collection(COLLECTION_NAME_CERTIFICATE).update<CertificateModel>(record.id!, { deleted: deletedAt });
     return true;

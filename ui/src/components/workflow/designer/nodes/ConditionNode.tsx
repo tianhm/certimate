@@ -1,5 +1,5 @@
 import { getI18n } from "react-i18next";
-import { Field, FlowNodeBaseType, FlowNodeSplitType } from "@flowgram.ai/fixed-layout-editor";
+import { FeedbackLevel, Field, FlowNodeBaseType, FlowNodeSplitType } from "@flowgram.ai/fixed-layout-editor";
 import { IconFilter, IconFilterFilled, IconSitemap } from "@tabler/icons-react";
 import { Typography } from "antd";
 import { nanoid } from "nanoid";
@@ -8,6 +8,7 @@ import { type Expr, ExprType } from "@/domain/workflow";
 
 import { BaseNode, BranchNode } from "./_shared";
 import { type NodeRegistry, NodeType } from "./typings";
+import BranchBlockNodeConfigForm from "../forms/BranchBlockNodeConfigForm";
 
 export const ConditionNodeRegistry: NodeRegistry = {
   type: NodeType.Condition,
@@ -83,6 +84,18 @@ export const BranchBlockNodeRegistry: NodeRegistry = {
   },
 
   formMeta: {
+    validate: {
+      ["config"]: ({ value }) => {
+        const res = BranchBlockNodeConfigForm.getSchema({}).safeParse(value);
+        if (!res.success) {
+          return {
+            message: res.error.message,
+            level: FeedbackLevel.Error,
+          };
+        }
+      },
+    },
+
     render: () => {
       const { t } = getI18n();
 

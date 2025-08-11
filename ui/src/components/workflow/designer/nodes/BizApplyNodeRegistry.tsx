@@ -8,6 +8,7 @@ import { acmeDns01ProvidersMap } from "@/domain/provider";
 
 import { BaseNode } from "./_shared";
 import { type NodeRegistry, NodeType } from "./typings";
+import BizApplyNodeConfigForm from "../forms/BizApplyNodeConfigForm";
 
 export const BizApplyNodeRegistry: NodeRegistry = {
   type: NodeType.BizApply,
@@ -25,34 +26,11 @@ export const BizApplyNodeRegistry: NodeRegistry = {
 
   formMeta: {
     validate: {
-      ["config.domains"]: ({ value }) => {
-        if (!value) {
+      ["config"]: ({ value }) => {
+        const res = BizApplyNodeConfigForm.getSchema({}).safeParse(value);
+        if (!res.success) {
           return {
-            message: "required",
-            level: FeedbackLevel.Error,
-          };
-        }
-      },
-      ["config.contactEmail"]: ({ value }) => {
-        if (!value) {
-          return {
-            message: "required",
-            level: FeedbackLevel.Error,
-          };
-        }
-      },
-      ["config.provider"]: ({ value }) => {
-        if (!value) {
-          return {
-            message: "required",
-            level: FeedbackLevel.Error,
-          };
-        }
-      },
-      ["config.providerAccessId"]: ({ value }) => {
-        if (!value) {
-          return {
-            message: "required",
+            message: res.error.message,
             level: FeedbackLevel.Error,
           };
         }

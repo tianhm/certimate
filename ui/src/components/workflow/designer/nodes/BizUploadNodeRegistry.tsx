@@ -5,6 +5,7 @@ import { nanoid } from "nanoid";
 
 import { BaseNode } from "./_shared";
 import { type NodeRegistry, NodeType } from "./typings";
+import BizUploadNodeConfigForm from "../forms/BizUploadNodeConfigForm";
 
 export const BizUploadNodeRegistry: NodeRegistry = {
   type: NodeType.BizUpload,
@@ -22,18 +23,11 @@ export const BizUploadNodeRegistry: NodeRegistry = {
 
   formMeta: {
     validate: {
-      ["config.certificate"]: ({ value }) => {
-        if (!value) {
+      ["config"]: ({ value }) => {
+        const res = BizUploadNodeConfigForm.getSchema({}).safeParse(value);
+        if (!res.success) {
           return {
-            message: "required",
-            level: FeedbackLevel.Error,
-          };
-        }
-      },
-      ["config.privateKey"]: ({ value }) => {
-        if (!value) {
-          return {
-            message: "required",
+            message: res.error.message,
             level: FeedbackLevel.Error,
           };
         }

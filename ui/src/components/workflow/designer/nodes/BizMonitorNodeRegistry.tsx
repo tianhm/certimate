@@ -5,6 +5,7 @@ import { nanoid } from "nanoid";
 
 import { BaseNode } from "./_shared";
 import { type NodeRegistry, NodeType } from "./typings";
+import BizMonitorNodeConfigForm from "../forms/BizMonitorNodeConfigForm";
 
 export const BizMonitorNodeRegistry: NodeRegistry = {
   type: NodeType.BizMonitor,
@@ -22,10 +23,11 @@ export const BizMonitorNodeRegistry: NodeRegistry = {
 
   formMeta: {
     validate: {
-      ["config.host"]: ({ value }) => {
-        if (!value) {
+      ["config"]: ({ value }) => {
+        const res = BizMonitorNodeConfigForm.getSchema({}).safeParse(value);
+        if (!res.success) {
           return {
-            message: "required",
+            message: res.error.message,
             level: FeedbackLevel.Error,
           };
         }

@@ -6,6 +6,7 @@ import { WORKFLOW_TRIGGERS } from "@/domain/workflow";
 
 import { BaseNode } from "./_shared";
 import { type NodeRegistry, NodeType } from "./typings";
+import StartNodeConfigForm from "../forms/StartNodeConfigForm";
 
 export const StartNodeRegistry: NodeRegistry = {
   type: NodeType.Start,
@@ -31,18 +32,11 @@ export const StartNodeRegistry: NodeRegistry = {
 
   formMeta: {
     validate: {
-      ["config.trigger"]: ({ value }) => {
-        if (!value) {
+      ["config"]: ({ value }) => {
+        const res = StartNodeConfigForm.getSchema({}).safeParse(value);
+        if (!res.success) {
           return {
-            message: "required",
-            level: FeedbackLevel.Error,
-          };
-        }
-      },
-      ["config.triggerCron"]: ({ value, formValues }) => {
-        if (!value && formValues.config.trigger === WORKFLOW_TRIGGERS.SCHEDULED) {
-          return {
-            message: "required",
+            message: res.error.message,
             level: FeedbackLevel.Error,
           };
         }

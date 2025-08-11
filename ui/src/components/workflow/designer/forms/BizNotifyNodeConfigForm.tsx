@@ -206,7 +206,7 @@ const BizNotifyNodeConfigForm = ({ node, ...props }: BizNotifyNodeConfigFormProp
   );
 };
 
-const getAnchorItems = ({ i18n = getI18n() }: { i18n: ReturnType<typeof getI18n> }): Required<AnchorProps>["items"] => {
+const getAnchorItems = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }): Required<AnchorProps>["items"] => {
   const { t } = i18n;
 
   return ["parameters", "strategy"].map((key) => ({
@@ -226,7 +226,7 @@ const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   };
 };
 
-const getSchema = ({ i18n = getI18n() }: { i18n: ReturnType<typeof getI18n> }) => {
+const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) => {
   const { t } = i18n;
 
   return z.object({

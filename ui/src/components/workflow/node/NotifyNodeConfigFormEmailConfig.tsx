@@ -6,7 +6,6 @@ import { z } from "zod";
 import { validEmailAddress } from "@/utils/validators";
 
 type NotifyNodeConfigFormEmailConfigFieldValues = Nullish<{
-  senderAddress?: string;
   receiverAddress?: string;
 }>;
 

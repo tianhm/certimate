@@ -138,16 +138,12 @@ const AccessForm = forwardRef<AccessFormInstance, AccessFormProps>(({ className,
       default:
         console.warn(`[certimate] unsupported provider usage: '${usage}'`);
     }
-
-    return undefined;
   }, [usage]);
   const providerTooltip = useMemo(() => {
     switch (usage) {
       case "dns-hosting":
         return <span dangerouslySetInnerHTML={{ __html: t("access.form.provider.tooltip") }}></span>;
     }
-
-    return undefined;
   }, [usage]);
 
   const fieldProvider = Form.useWatch<z.infer<typeof formSchema>["provider"]>("provider", formInst);
@@ -344,7 +340,7 @@ const AccessForm = forwardRef<AccessFormInstance, AccessFormProps>(({ className,
       getFieldsValue: () => {
         const values = formInst.getFieldsValue(true);
         values.config = nestedFormInst.getFieldsValue();
-        values.reserve = usage === "ca" ? "ca" : usage === "notification" ? "notification" : undefined;
+        values.reserve = usage === "ca" ? "ca" : usage === "notification" ? "notification" : void 0;
         return values;
       },
       resetFields: (fields) => {
@@ -356,7 +352,7 @@ const AccessForm = forwardRef<AccessFormInstance, AccessFormProps>(({ className,
       },
       validateFields: (nameList, config) => {
         const t1 = formInst.validateFields(nameList, config);
-        const t2 = nestedFormInst.validateFields(undefined, config);
+        const t2 = nestedFormInst.validateFields(void 0, config);
         return Promise.all([t1, t2]).then(() => t1);
       },
     } as AccessFormInstance;

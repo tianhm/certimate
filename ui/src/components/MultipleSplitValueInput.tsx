@@ -2,7 +2,7 @@
 import { IconList } from "@tabler/icons-react";
 import { useControllableValue } from "ahooks";
 import { Button, Form, Input, type InputProps, Space } from "antd";
-import { nanoid } from "nanoid";
+import { nanoid } from "nanoid/non-secure";
 
 import { useAntdForm } from "@/hooks";
 import ModalForm from "./ModalForm";

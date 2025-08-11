@@ -1,11 +1,12 @@
 import { useTranslation } from "react-i18next";
 import { IconChevronDown } from "@tabler/icons-react";
-import { Alert, Button, Dropdown, Form, type FormInstance, Input, Select, Switch } from "antd";
+import { Button, Dropdown, Form, type FormInstance, Input, Select, Switch } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
 import CodeInput from "@/components/CodeInput";
 import Show from "@/components/Show";
+import Tips from "@/components/Tips";
 import { type AccessConfigForWebhook } from "@/domain/access";
 
 type AccessFormWebhookConfigFieldValues = Nullish<AccessConfigForWebhook>;
@@ -330,7 +331,7 @@ const AccessFormWebhookConfig = ({ form: formInst, formName, disabled, initialVa
         </Form.Item>
 
         <Form.Item>
-          <Alert type="info" message={<span dangerouslySetInnerHTML={{ __html: t("access.form.webhook_data_for_deployment.guide") }}></span>} />
+          <Tips message={<span dangerouslySetInnerHTML={{ __html: t("access.form.webhook_data_for_deployment.guide") }}></span>} />
         </Form.Item>
       </Show>
 
@@ -373,7 +374,7 @@ const AccessFormWebhookConfig = ({ form: formInst, formName, disabled, initialVa
         </Form.Item>
 
         <Form.Item>
-          <Alert type="info" message={<span dangerouslySetInnerHTML={{ __html: t("access.form.webhook_data_for_notification.guide") }}></span>} />
+          <Tips message={<span dangerouslySetInnerHTML={{ __html: t("access.form.webhook_data_for_notification.guide") }}></span>} />
         </Form.Item>
       </Show>
 

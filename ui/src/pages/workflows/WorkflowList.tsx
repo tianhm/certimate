@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { IconCirclePlus, IconCopy, IconDotsVertical, IconEdit, IconHierarchy3, IconPlus, IconReload, IconTrash } from "@tabler/icons-react";
+import { IconCirclePlus, IconCopy, IconDots, IconEdit, IconHierarchy3, IconPlus, IconReload, IconTrash } from "@tabler/icons-react";
 import { useRequest } from "ahooks";
 import { App, Button, Dropdown, Flex, Input, Segmented, Skeleton, Switch, Table, type TableProps, Typography, theme } from "antd";
 import dayjs from "dayjs";
@@ -77,37 +77,42 @@ const WorkflowList = () => {
     {
       key: "state",
       title: t("workflow.props.state"),
-      defaultFilteredValue: searchParams.has("state") ? [searchParams.get("state") as string] : undefined,
+      defaultFilteredValue: searchParams.has("state") ? [searchParams.get("state") as string] : void 0,
       render: (_, record) => {
-        const enabled = record.enabled;
         return (
-          <div
-            onClick={(e) => {
-              e.stopPropagation();
+          <Switch
+            checked={record.enabled}
+            onChange={() => {
+              handleRecordActiveChange(record);
             }}
-          >
-            <Switch
-              checked={enabled}
-              onChange={() => {
-                handleRecordActiveChange(record);
-              }}
-            />
-          </div>
+          />
         );
+      },
+      onCell: () => {
+        return {
+          onClick: (e) => {
+            e.stopPropagation();
+          },
+        };
       },
     },
     {
       key: "lastRun",
       title: t("workflow.props.last_run_at"),
       sorter: true,
-      sortOrder: sorter.columnKey === "lastRun" ? sorter.order : undefined,
+      sortOrder: sorter.columnKey === "lastRun" ? sorter.order : void 0,
       render: (_, record) => {
-        return (
-          <Flex gap="small">
-            <WorkflowStatusIcon color={true} size="1.25em" status={record.lastRunStatus!} />
-            <Typography.Text>{record.lastRunTime ? dayjs(record.lastRunTime!).format("YYYY-MM-DD HH:mm:ss") : ""}</Typography.Text>
-          </Flex>
-        );
+        const { lastRunStatus, lastRunTime } = record;
+        if (!lastRunStatus) {
+          return <></>;
+        } else {
+          return (
+            <Flex gap="small">
+              <WorkflowStatusIcon color={true} size="1.25em" status={lastRunStatus} />
+              <Typography.Text>{lastRunTime ? dayjs(lastRunTime).format("YYYY-MM-DD HH:mm:ss") : ""}</Typography.Text>
+            </Flex>
+          );
+        }
       },
     },
     {
@@ -171,7 +176,7 @@ const WorkflowList = () => {
           }}
           trigger={["click"]}
         >
-          <Button icon={<IconDotsVertical size="1.25em" />} type="text" />
+          <Button icon={<IconDots size="1.25em" />} type="text" />
         </Dropdown>
       ),
       onCell: () => {
@@ -189,9 +194,9 @@ const WorkflowList = () => {
     renderCell(checked, _, index, node) {
       if (!checked) {
         return (
-          <div className="group">
-            <div className="group-hover:hidden">{(page - 1) * pageSize + index + 1}</div>
-            <div className="hidden group-hover:block">{node}</div>
+          <div className="group/selection">
+            <div className="group-hover/selection:hidden">{(page - 1) * pageSize + index + 1}</div>
+            <div className="hidden group-hover/selection:block">{node}</div>
           </div>
         );
       }
@@ -218,14 +223,15 @@ const WorkflowList = () => {
       const { columnKey: sorterKey, order: sorterOrder } = sorter;
       let sort: string | undefined;
       sort = sorterKey === "lastRun" ? "lastRunTime" : "";
-      sort = sort && (sorterOrder === "ascend" ? `${sort}` : sorterOrder === "descend" ? `-${sort}` : undefined);
+      sort = sort && (sorterOrder === "ascend" ? `${sort}` : sorterOrder === "descend" ? `-${sort}` : void 0);
 
       return listWorkflows({
         keyword: filters["keyword"] as string,
-        enabled: (filters["state"] as string) === "enabled" ? true : (filters["state"] as string) === "disabled" ? false : undefined,
+        enabled: (filters["state"] as string) === "enabled" ? true : (filters["state"] as string) === "disabled" ? false : void 0,
         sort: sort,
         page: page,
         perPage: pageSize,
+        expand: true,
       });
     },
     {
@@ -409,10 +415,12 @@ const WorkflowList = () => {
 
   return (
     <div className="px-6 py-4">
-      <div className="mx-auto max-w-320">
+      <div className="container">
         <h1>{t("workflow.page.title")}</h1>
         <p className="text-base text-gray-500">{t("workflow.page.subtitle")}</p>
+      </div>
 
+      <div className="container">
         <div className="flex items-center justify-between gap-x-2 gap-y-3 not-md:flex-col-reverse not-md:items-start not-md:justify-normal">
           <div className="flex w-full flex-1 items-center gap-x-2 md:max-w-200">
             <div>

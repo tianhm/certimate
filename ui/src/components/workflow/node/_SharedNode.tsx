@@ -253,8 +253,8 @@ const SharedNodeBlock = ({ children, node, disabled, onClick }: SharedNodeBlockP
         content={<SharedNodeMenu node={node} disabled={disabled} trigger={<Button color="primary" icon={<IconDotsVertical size="1em" />} variant="text" />} />}
         placement="rightTop"
       >
-        <div className="relative w-[256px] overflow-hidden">
-          <Card className="shadow-md" styles={{ body: { padding: 0 } }} hoverable>
+        <div className="relative w-[256px]">
+          <Card className="overflow-hidden shadow-md" styles={{ body: { padding: 0 } }} hoverable>
             <div className="flex h-[48px] flex-col items-center justify-center truncate bg-primary px-4 py-2 text-white">
               <SharedNodeTitle
                 className="overflow-hidden outline-hidden focus:rounded-xs focus:bg-background focus:text-foreground"
@@ -331,7 +331,7 @@ const SharedNodeConfigDrawer = ({
     if (changed) {
       modal.confirm({
         title: t("common.text.operation_confirm"),
-        content: t("workflow_node.unsaved_changes.confirm"),
+        content: t("workflow.detail.design.unsaved_changes.confirm"),
         onOk: () => resolve(void 0),
         onCancel: () => reject(),
       });

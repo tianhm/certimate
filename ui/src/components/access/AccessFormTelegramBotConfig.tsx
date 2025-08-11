@@ -26,12 +26,12 @@ const AccessFormTelegramBotConfig = ({ form: formInst, formName, disabled, initi
 
   const formSchema = z.object({
     botToken: z
-      .string(t("access.form.telegrambot_token.placeholder"))
+      .string()
       .min(1, t("access.form.telegrambot_token.placeholder"))
       .max(256, t("common.errmsg.string_max", { max: 256 })),
     chatId: z
       .preprocess(
-        (v) => (v == null || v === "" ? undefined : Number(v)),
+        (v) => (v == null || v === "" ? void 0 : Number(v)),
         z.number().refine((v) => {
           return !Number.isNaN(+v!) && +v! !== 0;
         }, t("access.form.telegrambot_chat_id.placeholder"))

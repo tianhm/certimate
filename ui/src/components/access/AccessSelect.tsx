@@ -71,7 +71,7 @@ const AccessSelect = ({ onFilter, ...props }: AccessTypeSelectProps) => {
       loading={!loadedAtOnce}
       options={options}
       optionFilterProp="label"
-      optionLabelProp={undefined}
+      optionLabelProp={void 0}
       optionRender={(option) => renderOption(option.data.value)}
     />
   );

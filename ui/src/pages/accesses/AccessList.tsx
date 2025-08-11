@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { IconCirclePlus, IconCopy, IconDotsVertical, IconEdit, IconFingerprint, IconPlus, IconReload, IconTrash } from "@tabler/icons-react";
+import { IconCirclePlus, IconCopy, IconDots, IconEdit, IconFingerprint, IconPlus, IconReload, IconTrash } from "@tabler/icons-react";
 import { useRequest } from "ahooks";
 import { App, Avatar, Button, Dropdown, Input, Skeleton, Table, type TableProps, Tabs, Typography, theme } from "antd";
 import dayjs from "dayjs";
@@ -125,7 +125,7 @@ const AccessList = () => {
           }}
           trigger={["click"]}
         >
-          <Button icon={<IconDotsVertical size="1.25em" />} type="text" />
+          <Button icon={<IconDots size="1.25em" />} type="text" />
         </Dropdown>
       ),
       onCell: () => {
@@ -143,9 +143,9 @@ const AccessList = () => {
     renderCell(checked, _, index, node) {
       if (!checked) {
         return (
-          <div className="group">
-            <div className="group-hover:hidden">{(page - 1) * pageSize + index + 1}</div>
-            <div className="hidden group-hover:block">{node}</div>
+          <div className="group/selection">
+            <div className="group-hover/selection:hidden">{(page - 1) * pageSize + index + 1}</div>
+            <div className="hidden group-hover/selection:block">{node}</div>
           </div>
         );
       }
@@ -267,7 +267,7 @@ const AccessList = () => {
   };
 
   const handleRecordDuplicateClick = (access: AccessModel) => {
-    setDetailRecord({ ...access, id: undefined, name: `${access.name}-copy` });
+    setDetailRecord({ ...access, id: void 0, name: `${access.name}-copy` });
     setDetailMode("create");
     setDetailOpen(true);
   };
@@ -331,10 +331,12 @@ const AccessList = () => {
 
   return (
     <div className="px-6 py-4">
-      <div className="mx-auto max-w-320">
+      <div className="container">
         <h1>{t("access.page.title")}</h1>
         <p className="text-base text-gray-500">{t("access.page.subtitle")}</p>
+      </div>
 
+      <div className="container">
         <div className="flex items-center justify-between gap-x-2 gap-y-3 not-md:flex-col-reverse not-md:items-start not-md:justify-normal">
           <div className="flex w-full flex-1 items-center gap-x-2 md:max-w-200">
             <div className="flex-1">

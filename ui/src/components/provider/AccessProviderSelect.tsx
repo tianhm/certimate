@@ -53,7 +53,7 @@ const AccessProviderSelect = ({ showOptionTags, onFilter, ...props }: AccessProv
       <div className="flex max-w-full items-center justify-between gap-4 overflow-hidden">
         <div className="flex items-center gap-2 truncate overflow-hidden">
           <Avatar shape="square" src={provider.icon} size="small" />
-          <Typography.Text className="flex-1 truncate overflow-hidden" type={provider.builtin ? "secondary" : undefined} ellipsis>
+          <Typography.Text className="flex-1 truncate overflow-hidden" type={provider.builtin ? "secondary" : void 0} ellipsis>
             {t(provider.name)}
           </Typography.Text>
         </div>
@@ -95,8 +95,8 @@ const AccessProviderSelect = ({ showOptionTags, onFilter, ...props }: AccessProv
         return <span style={{ color: themeToken.colorTextPlaceholder }}>{props.placeholder}</span>;
       }}
       options={options}
-      optionFilterProp={undefined}
-      optionLabelProp={undefined}
+      optionFilterProp={void 0}
+      optionLabelProp={void 0}
       optionRender={(option) => renderOption(option.data.value)}
     />
   );

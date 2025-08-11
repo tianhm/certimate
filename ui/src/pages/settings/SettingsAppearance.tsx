@@ -47,7 +47,7 @@ const SettingsAppearanceTheme = ({ className, style }: { className?: string; sty
   return (
     <div className={className} style={style}>
       <Form layout="vertical">
-        <Form.Item extra={themeChanged ? t("settings.appearance.theme.form.value.extra") : undefined}>
+        <Form.Item extra={themeChanged ? t("settings.appearance.theme.form.value.extra") : void 0}>
           <Radio.Group className="w-full" value={themeMode} onChange={handleChange}>
             <div className="flex w-full items-center gap-4 max-md:flex-wrap">
               {themeItems.map((item) => (
@@ -84,7 +84,7 @@ const SettingsAppearanceLanguage = ({ className, style }: { className?: string; 
   return (
     <div className={className} style={style}>
       <Form layout="vertical">
-        <Form.Item extra={localeChanged ? t("settings.appearance.language.form.value.extra") : undefined}>
+        <Form.Item extra={localeChanged ? t("settings.appearance.language.form.value.extra") : void 0}>
           <Select
             options={localeItems.map((item) => ({
               key: item.key,

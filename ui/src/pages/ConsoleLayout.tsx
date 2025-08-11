@@ -8,8 +8,8 @@ import {
   IconHelpCircle,
   IconHierarchy3,
   IconHome,
-  IconLogout,
   IconMenu2,
+  IconPower,
   IconSettings,
 } from "@tabler/icons-react";
 import { Alert, Button, Drawer, Layout, Menu, type MenuProps, theme } from "antd";
@@ -69,7 +69,7 @@ const ConsoleLayout = () => {
             <div className="w-full px-2">
               <SiderMenu />
             </div>
-            <div className="w-full px-2">
+            <div className="w-full px-2 pb-2">
               <Menu
                 style={{ background: "transparent", borderInlineEnd: "none" }}
                 items={[
@@ -88,7 +88,7 @@ const ConsoleLayout = () => {
                     danger: true,
                     icon: (
                       <span className="anticon scale-125" role="img">
-                        <IconLogout size="1em" />
+                        <IconPower size="1em" />
                       </span>
                     ),
                     label: t("common.menu.logout"),
@@ -136,7 +136,7 @@ const ConsoleLayout = () => {
                 <AppVersion.Badge>
                   <Button icon={<IconBrandGithub size="1.25em" stroke="1.25" />} onClick={handleGitHubClick} />
                 </AppVersion.Badge>
-                <Button danger icon={<IconLogout size="1.25em" stroke="1.25" />} onClick={handleLogoutClick} />
+                <Button danger icon={<IconPower size="1.25em" stroke="1.25" />} onClick={handleLogoutClick} />
               </div>
             </div>
           </Layout.Header>
@@ -198,7 +198,7 @@ const SiderMenu = memo(({ onSelect }: { onSelect?: (key: string) => void }) => {
     if (item) {
       setMenuSelectedKey(item.key as string);
     } else {
-      setMenuSelectedKey(undefined);
+      setMenuSelectedKey(void 0);
     }
   }, [location.pathname]);
 

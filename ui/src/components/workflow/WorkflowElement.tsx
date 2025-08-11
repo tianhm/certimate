@@ -22,6 +22,10 @@ export interface WorkflowElementProps {
   branchIndex?: number;
 }
 
+/**
+ *
+ * @deprecated
+ */
 const WorkflowElement = ({ node, disabled, branchId, branchIndex }: WorkflowElementProps) => {
   const nodeEl = useMemo(() => {
     switch (node.type) {

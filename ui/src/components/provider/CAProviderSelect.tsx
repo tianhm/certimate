@@ -77,8 +77,8 @@ const CAProviderSelect = ({ onFilter, ...props }: CAProviderSelectProps) => {
         return <span style={{ color: themeToken.colorTextPlaceholder }}>{props.placeholder}</span>;
       }}
       options={options}
-      optionFilterProp={undefined}
-      optionLabelProp={undefined}
+      optionFilterProp={void 0}
+      optionLabelProp={void 0}
       optionRender={(option) => renderOption(option.data.value)}
     />
   );

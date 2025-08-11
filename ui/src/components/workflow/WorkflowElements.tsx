@@ -11,6 +11,10 @@ export interface WorkflowElementsProps {
   disabled?: boolean;
 }
 
+/**
+ *
+ * @deprecated
+ */
 const WorkflowElements = ({ className, style, disabled }: WorkflowElementsProps) => {
   const { workflow } = useWorkflowStore(useZustandShallowSelector(["workflow"]));
 

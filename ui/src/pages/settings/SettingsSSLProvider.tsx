@@ -1,12 +1,13 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCard } from "@ant-design/pro-components";
-import { Alert, App, Button, Form, Input, Skeleton, Typography } from "antd";
+import { App, Button, Form, Input, Skeleton, Typography } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { produce } from "immer";
 import { z } from "zod";
 
 import Show from "@/components/Show";
+import Tips from "@/components/Tips";
 import { type CAProviderType, CA_PROVIDERS } from "@/domain/provider";
 import { SETTINGS_NAMES, type SSLProviderSettingsContent, type SettingsModel } from "@/domain/settings";
 import { useAntdForm } from "@/hooks";
@@ -95,7 +96,7 @@ const SSLProviderEditFormLetsEncryptStagingConfig = () => {
   return (
     <Form {...formProps} form={formInst} disabled={pending} layout="vertical" onValuesChange={handleFormChange}>
       <Form.Item>
-        <Alert type="info" message={<span dangerouslySetInnerHTML={{ __html: t("settings.sslprovider.form.letsencryptstaging_alert") }}></span>} />
+        <Tips message={<span dangerouslySetInnerHTML={{ __html: t("settings.sslprovider.form.letsencryptstaging_alert") }}></span>} />
       </Form.Item>
 
       <Form.Item>
@@ -155,12 +156,12 @@ const SSLProviderEditFormGoogleTrustServicesConfig = () => {
 
   const formSchema = z.object({
     eabKid: z
-      .string(t("settings.sslprovider.form.googletrustservices_eab_kid.placeholder"))
-      .min(1, t("settings.sslprovider.form.googletrustservices_eab_kid.placeholder"))
+      .string(t("access.form.googletrustservices_eab_kid.placeholder"))
+      .min(1, t("access.form.googletrustservices_eab_kid.placeholder"))
       .max(256, t("common.errmsg.string_max", { max: 256 })),
     eabHmacKey: z
-      .string(t("settings.sslprovider.form.googletrustservices_eab_hmac_key.placeholder"))
-      .min(1, t("settings.sslprovider.form.googletrustservices_eab_hmac_key.placeholder"))
+      .string(t("access.form.googletrustservices_eab_hmac_key.placeholder"))
+      .min(1, t("access.form.googletrustservices_eab_hmac_key.placeholder"))
       .max(256, t("common.errmsg.string_max", { max: 256 })),
   });
   const formRule = createSchemaFieldRule(formSchema);
@@ -193,20 +194,20 @@ const SSLProviderEditFormGoogleTrustServicesConfig = () => {
     <Form {...formProps} form={formInst} disabled={pending} layout="vertical" onValuesChange={handleFormChange}>
       <Form.Item
         name="eabKid"
-        label={t("settings.sslprovider.form.googletrustservices_eab_kid.label")}
+        label={t("access.form.googletrustservices_eab_kid.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("settings.sslprovider.form.googletrustservices_eab_kid.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.googletrustservices_eab_kid.tooltip") }}></span>}
       >
-        <Input autoComplete="new-password" placeholder={t("settings.sslprovider.form.googletrustservices_eab_kid.placeholder")} />
+        <Input autoComplete="new-password" placeholder={t("access.form.googletrustservices_eab_kid.placeholder")} />
       </Form.Item>
 
       <Form.Item
         name="eabHmacKey"
-        label={t("settings.sslprovider.form.googletrustservices_eab_hmac_key.label")}
+        label={t("access.form.googletrustservices_eab_hmac_key.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("settings.sslprovider.form.googletrustservices_eab_hmac_key.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.googletrustservices_eab_hmac_key.tooltip") }}></span>}
       >
-        <Input.Password autoComplete="new-password" placeholder={t("settings.sslprovider.form.googletrustservices_eab_hmac_key.placeholder")} />
+        <Input.Password autoComplete="new-password" placeholder={t("access.form.googletrustservices_eab_hmac_key.placeholder")} />
       </Form.Item>
 
       <Form.Item>
@@ -225,12 +226,12 @@ const SSLProviderEditFormSSLComConfig = () => {
 
   const formSchema = z.object({
     eabKid: z
-      .string(t("settings.sslprovider.form.sslcom_eab_kid.placeholder"))
-      .min(1, t("settings.sslprovider.form.sslcom_eab_kid.placeholder"))
+      .string(t("access.form.sslcom_eab_kid.placeholder"))
+      .min(1, t("access.form.sslcom_eab_kid.placeholder"))
       .max(256, t("common.errmsg.string_max", { max: 256 })),
     eabHmacKey: z
-      .string(t("settings.sslprovider.form.sslcom_eab_hmac_key.placeholder"))
-      .min(1, t("settings.sslprovider.form.sslcom_eab_hmac_key.placeholder"))
+      .string(t("access.form.sslcom_eab_hmac_key.placeholder"))
+      .min(1, t("access.form.sslcom_eab_hmac_key.placeholder"))
       .max(256, t("common.errmsg.string_max", { max: 256 })),
   });
   const formRule = createSchemaFieldRule(formSchema);
@@ -263,20 +264,20 @@ const SSLProviderEditFormSSLComConfig = () => {
     <Form {...formProps} form={formInst} disabled={pending} layout="vertical" onValuesChange={handleFormChange}>
       <Form.Item
         name="eabKid"
-        label={t("settings.sslprovider.form.sslcom_eab_kid.label")}
+        label={t("access.form.sslcom_eab_kid.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("settings.sslprovider.form.sslcom_eab_kid.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.sslcom_eab_kid.tooltip") }}></span>}
       >
-        <Input autoComplete="new-password" placeholder={t("settings.sslprovider.form.sslcom_eab_kid.placeholder")} />
+        <Input autoComplete="new-password" placeholder={t("access.form.sslcom_eab_kid.placeholder")} />
       </Form.Item>
 
       <Form.Item
         name="eabHmacKey"
-        label={t("settings.sslprovider.form.sslcom_eab_hmac_key.label")}
+        label={t("access.form.sslcom_eab_hmac_key.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("settings.sslprovider.form.sslcom_eab_hmac_key.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.sslcom_eab_hmac_key.tooltip") }}></span>}
       >
-        <Input.Password autoComplete="new-password" placeholder={t("settings.sslprovider.form.sslcom_eab_hmac_key.placeholder")} />
+        <Input.Password autoComplete="new-password" placeholder={t("access.form.sslcom_eab_hmac_key.placeholder")} />
       </Form.Item>
 
       <Form.Item>
@@ -295,12 +296,12 @@ const SSLProviderEditFormZeroSSLConfig = () => {
 
   const formSchema = z.object({
     eabKid: z
-      .string(t("settings.sslprovider.form.zerossl_eab_kid.placeholder"))
-      .min(1, t("settings.sslprovider.form.zerossl_eab_kid.placeholder"))
+      .string(t("access.form.zerossl_eab_kid.placeholder"))
+      .min(1, t("access.form.zerossl_eab_kid.placeholder"))
       .max(256, t("common.errmsg.string_max", { max: 256 })),
     eabHmacKey: z
-      .string(t("settings.sslprovider.form.zerossl_eab_hmac_key.placeholder"))
-      .min(1, t("settings.sslprovider.form.zerossl_eab_hmac_key.placeholder"))
+      .string(t("access.form.zerossl_eab_hmac_key.placeholder"))
+      .min(1, t("access.form.zerossl_eab_hmac_key.placeholder"))
       .max(256, t("common.errmsg.string_max", { max: 256 })),
   });
   const formRule = createSchemaFieldRule(formSchema);
@@ -333,20 +334,20 @@ const SSLProviderEditFormZeroSSLConfig = () => {
     <Form {...formProps} form={formInst} disabled={pending} layout="vertical" onValuesChange={handleFormChange}>
       <Form.Item
         name="eabKid"
-        label={t("settings.sslprovider.form.zerossl_eab_kid.label")}
+        label={t("access.form.zerossl_eab_kid.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("settings.sslprovider.form.zerossl_eab_kid.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.zerossl_eab_kid.tooltip") }}></span>}
       >
-        <Input autoComplete="new-password" placeholder={t("settings.sslprovider.form.zerossl_eab_kid.placeholder")} />
+        <Input autoComplete="new-password" placeholder={t("access.form.zerossl_eab_kid.placeholder")} />
       </Form.Item>
 
       <Form.Item
         name="eabHmacKey"
-        label={t("settings.sslprovider.form.zerossl_eab_hmac_key.label")}
+        label={t("access.form.zerossl_eab_hmac_key.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("settings.sslprovider.form.zerossl_eab_hmac_key.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.zerossl_eab_hmac_key.tooltip") }}></span>}
       >
-        <Input.Password autoComplete="new-password" placeholder={t("settings.sslprovider.form.zerossl_eab_hmac_key.placeholder")} />
+        <Input.Password autoComplete="new-password" placeholder={t("access.form.zerossl_eab_hmac_key.placeholder")} />
       </Form.Item>
 
       <Form.Item>

@@ -3,6 +3,7 @@ import { Immer, produce } from "immer";
 import { nanoid } from "nanoid";
 
 import i18n from "@/i18n";
+import { type WorkflowRunModel } from "./workflowRun";
 
 export interface WorkflowModel extends BaseModel {
   name: string;
@@ -16,6 +17,9 @@ export interface WorkflowModel extends BaseModel {
   lastRunRef?: string;
   lastRunStatus?: string;
   lastRunTime?: string;
+  expand?: {
+    lastRunRef?: WorkflowRunModel;
+  };
 }
 
 export const WORKFLOW_TRIGGERS = Object.freeze({
@@ -135,7 +139,7 @@ export type WorkflowNodeConfigForStart = {
 
 export const defaultNodeConfigForStart = (): Partial<WorkflowNodeConfigForStart> => {
   return {
-    trigger: WORKFLOW_TRIGGERS.SCHEDULED,
+    trigger: WORKFLOW_TRIGGERS.MANUAL,
     triggerCron: "0 0 * * *",
   };
 };
@@ -188,6 +192,7 @@ export type WorkflowNodeConfigForMonitor = {
 
 export const defaultNodeConfigForMonitor = (): Partial<WorkflowNodeConfigForMonitor> => {
   return {
+    host: "",
     port: 443,
     requestPath: "/",
   };
@@ -217,7 +222,10 @@ export type WorkflowNodeConfigForNotify = {
 };
 
 export const defaultNodeConfigForNotify = (): Partial<WorkflowNodeConfigForNotify> => {
-  return {};
+  return {
+    subject: "",
+    message: "",
+  };
 };
 
 export type WorkflowNodeConfigForCondition = {

@@ -103,7 +103,7 @@ const StartNodeConfigForm = forwardRef<StartNodeConfigFormInstance, StartNodeCon
           extra={
             <Show when={fieldTriggerCronExpectedExecutions.length > 0}>
               <div>
-                {t("workflow_node.start.form.trigger_cron.extra")}
+                {t("workflow_node.start.form.trigger_cron.help")}
                 <br />
                 {fieldTriggerCronExpectedExecutions.map((date, index) => (
                   <span key={index}>

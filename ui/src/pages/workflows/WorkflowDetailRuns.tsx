@@ -1,38 +1,36 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { IconBrowserShare, IconHistory, IconPlayerPause, IconTrash } from "@tabler/icons-react";
+import { IconBrowserShare, IconDots, IconHistory, IconPlayerPause, IconTrash } from "@tabler/icons-react";
 import { useRequest } from "ahooks";
-import { Alert, App, Button, Skeleton, Table, type TableProps, Tooltip } from "antd";
+import { App, Button, Dropdown, Skeleton, Table, type TableProps } from "antd";
 import dayjs from "dayjs";
 import { ClientResponseError } from "pocketbase";
 
 import { cancelRun as cancelWorkflowRun } from "@/api/workflows";
 import Empty from "@/components/Empty";
+import Tips from "@/components/Tips";
+import WorkflowRunDetailDrawer from "@/components/workflow/WorkflowRunDetailDrawer";
 import WorkflowStatusTag from "@/components/workflow/WorkflowStatusTag";
 import { WORKFLOW_TRIGGERS } from "@/domain/workflow";
 import { WORKFLOW_RUN_STATUSES, type WorkflowRunModel } from "@/domain/workflowRun";
-import { useAppSettings } from "@/hooks";
+import { useAppSettings, useZustandShallowSelector } from "@/hooks";
 import {
   list as listWorkflowRuns,
   remove as removeWorkflowRun,
   subscribe as subscribeWorkflowRun,
   unsubscribe as unsubscribeWorkflowRun,
 } from "@/repository/workflowRun";
+import { useWorkflowStore } from "@/stores/workflow";
 import { getErrMsg } from "@/utils/error";
-import WorkflowRunDetailDrawer from "./WorkflowRunDetailDrawer";
 
-export interface WorkflowRunsProps {
-  className?: string;
-  style?: React.CSSProperties;
-  workflowId: string;
-}
-
-const WorkflowRuns = ({ className, style, workflowId }: WorkflowRunsProps) => {
+const WorkflowDetailRuns = () => {
   const { t } = useTranslation();
 
   const { modal, notification } = App.useApp();
 
   const { appSettings: globalAppSettings } = useAppSettings();
+
+  const { workflow } = useWorkflowStore(useZustandShallowSelector(["workflow"]));
 
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(globalAppSettings.defaultPerPage!);
@@ -101,53 +99,63 @@ const WorkflowRuns = ({ className, style, workflowId }: WorkflowRunsProps) => {
       key: "$action",
       align: "end",
       fixed: "right",
-      width: 120,
+      width: 64,
       render: (_, record) => {
-        const allowCancel = record.status === WORKFLOW_RUN_STATUSES.PENDING || record.status === WORKFLOW_RUN_STATUSES.RUNNING;
-        const aloowDelete =
-          record.status === WORKFLOW_RUN_STATUSES.SUCCEEDED ||
-          record.status === WORKFLOW_RUN_STATUSES.FAILED ||
-          record.status === WORKFLOW_RUN_STATUSES.CANCELED;
+        const cancelDisabled = !([WORKFLOW_RUN_STATUSES.PENDING, WORKFLOW_RUN_STATUSES.RUNNING] as string[]).includes(record.status);
+        const deleteDisabled = !cancelDisabled;
 
         return (
-          <div className="flex items-center justify-end">
-            <Tooltip title={t("workflow_run.action.view.button")}>
-              <Button
-                color="primary"
-                icon={<IconBrowserShare size="1.25em" />}
-                variant="text"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleRecordDetailClick(record);
-                }}
-              />
-            </Tooltip>
-            <Tooltip title={t("workflow_run.action.cancel.button")}>
-              <Button
-                color="default"
-                disabled={!allowCancel}
-                icon={<IconPlayerPause size="1.25em" />}
-                variant="text"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleRecordCancelClick(record);
-                }}
-              />
-            </Tooltip>
-            <Tooltip title={t("workflow_run.action.delete.button")}>
-              <Button
-                color="danger"
-                danger
-                disabled={!aloowDelete}
-                icon={<IconTrash size="1.25em" />}
-                variant="text"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleRecordDeleteClick(record);
-                }}
-              />
-            </Tooltip>
-          </div>
+          <Dropdown
+            menu={{
+              items: [
+                {
+                  key: "view",
+                  label: t("workflow_run.action.view.button"),
+                  icon: (
+                    <span className="anticon scale-125">
+                      <IconBrowserShare size="1em" />
+                    </span>
+                  ),
+                  onClick: () => {
+                    handleRecordDetailClick(record);
+                  },
+                },
+                {
+                  key: "cancel",
+                  label: t("workflow_run.action.cancel.button"),
+                  icon: (
+                    <span className="anticon scale-125">
+                      <IconPlayerPause size="1em" />
+                    </span>
+                  ),
+                  disabled: cancelDisabled,
+                  onClick: () => {
+                    handleRecordCancelClick(record);
+                  },
+                },
+                {
+                  type: "divider",
+                },
+                {
+                  key: "delete",
+                  label: t("workflow_run.action.delete.button"),
+                  icon: (
+                    <span className="anticon scale-125">
+                      <IconTrash size="1em" />
+                    </span>
+                  ),
+                  danger: true,
+                  disabled: deleteDisabled,
+                  onClick: () => {
+                    handleRecordDeleteClick(record);
+                  },
+                },
+              ],
+            }}
+            trigger={["click"]}
+          >
+            <Button icon={<IconDots size="1.25em" />} type="text" />
+          </Dropdown>
         );
       },
       onCell: () => {
@@ -167,13 +175,13 @@ const WorkflowRuns = ({ className, style, workflowId }: WorkflowRunsProps) => {
   } = useRequest(
     () => {
       return listWorkflowRuns({
-        workflowId: workflowId,
+        workflowId: workflow.id,
         page: page,
         perPage: pageSize,
       });
     },
     {
-      refreshDeps: [workflowId, page, pageSize],
+      refreshDeps: [workflow.id, page, pageSize],
       onSuccess: (res) => {
         setTableData(res.items);
         setTableTotal(res.totalItems);
@@ -238,7 +246,7 @@ const WorkflowRuns = ({ className, style, workflowId }: WorkflowRunsProps) => {
       content: t("workflow_run.action.cancel.modal.content"),
       onOk: async () => {
         try {
-          const resp = await cancelWorkflowRun(workflowId, workflowRun.id);
+          const resp = await cancelWorkflowRun(workflow.id, workflowRun.id);
           if (resp) {
             refreshData();
           }
@@ -277,46 +285,48 @@ const WorkflowRuns = ({ className, style, workflowId }: WorkflowRunsProps) => {
   };
 
   return (
-    <div className={className} style={style}>
-      <Alert className="mb-4" message={<span dangerouslySetInnerHTML={{ __html: t("workflow_run.deletion.alert") }}></span>} showIcon type="info" />
-      <Alert className="mb-4" message={<span dangerouslySetInnerHTML={{ __html: t("workflow_run.cancellation.alert") }}></span>} showIcon type="info" />
+    <div className="container">
+      <div className="pt-9">
+        <Tips className="mb-4" message={<span dangerouslySetInnerHTML={{ __html: t("workflow_run.deletion.alert") }}></span>} />
+        <Tips className="mb-4" message={<span dangerouslySetInnerHTML={{ __html: t("workflow_run.cancellation.alert") }}></span>} />
 
-      <Table<WorkflowRunModel>
-        columns={tableColumns}
-        dataSource={tableData}
-        loading={loading}
-        locale={{
-          emptyText: loading ? (
-            <Skeleton />
-          ) : (
-            <Empty
-              title={t("common.text.nodata")}
-              description={loadedError ? getErrMsg(loadedError) : t("workflow_run.nodata.description")}
-              icon={<IconHistory size={24} />}
-            />
-          ),
-        }}
-        pagination={{
-          current: page,
-          pageSize: pageSize,
-          total: tableTotal,
-          showSizeChanger: true,
-          onChange: handlePaginationChange,
-          onShowSizeChange: handlePaginationChange,
-        }}
-        rowClassName="cursor-pointer"
-        rowKey={(record) => record.id}
-        scroll={{ x: "max(100%, 960px)" }}
-        onRow={(record) => ({
-          onClick: () => {
-            handleRecordDetailClick(record);
-          },
-        })}
-      />
+        <Table<WorkflowRunModel>
+          columns={tableColumns}
+          dataSource={tableData}
+          loading={loading}
+          locale={{
+            emptyText: loading ? (
+              <Skeleton />
+            ) : (
+              <Empty
+                title={t("common.text.nodata")}
+                description={loadedError ? getErrMsg(loadedError) : t("workflow_run.nodata.description")}
+                icon={<IconHistory size={24} />}
+              />
+            ),
+          }}
+          pagination={{
+            current: page,
+            pageSize: pageSize,
+            total: tableTotal,
+            showSizeChanger: true,
+            onChange: handlePaginationChange,
+            onShowSizeChange: handlePaginationChange,
+          }}
+          rowClassName="cursor-pointer"
+          rowKey={(record) => record.id}
+          scroll={{ x: "max(100%, 960px)" }}
+          onRow={(record) => ({
+            onClick: () => {
+              handleRecordDetailClick(record);
+            },
+          })}
+        />
 
-      <WorkflowRunDetailDrawer {...detailDrawerProps} />
+        <WorkflowRunDetailDrawer {...detailDrawerProps} />
+      </div>
     </div>
   );
 };
 
-export default WorkflowRuns;
+export default WorkflowDetailRuns;

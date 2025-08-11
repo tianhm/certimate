@@ -359,6 +359,86 @@ const SSLProviderEditFormZeroSSLConfig = () => {
   );
 };
 
+const SSLProviderEditFormACMECAConfig = () => {
+  const { t } = useTranslation();
+
+  const { pending, settings, updateSettings } = useContext(SSLProviderContext);
+
+  const formSchema = z.object({
+    endpoint: z.url(t("common.errmsg.url_invalid")),
+    eabKid: z
+      .string(t("access.form.acmeca_eab_kid.placeholder"))
+      .min(1, t("access.form.acmeca_eab_kid.placeholder"))
+      .max(256, t("common.errmsg.string_max", { max: 256 })),
+    eabHmacKey: z
+      .string(t("access.form.acmeca_eab_hmac_key.placeholder"))
+      .min(1, t("access.form.acmeca_eab_hmac_key.placeholder"))
+      .max(256, t("common.errmsg.string_max", { max: 256 })),
+  });
+  const formRule = createSchemaFieldRule(formSchema);
+  const { form: formInst, formProps } = useAntdForm<z.infer<typeof formSchema>>({
+    initialValues: settings?.content?.config?.[CA_PROVIDERS.ACMECA],
+    onSubmit: async (values) => {
+      const newSettings = produce(settings, (draft) => {
+        draft.content ??= {} as SSLProviderSettingsContent;
+        draft.content.provider = CA_PROVIDERS.ACMECA;
+
+        draft.content.config ??= {} as SSLProviderSettingsContent["config"];
+        draft.content.config[CA_PROVIDERS.ACMECA] = values;
+      });
+      await updateSettings(newSettings);
+
+      setFormChanged(false);
+    },
+  });
+
+  const [formChanged, setFormChanged] = useState(false);
+  useEffect(() => {
+    setFormChanged(settings?.content?.provider !== CA_PROVIDERS.ACMECA);
+  }, [settings?.content?.provider]);
+
+  const handleFormChange = () => {
+    setFormChanged(true);
+  };
+
+  return (
+    <Form {...formProps} form={formInst} disabled={pending} layout="vertical" onValuesChange={handleFormChange}>
+      <Form.Item
+        name="endpoint"
+        label={t("access.form.acmeca_endpoint.label")}
+        rules={[formRule]}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.acmeca_endpoint.tooltip") }}></span>}
+      >
+        <Input placeholder={t("access.form.acmeca_endpoint.placeholder")} />
+      </Form.Item>
+
+      <Form.Item
+        name="eabKid"
+        label={t("access.form.zerossl_eab_kid.label")}
+        rules={[formRule]}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.zerossl_eab_kid.tooltip") }}></span>}
+      >
+        <Input autoComplete="new-password" placeholder={t("access.form.zerossl_eab_kid.placeholder")} />
+      </Form.Item>
+
+      <Form.Item
+        name="eabHmacKey"
+        label={t("access.form.zerossl_eab_hmac_key.label")}
+        rules={[formRule]}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.zerossl_eab_hmac_key.tooltip") }}></span>}
+      >
+        <Input.Password autoComplete="new-password" placeholder={t("access.form.zerossl_eab_hmac_key.placeholder")} />
+      </Form.Item>
+
+      <Form.Item>
+        <Button type="primary" htmlType="submit" disabled={!formChanged} loading={pending}>
+          {t("common.button.save")}
+        </Button>
+      </Form.Item>
+    </Form>
+  );
+};
+
 const SettingsSSLProvider = () => {
   const { t } = useTranslation();
 
@@ -398,6 +478,8 @@ const SettingsSSLProvider = () => {
         return <SSLProviderEditFormSSLComConfig />;
       case CA_PROVIDERS.ZEROSSL:
         return <SSLProviderEditFormZeroSSLConfig />;
+      case CA_PROVIDERS.ACMECA:
+        return <SSLProviderEditFormACMECAConfig />;
     }
   }, [providerType]);
 
@@ -437,6 +519,7 @@ const SettingsSSLProvider = () => {
           <Form.Item name="provider" label={t("settings.sslprovider.form.provider.label")}>
             <CheckCard.Group className="w-full" onChange={(value) => setProviderType(value as CAProviderType)}>
               <CheckCard
+                style={{ width: 280 }}
                 avatar={<img src={"/imgs/providers/letsencrypt.svg"} className="size-8" />}
                 size="small"
                 title={t("provider.letsencrypt")}
@@ -444,6 +527,7 @@ const SettingsSSLProvider = () => {
                 value={CA_PROVIDERS.LETSENCRYPT}
               />
               <CheckCard
+                style={{ width: 280 }}
                 avatar={<img src={"/imgs/providers/letsencrypt.svg"} className="size-8" />}
                 size="small"
                 title={t("provider.letsencryptstaging")}
@@ -451,6 +535,7 @@ const SettingsSSLProvider = () => {
                 value={CA_PROVIDERS.LETSENCRYPTSTAGING}
               />
               <CheckCard
+                style={{ width: 280 }}
                 avatar={<img src={"/imgs/providers/buypass.png"} className="size-8" />}
                 size="small"
                 title={t("provider.buypass")}
@@ -458,6 +543,7 @@ const SettingsSSLProvider = () => {
                 value={CA_PROVIDERS.BUYPASS}
               />
               <CheckCard
+                style={{ width: 280 }}
                 avatar={<img src={"/imgs/providers/google.svg"} className="size-8" />}
                 size="small"
                 title={t("provider.googletrustservices")}
@@ -465,6 +551,7 @@ const SettingsSSLProvider = () => {
                 value={CA_PROVIDERS.GOOGLETRUSTSERVICES}
               />
               <CheckCard
+                style={{ width: 280 }}
                 avatar={<img src={"/imgs/providers/sslcom.svg"} className="size-8" />}
                 size="small"
                 title={t("provider.sslcom")}
@@ -472,11 +559,20 @@ const SettingsSSLProvider = () => {
                 value={CA_PROVIDERS.SSLCOM}
               />
               <CheckCard
+                style={{ width: 280 }}
                 avatar={<img src={"/imgs/providers/zerossl.svg"} className="size-8" />}
                 size="small"
                 title={t("provider.zerossl")}
                 description="zerossl.com"
                 value={CA_PROVIDERS.ZEROSSL}
+              />
+              <CheckCard
+                style={{ width: 280 }}
+                avatar={<img src={"/imgs/providers/acmeca.svg"} className="size-8" />}
+                size="small"
+                title={t("provider.acmeca")}
+                description={"\u00A0"}
+                value={CA_PROVIDERS.ACMECA}
               />
             </CheckCard.Group>
           </Form.Item>

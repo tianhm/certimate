@@ -1,13 +1,16 @@
+import { useTranslation } from "react-i18next";
 import { type AdderProps as FlowgramAdderProps, useClientContext } from "@flowgram.ai/fixed-layout-editor";
 
 import { IconPlus } from "@tabler/icons-react";
-import { Button, Dropdown } from "antd";
+import { Button, Dropdown, type MenuProps } from "antd";
 
 import { getFlowNodeRegistries } from "../nodes";
 
 export interface AdderProps extends FlowgramAdderProps {}
 
 const Adder = ({ from, hoverActivated }: AdderProps) => {
+  const { t } = useTranslation();
+
   const ctx = useClientContext();
   const { operation, playground } = ctx;
 
@@ -24,25 +27,42 @@ const Adder = ({ from, hoverActivated }: AdderProps) => {
       }
       return true;
     })
-    .map((registry) => {
-      const Icon = registry.meta?.icon;
+    .reduce(
+      (acc, registry) => {
+        let group = acc.find((item) => item!.key === registry.kindType);
+        if (!group) {
+          group = {
+            key: registry.kindType,
+            type: "group",
+            label: registry.kindType ? t(`workflow_node.kind.${registry.kindType}`) : null,
+            children: [],
+          };
+          acc.push(group);
+        }
 
-      return {
-        key: registry.type,
-        label: registry.meta?.labelText ?? registry.type,
-        icon: <span className="anticon scale-125">{Icon && <Icon size="1em" />}</span>,
-        onClick: () => {
-          const block = operation.addFromNode(from, registry.onAdd!(ctx, from));
+        if (group.type === "group") {
+          const NodeIcon = registry.meta?.icon;
+          group.children!.push({
+            key: registry.type,
+            label: registry.meta?.labelText ?? registry.type,
+            icon: <span className="anticon scale-125">{NodeIcon && <NodeIcon size="1em" />}</span>,
+            onClick: () => {
+              const block = operation.addFromNode(from, registry.onAdd!(ctx, from));
 
-          setTimeout(() => {
-            playground.scrollToView({
-              bounds: block.bounds,
-              scrollToCenter: true,
-            });
-          }, 1);
-        },
-      };
-    });
+              setTimeout(() => {
+                playground.scrollToView({
+                  bounds: block.bounds,
+                  scrollToCenter: true,
+                });
+              }, 1);
+            },
+          });
+        }
+
+        return acc;
+      },
+      [] as Required<MenuProps>["items"]
+    );
 
   return playground.config.readonlyOrDisabled ? null : (
     <div className="relative">

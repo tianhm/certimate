@@ -228,13 +228,26 @@ const InternalNodeMenuButton = ({
             onClick: handleClickRemove,
           },
         ],
+        onClick: (e) => {
+          e.domEvent.stopPropagation();
+        },
       }}
       overlayStyle={{
         zIndex: 10 /* 确保要比 Minimap 组件层级要高，防止被遮挡而点击不到 */,
       }}
       trigger={["click"]}
     >
-      <Button className={className} style={style} icon={<IconDotsVertical color="grey" size="1.25em" />} type="text" {...props} />
+      <Button
+        className={className}
+        style={style}
+        icon={<IconDotsVertical color="grey" size="1.25em" />}
+        type="text"
+        {...props}
+        onClick={(e) => {
+          e.stopPropagation();
+          props.onClick?.(e);
+        }}
+      />
     </Dropdown>
   );
 };
@@ -305,7 +318,14 @@ export const BaseNode = ({ className, style, children, description }: BaseNodePr
       }
       placement="rightTop"
     >
-      <div className="group/node relative">
+      <div
+        className="group/node relative"
+        onClick={(e) => {
+          if (inputVisible) {
+            e.stopPropagation();
+          }
+        }}
+      >
         <InternalNodeCard className={mergeCls("w-[320px]", className)} style={style} nodeRender={nodeRender}>
           {children != null ? (
             children
@@ -398,7 +418,14 @@ export const BranchNode = ({ className, style, children, description }: BranchNo
       }
       placement="right"
     >
-      <div className="group/node relative">
+      <div
+        className="group/node relative"
+        onClick={(e) => {
+          if (inputVisible) {
+            e.stopPropagation();
+          }
+        }}
+      >
         <InternalNodeCard className={mergeCls("w-[240px]", className)} style={style} nodeRender={nodeRender}>
           {children != null ? (
             children

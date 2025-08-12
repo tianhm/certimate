@@ -4,11 +4,12 @@ import { IconCloudUpload } from "@tabler/icons-react";
 import { nanoid } from "nanoid";
 
 import { BaseNode } from "./_shared";
-import { type NodeRegistry, NodeType } from "./typings";
+import { NodeKindType, type NodeRegistry, NodeType } from "./typings";
 import BizUploadNodeConfigForm from "../forms/BizUploadNodeConfigForm";
 
 export const BizUploadNodeRegistry: NodeRegistry = {
   type: NodeType.BizUpload,
+  kindType: NodeKindType.Business,
 
   meta: {
     helpText: getI18n().t("workflow_node.upload.help"),

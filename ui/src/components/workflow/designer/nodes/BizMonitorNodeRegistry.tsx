@@ -4,11 +4,12 @@ import { IconDeviceDesktopSearch } from "@tabler/icons-react";
 import { nanoid } from "nanoid";
 
 import { BaseNode } from "./_shared";
-import { type NodeRegistry, NodeType } from "./typings";
+import { NodeKindType, type NodeRegistry, NodeType } from "./typings";
 import BizMonitorNodeConfigForm from "../forms/BizMonitorNodeConfigForm";
 
 export const BizMonitorNodeRegistry: NodeRegistry = {
   type: NodeType.BizMonitor,
+  kindType: NodeKindType.Business,
 
   meta: {
     helpText: getI18n().t("workflow_node.monitor.help"),

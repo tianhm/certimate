@@ -7,11 +7,12 @@ import { nanoid } from "nanoid";
 import { type Expr, ExprType } from "@/domain/workflow";
 
 import { BaseNode, BranchNode } from "./_shared";
-import { type NodeRegistry, NodeType } from "./typings";
+import { NodeKindType, type NodeRegistry, NodeType } from "./typings";
 import BranchBlockNodeConfigForm from "../forms/BranchBlockNodeConfigForm";
 
 export const ConditionNodeRegistry: NodeRegistry = {
   type: NodeType.Condition,
+  kindType: NodeKindType.Logic,
 
   extend: FlowNodeSplitType.DYNAMIC_SPLIT,
 
@@ -67,6 +68,7 @@ export const ConditionNodeRegistry: NodeRegistry = {
 
 export const BranchBlockNodeRegistry: NodeRegistry = {
   type: NodeType.BranchBlock,
+  kindType: NodeKindType.Logic,
 
   extend: FlowNodeBaseType.BLOCK,
 

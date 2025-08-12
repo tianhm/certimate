@@ -11,6 +11,7 @@ import { CatchBlockNodeRegistry, TryCatchNodeRegistry } from "./TryCatchNode";
 export const getFlowNodeRegistries = () => {
   return [
     StartNodeRegistry,
+    EndNodeRegistry,
     BizApplyNodeRegistry,
     BizUploadNodeRegistry,
     BizMonitorNodeRegistry,
@@ -20,7 +21,6 @@ export const getFlowNodeRegistries = () => {
     BranchBlockNodeRegistry,
     TryCatchNodeRegistry,
     CatchBlockNodeRegistry,
-    EndNodeRegistry,
   ];
 };
 

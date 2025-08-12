@@ -7,11 +7,12 @@ import { nanoid } from "nanoid";
 import { acmeDns01ProvidersMap } from "@/domain/provider";
 
 import { BaseNode } from "./_shared";
-import { type NodeRegistry, NodeType } from "./typings";
+import { NodeKindType, type NodeRegistry, NodeType } from "./typings";
 import BizApplyNodeConfigForm from "../forms/BizApplyNodeConfigForm";
 
 export const BizApplyNodeRegistry: NodeRegistry = {
   type: NodeType.BizApply,
+  kindType: NodeKindType.Business,
 
   meta: {
     helpText: getI18n().t("workflow_node.apply.help"),

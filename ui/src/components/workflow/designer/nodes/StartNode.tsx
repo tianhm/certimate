@@ -5,11 +5,12 @@ import { IconRocket } from "@tabler/icons-react";
 import { WORKFLOW_TRIGGERS } from "@/domain/workflow";
 
 import { BaseNode } from "./_shared";
-import { type NodeRegistry, NodeType } from "./typings";
+import { NodeKindType, type NodeRegistry, NodeType } from "./typings";
 import StartNodeConfigForm from "../forms/StartNodeConfigForm";
 
 export const StartNodeRegistry: NodeRegistry = {
   type: NodeType.Start,
+  kindType: NodeKindType.Common,
 
   meta: {
     helpText: getI18n().t("workflow_node.start.help"),

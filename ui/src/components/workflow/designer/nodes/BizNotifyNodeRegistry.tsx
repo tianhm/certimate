@@ -7,11 +7,12 @@ import { nanoid } from "nanoid";
 import { notificationProvidersMap } from "@/domain/provider";
 
 import { BaseNode } from "./_shared";
-import { type NodeRegistry, NodeType } from "./typings";
+import { NodeKindType, type NodeRegistry, NodeType } from "./typings";
 import BizNotifyNodeConfigForm from "../forms/BizNotifyNodeConfigForm";
 
 export const BizNotifyNodeRegistry: NodeRegistry = {
   type: NodeType.BizNotify,
+  kindType: NodeKindType.Business,
 
   meta: {
     helpText: getI18n().t("workflow_node.notify.help"),

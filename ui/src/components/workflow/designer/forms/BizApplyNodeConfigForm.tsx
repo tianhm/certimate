@@ -171,7 +171,7 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
             rules={[formRule]}
             tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.apply.form.contact_email.tooltip") }}></span>}
           >
-            <EmailInput placeholder={t("workflow_node.apply.form.contact_email.placeholder")} />
+            <InternalEmailInput placeholder={t("workflow_node.apply.form.contact_email.placeholder")} />
           </Form.Item>
 
           <Form.Item name="challengeType" label={t("workflow_node.apply.form.challenge_type.label")} rules={[formRule]} hidden>
@@ -475,7 +475,7 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
   );
 };
 
-const EmailInput = memo(
+const InternalEmailInput = memo(
   ({ disabled, placeholder, ...props }: { disabled?: boolean; placeholder?: string; value?: string; onChange?: (value: string) => void }) => {
     const { emails, fetchEmails, removeEmail } = useContactEmailsStore();
     useEffect(() => {

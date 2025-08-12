@@ -59,9 +59,8 @@ const CertificateDetail = ({ data, ...props }: CertificateDetailProps) => {
           <Input value={data.keyAlgorithm} variant="filled" placeholder="" />
         </Form.Item>
 
-        <Form.Item>
-          <div className="mb-2 flex w-full items-center justify-between">
-            <label>{t("certificate.props.certificate")}</label>
+        <Form.Item label={t("certificate.props.certificate")}>
+          <div className="absolute -top-[6px] right-0 -translate-y-full">
             <Tooltip title={t("common.button.copy")}>
               <CopyToClipboard
                 text={data.certificate}
@@ -76,9 +75,8 @@ const CertificateDetail = ({ data, ...props }: CertificateDetailProps) => {
           <Input.TextArea value={data.certificate} variant="filled" autoSize={{ minRows: 5, maxRows: 5 }} readOnly />
         </Form.Item>
 
-        <Form.Item>
-          <div className="mb-2 flex w-full items-center justify-between">
-            <label>{t("certificate.props.private_key")}</label>
+        <Form.Item label={t("certificate.props.private_key")}>
+          <div className="absolute -top-[6px] right-0 -translate-y-full">
             <Tooltip title={t("common.button.copy")}>
               <CopyToClipboard
                 text={data.privateKey}

@@ -181,7 +181,7 @@ const BizDeployNodeConfigFormProviderSSH = () => {
       case FORMAT_PEM:
         {
           if (/(.pfx|.jks)$/.test(fieldCertPath)) {
-            formInst.setFieldValue("certPath", fieldCertPath.replace(/(.pfx|.jks)$/, ".crt"));
+            formInst.setFieldValue([parentNamePath, "certPath"], fieldCertPath.replace(/(.pfx|.jks)$/, ".crt"));
           }
         }
         break;
@@ -189,7 +189,7 @@ const BizDeployNodeConfigFormProviderSSH = () => {
       case FORMAT_PFX:
         {
           if (/(.crt|.jks)$/.test(fieldCertPath)) {
-            formInst.setFieldValue("certPath", fieldCertPath.replace(/(.crt|.jks)$/, ".pfx"));
+            formInst.setFieldValue([parentNamePath, "certPath"], fieldCertPath.replace(/(.crt|.jks)$/, ".pfx"));
           }
         }
         break;
@@ -197,7 +197,7 @@ const BizDeployNodeConfigFormProviderSSH = () => {
       case FORMAT_JKS:
         {
           if (/(.crt|.pfx)$/.test(fieldCertPath)) {
-            formInst.setFieldValue("certPath", fieldCertPath.replace(/(.crt|.pfx)$/, ".jks"));
+            formInst.setFieldValue([parentNamePath, "certPath"], fieldCertPath.replace(/(.crt|.pfx)$/, ".jks"));
           }
         }
         break;
@@ -210,10 +210,10 @@ const BizDeployNodeConfigFormProviderSSH = () => {
       case "ps_backup_files":
         {
           const presetScriptParams = {
-            certPath: formInst.getFieldValue("certPath"),
-            keyPath: formInst.getFieldValue("keyPath"),
+            certPath: formInst.getFieldValue([parentNamePath, "certPath"]),
+            keyPath: formInst.getFieldValue([parentNamePath, "keyPath"]),
           };
-          formInst.setFieldValue("preCommand", initPresetScript(key, presetScriptParams));
+          formInst.setFieldValue([parentNamePath, "preCommand"], initPresetScript(key, presetScriptParams));
         }
         break;
     }
@@ -223,7 +223,7 @@ const BizDeployNodeConfigFormProviderSSH = () => {
     switch (key) {
       case "sh_reload_nginx":
         {
-          formInst.setFieldValue("postCommand", initPresetScript(key));
+          formInst.setFieldValue([parentNamePath, "postCommand"], initPresetScript(key));
         }
         break;
 
@@ -232,12 +232,12 @@ const BizDeployNodeConfigFormProviderSSH = () => {
       case "sh_replace_qnap_ssl":
         {
           const presetScriptParams = {
-            certPath: formInst.getFieldValue("certPath"),
-            certPathForServerOnly: formInst.getFieldValue("certPathForServerOnly"),
-            certPathForIntermediaOnly: formInst.getFieldValue("certPathForIntermediaOnly"),
-            keyPath: formInst.getFieldValue("keyPath"),
+            certPath: formInst.getFieldValue([parentNamePath, "certPath"]),
+            certPathForServerOnly: formInst.getFieldValue([parentNamePath, "certPathForServerOnly"]),
+            certPathForIntermediaOnly: formInst.getFieldValue([parentNamePath, "certPathForIntermediaOnly"]),
+            keyPath: formInst.getFieldValue([parentNamePath, "keyPath"]),
           };
-          formInst.setFieldValue("postCommand", initPresetScript(key, presetScriptParams));
+          formInst.setFieldValue([parentNamePath, "postCommand"], initPresetScript(key, presetScriptParams));
         }
         break;
 
@@ -246,10 +246,10 @@ const BizDeployNodeConfigFormProviderSSH = () => {
       case "ps_binding_rdp":
         {
           const presetScriptParams = {
-            certPath: formInst.getFieldValue("certPath"),
-            pfxPassword: formInst.getFieldValue("pfxPassword"),
+            certPath: formInst.getFieldValue([parentNamePath, "certPath"]),
+            pfxPassword: formInst.getFieldValue([parentNamePath, "pfxPassword"]),
           };
-          formInst.setFieldValue("postCommand", initPresetScript(key, presetScriptParams));
+          formInst.setFieldValue([parentNamePath, "postCommand"], initPresetScript(key, presetScriptParams));
         }
         break;
     }
@@ -362,32 +362,25 @@ const BizDeployNodeConfigFormProviderSSH = () => {
         </Form.Item>
       </Show>
 
-      <Form.Item noStyle>
-        <label className="mb-1 block">
-          <div className="flex w-full items-center justify-between gap-4">
-            <div className="max-w-full grow truncate">
-              <span>{t("workflow_node.deploy.form.ssh_pre_command.label")}</span>
-            </div>
-            <div className="text-right">
-              <Dropdown
-                menu={{
-                  items: ["sh_backup_files", "ps_backup_files"].map((key) => ({
-                    key,
-                    label: t(`workflow_node.deploy.form.ssh_preset_scripts.option.${key}.label`),
-                    onClick: () => handlePresetPreScriptClick(key),
-                  })),
-                }}
-                trigger={["click"]}
-              >
-                <Button size="small" type="link">
-                  {t("workflow_node.deploy.form.ssh_preset_scripts.button")}
-                  <IconChevronDown size="1.25em" />
-                </Button>
-              </Dropdown>
-            </div>
-          </div>
-        </label>
-        <Form.Item name={[parentNamePath, "preCommand"]} initialValue={initialValues.preCommand} rules={[formRule]}>
+      <Form.Item label={t("workflow_node.deploy.form.ssh_pre_command.label")}>
+        <div className="absolute -top-[6px] right-0 -translate-y-full">
+          <Dropdown
+            menu={{
+              items: ["sh_backup_files", "ps_backup_files"].map((key) => ({
+                key,
+                label: t(`workflow_node.deploy.form.ssh_preset_scripts.option.${key}.label`),
+                onClick: () => handlePresetPreScriptClick(key),
+              })),
+            }}
+            trigger={["click"]}
+          >
+            <Button size="small" type="link">
+              {t("workflow_node.deploy.form.ssh_preset_scripts.button")}
+              <IconChevronDown size="1.25em" />
+            </Button>
+          </Dropdown>
+        </div>
+        <Form.Item name={[parentNamePath, "preCommand"]} initialValue={initialValues.preCommand} noStyle rules={[formRule]}>
           <CodeInput
             height="auto"
             minHeight="64px"
@@ -398,40 +391,33 @@ const BizDeployNodeConfigFormProviderSSH = () => {
         </Form.Item>
       </Form.Item>
 
-      <Form.Item noStyle>
-        <label className="mb-1 block">
-          <div className="flex w-full items-center justify-between gap-4">
-            <div className="max-w-full grow truncate">
-              <span>{t("workflow_node.deploy.form.ssh_post_command.label")}</span>
-            </div>
-            <div className="text-right">
-              <Dropdown
-                menu={{
-                  items: [
-                    "sh_reload_nginx",
-                    "sh_replace_synologydsm_ssl",
-                    "sh_replace_fnos_ssl",
-                    "sh_replace_qnap_ssl",
-                    "ps_binding_iis",
-                    "ps_binding_netsh",
-                    "ps_binding_rdp",
-                  ].map((key) => ({
-                    key,
-                    label: t(`workflow_node.deploy.form.ssh_preset_scripts.option.${key}.label`),
-                    onClick: () => handlePresetPostScriptClick(key),
-                  })),
-                }}
-                trigger={["click"]}
-              >
-                <Button size="small" type="link">
-                  {t("workflow_node.deploy.form.ssh_preset_scripts.button")}
-                  <IconChevronDown size="1.25em" />
-                </Button>
-              </Dropdown>
-            </div>
-          </div>
-        </label>
-        <Form.Item name={[parentNamePath, "postCommand"]} initialValue={initialValues.postCommand} rules={[formRule]}>
+      <Form.Item label={t("workflow_node.deploy.form.ssh_post_command.label")}>
+        <div className="absolute -top-[6px] right-0 -translate-y-full">
+          <Dropdown
+            menu={{
+              items: [
+                "sh_reload_nginx",
+                "sh_replace_synologydsm_ssl",
+                "sh_replace_fnos_ssl",
+                "sh_replace_qnap_ssl",
+                "ps_binding_iis",
+                "ps_binding_netsh",
+                "ps_binding_rdp",
+              ].map((key) => ({
+                key,
+                label: t(`workflow_node.deploy.form.ssh_preset_scripts.option.${key}.label`),
+                onClick: () => handlePresetPostScriptClick(key),
+              })),
+            }}
+            trigger={["click"]}
+          >
+            <Button size="small" type="link">
+              {t("workflow_node.deploy.form.ssh_preset_scripts.button")}
+              <IconChevronDown size="1.25em" />
+            </Button>
+          </Dropdown>
+        </div>
+        <Form.Item name={[parentNamePath, "postCommand"]} initialValue={initialValues.postCommand} noStyle rules={[formRule]}>
           <CodeInput
             height="auto"
             minHeight="64px"

@@ -1,11 +1,10 @@
 import { memo, useEffect, useMemo, useState } from "react";
 import { getI18n, useTranslation } from "react-i18next";
 import { Link } from "react-router";
-import { QuestionCircleOutlined as IconQuestionCircleOutlined } from "@ant-design/icons";
 import { type FlowNodeEntity, getNodeForm } from "@flowgram.ai/fixed-layout-editor";
 import { IconChevronRight, IconCircleMinus, IconPlus } from "@tabler/icons-react";
 import { useControllableValue } from "ahooks";
-import { type AnchorProps, AutoComplete, Button, Divider, Flex, Form, type FormInstance, Input, InputNumber, Select, Switch, Tooltip, Typography } from "antd";
+import { type AnchorProps, AutoComplete, Button, Divider, Flex, Form, type FormInstance, Input, InputNumber, Select, Switch, Typography } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
@@ -195,39 +194,31 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
             />
           </Form.Item>
 
-          <Form.Item noStyle>
-            <label className="mb-1 block">
-              <div className="flex w-full items-center justify-between gap-4">
-                <div className="max-w-full grow truncate">
-                  <span>{t("workflow_node.apply.form.provider_access.label")}</span>
-                  <Tooltip title={t("workflow_node.apply.form.provider_access.tooltip")}>
-                    <Typography.Text className="ms-1" type="secondary">
-                      <IconQuestionCircleOutlined />
-                    </Typography.Text>
-                  </Tooltip>
-                </div>
-                <div className="text-right">
-                  <AccessEditDrawer
-                    mode="create"
-                    trigger={
-                      <Button size="small" type="link">
-                        {t("workflow_node.apply.form.provider_access.button")}
-                        <IconPlus size="1.25em" />
-                      </Button>
-                    }
-                    usage="dns"
-                    afterSubmit={(record) => {
-                      const provider = accessProvidersMap.get(record.provider);
-                      if (provider?.usages?.includes(ACCESS_USAGES.DNS)) {
-                        formInst.setFieldValue("providerAccessId", record.id);
-                        handleProviderAccessSelect(record.id);
-                      }
-                    }}
-                  />
-                </div>
-              </div>
-            </label>
-            <Form.Item name="providerAccessId" rules={[formRule]}>
+          <Form.Item
+            className="relative"
+            label={t("workflow_node.apply.form.provider_access.label")}
+            tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.apply.form.provider_access.tooltip") }}></span>}
+          >
+            <div className="absolute -top-[6px] right-0 -translate-y-full">
+              <AccessEditDrawer
+                mode="create"
+                trigger={
+                  <Button size="small" type="link">
+                    {t("workflow_node.apply.form.provider_access.button")}
+                    <IconPlus size="1.25em" />
+                  </Button>
+                }
+                usage="dns"
+                afterSubmit={(record) => {
+                  const provider = accessProvidersMap.get(record.provider);
+                  if (provider?.usages?.includes(ACCESS_USAGES.DNS)) {
+                    formInst.setFieldValue("providerAccessId", record.id);
+                    handleProviderAccessSelect(record.id);
+                  }
+                }}
+              />
+            </div>
+            <Form.Item name="providerAccessId" rules={[formRule]} noStyle>
               <AccessSelect
                 placeholder={t("workflow_node.apply.form.provider_access.placeholder")}
                 showSearch
@@ -254,25 +245,18 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
             </Typography.Text>
           </Divider>
 
-          <Form.Item noStyle>
-            <label className="mb-1 block">
-              <div className="flex w-full items-center justify-between gap-4">
-                <div className="max-w-full grow truncate">
-                  <span>{t("workflow_node.apply.form.ca_provider.label")}</span>
-                </div>
-                <div className="text-right">
-                  <Show when={!fieldCAProvider}>
-                    <Link className="ant-typography" to="/settings/ssl-provider" target="_blank">
-                      <Button size="small" type="link">
-                        {t("workflow_node.apply.form.ca_provider.button")}
-                        <IconChevronRight size="1.25em" />
-                      </Button>
-                    </Link>
-                  </Show>
-                </div>
-              </div>
-            </label>
-            <Form.Item name="caProvider" rules={[formRule]}>
+          <Form.Item className="relative" label={t("workflow_node.apply.form.ca_provider.label")}>
+            <div className="absolute -top-[6px] right-0 -translate-y-full">
+              <Show when={!fieldCAProvider}>
+                <Link className="ant-typography" to="/settings/ssl-provider" target="_blank">
+                  <Button size="small" type="link">
+                    {t("workflow_node.apply.form.ca_provider.button")}
+                    <IconChevronRight size="1.25em" />
+                  </Button>
+                </Link>
+              </Show>
+            </div>
+            <Form.Item name="caProvider" noStyle rules={[formRule]}>
               <CAProviderSelect
                 allowClear
                 placeholder={t("workflow_node.apply.form.ca_provider.placeholder")}
@@ -283,34 +267,27 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
             </Form.Item>
           </Form.Item>
 
-          <Form.Item hidden={!showCAProviderAccess} noStyle>
-            <label className="mb-1 block">
-              <div className="flex w-full items-center justify-between gap-4">
-                <div className="max-w-full grow truncate">
-                  <span>{t("workflow_node.apply.form.ca_provider_access.label")}</span>
-                </div>
-                <div className="text-right">
-                  <AccessEditDrawer
-                    data={{ provider: caProvidersMap.get(fieldCAProvider!)?.provider }}
-                    mode="create"
-                    trigger={
-                      <Button size="small" type="link">
-                        {t("workflow_node.apply.form.ca_provider_access.button")}
-                        <IconChevronRight size="1.25em" />
-                      </Button>
-                    }
-                    usage="ca"
-                    afterSubmit={(record) => {
-                      const provider = accessProvidersMap.get(record.provider);
-                      if (provider?.usages?.includes(ACCESS_USAGES.CA)) {
-                        formInst.setFieldValue("caProviderAccessId", record.id);
-                      }
-                    }}
-                  />
-                </div>
-              </div>
-            </label>
-            <Form.Item name="caProviderAccessId" rules={[formRule]}>
+          <Form.Item label={t("workflow_node.apply.form.ca_provider_access.label")} hidden={!showCAProviderAccess}>
+            <div className="absolute -top-[6px] right-0 -translate-y-full">
+              <AccessEditDrawer
+                data={{ provider: caProvidersMap.get(fieldCAProvider!)?.provider }}
+                mode="create"
+                trigger={
+                  <Button size="small" type="link">
+                    {t("workflow_node.apply.form.ca_provider_access.button")}
+                    <IconChevronRight size="1.25em" />
+                  </Button>
+                }
+                usage="ca"
+                afterSubmit={(record) => {
+                  const provider = accessProvidersMap.get(record.provider);
+                  if (provider?.usages?.includes(ACCESS_USAGES.CA)) {
+                    formInst.setFieldValue("caProviderAccessId", record.id);
+                  }
+                }}
+              />
+            </div>
+            <Form.Item name="caProviderAccessId" noStyle rules={[formRule]}>
               <AccessSelect
                 placeholder={t("workflow_node.apply.form.ca_provider_access.placeholder")}
                 showSearch

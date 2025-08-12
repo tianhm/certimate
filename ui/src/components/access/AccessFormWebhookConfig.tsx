@@ -305,20 +305,13 @@ const AccessFormWebhookConfig = ({ form: formInst, formName, disabled, initialVa
       </Form.Item>
 
       <Show when={!usage || usage === "deployment"}>
-        <Form.Item noStyle>
-          <label className="mb-1 block">
-            <div className="flex w-full items-center justify-between gap-4">
-              <div className="max-w-full grow truncate">
-                <span>{t("access.form.webhook_data.label")}</span>
-              </div>
-              <div className="text-right">
-                <Button size="small" type="link" onClick={handlePresetDataForDeploymentClick}>
-                  {t("access.form.webhook_preset_data.button")}
-                </Button>
-              </div>
-            </div>
-          </label>
-          <Form.Item name="dataForDeployment" extra={t("access.form.webhook_data.help")} rules={[formRule]}>
+        <Form.Item className="relative" label={t("access.form.webhook_data.label")} extra={t("access.form.webhook_data.help")}>
+          <div className="absolute -top-[6px] right-0 -translate-y-full">
+            <Button size="small" type="link" onClick={handlePresetDataForDeploymentClick}>
+              {t("access.form.webhook_preset_data.button")}
+            </Button>
+          </div>
+          <Form.Item name="dataForDeployment" noStyle rules={[formRule]}>
             <CodeInput
               height="auto"
               minHeight="64px"
@@ -336,32 +329,25 @@ const AccessFormWebhookConfig = ({ form: formInst, formName, disabled, initialVa
       </Show>
 
       <Show when={!usage || usage === "notification"}>
-        <Form.Item noStyle>
-          <label className="mb-1 block">
-            <div className="flex w-full items-center justify-between gap-4">
-              <div className="max-w-full grow truncate">
-                <span>{t("access.form.webhook_data.label")}</span>
-              </div>
-              <div className="text-right">
-                <Dropdown
-                  menu={{
-                    items: ["bark", "ntfy", "gotify", "pushover", "pushplus", "serverchan3", "serverchanturbo", "common"].map((key) => ({
-                      key,
-                      label: <span dangerouslySetInnerHTML={{ __html: t(`access.form.webhook_preset_data.option.${key}.label`) }}></span>,
-                      onClick: () => handlePresetDataForNotificationClick(key),
-                    })),
-                  }}
-                  trigger={["click"]}
-                >
-                  <Button size="small" type="link">
-                    {t("access.form.webhook_preset_data.button")}
-                    <IconChevronDown size="1.25em" />
-                  </Button>
-                </Dropdown>
-              </div>
-            </div>
-          </label>
-          <Form.Item name="dataForNotification" extra={t("access.form.webhook_data.help")} rules={[formRule]}>
+        <Form.Item className="relative" label={t("access.form.webhook_data.label")} extra={t("access.form.webhook_data.help")}>
+          <div className="absolute -top-[6px] right-0 -translate-y-full">
+            <Dropdown
+              menu={{
+                items: ["bark", "ntfy", "gotify", "pushover", "pushplus", "serverchan3", "serverchanturbo", "common"].map((key) => ({
+                  key,
+                  label: <span dangerouslySetInnerHTML={{ __html: t(`access.form.webhook_preset_data.option.${key}.label`) }}></span>,
+                  onClick: () => handlePresetDataForNotificationClick(key),
+                })),
+              }}
+              trigger={["click"]}
+            >
+              <Button size="small" type="link">
+                {t("access.form.webhook_preset_data.button")}
+                <IconChevronDown size="1.25em" />
+              </Button>
+            </Dropdown>
+          </div>
+          <Form.Item name="dataForNotification" noStyle rules={[formRule]}>
             <CodeInput
               height="auto"
               minHeight="64px"

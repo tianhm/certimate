@@ -1,5 +1,4 @@
 import { useTranslation } from "react-i18next";
-import { QuestionCircleOutlined as IconQuestionCircleOutlined } from "@ant-design/icons";
 import { Form, type FormInstance, Input, InputNumber, Switch } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";

@@ -148,7 +148,7 @@ const BizDeployNodeConfigFormProviderLocal = () => {
       case FORMAT_PEM:
         {
           if (/(.pfx|.jks)$/.test(fieldCertPath)) {
-            formInst.setFieldValue("certPath", fieldCertPath.replace(/(.pfx|.jks)$/, ".crt"));
+            formInst.setFieldValue([parentNamePath, "certPath"], fieldCertPath.replace(/(.pfx|.jks)$/, ".crt"));
           }
         }
         break;
@@ -156,7 +156,7 @@ const BizDeployNodeConfigFormProviderLocal = () => {
       case FORMAT_PFX:
         {
           if (/(.crt|.jks)$/.test(fieldCertPath)) {
-            formInst.setFieldValue("certPath", fieldCertPath.replace(/(.crt|.jks)$/, ".pfx"));
+            formInst.setFieldValue([parentNamePath, "certPath"], fieldCertPath.replace(/(.crt|.jks)$/, ".pfx"));
           }
         }
         break;
@@ -164,7 +164,7 @@ const BizDeployNodeConfigFormProviderLocal = () => {
       case FORMAT_JKS:
         {
           if (/(.crt|.pfx)$/.test(fieldCertPath)) {
-            formInst.setFieldValue("certPath", fieldCertPath.replace(/(.crt|.pfx)$/, ".jks"));
+            formInst.setFieldValue([parentNamePath, "certPath"], fieldCertPath.replace(/(.crt|.pfx)$/, ".jks"));
           }
         }
         break;
@@ -177,11 +177,11 @@ const BizDeployNodeConfigFormProviderLocal = () => {
       case "ps_backup_files":
         {
           const presetScriptParams = {
-            certPath: formInst.getFieldValue("certPath"),
-            keyPath: formInst.getFieldValue("keyPath"),
+            certPath: formInst.getFieldValue([parentNamePath, "certPath"]),
+            keyPath: formInst.getFieldValue([parentNamePath, "keyPath"]),
           };
-          formInst.setFieldValue("shellEnv", SHELLENV_SH);
-          formInst.setFieldValue("preCommand", initPresetScript(key, presetScriptParams));
+          formInst.setFieldValue([parentNamePath, "shellEnv"], SHELLENV_SH);
+          formInst.setFieldValue([parentNamePath, "preCommand"], initPresetScript(key, presetScriptParams));
         }
         break;
     }
@@ -191,8 +191,8 @@ const BizDeployNodeConfigFormProviderLocal = () => {
     switch (key) {
       case "sh_reload_nginx":
         {
-          formInst.setFieldValue("shellEnv", SHELLENV_SH);
-          formInst.setFieldValue("postCommand", initPresetScript(key));
+          formInst.setFieldValue([parentNamePath, "shellEnv"], SHELLENV_SH);
+          formInst.setFieldValue([parentNamePath, "postCommand"], initPresetScript(key));
         }
         break;
 
@@ -201,11 +201,11 @@ const BizDeployNodeConfigFormProviderLocal = () => {
       case "ps_binding_rdp":
         {
           const presetScriptParams = {
-            certPath: formInst.getFieldValue("certPath"),
-            pfxPassword: formInst.getFieldValue("pfxPassword"),
+            certPath: formInst.getFieldValue([parentNamePath, "certPath"]),
+            pfxPassword: formInst.getFieldValue([parentNamePath, "pfxPassword"]),
           };
-          formInst.setFieldValue("shellEnv", SHELLENV_POWERSHELL);
-          formInst.setFieldValue("postCommand", initPresetScript(key, presetScriptParams));
+          formInst.setFieldValue([parentNamePath, "shellEnv"], SHELLENV_POWERSHELL);
+          formInst.setFieldValue([parentNamePath, "postCommand"], initPresetScript(key, presetScriptParams));
         }
         break;
     }
@@ -341,32 +341,25 @@ const BizDeployNodeConfigFormProviderLocal = () => {
         </Select>
       </Form.Item>
 
-      <Form.Item noStyle>
-        <label className="mb-1 block">
-          <div className="flex w-full items-center justify-between gap-4">
-            <div className="max-w-full grow truncate">
-              <span>{t("workflow_node.deploy.form.local_pre_command.label")}</span>
-            </div>
-            <div className="text-right">
-              <Dropdown
-                menu={{
-                  items: ["sh_backup_files", "ps_backup_files"].map((key) => ({
-                    key,
-                    label: t(`workflow_node.deploy.form.local_preset_scripts.option.${key}.label`),
-                    onClick: () => handlePresetPreScriptClick(key),
-                  })),
-                }}
-                trigger={["click"]}
-              >
-                <Button size="small" type="link">
-                  {t("workflow_node.deploy.form.local_preset_scripts.button")}
-                  <IconChevronDown size="1.25em" />
-                </Button>
-              </Dropdown>
-            </div>
-          </div>
-        </label>
-        <Form.Item name={[parentNamePath, "preCommand"]} initialValue={initialValues.preCommand} rules={[formRule]}>
+      <Form.Item label={t("workflow_node.deploy.form.local_pre_command.label")}>
+        <div className="absolute -top-[6px] right-0 -translate-y-full">
+          <Dropdown
+            menu={{
+              items: ["sh_backup_files", "ps_backup_files"].map((key) => ({
+                key,
+                label: t(`workflow_node.deploy.form.local_preset_scripts.option.${key}.label`),
+                onClick: () => handlePresetPreScriptClick(key),
+              })),
+            }}
+            trigger={["click"]}
+          >
+            <Button size="small" type="link">
+              {t("workflow_node.deploy.form.local_preset_scripts.button")}
+              <IconChevronDown size="1.25em" />
+            </Button>
+          </Dropdown>
+        </div>
+        <Form.Item name={[parentNamePath, "preCommand"]} initialValue={initialValues.preCommand} noStyle rules={[formRule]}>
           <CodeInput
             height="auto"
             minHeight="64px"
@@ -377,32 +370,25 @@ const BizDeployNodeConfigFormProviderLocal = () => {
         </Form.Item>
       </Form.Item>
 
-      <Form.Item noStyle>
-        <label className="mb-1 block">
-          <div className="flex w-full items-center justify-between gap-4">
-            <div className="max-w-full grow truncate">
-              <span>{t("workflow_node.deploy.form.local_post_command.label")}</span>
-            </div>
-            <div className="text-right">
-              <Dropdown
-                menu={{
-                  items: ["sh_reload_nginx", "ps_binding_iis", "ps_binding_netsh", "ps_binding_rdp"].map((key) => ({
-                    key,
-                    label: t(`workflow_node.deploy.form.local_preset_scripts.option.${key}.label`),
-                    onClick: () => handlePresetPostScriptClick(key),
-                  })),
-                }}
-                trigger={["click"]}
-              >
-                <Button size="small" type="link">
-                  {t("workflow_node.deploy.form.local_preset_scripts.button")}
-                  <IconChevronDown size="1.25em" />
-                </Button>
-              </Dropdown>
-            </div>
-          </div>
-        </label>
-        <Form.Item name={[parentNamePath, "postCommand"]} initialValue={initialValues.postCommand} rules={[formRule]}>
+      <Form.Item label={t("workflow_node.deploy.form.local_post_command.label")}>
+        <div className="absolute -top-[6px] right-0 -translate-y-full">
+          <Dropdown
+            menu={{
+              items: ["sh_reload_nginx", "ps_binding_iis", "ps_binding_netsh", "ps_binding_rdp"].map((key) => ({
+                key,
+                label: t(`workflow_node.deploy.form.local_preset_scripts.option.${key}.label`),
+                onClick: () => handlePresetPostScriptClick(key),
+              })),
+            }}
+            trigger={["click"]}
+          >
+            <Button size="small" type="link">
+              {t("workflow_node.deploy.form.local_preset_scripts.button")}
+              <IconChevronDown size="1.25em" />
+            </Button>
+          </Dropdown>
+        </div>
+        <Form.Item name={[parentNamePath, "postCommand"]} initialValue={initialValues.postCommand} noStyle rules={[formRule]}>
           <CodeInput
             height="auto"
             minHeight="64px"

@@ -20,10 +20,10 @@ const BizNotifyNodeConfigFormProviderWebhook = () => {
   const initialValues = getInitialValues();
 
   const handleWebhookDataBlur = () => {
-    const value = formInst.getFieldValue("webhookData");
+    const value = formInst.getFieldValue([parentNamePath, "webhookData"]);
     try {
       const json = JSON.stringify(JSON.parse(value), null, 2);
-      formInst.setFieldValue("webhookData", json);
+      formInst.setFieldValue([parentNamePath, "webhookData"], json);
     } catch {
       return;
     }

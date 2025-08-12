@@ -1,4 +1,4 @@
-import { memo, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -8,6 +8,8 @@ import {
   IconHelpCircle,
   IconHierarchy3,
   IconHome,
+  IconLayoutSidebarLeftCollapse,
+  IconLayoutSidebarRightCollapse,
   IconMenu2,
   IconPower,
   IconSettings,
@@ -29,6 +31,8 @@ const ConsoleLayout = () => {
   const { i18n, t } = useTranslation();
 
   const { token: themeToken } = theme.useToken();
+
+  const [siderCollapsed, setSiderCollapsed] = useState(false);
 
   const handleLogoutClick = () => {
     auth.clear();
@@ -60,18 +64,19 @@ const ConsoleLayout = () => {
 
       <Layout className="h-screen" hasSider>
         <Layout.Sider
-          className="z-20 h-full border-r bg-background max-md:static max-md:hidden"
+          className="group/sider z-20 h-full border-r bg-background max-md:static max-md:hidden"
           style={{ borderColor: themeToken.colorBorderSecondary }}
           theme="light"
-          width="256px"
+          width={siderCollapsed ? 81 : 256}
         >
           <div className="flex size-full flex-col items-center justify-between overflow-hidden select-none">
             <div className="w-full px-2">
-              <SiderMenu />
+              <SiderMenu collapsed={siderCollapsed} />
             </div>
             <div className="w-full px-2 pb-2">
               <Menu
                 style={{ background: "transparent", borderInlineEnd: "none" }}
+                inlineCollapsed={siderCollapsed}
                 items={[
                   {
                     key: "document",
@@ -99,6 +104,21 @@ const ConsoleLayout = () => {
                 selectable={false}
               />
             </div>
+          </div>
+          <div className="absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover/sider:opacity-100">
+            <Button
+              className="bg-background"
+              icon={
+                siderCollapsed ? (
+                  <IconLayoutSidebarRightCollapse size="1.5em" stroke="1.25" color="#999" />
+                ) : (
+                  <IconLayoutSidebarLeftCollapse size="1.5em" stroke="1.25" color="#999" />
+                )
+              }
+              shape="circle"
+              type="text"
+              onClick={() => setSiderCollapsed(!siderCollapsed)}
+            />
           </div>
         </Layout.Sider>
 
@@ -150,7 +170,7 @@ const ConsoleLayout = () => {
   );
 };
 
-const SiderMenu = memo(({ onSelect }: { onSelect?: (key: string) => void }) => {
+const SiderMenu = memo(({ collapsed, onSelect }: { collapsed?: boolean; onSelect?: (key: string) => void }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -210,14 +230,19 @@ const SiderMenu = memo(({ onSelect }: { onSelect?: (key: string) => void }) => {
 
   return (
     <>
-      <div className="flex w-full items-center gap-2 overflow-hidden px-4 py-2 max-md:py-0">
-        <img src="/logo.svg" className="size-[36px]" />
-        <span className="h-[64px] w-[81px] truncate text-base leading-[64px] font-semibold">Certimate</span>
-        <AppVersion.LinkButton className="text-xs" />
+      <div className="h-[64px] w-full overflow-hidden px-4 py-2 max-md:py-0">
+        <div className="flex size-full items-center justify-around gap-2">
+          <img src="/logo.svg" className="size-[36px]" />
+          <Show when={!collapsed}>
+            <span className="w-[81px] truncate text-base leading-[64px] font-semibold">Certimate</span>
+            <AppVersion.LinkButton className="text-xs" />
+          </Show>
+        </div>
       </div>
       <div className="w-full grow overflow-x-hidden overflow-y-auto">
         <Menu
           style={{ background: "transparent", borderInlineEnd: "none" }}
+          inlineCollapsed={collapsed}
           items={menuItems}
           mode="vertical"
           selectedKeys={menuSelectedKey ? [menuSelectedKey] : []}
@@ -237,6 +262,10 @@ const SiderMenuDrawer = memo(({ trigger }: { trigger: React.ReactNode }) => {
 
   const triggerEl = useTriggerElement(trigger, { onClick: () => setSiderOpen(true) });
 
+  const handleMenuSelect = useCallback(() => {
+    setSiderOpen(false);
+  }, []);
+
   return (
     <>
       {triggerEl}
@@ -252,7 +281,7 @@ const SiderMenuDrawer = memo(({ trigger }: { trigger: React.ReactNode }) => {
         }}
         onClose={() => setSiderOpen(false)}
       >
-        <SiderMenu onSelect={() => setSiderOpen(false)} />
+        <SiderMenu onSelect={handleMenuSelect} />
       </Drawer>
     </>
   );

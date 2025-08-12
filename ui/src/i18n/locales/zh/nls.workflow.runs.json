@@ -1,9 +1,9 @@
 {
-  "workflow_run.action.view.button": "查看详情",
-  "workflow_run.action.cancel.button": "取消运行",
+  "workflow_run.action.view.menu": "查看详情",
+  "workflow_run.action.cancel.menu": "取消运行",
   "workflow_run.action.cancel.modal.title": "取消运行",
   "workflow_run.action.cancel.modal.content": "确定要取消此运行吗？取消后仅会中止流程，但不会回滚已执行的节点。",
-  "workflow_run.action.delete.button": "删除运行历史",
+  "workflow_run.action.delete.menu": "删除运行",
   "workflow_run.action.delete.modal.title": "删除运行「{{name}}」",
   "workflow_run.action.delete.modal.content": "确定要删除该工作流运行历史吗？删除后仅会清除日志历史，但不会影响签发的证书。<br>注意此操作不可撤销，请谨慎操作。",
   "workflow_run.action.batch_delete.modal.title": "删除运行历史",

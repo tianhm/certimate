@@ -142,7 +142,7 @@ const CertificateList = () => {
             items: [
               {
                 key: "view",
-                label: t("certificate.action.view.button"),
+                label: t("certificate.action.view.menu"),
                 icon: (
                   <span className="anticon scale-125">
                     <IconBrowserShare size="1em" />
@@ -157,7 +157,7 @@ const CertificateList = () => {
               },
               {
                 key: "delete",
-                label: t("certificate.action.delete.button"),
+                label: t("certificate.action.delete.menu"),
                 danger: true,
                 icon: (
                   <span className="anticon scale-125">
@@ -454,7 +454,7 @@ const CertificateList = () => {
               }}
             >
               <div className="flex size-full items-center justify-end gap-x-2 overflow-hidden px-4 py-2">
-                <Button icon={<IconTrash size="1.25em" />} danger ghost onClick={handleBatchDeleteClick}>
+                <Button danger ghost onClick={handleBatchDeleteClick}>
                   {t("common.button.delete")}
                 </Button>
               </div>

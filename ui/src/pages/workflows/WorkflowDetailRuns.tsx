@@ -108,7 +108,7 @@ const WorkflowDetailRuns = () => {
               items: [
                 {
                   key: "view",
-                  label: t("workflow_run.action.view.button"),
+                  label: t("workflow_run.action.view.menu"),
                   icon: (
                     <span className="anticon scale-125">
                       <IconBrowserShare size="1em" />
@@ -120,7 +120,7 @@ const WorkflowDetailRuns = () => {
                 },
                 {
                   key: "cancel",
-                  label: t("workflow_run.action.cancel.button"),
+                  label: t("workflow_run.action.cancel.menu"),
                   icon: (
                     <span className="anticon scale-125">
                       <IconPlayerPause size="1em" />
@@ -136,7 +136,7 @@ const WorkflowDetailRuns = () => {
                 },
                 {
                   key: "delete",
-                  label: t("workflow_run.action.delete.button"),
+                  label: t("workflow_run.action.delete.menu"),
                   icon: (
                     <span className="anticon scale-125">
                       <IconTrash size="1em" />
@@ -394,7 +394,7 @@ const WorkflowDetailRuns = () => {
               }}
             >
               <div className="flex size-full items-center justify-end gap-x-2 overflow-hidden px-4 py-2">
-                <Button icon={<IconTrash size="1.25em" />} danger ghost onClick={handleBatchDeleteClick}>
+                <Button danger ghost onClick={handleBatchDeleteClick}>
                   {t("common.button.delete")}
                 </Button>
               </div>

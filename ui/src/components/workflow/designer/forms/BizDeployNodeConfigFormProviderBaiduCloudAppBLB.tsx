@@ -79,6 +79,7 @@ const BizDeployNodeConfigFormProviderBaiduCloudAppBLB = () => {
           name={[parentNamePath, "domain"]}
           initialValue={initialValues.domain}
           label={t("workflow_node.deploy.form.baiducloud_appblb_snidomain.label")}
+          extra={t("workflow_node.deploy.form.baiducloud_appblb_snidomain.help")}
           rules={[formRule]}
           tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.baiducloud_appblb_snidomain.tooltip") }}></span>}
         >

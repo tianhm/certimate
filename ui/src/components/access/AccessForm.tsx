@@ -139,12 +139,6 @@ const AccessForm = forwardRef<AccessFormInstance, AccessFormProps>(({ className,
         console.warn(`[certimate] unsupported provider usage: '${usage}'`);
     }
   }, [usage]);
-  const providerTooltip = useMemo(() => {
-    switch (usage) {
-      case "dns-hosting":
-        return <span dangerouslySetInnerHTML={{ __html: t("access.form.provider.tooltip") }}></span>;
-    }
-  }, [usage]);
 
   const fieldProvider = Form.useWatch<z.infer<typeof formSchema>["provider"]>("provider", formInst);
   const [fieldProviderPicked, setFieldProviderPicked] = useState<string>(initialValues?.provider); // bugfix: Form.useWatch 在条件渲染下不生效，这里用单独的变量存放 Picker 组件选择的值
@@ -378,7 +372,12 @@ const AccessForm = forwardRef<AccessFormInstance, AccessFormProps>(({ className,
               <Input placeholder={t("access.form.name.placeholder")} />
             </Form.Item>
 
-            <Form.Item name="provider" label={t("access.form.provider.label")} rules={[formRule]} tooltip={providerTooltip}>
+            <Form.Item
+              name="provider"
+              label={t("access.form.provider.label")}
+              extra={usage === "dns-hosting" ? <span dangerouslySetInnerHTML={{ __html: t("access.form.provider.help") }}></span> : null}
+              rules={[formRule]}
+            >
               <AccessProviderSelect
                 disabled={mode !== "create"}
                 placeholder={t("access.form.provider.placeholder")}

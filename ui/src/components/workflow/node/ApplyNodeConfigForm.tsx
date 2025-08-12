@@ -269,7 +269,7 @@ const ApplyNodeConfigForm = forwardRef<ApplyNodeConfigFormInstance, ApplyNodeCon
             name="domains"
             label={t("workflow_node.apply.form.domains.label")}
             rules={[formRule]}
-            tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.apply.form.domains.tooltip") }}></span>}
+            tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.apply.form.domains.help") }}></span>}
           >
             <MultipleSplitValueInput
               modalTitle={t("workflow_node.apply.form.domains.multiple_input_modal.title")}

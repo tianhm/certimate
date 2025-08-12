@@ -1,11 +1,12 @@
 import { getI18n, useTranslation } from "react-i18next";
 import { IconChevronDown } from "@tabler/icons-react";
-import { Alert, Button, Dropdown, Form, Input, Select } from "antd";
+import { Button, Dropdown, Form, Input, Select } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
 import CodeInput from "@/components/CodeInput";
 import Show from "@/components/Show";
+import Tips from "@/components/Tips";
 import { CERTIFICATE_FORMATS } from "@/domain/certificate";
 
 import { useFormNestedFieldsContext } from "./_context";
@@ -213,7 +214,7 @@ const BizDeployNodeConfigFormProviderLocal = () => {
   return (
     <>
       <Form.Item>
-        <Alert type="info" message={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.local.guide") }}></span>} />
+        <Tips message={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.local.guide") }}></span>} />
       </Form.Item>
 
       <Form.Item
@@ -239,8 +240,8 @@ const BizDeployNodeConfigFormProviderLocal = () => {
         name={[parentNamePath, "certPath"]}
         initialValue={initialValues.certPath}
         label={t("workflow_node.deploy.form.local_cert_path.label")}
+        extra={t("workflow_node.deploy.form.local_cert_path.help")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.local_cert_path.tooltip") }}></span>}
       >
         <Input placeholder={t("workflow_node.deploy.form.local_cert_path.placeholder")} />
       </Form.Item>
@@ -250,8 +251,8 @@ const BizDeployNodeConfigFormProviderLocal = () => {
           name={[parentNamePath, "keyPath"]}
           initialValue={initialValues.keyPath}
           label={t("workflow_node.deploy.form.local_key_path.label")}
+          extra={t("workflow_node.deploy.form.local_key_path.help")}
           rules={[formRule]}
-          tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.local_key_path.tooltip") }}></span>}
         >
           <Input placeholder={t("workflow_node.deploy.form.local_key_path.placeholder")} />
         </Form.Item>
@@ -260,8 +261,8 @@ const BizDeployNodeConfigFormProviderLocal = () => {
           name={[parentNamePath, "certPathForServerOnly"]}
           initialValue={initialValues.certPathForServerOnly}
           label={t("workflow_node.deploy.form.local_servercert_path.label")}
+          extra={t("workflow_node.deploy.form.local_servercert_path.help")}
           rules={[formRule]}
-          tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.local_servercert_path.tooltip") }}></span>}
         >
           <Input allowClear placeholder={t("workflow_node.deploy.form.local_servercert_path.placeholder")} />
         </Form.Item>
@@ -270,8 +271,8 @@ const BizDeployNodeConfigFormProviderLocal = () => {
           name={[parentNamePath, "certPathForIntermediaOnly"]}
           initialValue={initialValues.certPathForIntermediaOnly}
           label={t("workflow_node.deploy.form.local_intermediacert_path.label")}
+          extra={t("workflow_node.deploy.form.local_intermediacert_path.help")}
           rules={[formRule]}
-          tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.local_intermediacert_path.tooltip") }}></span>}
         >
           <Input allowClear placeholder={t("workflow_node.deploy.form.local_intermediacert_path.placeholder")} />
         </Form.Item>

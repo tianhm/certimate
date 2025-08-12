@@ -59,7 +59,7 @@ const BizMonitorNodeConfigForm = ({ node, ...props }: BizMonitorNodeConfigFormPr
             </div>
           </div>
 
-          <Form.Item name="domain" label={t("workflow_node.monitor.form.domain.label")} rules={[formRule]}>
+          <Form.Item name="domain" label={t("workflow_node.monitor.form.domain.label")} extra={t("workflow_node.monitor.form.domain.help")} rules={[formRule]}>
             <Input placeholder={t("workflow_node.monitor.form.domain.placeholder")} />
           </Form.Item>
 

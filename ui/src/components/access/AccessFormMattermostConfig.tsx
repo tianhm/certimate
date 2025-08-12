@@ -67,6 +67,7 @@ const AccessFormMattermostConfig = ({ form: formInst, formName, disabled, initia
       <Form.Item
         name="channelId"
         label={t("access.form.mattermost_channel_id.label")}
+        extra={t("access.form.mattermost_channel_id.help")}
         rules={[formRule]}
         tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.mattermost_channel_id.tooltip") }}></span>}
       >

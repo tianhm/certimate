@@ -1,8 +1,9 @@
 import { getI18n, useTranslation } from "react-i18next";
-import { Alert, Form, Input } from "antd";
+import { Form, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
+import Tips from "@/components/Tips";
 import { validDomainName } from "@/utils/validators";
 
 import { useFormNestedFieldsContext } from "./_context";
@@ -20,7 +21,7 @@ const BizDeployNodeConfigFormProviderUpyunCDN = () => {
   return (
     <>
       <Form.Item>
-        <Alert type="info" message={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.upyun_cdn.guide") }}></span>} />
+        <Tips message={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.upyun_cdn.guide") }}></span>} />
       </Form.Item>
 
       <Form.Item

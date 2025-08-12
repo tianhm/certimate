@@ -35,8 +35,8 @@ const BizNotifyNodeConfigFormProviderWebhook = () => {
         name={[parentNamePath, "webhookData"]}
         initialValue={initialValues.webhookData}
         label={t("workflow_node.notify.form.webhook_data.label")}
+        extra={t("workflow_node.notify.form.webhook_data.help")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.notify.form.webhook_data.tooltip") }}></span>}
       >
         <CodeInput
           height="auto"

@@ -29,6 +29,7 @@ const BizDeployNodeConfigFormProvider1PanelSite = () => {
         name={[parentNamePath, "nodeName"]}
         initialValue={initialValues.nodeName}
         label={t("workflow_node.deploy.form.1panel_site_node_name.label")}
+        extra={t("workflow_node.deploy.form.1panel_site_node_name.help")}
         rules={[formRule]}
         tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.1panel_site_node_name.tooltip") }}></span>}
       >

@@ -39,23 +39,23 @@ const DeployNodeConfigFormTencentCloudSSLUpdateConfig = ({
   const formSchema = z.object({
     endpoint: z.string().nullish(),
     certificateId: z
-      .string(t("workflow_node.deploy.form.tencentcloud_ssl_update_certificate_id.placeholder"))
-      .nonempty(t("workflow_node.deploy.form.tencentcloud_ssl_update_certificate_id.placeholder")),
-    resourceTypes: z.string(t("workflow_node.deploy.form.tencentcloud_ssl_update_resource_types.placeholder")).refine((v) => {
+      .string(t("workflow_node.deploy.form.tencentcloud_sslupdate_certificate_id.placeholder"))
+      .nonempty(t("workflow_node.deploy.form.tencentcloud_sslupdate_certificate_id.placeholder")),
+    resourceTypes: z.string(t("workflow_node.deploy.form.tencentcloud_sslupdate_resource_types.placeholder")).refine((v) => {
       if (!v) return false;
       return String(v)
         .split(MULTIPLE_INPUT_SEPARATOR)
         .every((e) => !!e.trim());
-    }, t("workflow_node.deploy.form.tencentcloud_ssl_update_resource_types.placeholder")),
+    }, t("workflow_node.deploy.form.tencentcloud_sslupdate_resource_types.placeholder")),
     resourceRegions: z
-      .string(t("workflow_node.deploy.form.tencentcloud_ssl_update_resource_regions.placeholder"))
+      .string(t("workflow_node.deploy.form.tencentcloud_sslupdate_resource_regions.placeholder"))
       .nullish()
       .refine((v) => {
         if (!v) return true;
         return String(v)
           .split(MULTIPLE_INPUT_SEPARATOR)
           .every((e) => !!e.trim());
-      }, t("workflow_node.deploy.form.tencentcloud_ssl_update_resource_regions.placeholder")),
+      }, t("workflow_node.deploy.form.tencentcloud_sslupdate_resource_regions.placeholder")),
     isReplaced: z.boolean().nullish(),
   });
   const formRule = createSchemaFieldRule(formSchema);
@@ -74,60 +74,60 @@ const DeployNodeConfigFormTencentCloudSSLUpdateConfig = ({
       onValuesChange={handleFormChange}
     >
       <Form.Item>
-        <Alert type="info" message={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_ssl_update.guide") }}></span>} />
+        <Alert type="info" message={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_sslupdate.guide") }}></span>} />
       </Form.Item>
 
       <Form.Item
         name="endpoint"
-        label={t("workflow_node.deploy.form.tencentcloud_ssl_update_endpoint.label")}
+        label={t("workflow_node.deploy.form.tencentcloud_sslupdate_endpoint.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_ssl_update_endpoint.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_sslupdate_endpoint.tooltip") }}></span>}
       >
-        <Input allowClear placeholder={t("workflow_node.deploy.form.tencentcloud_ssl_update_endpoint.placeholder")} />
+        <Input allowClear placeholder={t("workflow_node.deploy.form.tencentcloud_sslupdate_endpoint.placeholder")} />
       </Form.Item>
 
       <Form.Item
         name="certificateId"
-        label={t("workflow_node.deploy.form.tencentcloud_ssl_update_certificate_id.label")}
+        label={t("workflow_node.deploy.form.tencentcloud_sslupdate_certificate_id.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_ssl_update_certificate_id.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_sslupdate_certificate_id.tooltip") }}></span>}
       >
-        <Input placeholder={t("workflow_node.deploy.form.tencentcloud_ssl_update_certificate_id.placeholder")} />
+        <Input placeholder={t("workflow_node.deploy.form.tencentcloud_sslupdate_certificate_id.placeholder")} />
       </Form.Item>
 
       <Form.Item
         name="resourceTypes"
-        label={t("workflow_node.deploy.form.tencentcloud_ssl_update_resource_types.label")}
+        label={t("workflow_node.deploy.form.tencentcloud_sslupdate_resource_types.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_ssl_update_resource_types.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_sslupdate_resource_types.tooltip") }}></span>}
       >
         <MultipleSplitValueInput
-          modalTitle={t("workflow_node.deploy.form.tencentcloud_ssl_update_resource_types.multiple_input_modal.title")}
-          placeholder={t("workflow_node.deploy.form.tencentcloud_ssl_update_resource_types.placeholder")}
-          placeholderInModal={t("workflow_node.deploy.form.tencentcloud_ssl_update_resource_types.multiple_input_modal.placeholder")}
+          modalTitle={t("workflow_node.deploy.form.tencentcloud_sslupdate_resource_types.multiple_input_modal.title")}
+          placeholder={t("workflow_node.deploy.form.tencentcloud_sslupdate_resource_types.placeholder")}
+          placeholderInModal={t("workflow_node.deploy.form.tencentcloud_sslupdate_resource_types.multiple_input_modal.placeholder")}
           splitOptions={{ removeEmpty: true, trimSpace: true }}
         />
       </Form.Item>
 
       <Form.Item
         name="resourceRegions"
-        label={t("workflow_node.deploy.form.tencentcloud_ssl_update_resource_regions.label")}
+        label={t("workflow_node.deploy.form.tencentcloud_sslupdate_resource_regions.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_ssl_update_resource_regions.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_sslupdate_resource_regions.tooltip") }}></span>}
       >
         <MultipleSplitValueInput
-          modalTitle={t("workflow_node.deploy.form.tencentcloud_ssl_update_resource_regions.multiple_input_modal.title")}
-          placeholder={t("workflow_node.deploy.form.tencentcloud_ssl_update_resource_regions.placeholder")}
-          placeholderInModal={t("workflow_node.deploy.form.tencentcloud_ssl_update_resource_regions.multiple_input_modal.placeholder")}
+          modalTitle={t("workflow_node.deploy.form.tencentcloud_sslupdate_resource_regions.multiple_input_modal.title")}
+          placeholder={t("workflow_node.deploy.form.tencentcloud_sslupdate_resource_regions.placeholder")}
+          placeholderInModal={t("workflow_node.deploy.form.tencentcloud_sslupdate_resource_regions.multiple_input_modal.placeholder")}
           splitOptions={{ removeEmpty: true, trimSpace: true }}
         />
       </Form.Item>
 
       <Form.Item
         name="isReplaced"
-        label={t("workflow_node.deploy.form.tencentcloud_ssl_update_is_replaced.label")}
+        label={t("workflow_node.deploy.form.tencentcloud_sslupdate_is_replaced.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_ssl_update_is_replaced.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_sslupdate_is_replaced.tooltip") }}></span>}
       >
         <Switch />
       </Form.Item>

@@ -31,8 +31,8 @@ const BizDeployNodeConfigFormProviderAWSACM = () => {
         name={[parentNamePath, "certificateArn"]}
         initialValue={initialValues.certificateArn}
         label={t("workflow_node.deploy.form.aws_acm_certificate_arn.label")}
+        extra={t("workflow_node.deploy.form.aws_acm_certificate_arn.help")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.aws_acm_certificate_arn.tooltip") }}></span>}
       >
         <Input allowClear placeholder={t("workflow_node.deploy.form.aws_acm_certificate_arn.placeholder")} />
       </Form.Item>

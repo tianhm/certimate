@@ -21,8 +21,8 @@ const BizNotifyNodeConfigFormProviderMattermost = () => {
         name={[parentNamePath, "channelId"]}
         initialValue={initialValues.channelId}
         label={t("workflow_node.notify.form.mattermost_channel_id.label")}
+        extra={t("workflow_node.notify.form.mattermost_channel_id.help")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.notify.form.mattermost_channel_id.tooltip") }}></span>}
       >
         <Input allowClear placeholder={t("workflow_node.notify.form.mattermost_channel_id.placeholder")} />
       </Form.Item>

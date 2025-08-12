@@ -1,9 +1,10 @@
 import { getI18n, useTranslation } from "react-i18next";
-import { Alert, Form, Input } from "antd";
+import { Form, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
 import MultipleSplitValueInput from "@/components/MultipleSplitValueInput";
+import Tips from "@/components/Tips";
 
 import { useFormNestedFieldsContext } from "./_context";
 
@@ -22,30 +23,31 @@ const BizDeployNodeConfigFormProviderAliyunCASDeploy = () => {
   return (
     <>
       <Form.Item>
-        <Alert type="info" message={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.aliyun_cas_deploy.guide") }}></span>} />
+        <Tips message={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.aliyun_casdeploy.guide") }}></span>} />
       </Form.Item>
 
       <Form.Item
         name={[parentNamePath, "region"]}
         initialValue={initialValues.region}
-        label={t("workflow_node.deploy.form.aliyun_cas_deploy_region.label")}
+        label={t("workflow_node.deploy.form.aliyun_casdeploy_region.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.aliyun_cas_deploy_region.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.aliyun_casdeploy_region.tooltip") }}></span>}
       >
-        <Input placeholder={t("workflow_node.deploy.form.aliyun_cas_deploy_region.placeholder")} />
+        <Input placeholder={t("workflow_node.deploy.form.aliyun_casdeploy_region.placeholder")} />
       </Form.Item>
 
       <Form.Item
         name={[parentNamePath, "resourceIds"]}
         initialValue={initialValues.resourceIds}
-        label={t("workflow_node.deploy.form.aliyun_cas_deploy_resource_ids.label")}
+        label={t("workflow_node.deploy.form.aliyun_casdeploy_resource_ids.label")}
+        extra={t("workflow_node.deploy.form.aliyun_casdeploy_resource_ids.help")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.aliyun_cas_deploy_resource_ids.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.aliyun_casdeploy_resource_ids.tooltip") }}></span>}
       >
         <MultipleSplitValueInput
-          modalTitle={t("workflow_node.deploy.form.aliyun_cas_deploy_resource_ids.multiple_input_modal.title")}
-          placeholder={t("workflow_node.deploy.form.aliyun_cas_deploy_resource_ids.placeholder")}
-          placeholderInModal={t("workflow_node.deploy.form.aliyun_cas_deploy_resource_ids.multiple_input_modal.placeholder")}
+          modalTitle={t("workflow_node.deploy.form.aliyun_casdeploy_resource_ids.multiple_input_modal.title")}
+          placeholder={t("workflow_node.deploy.form.aliyun_casdeploy_resource_ids.placeholder")}
+          placeholderInModal={t("workflow_node.deploy.form.aliyun_casdeploy_resource_ids.multiple_input_modal.placeholder")}
           separator={MULTIPLE_INPUT_SEPARATOR}
           splitOptions={{ removeEmpty: true, trimSpace: true }}
         />
@@ -54,14 +56,15 @@ const BizDeployNodeConfigFormProviderAliyunCASDeploy = () => {
       <Form.Item
         name={[parentNamePath, "contactIds"]}
         initialValue={initialValues.contactIds}
-        label={t("workflow_node.deploy.form.aliyun_cas_deploy_contact_ids.label")}
+        label={t("workflow_node.deploy.form.aliyun_casdeploy_contact_ids.label")}
+        extra={t("workflow_node.deploy.form.aliyun_casdeploy_contact_ids.help")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.aliyun_cas_deploy_contact_ids.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.aliyun_casdeploy_contact_ids.tooltip") }}></span>}
       >
         <MultipleSplitValueInput
-          modalTitle={t("workflow_node.deploy.form.aliyun_cas_deploy_contact_ids.multiple_input_modal.title")}
-          placeholder={t("workflow_node.deploy.form.aliyun_cas_deploy_contact_ids.placeholder")}
-          placeholderInModal={t("workflow_node.deploy.form.aliyun_cas_deploy_contact_ids.multiple_input_modal.placeholder")}
+          modalTitle={t("workflow_node.deploy.form.aliyun_casdeploy_contact_ids.multiple_input_modal.title")}
+          placeholder={t("workflow_node.deploy.form.aliyun_casdeploy_contact_ids.placeholder")}
+          placeholderInModal={t("workflow_node.deploy.form.aliyun_casdeploy_contact_ids.multiple_input_modal.placeholder")}
           separator={MULTIPLE_INPUT_SEPARATOR}
           splitOptions={{ removeEmpty: true, trimSpace: true }}
         />
@@ -81,13 +84,13 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
   const { t } = i18n;
 
   return z.object({
-    region: z.string().nonempty(t("workflow_node.deploy.form.aliyun_cas_deploy_region.placeholder")),
+    region: z.string().nonempty(t("workflow_node.deploy.form.aliyun_casdeploy_region.placeholder")),
     resourceIds: z.string().refine((v) => {
       if (!v) return false;
       return String(v)
         .split(MULTIPLE_INPUT_SEPARATOR)
         .every((e) => /^[1-9]\d*$/.test(e));
-    }, t("workflow_node.deploy.form.aliyun_cas_deploy_resource_ids.errmsg.invalid")),
+    }, t("workflow_node.deploy.form.aliyun_casdeploy_resource_ids.errmsg.invalid")),
     contactIds: z
       .string()
       .nullish()
@@ -96,7 +99,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
         return String(v)
           .split(MULTIPLE_INPUT_SEPARATOR)
           .every((e) => /^[1-9]\d*$/.test(e));
-      }, t("workflow_node.deploy.form.aliyun_cas_deploy_contact_ids.errmsg.invalid")),
+      }, t("workflow_node.deploy.form.aliyun_casdeploy_contact_ids.errmsg.invalid")),
   });
 };
 

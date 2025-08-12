@@ -23,8 +23,8 @@ const BizNotifyNodeConfigFormProviderEmail = () => {
         name={[parentNamePath, "receiverAddress"]}
         initialValue={initialValues.receiverAddress}
         label={t("workflow_node.notify.form.email_receiver_address.label")}
+        extra={t("workflow_node.notify.form.email_receiver_address.help")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.notify.form.email_receiver_address.tooltip") }}></span>}
       >
         <Input type="email" allowClear placeholder={t("workflow_node.notify.form.email_receiver_address.placeholder")} />
       </Form.Item>

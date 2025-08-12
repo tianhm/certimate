@@ -309,7 +309,7 @@ const AccessFormWebhookConfig = ({ form: formInst, formName, disabled, initialVa
           <label className="mb-1 block">
             <div className="flex w-full items-center justify-between gap-4">
               <div className="max-w-full grow truncate">
-                <span>{t("access.form.webhook_data_for_deployment.label")}</span>
+                <span>{t("access.form.webhook_data.label")}</span>
               </div>
               <div className="text-right">
                 <Button size="small" type="link" onClick={handlePresetDataForDeploymentClick}>
@@ -318,20 +318,20 @@ const AccessFormWebhookConfig = ({ form: formInst, formName, disabled, initialVa
               </div>
             </div>
           </label>
-          <Form.Item name="dataForDeployment" rules={[formRule]}>
+          <Form.Item name="dataForDeployment" extra={t("access.form.webhook_data.help")} rules={[formRule]}>
             <CodeInput
               height="auto"
               minHeight="64px"
               maxHeight="256px"
               language="json"
-              placeholder={t("access.form.webhook_data_for_deployment.placeholder")}
+              placeholder={t("access.form.webhook_data.placeholder")}
               onBlur={handleWebhookDataForDeploymentBlur}
             />
           </Form.Item>
         </Form.Item>
 
         <Form.Item>
-          <Tips message={<span dangerouslySetInnerHTML={{ __html: t("access.form.webhook_data_for_deployment.guide") }}></span>} />
+          <Tips message={<span dangerouslySetInnerHTML={{ __html: t("access.form.webhook_data.guide_for_deployment") }}></span>} />
         </Form.Item>
       </Show>
 
@@ -340,7 +340,7 @@ const AccessFormWebhookConfig = ({ form: formInst, formName, disabled, initialVa
           <label className="mb-1 block">
             <div className="flex w-full items-center justify-between gap-4">
               <div className="max-w-full grow truncate">
-                <span>{t("access.form.webhook_data_for_notification.label")}</span>
+                <span>{t("access.form.webhook_data.label")}</span>
               </div>
               <div className="text-right">
                 <Dropdown
@@ -361,20 +361,20 @@ const AccessFormWebhookConfig = ({ form: formInst, formName, disabled, initialVa
               </div>
             </div>
           </label>
-          <Form.Item name="dataForNotification" rules={[formRule]}>
+          <Form.Item name="dataForNotification" extra={t("access.form.webhook_data.help")} rules={[formRule]}>
             <CodeInput
               height="auto"
               minHeight="64px"
               maxHeight="256px"
               language="json"
-              placeholder={t("access.form.webhook_data_for_notification.placeholder")}
+              placeholder={t("access.form.webhook_data.placeholder")}
               onBlur={handleWebhookDataForNotificationBlur}
             />
           </Form.Item>
         </Form.Item>
 
         <Form.Item>
-          <Tips message={<span dangerouslySetInnerHTML={{ __html: t("access.form.webhook_data_for_notification.guide") }}></span>} />
+          <Tips message={<span dangerouslySetInnerHTML={{ __html: t("access.form.webhook_data.guide_for_notification") }}></span>} />
         </Form.Item>
       </Show>
 

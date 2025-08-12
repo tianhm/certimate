@@ -68,7 +68,7 @@ const NotifyNodeConfigFormWebhookConfig = ({ form: formInst, formName, disabled,
         name="webhookData"
         label={t("workflow_node.notify.form.webhook_data.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.notify.form.webhook_data.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.notify.form.webhook_data.help") }}></span>}
       >
         <CodeInput
           height="auto"

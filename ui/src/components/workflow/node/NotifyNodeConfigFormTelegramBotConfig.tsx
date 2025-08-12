@@ -61,7 +61,7 @@ const NotifyNodeConfigFormTelegramBotConfig = ({
         name="chatId"
         label={t("workflow_node.notify.form.telegrambot_chat_id.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.notify.form.telegrambot_chat_id.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.notify.form.telegrambot_chat_id.help") }}></span>}
       >
         <Input allowClear placeholder={t("workflow_node.notify.form.telegrambot_chat_id.placeholder")} />
       </Form.Item>

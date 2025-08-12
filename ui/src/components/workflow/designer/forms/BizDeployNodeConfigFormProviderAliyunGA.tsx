@@ -69,6 +69,7 @@ const BizDeployNodeConfigFormProviderAliyunGA = () => {
           name={[parentNamePath, "domain"]}
           initialValue={initialValues.domain}
           label={t("workflow_node.deploy.form.aliyun_ga_snidomain.label")}
+          extra={t("workflow_node.deploy.form.aliyun_ga_snidomain.help")}
           rules={[formRule]}
           tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.aliyun_ga_snidomain.tooltip") }}></span>}
         >

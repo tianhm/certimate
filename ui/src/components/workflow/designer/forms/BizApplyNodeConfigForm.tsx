@@ -150,12 +150,7 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
     <NodeFormContextProvider value={{ node }}>
       <Form {...formProps} clearOnDestroy={true} form={formInst} layout="vertical" preserve={false} scrollToFirstError>
         <div id="parameters" data-anchor="parameters">
-          <Form.Item
-            name="domains"
-            label={t("workflow_node.apply.form.domains.label")}
-            rules={[formRule]}
-            tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.apply.form.domains.tooltip") }}></span>}
-          >
+          <Form.Item name="domains" label={t("workflow_node.apply.form.domains.label")} extra={t("workflow_node.apply.form.domains.help")} rules={[formRule]}>
             <MultipleSplitValueInput
               modalTitle={t("workflow_node.apply.form.domains.multiple_input_modal.title")}
               placeholder={t("workflow_node.apply.form.domains.placeholder")}
@@ -412,6 +407,7 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
           <Form.Item
             name="dnsTTL"
             label={t("workflow_node.apply.form.dns_ttl.label")}
+            extra={t("workflow_node.apply.form.dns_ttl.help")}
             rules={[formRule]}
             tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.apply.form.dns_ttl.tooltip") }}></span>}
           >

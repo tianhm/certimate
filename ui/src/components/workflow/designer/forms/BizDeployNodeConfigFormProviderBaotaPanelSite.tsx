@@ -61,6 +61,7 @@ const BizDeployNodeConfigFormProviderBaotaPanelSite = () => {
           name={[parentNamePath, "siteNames"]}
           initialValue={initialValues.siteNames}
           label={t("workflow_node.deploy.form.baotapanel_site_names.label")}
+          extra={t("workflow_node.deploy.form.baotapanel_site_names.help")}
           rules={[formRule]}
           tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.baotapanel_site_names.tooltip") }}></span>}
         >

@@ -46,6 +46,7 @@ const BizDeployNodeConfigFormProviderTencentCloudEO = () => {
         name={[parentNamePath, "domains"]}
         initialValue={initialValues.domains}
         label={t("workflow_node.deploy.form.tencentcloud_eo_domains.label")}
+        extra={t("workflow_node.deploy.form.tencentcloud_eo_domains.help")}
         rules={[formRule]}
         tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_eo_domains.tooltip") }}></span>}
       >

@@ -17,7 +17,7 @@ const Tips = ({ className, style, message }: TipsProps) => {
       message={
         <Flex gap="small">
           <div>
-            <IconBulb size="1.5em" color={themeToken.colorInfo} />
+            <IconBulb size={18} color={themeToken.colorInfo} />
           </div>
           <Typography.Text>{message}</Typography.Text>
         </Flex>

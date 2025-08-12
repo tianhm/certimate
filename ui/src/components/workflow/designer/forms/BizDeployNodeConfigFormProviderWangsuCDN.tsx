@@ -26,6 +26,7 @@ const BizDeployNodeConfigFormProviderWangsuCDN = () => {
         name={[parentNamePath, "domains"]}
         initialValue={initialValues.domains}
         label={t("workflow_node.deploy.form.wangsu_cdn_domains.label")}
+        extra={t("workflow_node.deploy.form.wangsu_cdn_domains.help")}
         rules={[formRule]}
         tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.wangsu_cdn_domains.tooltip") }}></span>}
       >

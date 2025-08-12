@@ -31,6 +31,7 @@ const BizDeployNodeConfigFormProviderGcoreCDN = () => {
         name={[parentNamePath, "certificateId"]}
         initialValue={initialValues.certificateId}
         label={t("workflow_node.deploy.form.gcore_cdn_certificate_id.label")}
+        extra={t("workflow_node.deploy.form.gcore_cdn_certificate_id.help")}
         rules={[formRule]}
         tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.gcore_cdn_certificate_id.tooltip") }}></span>}
       >

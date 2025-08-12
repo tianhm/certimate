@@ -1,9 +1,10 @@
 import { getI18n, useTranslation } from "react-i18next";
-import { Alert, Form } from "antd";
+import { Form } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
 import CodeInput from "@/components/CodeInput";
+import Tips from "@/components/Tips";
 
 import { useFormNestedFieldsContext } from "./_context";
 
@@ -34,8 +35,8 @@ const BizDeployNodeConfigFormProviderWebhook = () => {
         name={[parentNamePath, "webhookData"]}
         initialValue={initialValues.webhookData}
         label={t("workflow_node.deploy.form.webhook_data.label")}
+        extra={t("workflow_node.deploy.form.webhook_data.help")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.webhook_data.tooltip") }}></span>}
       >
         <CodeInput
           height="auto"
@@ -48,7 +49,7 @@ const BizDeployNodeConfigFormProviderWebhook = () => {
       </Form.Item>
 
       <Form.Item>
-        <Alert type="info" message={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.webhook_data.guide") }}></span>} />
+        <Tips message={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.webhook_data.guide") }}></span>} />
       </Form.Item>
     </>
   );

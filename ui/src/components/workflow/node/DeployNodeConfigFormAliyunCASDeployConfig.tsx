@@ -36,23 +36,23 @@ const DeployNodeConfigFormAliyunCASDeployConfig = ({
 
   const formSchema = z.object({
     region: z
-      .string(t("workflow_node.deploy.form.aliyun_cas_deploy_region.placeholder"))
-      .nonempty(t("workflow_node.deploy.form.aliyun_cas_deploy_region.placeholder")),
-    resourceIds: z.string(t("workflow_node.deploy.form.aliyun_cas_deploy_resource_ids.placeholder")).refine((v) => {
+      .string(t("workflow_node.deploy.form.aliyun_casdeploy_region.placeholder"))
+      .nonempty(t("workflow_node.deploy.form.aliyun_casdeploy_region.placeholder")),
+    resourceIds: z.string(t("workflow_node.deploy.form.aliyun_casdeploy_resource_ids.placeholder")).refine((v) => {
       if (!v) return false;
       return String(v)
         .split(MULTIPLE_INPUT_SEPARATOR)
         .every((e) => /^[1-9]\d*$/.test(e));
-    }, t("workflow_node.deploy.form.aliyun_cas_deploy_resource_ids.errmsg.invalid")),
+    }, t("workflow_node.deploy.form.aliyun_casdeploy_resource_ids.errmsg.invalid")),
     contactIds: z
-      .string(t("workflow_node.deploy.form.aliyun_cas_deploy_contact_ids.placeholder"))
+      .string(t("workflow_node.deploy.form.aliyun_casdeploy_contact_ids.placeholder"))
       .nullish()
       .refine((v) => {
         if (!v) return true;
         return String(v)
           .split(MULTIPLE_INPUT_SEPARATOR)
           .every((e) => /^[1-9]\d*$/.test(e));
-      }, t("workflow_node.deploy.form.aliyun_cas_deploy_contact_ids.errmsg.invalid")),
+      }, t("workflow_node.deploy.form.aliyun_casdeploy_contact_ids.errmsg.invalid")),
   });
   const formRule = createSchemaFieldRule(formSchema);
 
@@ -70,42 +70,42 @@ const DeployNodeConfigFormAliyunCASDeployConfig = ({
       onValuesChange={handleFormChange}
     >
       <Form.Item>
-        <Alert type="info" message={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.aliyun_cas_deploy.guide") }}></span>} />
+        <Alert type="info" message={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.aliyun_casdeploy.guide") }}></span>} />
       </Form.Item>
 
       <Form.Item
         name="region"
-        label={t("workflow_node.deploy.form.aliyun_cas_deploy_region.label")}
+        label={t("workflow_node.deploy.form.aliyun_casdeploy_region.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.aliyun_cas_deploy_region.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.aliyun_casdeploy_region.tooltip") }}></span>}
       >
-        <Input placeholder={t("workflow_node.deploy.form.aliyun_cas_deploy_region.placeholder")} />
+        <Input placeholder={t("workflow_node.deploy.form.aliyun_casdeploy_region.placeholder")} />
       </Form.Item>
 
       <Form.Item
         name="resourceIds"
-        label={t("workflow_node.deploy.form.aliyun_cas_deploy_resource_ids.label")}
+        label={t("workflow_node.deploy.form.aliyun_casdeploy_resource_ids.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.aliyun_cas_deploy_resource_ids.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.aliyun_casdeploy_resource_ids.tooltip") }}></span>}
       >
         <MultipleSplitValueInput
-          modalTitle={t("workflow_node.deploy.form.aliyun_cas_deploy_resource_ids.multiple_input_modal.title")}
-          placeholder={t("workflow_node.deploy.form.aliyun_cas_deploy_resource_ids.placeholder")}
-          placeholderInModal={t("workflow_node.deploy.form.aliyun_cas_deploy_resource_ids.multiple_input_modal.placeholder")}
+          modalTitle={t("workflow_node.deploy.form.aliyun_casdeploy_resource_ids.multiple_input_modal.title")}
+          placeholder={t("workflow_node.deploy.form.aliyun_casdeploy_resource_ids.placeholder")}
+          placeholderInModal={t("workflow_node.deploy.form.aliyun_casdeploy_resource_ids.multiple_input_modal.placeholder")}
           splitOptions={{ removeEmpty: true, trimSpace: true }}
         />
       </Form.Item>
 
       <Form.Item
         name="contactIds"
-        label={t("workflow_node.deploy.form.aliyun_cas_deploy_contact_ids.label")}
+        label={t("workflow_node.deploy.form.aliyun_casdeploy_contact_ids.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.aliyun_cas_deploy_contact_ids.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.aliyun_casdeploy_contact_ids.tooltip") }}></span>}
       >
         <MultipleSplitValueInput
-          modalTitle={t("workflow_node.deploy.form.aliyun_cas_deploy_contact_ids.multiple_input_modal.title")}
-          placeholder={t("workflow_node.deploy.form.aliyun_cas_deploy_contact_ids.placeholder")}
-          placeholderInModal={t("workflow_node.deploy.form.aliyun_cas_deploy_contact_ids.multiple_input_modal.placeholder")}
+          modalTitle={t("workflow_node.deploy.form.aliyun_casdeploy_contact_ids.multiple_input_modal.title")}
+          placeholder={t("workflow_node.deploy.form.aliyun_casdeploy_contact_ids.placeholder")}
+          placeholderInModal={t("workflow_node.deploy.form.aliyun_casdeploy_contact_ids.multiple_input_modal.placeholder")}
           splitOptions={{ removeEmpty: true, trimSpace: true }}
         />
       </Form.Item>

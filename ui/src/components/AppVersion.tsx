@@ -25,7 +25,7 @@ export interface AppVersionBadgeProps {
 }
 
 const AppVersionBadge = ({ className, style, children }: AppVersionBadgeProps) => {
-  const { hasNewVersion } = useVersionChecker();
+  const { hasUpdate } = useVersionChecker();
 
   return (
     <Badge
@@ -34,7 +34,7 @@ const AppVersionBadge = ({ className, style, children }: AppVersionBadgeProps) =
       styles={{
         indicator: { transform: "scale(0.75) translate(50%, -50%)" },
       }}
-      count={hasNewVersion ? "NEW" : void 0}
+      count={hasUpdate ? "NEW" : void 0}
     >
       {children}
     </Badge>

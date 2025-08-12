@@ -58,6 +58,7 @@ import (
 	pGoEdge "github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/goedge"
 	pHuaweiCloudCDN "github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/huaweicloud-cdn"
 	pHuaweiCloudELB "github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/huaweicloud-elb"
+	pHuaweiCloudOBS "github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/huaweicloud-obs"
 	pHuaweiCloudSCM "github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/huaweicloud-scm"
 	pHuaweiCloudWAF "github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/huaweicloud-waf"
 	pJDCloudALB "github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/jdcloud-alb"
@@ -784,7 +785,7 @@ func createSSLDeployerProvider(options *deployerProviderOptions) (core.SSLDeploy
 			return deployer, err
 		}
 
-	case domain.DeploymentProviderTypeHuaweiCloudCDN, domain.DeploymentProviderTypeHuaweiCloudELB, domain.DeploymentProviderTypeHuaweiCloudSCM, domain.DeploymentProviderTypeHuaweiCloudWAF:
+	case domain.DeploymentProviderTypeHuaweiCloudCDN, domain.DeploymentProviderTypeHuaweiCloudELB, domain.DeploymentProviderTypeHuaweiCloudSCM, domain.DeploymentProviderTypeHuaweiCloudOBS, domain.DeploymentProviderTypeHuaweiCloudWAF:
 		{
 			access := domain.AccessConfigForHuaweiCloud{}
 			if err := xmaps.Populate(options.ProviderAccessConfig, &access); err != nil {
@@ -820,6 +821,16 @@ func createSSLDeployerProvider(options *deployerProviderOptions) (core.SSLDeploy
 					AccessKeyId:         access.AccessKeyId,
 					SecretAccessKey:     access.SecretAccessKey,
 					EnterpriseProjectId: access.EnterpriseProjectId,
+				})
+				return deployer, err
+
+			case domain.DeploymentProviderTypeHuaweiCloudOBS:
+				deployer, err := pHuaweiCloudOBS.NewSSLDeployerProvider(&pHuaweiCloudOBS.SSLDeployerProviderConfig{
+					AccessKeyId:     access.AccessKeyId,
+					SecretAccessKey: access.SecretAccessKey,
+					Endpoint:        xmaps.GetString(options.ProviderServiceConfig, "endpoint"),
+					Bucket:          xmaps.GetString(options.ProviderServiceConfig, "bucket"),
+					Domain:          xmaps.GetString(options.ProviderServiceConfig, "domain"),
 				})
 				return deployer, err
 

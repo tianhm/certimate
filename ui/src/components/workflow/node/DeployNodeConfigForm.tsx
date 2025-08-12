@@ -61,6 +61,7 @@ import DeployNodeConfigFormGcoreCDNConfig from "./DeployNodeConfigFormGcoreCDNCo
 import DeployNodeConfigFormGoEdgeConfig from "./DeployNodeConfigFormGoEdgeConfig";
 import DeployNodeConfigFormHuaweiCloudCDNConfig from "./DeployNodeConfigFormHuaweiCloudCDNConfig";
 import DeployNodeConfigFormHuaweiCloudELBConfig from "./DeployNodeConfigFormHuaweiCloudELBConfig";
+import DeployNodeConfigFormHuaweiCloudOBSConfig from "./DeployNodeConfigFormHuaweiCloudOBSConfig";
 import DeployNodeConfigFormHuaweiCloudWAFConfig from "./DeployNodeConfigFormHuaweiCloudWAFConfig";
 import DeployNodeConfigFormJDCloudALBConfig from "./DeployNodeConfigFormJDCloudALBConfig";
 import DeployNodeConfigFormJDCloudCDNConfig from "./DeployNodeConfigFormJDCloudCDNConfig";
@@ -294,6 +295,8 @@ const DeployNodeConfigForm = forwardRef<DeployNodeConfigFormInstance, DeployNode
           return <DeployNodeConfigFormGoEdgeConfig {...nestedFormProps} />;
         case DEPLOYMENT_PROVIDERS.HUAWEICLOUD_CDN:
           return <DeployNodeConfigFormHuaweiCloudCDNConfig {...nestedFormProps} />;
+        case DEPLOYMENT_PROVIDERS.HUAWEICLOUD_OBS:
+          return <DeployNodeConfigFormHuaweiCloudOBSConfig {...nestedFormProps} />;
         case DEPLOYMENT_PROVIDERS.HUAWEICLOUD_ELB:
           return <DeployNodeConfigFormHuaweiCloudELBConfig {...nestedFormProps} />;
         case DEPLOYMENT_PROVIDERS.HUAWEICLOUD_WAF:

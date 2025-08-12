@@ -94,6 +94,7 @@
   "provider.huaweicloud.dns": "华为云 - 云解析 DNS",
   "provider.huaweicloud.elb": "华为云 - 弹性负载均衡 ELB",
   "provider.huaweicloud.scm_upload": "华为云 - 上传到云证书管理服务 SCM",
+  "provider.huaweicloud.obs": "华为云 - 对象储存 OBS",
   "provider.huaweicloud.waf": "华为云 - Web 应用防火墙 WAF",
   "provider.jdcloud": "京东云",
   "provider.jdcloud.alb": "京东云 - 应用负载均衡 ALB",
@@ -178,7 +179,6 @@
   "provider.wecombot": "企业微信群机器人",
   "provider.westcn": "西部数码",
   "provider.zerossl": "ZeroSSL",
-
   "provider.category.all": "全部",
   "provider.category.cdn": "CDN",
   "provider.category.storage": "文件存储",
@@ -192,6 +192,5 @@
   "provider.category.ssl": "证书托管",
   "provider.category.nas": "NAS",
   "provider.category.other": "其他",
-
   "provider.text.default_ca_provider.label": "（默认）不指定，跟随全局设置"
 }

@@ -32,8 +32,9 @@
 
   "settings.sslprovider.tab": "Certificate authority",
   "settings.sslprovider.ca.title": "System-wide CA",
-  "settings.sslprovider.ca.tips": "You can use different CAs for each workflow as well. If you want to do this, please visit the credentials page. <br>The certificate validity lifetime, certificate algorithm, domain names count, and support for wildcard domain names are allowed may vary among different providers. After switching service providers, please check whether the configuration of the workflows needs to be adjusted.",
+  "settings.sslprovider.ca.tips": "You can use different CAs for each workflow as well. If you want to do this, please visit the credentials page.",
   "settings.sslprovider.form.provider.label": "ACME CA provider",
+  "settings.sslprovider.form.provider.help": "Notes: The certificate validity lifetime, certificate algorithm, domain names count, and support for wildcard domain names are allowed may vary among different providers. After switching service providers, please check whether the configuration of the workflows needs to be adjusted.",
   "settings.sslprovider.form.letsencryptstaging_alert": "The staging environment can reduce the chance of your running up against rate limits. <br><br>Learn more:<br><a href=\"https://letsencrypt.org/docs/staging-environment/\" target=\"_blank\">https://letsencrypt.org/docs/staging-environment/</a>",
 
   "settings.persistence.tab": "Persistence",

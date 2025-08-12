@@ -457,8 +457,8 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
             <Form.Item
               name="certificate"
               label={t("workflow_node.deploy.form.certificate.label")}
+              extra={t("workflow_node.deploy.form.certificate.help")}
               rules={[formRule]}
-              tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.certificate.tooltip") }}></span>}
             >
               <Select
                 labelRender={({ label, value }) => {

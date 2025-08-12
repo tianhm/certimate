@@ -13,9 +13,9 @@
     "@codemirror/lang-yaml": "^6.1.2",
     "@codemirror/language": "^6.11.2",
     "@codemirror/legacy-modes": "^6.5.1",
-    "@flowgram.ai/document": "^0.3.4",
-    "@flowgram.ai/fixed-layout-editor": "^0.3.4",
-    "@flowgram.ai/minimap-plugin": "^0.3.4",
+    "@flowgram.ai/document": "^0.3.5",
+    "@flowgram.ai/fixed-layout-editor": "^0.3.5",
+    "@flowgram.ai/minimap-plugin": "^0.3.5",
     "@tabler/icons-react": "^3.34.1",
     "@uiw/codemirror-extensions-basic-setup": "^4.24.2",
     "@uiw/codemirror-theme-vscode": "^4.24.2",
@@ -65,7 +65,7 @@
     "prettier": "^3.6.2",
     "tailwindcss": "^4.1.11",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.39.0",
+    "typescript-eslint": "^8.39.1",
     "vite": "^6.3.5"
   }
 }

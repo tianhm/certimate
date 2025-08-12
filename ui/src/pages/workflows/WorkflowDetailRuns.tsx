@@ -43,15 +43,9 @@ const WorkflowDetailRuns = () => {
   const [tableSelectedRowKeys, setTableSelectedRowKeys] = useState<string[]>([]);
   const tableColumns: TableProps<WorkflowRunModel>["columns"] = [
     {
-      key: "$index",
-      align: "center",
-      fixed: "left",
-      width: 48,
-      render: (_, __, index) => (page - 1) * pageSize + index + 1,
-    },
-    {
       key: "id",
-      title: t("workflow_run.props.id"),
+      title: "ID",
+      width: 160,
       render: (_, record) => <span className="font-mono">{record.id}</span>,
     },
     {

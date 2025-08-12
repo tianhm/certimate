@@ -14,7 +14,6 @@
 
   "workflow_run.nodata.description": "It looks like you don't have any runs. Get started by running this workflow.",
 
-  "workflow_run.props.id": "ID",
   "workflow_run.props.status": "Status",
   "workflow_run.props.status.pending": "Pending",
   "workflow_run.props.status.running": "Running",

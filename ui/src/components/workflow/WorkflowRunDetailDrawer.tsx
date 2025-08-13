@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { startTransition, useCallback, useState } from "react";
 import { IconX } from "@tabler/icons-react";
 import { useControllableValue } from "ahooks";
 import { Button, Drawer, Flex } from "antd";
@@ -10,6 +10,7 @@ import { useTriggerElement } from "@/hooks";
 import WorkflowRunDetail from "./WorkflowRunDetail";
 
 export interface WorkflowRunDetailDrawerProps {
+  afterClose?: () => void;
   data?: WorkflowRunModel;
   loading?: boolean;
   open?: boolean;
@@ -17,7 +18,7 @@ export interface WorkflowRunDetailDrawerProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-const WorkflowRunDetailDrawer = ({ data, loading, trigger, ...props }: WorkflowRunDetailDrawerProps) => {
+const WorkflowRunDetailDrawer = ({ afterClose, data, loading, trigger, ...props }: WorkflowRunDetailDrawerProps) => {
   const [open, setOpen] = useControllableValue<boolean>(props, {
     valuePropName: "open",
     defaultValuePropName: "defaultOpen",
@@ -31,7 +32,7 @@ const WorkflowRunDetailDrawer = ({ data, loading, trigger, ...props }: WorkflowR
       {triggerEl}
 
       <Drawer
-        afterOpenChange={setOpen}
+        afterOpenChange={(open) => !open && afterClose?.()}
         closeIcon={false}
         destroyOnHidden
         open={open}
@@ -61,29 +62,41 @@ const WorkflowRunDetailDrawer = ({ data, loading, trigger, ...props }: WorkflowR
   );
 };
 
-const useProps = () => {
-  const [data, setData] = useState<WorkflowRunDetailDrawerProps["data"]>();
+const useDrawer = () => {
+  type DataType = WorkflowRunDetailDrawerProps["data"];
+  const [data, setData] = useState<DataType>();
   const [open, setOpen] = useState<boolean>(false);
 
-  const onOpenChange = (open: boolean) => {
+  const onOpenChange = useCallback((open: boolean) => {
     setOpen(open);
-
-    if (!open) {
-      setData(undefined);
-    }
-  };
+  }, []);
 
   return {
-    data,
-    open,
-    setData,
-    setOpen,
-    onOpenChange,
+    drawerProps: {
+      afterClose: () => {
+        startTransition(() => {
+          if (!open) {
+            setData(void 0);
+          }
+        });
+      },
+      data,
+      open,
+      onOpenChange,
+    },
+
+    open: (data: NonNullable<DataType>) => {
+      setData(data);
+      setOpen(true);
+    },
+    close: () => {
+      setOpen(false);
+    },
   };
 };
 
 const _default = Object.assign(WorkflowRunDetailDrawer, {
-  useProps,
+  useDrawer,
 });
 
 export default _default;

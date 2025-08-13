@@ -7,6 +7,7 @@ import StartNodeConfigForm from "./StartNodeConfigForm";
 import { NodeType } from "../nodes/typings";
 
 export interface StartNodeConfigDrawerProps {
+  afterClose?: () => void;
   loading?: boolean;
   node: FlowNodeEntity;
   open?: boolean;

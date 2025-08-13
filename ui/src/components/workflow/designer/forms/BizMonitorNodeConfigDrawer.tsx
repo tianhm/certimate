@@ -7,6 +7,7 @@ import BizMonitorNodeConfigForm from "./BizMonitorNodeConfigForm";
 import { NodeType } from "../nodes/typings";
 
 export interface BizMonitorNodeConfigDrawerProps {
+  afterClose?: () => void;
   loading?: boolean;
   node: FlowNodeEntity;
   open?: boolean;

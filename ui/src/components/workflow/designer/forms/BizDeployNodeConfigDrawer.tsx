@@ -7,6 +7,7 @@ import BizDeployNodeConfigForm from "./BizDeployNodeConfigForm";
 import { NodeType } from "../nodes/typings";
 
 export interface BizDeployNodeConfigDrawerProps {
+  afterClose?: () => void;
   loading?: boolean;
   node: FlowNodeEntity;
   open?: boolean;

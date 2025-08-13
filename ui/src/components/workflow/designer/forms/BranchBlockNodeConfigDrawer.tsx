@@ -7,6 +7,7 @@ import BranchBlockNodeConfigForm from "./BranchBlockNodeConfigForm";
 import { NodeType } from "../nodes/typings";
 
 export interface BranchBlockNodeConfigDrawerProps {
+  afterClose?: () => void;
   loading?: boolean;
   node: FlowNodeEntity;
   open?: boolean;

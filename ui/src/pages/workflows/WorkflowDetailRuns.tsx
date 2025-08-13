@@ -236,7 +236,7 @@ const WorkflowDetailRuns = () => {
         });
 
         if (cb.record.id === detailDrawerProps.data?.id) {
-          setDetailRecord({ ...detailDrawerProps.data, ...cb.record });
+          detailDrawerProps.data = { ...detailDrawerProps.data, ...cb.record };
         }
 
         if (cb.record.status !== WORKFLOW_RUN_STATUSES.PENDING && cb.record.status !== WORKFLOW_RUN_STATUSES.RUNNING) {
@@ -257,11 +257,10 @@ const WorkflowDetailRuns = () => {
     setPageSize(pageSize);
   };
 
-  const { setData: setDetailRecord, setOpen: setDetailOpen, ...detailDrawerProps } = WorkflowRunDetailDrawer.useProps();
+  const { drawerProps: detailDrawerProps, ...detailDrawer } = WorkflowRunDetailDrawer.useDrawer();
 
   const handleRecordDetailClick = (workflowRun: WorkflowRunModel) => {
-    setDetailRecord(workflowRun);
-    setDetailOpen(true);
+    detailDrawer.open(workflowRun);
   };
 
   const handleRecordCancelClick = (workflowRun: WorkflowRunModel) => {

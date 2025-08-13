@@ -58,7 +58,7 @@ const DrawerForm = <T extends NonNullable<unknown> = any>({
     form: formInst,
     formPending,
     formProps,
-    submit,
+    submit: submitForm,
   } = useAntdForm({
     form,
     onSubmit: (values) => {
@@ -75,25 +75,22 @@ const DrawerForm = <T extends NonNullable<unknown> = any>({
   const mergedDrawerProps: DrawerProps = {
     ...drawerProps,
     closeIcon: false,
-    afterOpenChange: (open) => {
-      if (!open && !mergedFormProps.preserve) {
-        formInst.resetFields();
-      }
-
-      drawerProps?.afterOpenChange?.(open);
-    },
     onClose: async (e) => {
       if (formPending) return;
 
       // 关闭 Drawer 时 Promise.reject 阻止关闭
       await drawerProps?.onClose?.(e);
       setOpen(false);
+
+      if (!mergedFormProps.preserve) {
+        formInst.resetFields();
+      }
     },
   };
 
   const handleOkClick = async () => {
     // 提交表单返回 Promise.reject 时不关闭 Drawer
-    await submit();
+    await submitForm();
 
     setOpen(false);
   };

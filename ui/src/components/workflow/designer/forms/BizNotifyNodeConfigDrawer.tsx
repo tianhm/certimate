@@ -7,6 +7,7 @@ import BizNotifyNodeConfigForm from "./BizNotifyNodeConfigForm";
 import { NodeType } from "../nodes/typings";
 
 export interface BizNotifyNodeConfigDrawerProps {
+  afterClose?: () => void;
   loading?: boolean;
   node: FlowNodeEntity;
   open?: boolean;

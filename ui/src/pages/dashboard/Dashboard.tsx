@@ -329,11 +329,10 @@ const WorkflowRunHistoryTable = ({ className, style }: { className?: string; sty
     refreshData();
   };
 
-  const { setData: setDetailRecord, setOpen: setDetailOpen, ...detailDrawerProps } = WorkflowRunDetailDrawer.useProps();
+  const { drawerProps: detailDrawerProps, ...detailDrawer } = WorkflowRunDetailDrawer.useDrawer();
 
   const handleRecordDetailClick = (workflowRun: WorkflowRunModel) => {
-    setDetailRecord(workflowRun);
-    setDetailOpen(true);
+    detailDrawer.open(workflowRun);
   };
 
   return (

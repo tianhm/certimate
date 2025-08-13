@@ -285,11 +285,10 @@ const CertificateList = () => {
     setPageSize(pageSize);
   };
 
-  const { setData: setDetailRecord, setOpen: setDetailOpen, ...detailDrawerProps } = CertificateDetailDrawer.useProps();
+  const { drawerProps: detailDrawerProps, ...detailDrawer } = CertificateDetailDrawer.useDrawer();
 
   const handleRecordDetailClick = (certificate: CertificateModel) => {
-    setDetailRecord(certificate);
-    setDetailOpen(true);
+    detailDrawer.open(certificate);
   };
 
   const handleRecordDeleteClick = (certificate: CertificateModel) => {

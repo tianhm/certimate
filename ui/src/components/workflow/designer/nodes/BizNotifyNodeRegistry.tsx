@@ -7,10 +7,12 @@ import { nanoid } from "nanoid";
 import { notificationProvidersMap } from "@/domain/provider";
 
 import { BaseNode } from "./_shared";
-import { type NodeRegistry, NodeType } from "./typings";
+import { NodeKindType, type NodeRegistry, NodeType } from "./typings";
+import BizNotifyNodeConfigForm from "../forms/BizNotifyNodeConfigForm";
 
 export const BizNotifyNodeRegistry: NodeRegistry = {
   type: NodeType.BizNotify,
+  kindType: NodeKindType.Business,
 
   meta: {
     helpText: getI18n().t("workflow_node.notify.help"),
@@ -25,34 +27,11 @@ export const BizNotifyNodeRegistry: NodeRegistry = {
 
   formMeta: {
     validate: {
-      ["config.subject"]: ({ value }) => {
-        if (!value) {
+      ["config"]: ({ value }) => {
+        const res = BizNotifyNodeConfigForm.getSchema({}).safeParse(value);
+        if (!res.success) {
           return {
-            message: "required",
-            level: FeedbackLevel.Error,
-          };
-        }
-      },
-      ["config.message"]: ({ value }) => {
-        if (!value) {
-          return {
-            message: "required",
-            level: FeedbackLevel.Error,
-          };
-        }
-      },
-      ["config.provider"]: ({ value }) => {
-        if (!value) {
-          return {
-            message: "required",
-            level: FeedbackLevel.Error,
-          };
-        }
-      },
-      ["config.providerAccessId"]: ({ value }) => {
-        if (!value) {
-          return {
-            message: "required",
+            message: res.error.message,
             level: FeedbackLevel.Error,
           };
         }

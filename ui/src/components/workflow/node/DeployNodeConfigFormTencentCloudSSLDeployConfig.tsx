@@ -38,17 +38,17 @@ const DeployNodeConfigFormTencentCloudSSLDeployConfig = ({
   const formSchema = z.object({
     endpoint: z.string().nullish(),
     region: z
-      .string(t("workflow_node.deploy.form.tencentcloud_ssl_deploy_region.placeholder"))
-      .nonempty(t("workflow_node.deploy.form.tencentcloud_ssl_deploy_region.placeholder")),
+      .string(t("workflow_node.deploy.form.tencentcloud_ssldeploy_region.placeholder"))
+      .nonempty(t("workflow_node.deploy.form.tencentcloud_ssldeploy_region.placeholder")),
     resourceType: z
-      .string(t("workflow_node.deploy.form.tencentcloud_ssl_deploy_resource_type.placeholder"))
-      .nonempty(t("workflow_node.deploy.form.tencentcloud_ssl_deploy_resource_type.placeholder")),
-    resourceIds: z.string(t("workflow_node.deploy.form.tencentcloud_ssl_deploy_resource_ids.placeholder")).refine((v) => {
+      .string(t("workflow_node.deploy.form.tencentcloud_ssldeploy_resource_type.placeholder"))
+      .nonempty(t("workflow_node.deploy.form.tencentcloud_ssldeploy_resource_type.placeholder")),
+    resourceIds: z.string(t("workflow_node.deploy.form.tencentcloud_ssldeploy_resource_ids.placeholder")).refine((v) => {
       if (!v) return false;
       return String(v)
         .split(MULTIPLE_INPUT_SEPARATOR)
         .every((e) => /^[A-Za-z0-9*._\-|]+$/.test(e));
-    }, t("workflow_node.deploy.form.tencentcloud_ssl_deploy_resource_ids.errmsg.invalid")),
+    }, t("workflow_node.deploy.form.tencentcloud_ssldeploy_resource_ids.errmsg.invalid")),
   });
   const formRule = createSchemaFieldRule(formSchema);
 
@@ -66,50 +66,50 @@ const DeployNodeConfigFormTencentCloudSSLDeployConfig = ({
       onValuesChange={handleFormChange}
     >
       <Form.Item>
-        <Alert type="info" message={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_ssl_deploy.guide") }}></span>} />
+        <Alert type="info" message={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_ssldeploy.guide") }}></span>} />
       </Form.Item>
 
       <Form.Item
         name="endpoint"
-        label={t("workflow_node.deploy.form.tencentcloud_ssl_deploy_endpoint.label")}
+        label={t("workflow_node.deploy.form.tencentcloud_ssldeploy_endpoint.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_ssl_deploy_endpoint.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_ssldeploy_endpoint.tooltip") }}></span>}
       >
-        <Input allowClear placeholder={t("workflow_node.deploy.form.tencentcloud_ssl_deploy_endpoint.placeholder")} />
+        <Input allowClear placeholder={t("workflow_node.deploy.form.tencentcloud_ssldeploy_endpoint.placeholder")} />
       </Form.Item>
 
       <Form.Item
         name="region"
-        label={t("workflow_node.deploy.form.tencentcloud_ssl_deploy_region.label")}
+        label={t("workflow_node.deploy.form.tencentcloud_ssldeploy_region.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_ssl_deploy_region.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_ssldeploy_region.tooltip") }}></span>}
       >
-        <Input placeholder={t("workflow_node.deploy.form.tencentcloud_ssl_deploy_region.placeholder")} />
+        <Input placeholder={t("workflow_node.deploy.form.tencentcloud_ssldeploy_region.placeholder")} />
       </Form.Item>
 
       <Form.Item
         name="resourceType"
-        label={t("workflow_node.deploy.form.tencentcloud_ssl_deploy_resource_type.label")}
+        label={t("workflow_node.deploy.form.tencentcloud_ssldeploy_resource_type.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_ssl_deploy_resource_type.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_ssldeploy_resource_type.tooltip") }}></span>}
       >
         <AutoComplete
           options={["apigateway", "cdn", "clb", "cos", "ddos", "lighthouse", "live", "tcb", "teo", "tke", "tse", "vod", "waf"].map((value) => ({ value }))}
-          placeholder={t("workflow_node.deploy.form.tencentcloud_ssl_deploy_resource_type.placeholder")}
+          placeholder={t("workflow_node.deploy.form.tencentcloud_ssldeploy_resource_type.placeholder")}
           filterOption={(inputValue, option) => option!.value.toLowerCase().includes(inputValue.toLowerCase())}
         />
       </Form.Item>
 
       <Form.Item
         name="resourceIds"
-        label={t("workflow_node.deploy.form.tencentcloud_ssl_deploy_resource_ids.label")}
+        label={t("workflow_node.deploy.form.tencentcloud_ssldeploy_resource_ids.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_ssl_deploy_resource_ids.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_ssldeploy_resource_ids.tooltip") }}></span>}
       >
         <MultipleSplitValueInput
-          modalTitle={t("workflow_node.deploy.form.tencentcloud_ssl_deploy_resource_ids.multiple_input_modal.title")}
-          placeholder={t("workflow_node.deploy.form.tencentcloud_ssl_deploy_resource_ids.placeholder")}
-          placeholderInModal={t("workflow_node.deploy.form.tencentcloud_ssl_deploy_resource_ids.multiple_input_modal.placeholder")}
+          modalTitle={t("workflow_node.deploy.form.tencentcloud_ssldeploy_resource_ids.multiple_input_modal.title")}
+          placeholder={t("workflow_node.deploy.form.tencentcloud_ssldeploy_resource_ids.placeholder")}
+          placeholderInModal={t("workflow_node.deploy.form.tencentcloud_ssldeploy_resource_ids.multiple_input_modal.placeholder")}
           splitOptions={{ removeEmpty: true, trimSpace: true }}
         />
       </Form.Item>

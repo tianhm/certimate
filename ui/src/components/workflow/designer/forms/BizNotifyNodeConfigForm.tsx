@@ -134,34 +134,27 @@ const BizNotifyNodeConfigForm = ({ node, ...props }: BizNotifyNodeConfigFormProp
             />
           </Form.Item>
 
-          <Form.Item noStyle>
-            <label className="mb-1 block">
-              <div className="flex w-full items-center justify-between gap-4">
-                <div className="max-w-full grow truncate">
-                  <span>{t("workflow_node.notify.form.provider_access.label")}</span>
-                </div>
-                <div className="text-right">
-                  <AccessEditDrawer
-                    mode="create"
-                    trigger={
-                      <Button size="small" type="link">
-                        {t("workflow_node.notify.form.provider_access.button")}
-                        <IconPlus size="1.25em" />
-                      </Button>
-                    }
-                    usage="notification"
-                    afterSubmit={(record) => {
-                      const provider = accessProvidersMap.get(record.provider);
-                      if (provider?.usages?.includes(ACCESS_USAGES.NOTIFICATION)) {
-                        formInst.setFieldValue("providerAccessId", record.id);
-                        handleProviderAccessSelect(record.id);
-                      }
-                    }}
-                  />
-                </div>
-              </div>
-            </label>
-            <Form.Item name="providerAccessId" rules={[formRule]}>
+          <Form.Item label={t("workflow_node.notify.form.provider_access.label")}>
+            <div className="absolute -top-[6px] right-0 -translate-y-full">
+              <AccessEditDrawer
+                mode="create"
+                trigger={
+                  <Button size="small" type="link">
+                    {t("workflow_node.notify.form.provider_access.button")}
+                    <IconPlus size="1.25em" />
+                  </Button>
+                }
+                usage="notification"
+                afterSubmit={(record) => {
+                  const provider = accessProvidersMap.get(record.provider);
+                  if (provider?.usages?.includes(ACCESS_USAGES.NOTIFICATION)) {
+                    formInst.setFieldValue("providerAccessId", record.id);
+                    handleProviderAccessSelect(record.id);
+                  }
+                }}
+              />
+            </div>
+            <Form.Item name="providerAccessId" noStyle rules={[formRule]}>
               <AccessSelect
                 placeholder={t("workflow_node.notify.form.provider_access.placeholder")}
                 showSearch
@@ -206,7 +199,7 @@ const BizNotifyNodeConfigForm = ({ node, ...props }: BizNotifyNodeConfigFormProp
   );
 };
 
-const getAnchorItems = ({ i18n = getI18n() }: { i18n: ReturnType<typeof getI18n> }): Required<AnchorProps>["items"] => {
+const getAnchorItems = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }): Required<AnchorProps>["items"] => {
   const { t } = i18n;
 
   return ["parameters", "strategy"].map((key) => ({
@@ -226,7 +219,7 @@ const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   };
 };
 
-const getSchema = ({ i18n = getI18n() }: { i18n: ReturnType<typeof getI18n> }) => {
+const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) => {
   const { t } = i18n;
 
   return z.object({

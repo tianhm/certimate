@@ -39,9 +39,7 @@ export interface AppThemeDropdownProps {
   trigger?: DropdownProps["trigger"];
 }
 
-const AppThemeDropdown = (props: AppThemeDropdownProps) => {
-  const { children, trigger = ["click"] } = props;
-
+const AppThemeDropdown = ({ children, trigger = ["click"] }: AppThemeDropdownProps) => {
   const items = useAppThemeMenuItems();
 
   return (
@@ -65,9 +63,7 @@ export interface AppThemeLinkButtonProps {
   showIcon?: boolean;
 }
 
-const AppThemeLinkButton = (props: AppThemeLinkButtonProps) => {
-  const { className, style, showIcon = true } = props;
-
+const AppThemeLinkButton = ({ className, style, showIcon = true }: AppThemeLinkButtonProps) => {
   const { t } = useTranslation();
 
   const { themeMode } = useBrowserTheme();

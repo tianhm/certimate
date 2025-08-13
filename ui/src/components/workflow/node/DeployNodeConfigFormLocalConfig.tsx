@@ -320,7 +320,7 @@ const DeployNodeConfigFormLocalConfig = ({ form: formInst, formName, disabled, i
         rules={[formRule]}
         tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.local_cert_path.tooltip") }}></span>}
       >
-        <Input placeholder={t("workflow_node.deploy.form.local_cert_path.placeholder")} />
+        <Input placeholder={t("workflow_node.deploy.form.local_cert_path.help")} />
       </Form.Item>
 
       <Show when={fieldFormat === FORMAT_PEM}>
@@ -328,7 +328,7 @@ const DeployNodeConfigFormLocalConfig = ({ form: formInst, formName, disabled, i
           name="keyPath"
           label={t("workflow_node.deploy.form.local_key_path.label")}
           rules={[formRule]}
-          tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.local_key_path.tooltip") }}></span>}
+          tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.local_key_path.help") }}></span>}
         >
           <Input placeholder={t("workflow_node.deploy.form.local_key_path.placeholder")} />
         </Form.Item>
@@ -337,7 +337,7 @@ const DeployNodeConfigFormLocalConfig = ({ form: formInst, formName, disabled, i
           name="certPathForServerOnly"
           label={t("workflow_node.deploy.form.local_servercert_path.label")}
           rules={[formRule]}
-          tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.local_servercert_path.tooltip") }}></span>}
+          tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.local_servercert_path.help") }}></span>}
         >
           <Input allowClear placeholder={t("workflow_node.deploy.form.local_servercert_path.placeholder")} />
         </Form.Item>
@@ -346,7 +346,7 @@ const DeployNodeConfigFormLocalConfig = ({ form: formInst, formName, disabled, i
           name="certPathForIntermediaOnly"
           label={t("workflow_node.deploy.form.local_intermediacert_path.label")}
           rules={[formRule]}
-          tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.local_intermediacert_path.tooltip") }}></span>}
+          tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.local_intermediacert_path.help") }}></span>}
         >
           <Input allowClear placeholder={t("workflow_node.deploy.form.local_intermediacert_path.placeholder")} />
         </Form.Item>

@@ -24,6 +24,12 @@ export enum NodeType {
   BizNotify = "bizNotify",
 }
 
+export enum NodeKindType {
+  Common = "common",
+  Business = "business",
+  Logic = "logic",
+}
+
 export interface NodeJSON extends FlowNodeJSON {
   data: {
     name?: string;
@@ -47,6 +53,7 @@ export interface NodeMeta extends FlowNodeMeta {
 }
 
 export interface NodeRegistry<V extends NodeJSON["data"] = NodeJSON["data"]> extends FlowNodeRegistry<NodeMeta> {
+  kindType?: NodeKindType;
   formMeta?: Omit<FormMeta<V>, "render"> & {
     render: (props: FormRenderProps<V>) => React.ReactElement;
   };

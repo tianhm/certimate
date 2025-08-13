@@ -5,6 +5,10 @@ import { WorkflowNodeType, newNode } from "@/domain/workflow";
 import { useZustandShallowSelector } from "@/hooks";
 import { useWorkflowStore } from "@/stores/workflow";
 
+/**
+ *
+ * @deprecated
+ */
 export interface WorkflowElementsProps {
   className?: string;
   style?: React.CSSProperties;

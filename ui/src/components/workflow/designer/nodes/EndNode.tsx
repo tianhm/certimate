@@ -4,10 +4,11 @@ import { IconLogout } from "@tabler/icons-react";
 import { nanoid } from "nanoid";
 
 import { BaseNode } from "./_shared";
-import { type NodeRegistry, NodeType } from "./typings";
+import { NodeKindType, type NodeRegistry, NodeType } from "./typings";
 
 export const EndNodeRegistry: NodeRegistry = {
   type: NodeType.End,
+  kindType: NodeKindType.Common,
 
   meta: {
     helpText: getI18n().t("workflow_node.end.help"),

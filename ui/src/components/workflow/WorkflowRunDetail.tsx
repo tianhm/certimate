@@ -17,7 +17,7 @@ import { listByWorkflowRunId as listLogsByWorkflowRunId } from "@/repository/wor
 import { mergeCls } from "@/utils/css";
 import { getErrMsg } from "@/utils/error";
 
-import WorkflowStatusIcon from "./WorkflowStatusIcon";
+import WorkflowStatus from "./WorkflowStatus";
 
 export interface WorkflowRunDetailProps {
   className?: string;
@@ -87,34 +87,6 @@ const WorkflowRunLogs = ({ runId, runStatus }: { runId: string; runStatus: strin
 
   const [showTimestamp, setShowTimestamp] = useState(true);
   const [showWhitespace, setShowWhitespace] = useState(true);
-
-  const renderBadge = () => {
-    let color: string | undefined;
-
-    switch (runStatus) {
-      case WORKFLOW_RUN_STATUSES.PENDING:
-        break;
-      case WORKFLOW_RUN_STATUSES.RUNNING:
-        color = themeToken.colorInfo;
-        break;
-      case WORKFLOW_RUN_STATUSES.SUCCEEDED:
-        color = themeToken.colorSuccess;
-        break;
-      case WORKFLOW_RUN_STATUSES.FAILED:
-        color = themeToken.colorError;
-        break;
-      case WORKFLOW_RUN_STATUSES.CANCELED:
-        color = themeToken.colorWarning;
-        break;
-    }
-
-    return (
-      <Flex gap="small" style={{ color: color }}>
-        <WorkflowStatusIcon size="1.25em" status={runStatus} />
-        {t(`workflow_run.props.status.${runStatus}`)}
-      </Flex>
-    );
-  };
 
   const renderRecord = (record: Log) => {
     let message = <>{record.message}</>;
@@ -189,7 +161,9 @@ const WorkflowRunLogs = ({ runId, runStatus }: { runId: string; runStatus: strin
       <Typography.Title level={5}>{t("workflow_run.logs")}</Typography.Title>
       <div className="rounded-md bg-black text-stone-200">
         <div className="flex items-center gap-2 p-4">
-          <div className="grow overflow-hidden">{renderBadge()}</div>
+          <div className="grow overflow-hidden">
+            <WorkflowStatus value={runStatus} />
+          </div>
           <div>
             <Dropdown
               menu={{

@@ -1,8 +1,7 @@
 import { forwardRef, memo, useEffect, useImperativeHandle, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { QuestionCircleOutlined as IconQuestionCircleOutlined } from "@ant-design/icons";
 import { IconPlus } from "@tabler/icons-react";
-import { Button, Divider, Flex, Form, type FormInstance, Select, Switch, Tooltip, Typography, theme } from "antd";
+import { Button, Divider, Flex, Form, type FormInstance, Select, Switch, Typography, theme } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
@@ -481,11 +480,6 @@ const DeployNodeConfigForm = forwardRef<DeployNodeConfigFormInstance, DeployNode
                 <div className="flex w-full items-center justify-between gap-4">
                   <div className="max-w-full grow truncate">
                     <span>{t("workflow_node.deploy.form.provider_access.label")}</span>
-                    <Tooltip title={t("workflow_node.deploy.form.provider_access.tooltip")}>
-                      <Typography.Text className="ms-1" type="secondary">
-                        <IconQuestionCircleOutlined />
-                      </Typography.Text>
-                    </Tooltip>
                   </div>
                   <div className="text-right">
                     <AccessEditDrawer
@@ -527,7 +521,7 @@ const DeployNodeConfigForm = forwardRef<DeployNodeConfigFormInstance, DeployNode
               name="certificate"
               label={t("workflow_node.deploy.form.certificate.label")}
               rules={[formRule]}
-              tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.certificate.tooltip") }}></span>}
+              tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.certificate.help") }}></span>}
             >
               <Select
                 labelRender={({ label, value }) => {

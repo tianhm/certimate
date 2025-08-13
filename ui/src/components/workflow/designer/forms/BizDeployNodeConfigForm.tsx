@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { getI18n, useTranslation } from "react-i18next";
-import { QuestionCircleOutlined as IconQuestionCircleOutlined } from "@ant-design/icons";
 import { type FlowNodeEntity, getNodeForm } from "@flowgram.ai/fixed-layout-editor";
 import { IconPlus } from "@tabler/icons-react";
-import { type AnchorProps, Button, Divider, Flex, Form, type FormInstance, Select, Switch, Tooltip, Typography, theme } from "antd";
+import { type AnchorProps, Button, Divider, Flex, Form, type FormInstance, Select, Switch, Typography, theme } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
@@ -415,39 +414,32 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
               />
             </Form.Item>
 
-            <Form.Item hidden={!showProviderAccess} noStyle>
-              <label className="mb-1 block">
-                <div className="flex w-full items-center justify-between gap-4">
-                  <div className="max-w-full grow truncate">
-                    <span>{t("workflow_node.deploy.form.provider_access.label")}</span>
-                    <Tooltip title={t("workflow_node.deploy.form.provider_access.tooltip")}>
-                      <Typography.Text className="ms-1" type="secondary">
-                        <IconQuestionCircleOutlined />
-                      </Typography.Text>
-                    </Tooltip>
-                  </div>
-                  <div className="text-right">
-                    <AccessEditDrawer
-                      data={{ provider: deploymentProvidersMap.get(fieldProvider!)?.provider }}
-                      mode="create"
-                      trigger={
-                        <Button size="small" type="link">
-                          {t("workflow_node.deploy.form.provider_access.button")}
-                          <IconPlus size="1.25em" />
-                        </Button>
-                      }
-                      usage="hosting"
-                      afterSubmit={(record) => {
-                        const provider = accessProvidersMap.get(record.provider);
-                        if (provider?.usages?.includes(ACCESS_USAGES.HOSTING)) {
-                          formInst.setFieldValue("providerAccessId", record.id);
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
-              </label>
-              <Form.Item name="providerAccessId" rules={[formRule]}>
+            <Form.Item
+              className="relative"
+              hidden={!showProviderAccess}
+              label={t("workflow_node.deploy.form.provider_access.label")}
+              tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.provider_access.tooltip") }}></span>}
+            >
+              <div className="absolute -top-[6px] right-0 -translate-y-full">
+                <AccessEditDrawer
+                  data={{ provider: deploymentProvidersMap.get(fieldProvider!)?.provider }}
+                  mode="create"
+                  trigger={
+                    <Button size="small" type="link">
+                      {t("workflow_node.deploy.form.provider_access.button")}
+                      <IconPlus size="1.25em" />
+                    </Button>
+                  }
+                  usage="hosting"
+                  afterSubmit={(record) => {
+                    const provider = accessProvidersMap.get(record.provider);
+                    if (provider?.usages?.includes(ACCESS_USAGES.HOSTING)) {
+                      formInst.setFieldValue("providerAccessId", record.id);
+                    }
+                  }}
+                />
+              </div>
+              <Form.Item name="providerAccessId" rules={[formRule]} noStyle>
                 <AccessSelect
                   placeholder={t("workflow_node.deploy.form.provider_access.placeholder")}
                   showSearch
@@ -465,8 +457,8 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
             <Form.Item
               name="certificate"
               label={t("workflow_node.deploy.form.certificate.label")}
+              extra={t("workflow_node.deploy.form.certificate.help")}
               rules={[formRule]}
-              tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.certificate.tooltip") }}></span>}
             >
               <Select
                 labelRender={({ label, value }) => {
@@ -525,7 +517,7 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
   );
 };
 
-const getAnchorItems = ({ i18n = getI18n() }: { i18n: ReturnType<typeof getI18n> }): Required<AnchorProps>["items"] => {
+const getAnchorItems = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }): Required<AnchorProps>["items"] => {
   const { t } = i18n;
 
   return ["parameters", "deployment", "strategy"].map((key) => ({
@@ -543,7 +535,7 @@ const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   };
 };
 
-const getSchema = ({ i18n = getI18n() }: { i18n: ReturnType<typeof getI18n> }) => {
+const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) => {
   const { t } = i18n;
 
   return z

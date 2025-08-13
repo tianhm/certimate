@@ -1,10 +1,11 @@
-﻿import { useRequest } from "ahooks";
+﻿import { useEffect, useState } from "react";
+import { useRequest } from "ahooks";
 
 import { APP_VERSION } from "@/domain/app";
 
 export type UseVersionCheckerReturns = {
-  hasNewVersion: boolean;
-  checkNewVersion: () => void;
+  hasUpdate: boolean;
+  checkUpdate: () => Promise<boolean>;
 };
 
 const extractSemver = (vers: string) => {
@@ -31,39 +32,90 @@ const compareVersions = (a: string, b: string) => {
   return 0;
 };
 
+const LOCAL_STORAGE_KEY = "certimate-ui-newver";
+
 /**
  * 获取版本检查器。
  * @returns {UseVersionCheckerReturns}
  */
 const useVersionChecker = () => {
-  const { data, refresh } = useRequest(
-    async () => {
-      const releases = await fetch("https://api.github.com/repos/certimate-go/certimate/releases")
-        .then((res) => res.json())
-        .then((res) => Array.from(res));
+  const [hasUpdate, setHasUpdate] = useState(() => {
+    const newver = localStorage.getItem(LOCAL_STORAGE_KEY)!;
+    if (newver) {
+      return compareVersions(newver, APP_VERSION) === 1;
+    }
 
-      const cIdx = releases.findIndex((e: any) => e.name === APP_VERSION);
+    return false;
+  });
+
+  const { refresh, cancel } = useRequest(
+    async () => {
+      type ReleaseInfo = {
+        id: number;
+        name: string;
+        body: string;
+        prerelease: boolean;
+      };
+
+      let releases: ReleaseInfo[] = [];
+      try {
+        // try to fetch from GitHub
+        releases = await fetch("https://api.github.com/repos/certimate-go/certimate/releases").then((res) => {
+          if (res.ok) {
+            return res.json().then((res) => Array.from(res) as ReleaseInfo[]);
+          } else {
+            throw new Error("Failed to check update from GitHub");
+          }
+        });
+      } catch {
+        // fallback to fetch from Gitee
+        releases = await fetch("https://gitee.com/api/v5/repos/certimate-go/certimate/releases").then((res) => {
+          if (res.ok) {
+            return res.json().then((res) => Array.from(res) as ReleaseInfo[]);
+          } else {
+            throw new Error("Failed to check update from GitHub");
+          }
+        });
+      }
+
+      const cIdx = releases.findIndex((e) => e.name === APP_VERSION);
       if (cIdx === 0) {
         return false;
       }
 
-      const nIdx = releases.findIndex((e: any) => compareVersions(e.name, APP_VERSION) !== -1);
+      const nIdx = releases.findIndex((e) => compareVersions(e.name, APP_VERSION) !== -1);
       if (cIdx !== -1 && cIdx <= nIdx) {
         return false;
+      }
+
+      if (releases[nIdx]) {
+        localStorage.setItem(LOCAL_STORAGE_KEY, releases[nIdx].name);
+      } else {
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
       }
 
       return !!releases[nIdx];
     },
     {
       pollingInterval: 6 * 60 * 60 * 1000,
-      refreshOnWindowFocus: true,
       focusTimespan: 15 * 60 * 1000,
+      throttleWait: 60 * 1000,
+      manual: true,
+      onSuccess: (res) => {
+        setHasUpdate(res);
+      },
     }
   );
 
+  useEffect(() => {
+    refresh();
+
+    return () => cancel();
+  }, []);
+
   return {
-    hasNewVersion: !!data,
-    checkNewVersion: refresh,
+    hasUpdate: hasUpdate,
+    checkUpdate: refresh,
   };
 };
 

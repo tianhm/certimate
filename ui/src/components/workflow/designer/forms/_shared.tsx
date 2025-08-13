@@ -21,9 +21,7 @@ export interface NodeConfigDrawerProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-export const NodeConfigDrawer = (_: NodeConfigDrawerProps) => {
-  const { children, anchor, footer = true, form: formInst, loading, node, ...props } = _;
-
+export const NodeConfigDrawer = ({ children, anchor, footer = true, form: formInst, loading, node, ...props }: NodeConfigDrawerProps) => {
   const { t } = useTranslation();
 
   const { modal, notification } = App.useApp();

@@ -23,8 +23,8 @@ const BizNotifyNodeConfigFormProviderEmail = () => {
         name={[parentNamePath, "receiverAddress"]}
         initialValue={initialValues.receiverAddress}
         label={t("workflow_node.notify.form.email_receiver_address.label")}
+        extra={t("workflow_node.notify.form.email_receiver_address.help")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.notify.form.email_receiver_address.tooltip") }}></span>}
       >
         <Input type="email" allowClear placeholder={t("workflow_node.notify.form.email_receiver_address.placeholder")} />
       </Form.Item>
@@ -36,7 +36,7 @@ const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   return {};
 };
 
-const getSchema = ({ i18n = getI18n() }: { i18n: ReturnType<typeof getI18n> }) => {
+const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) => {
   const { t } = i18n;
 
   return z.object({

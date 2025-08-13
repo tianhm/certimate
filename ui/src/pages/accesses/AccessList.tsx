@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { CopyToClipboard } from "react-copy-to-clipboard";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { IconCirclePlus, IconCopy, IconDots, IconEdit, IconFingerprint, IconPlus, IconReload, IconTrash } from "@tabler/icons-react";
@@ -26,7 +27,7 @@ const AccessList = () => {
 
   const { token: themeToken } = theme.useToken();
 
-  const { modal, notification } = App.useApp();
+  const { message, modal, notification } = App.useApp();
 
   const { appSettings: globalAppSettings } = useAppSettings();
 
@@ -47,6 +48,28 @@ const AccessList = () => {
   const [tableTotal, setTableTotal] = useState<number>(0);
   const [tableSelectedRowKeys, setTableSelectedRowKeys] = useState<string[]>([]);
   const tableColumns: TableProps<AccessModel>["columns"] = [
+    {
+      key: "id",
+      title: "ID",
+      width: 160,
+      render: (_, record) => {
+        return (
+          <CopyToClipboard
+            text={record.id}
+            onCopy={() => {
+              message.success(t("common.text.copied"));
+            }}
+          >
+            <div className="group/td cursor-pointer" onClick={(e) => e.stopPropagation()}>
+              <div className="relative inline-block">
+                <span className="z-1 font-mono">{record.id}</span>
+                <div className="absolute top-0 left-0 size-full scale-110 overflow-hidden rounded bg-primary opacity-0 transition-opacity group-hover/td:opacity-10"></div>
+              </div>
+            </div>
+          </CopyToClipboard>
+        );
+      },
+    },
     {
       key: "name",
       title: t("access.props.name"),
@@ -83,7 +106,7 @@ const AccessList = () => {
             items: [
               {
                 key: "edit",
-                label: t("access.action.edit.button"),
+                label: t("access.action.edit.menu"),
                 icon: (
                   <span className="anticon scale-125">
                     <IconEdit size="1em" />
@@ -95,7 +118,7 @@ const AccessList = () => {
               },
               {
                 key: "duplicate",
-                label: t("access.action.duplicate.button"),
+                label: t("access.action.duplicate.menu"),
                 icon: (
                   <span className="anticon scale-125">
                     <IconCopy size="1em" />
@@ -110,7 +133,7 @@ const AccessList = () => {
               },
               {
                 key: "delete",
-                label: t("access.action.delete.button"),
+                label: t("access.action.delete.menu"),
                 danger: true,
                 icon: (
                   <span className="anticon scale-125">
@@ -228,6 +251,7 @@ const AccessList = () => {
       onSuccess: (res) => {
         setTableData(res.items);
         setTableTotal(res.totalItems);
+        setTableSelectedRowKeys([]);
       },
     }
   );
@@ -316,7 +340,6 @@ const AccessList = () => {
         try {
           const resp = await deleteAccess(records);
           if (resp) {
-            setTableSelectedRowKeys([]);
             setTableData((prev) => prev.filter((item) => !records.some((record) => record.id === item.id)));
             setTableTotal((prev) => prev - records.length);
             refreshData();
@@ -391,6 +414,7 @@ const AccessList = () => {
                 <Skeleton />
               ) : (
                 <Empty
+                  className="py-24"
                   title={t("access.nodata.title")}
                   description={t("access.nodata.description")}
                   icon={<IconFingerprint size={24} />}
@@ -431,7 +455,7 @@ const AccessList = () => {
               }}
             >
               <div className="flex size-full items-center justify-end gap-x-2 overflow-hidden px-4 py-2">
-                <Button icon={<IconTrash size="1.25em" />} danger ghost onClick={handleBatchDeleteClick}>
+                <Button danger ghost onClick={handleBatchDeleteClick}>
                   {t("common.button.delete")}
                 </Button>
               </div>

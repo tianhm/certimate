@@ -7,10 +7,12 @@ import { nanoid } from "nanoid";
 import { deploymentProvidersMap } from "@/domain/provider";
 
 import { BaseNode } from "./_shared";
-import { type NodeRegistry, NodeType } from "./typings";
+import { NodeKindType, type NodeRegistry, NodeType } from "./typings";
+import BizDeployNodeConfigForm from "../forms/BizDeployNodeConfigForm";
 
 export const BizDeployNodeRegistry: NodeRegistry = {
   type: NodeType.BizDeploy,
+  kindType: NodeKindType.Business,
 
   meta: {
     helpText: getI18n().t("workflow_node.deploy.help"),
@@ -25,18 +27,11 @@ export const BizDeployNodeRegistry: NodeRegistry = {
 
   formMeta: {
     validate: {
-      ["config.provider"]: ({ value }) => {
-        if (!value) {
+      ["config"]: ({ value }) => {
+        const res = BizDeployNodeConfigForm.getSchema({}).safeParse(value);
+        if (!res.success) {
           return {
-            message: "required",
-            level: FeedbackLevel.Error,
-          };
-        }
-      },
-      ["config.providerAccessId"]: ({ value }) => {
-        if (!value) {
-          return {
-            message: "required",
+            message: res.error.message,
             level: FeedbackLevel.Error,
           };
         }

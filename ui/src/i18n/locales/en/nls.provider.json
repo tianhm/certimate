@@ -1,6 +1,6 @@
 ﻿{
   "provider.1panel": "1Panel",
-  "provider.1panel.console": "1Panel - Console",
+  "provider.1panel.console": "1Panel - Console itself",
   "provider.1panel.site": "1Panel - Website",
   "provider.acmeca": "ACME Custom CA Endpoint",
   "provider.acmehttpreq": "ACME Custom HTTP Endpoint",
@@ -42,10 +42,10 @@
   "provider.baishan": "Baishan",
   "provider.baishan.cdn": "Baishan - CDN (Content Delivery Network)",
   "provider.baotapanel": "aaPanel (aka BaotaPanel)",
-  "provider.baotapanel.console": "aaPanel (aka BaotaPanel) - Console",
+  "provider.baotapanel.console": "aaPanel (aka BaotaPanel) - Console itself",
   "provider.baotapanel.site": "aaPanel (aka BaotaPanel) - Website",
   "provider.baotawaf": "aaWAF (aka BaotaWAF)",
-  "provider.baotawaf.console": "aaWAF (aka BaotaWAF) - Console",
+  "provider.baotawaf.console": "aaWAF (aka BaotaWAF) - Console itself",
   "provider.baotawaf.site": "aaWAF (aka BaotaWAF) - Website",
   "provider.bunny": "Bunny",
   "provider.bunny.cdn": "Bunny - CDN (Content Delivery Network)",
@@ -127,7 +127,7 @@
   "provider.rainyun": "Rain Yun",
   "provider.rainyun.rcdn": "Rain Yun - RCDN (Content Delivery Network)",
   "provider.ratpanel": "RatPanel",
-  "provider.ratpanel.console": "RatPanel - Console",
+  "provider.ratpanel.console": "RatPanel - Console itself",
   "provider.ratpanel.site": "RatPanel - Website",
   "provider.safeline": "SafeLine",
   "provider.slackbot": "Slack Bot",
@@ -193,5 +193,6 @@
   "provider.category.nas": "NAS",
   "provider.category.other": "Other",
 
-  "provider.text.default_ca_provider.label": "(Default) Follow global settings"
+  "provider.text.default_ca_provider": "(Default) Follow global settings",
+  "provider.text.show_available_hosting_provider_only": "Only display available providers (with added credentials)"
 }

@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CheckCard } from "@ant-design/pro-components";
-import { App, Button, Form, Input, Skeleton, Typography } from "antd";
+import { App, Button, Card, Form, Input, Skeleton, Typography } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { produce } from "immer";
 import { z } from "zod";
@@ -12,6 +11,7 @@ import { type CAProviderType, CA_PROVIDERS } from "@/domain/provider";
 import { SETTINGS_NAMES, type SSLProviderSettingsContent, type SettingsModel } from "@/domain/settings";
 import { useAntdForm } from "@/hooks";
 import { get as getSettings, save as saveSettings } from "@/repository/settings";
+import { mergeCls } from "@/utils/css";
 import { getErrMsg } from "@/utils/error";
 
 const SSLProviderContext = createContext(
@@ -359,6 +359,86 @@ const SSLProviderEditFormZeroSSLConfig = () => {
   );
 };
 
+const SSLProviderEditFormACMECAConfig = () => {
+  const { t } = useTranslation();
+
+  const { pending, settings, updateSettings } = useContext(SSLProviderContext);
+
+  const formSchema = z.object({
+    endpoint: z.url(t("common.errmsg.url_invalid")),
+    eabKid: z
+      .string(t("access.form.acmeca_eab_kid.placeholder"))
+      .min(1, t("access.form.acmeca_eab_kid.placeholder"))
+      .max(256, t("common.errmsg.string_max", { max: 256 })),
+    eabHmacKey: z
+      .string(t("access.form.acmeca_eab_hmac_key.placeholder"))
+      .min(1, t("access.form.acmeca_eab_hmac_key.placeholder"))
+      .max(256, t("common.errmsg.string_max", { max: 256 })),
+  });
+  const formRule = createSchemaFieldRule(formSchema);
+  const { form: formInst, formProps } = useAntdForm<z.infer<typeof formSchema>>({
+    initialValues: settings?.content?.config?.[CA_PROVIDERS.ACMECA],
+    onSubmit: async (values) => {
+      const newSettings = produce(settings, (draft) => {
+        draft.content ??= {} as SSLProviderSettingsContent;
+        draft.content.provider = CA_PROVIDERS.ACMECA;
+
+        draft.content.config ??= {} as SSLProviderSettingsContent["config"];
+        draft.content.config[CA_PROVIDERS.ACMECA] = values;
+      });
+      await updateSettings(newSettings);
+
+      setFormChanged(false);
+    },
+  });
+
+  const [formChanged, setFormChanged] = useState(false);
+  useEffect(() => {
+    setFormChanged(settings?.content?.provider !== CA_PROVIDERS.ACMECA);
+  }, [settings?.content?.provider]);
+
+  const handleFormChange = () => {
+    setFormChanged(true);
+  };
+
+  return (
+    <Form {...formProps} form={formInst} disabled={pending} layout="vertical" onValuesChange={handleFormChange}>
+      <Form.Item
+        name="endpoint"
+        label={t("access.form.acmeca_endpoint.label")}
+        rules={[formRule]}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.acmeca_endpoint.tooltip") }}></span>}
+      >
+        <Input placeholder={t("access.form.acmeca_endpoint.placeholder")} />
+      </Form.Item>
+
+      <Form.Item
+        name="eabKid"
+        label={t("access.form.zerossl_eab_kid.label")}
+        rules={[formRule]}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.zerossl_eab_kid.tooltip") }}></span>}
+      >
+        <Input autoComplete="new-password" placeholder={t("access.form.zerossl_eab_kid.placeholder")} />
+      </Form.Item>
+
+      <Form.Item
+        name="eabHmacKey"
+        label={t("access.form.zerossl_eab_hmac_key.label")}
+        rules={[formRule]}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.zerossl_eab_hmac_key.tooltip") }}></span>}
+      >
+        <Input.Password autoComplete="new-password" placeholder={t("access.form.zerossl_eab_hmac_key.placeholder")} />
+      </Form.Item>
+
+      <Form.Item>
+        <Button type="primary" htmlType="submit" disabled={!formChanged} loading={pending}>
+          {t("common.button.save")}
+        </Button>
+      </Form.Item>
+    </Form>
+  );
+};
+
 const SettingsSSLProvider = () => {
   const { t } = useTranslation();
 
@@ -375,7 +455,7 @@ const SettingsSSLProvider = () => {
 
       const settings = await getSettings<SSLProviderSettingsContent>(SETTINGS_NAMES.SSL_PROVIDER);
       setSettings(settings);
-      setProviderType(settings.content?.provider);
+      setProviderValue(settings.content?.provider);
 
       setLoading(false);
     };
@@ -383,9 +463,25 @@ const SettingsSSLProvider = () => {
     fetchData();
   }, []);
 
-  const [providerType, setProviderType] = useState<CAProviderType>(CA_PROVIDERS.LETSENCRYPT);
+  const providers = [
+    [CA_PROVIDERS.LETSENCRYPT, "provider.letsencrypt", "letsencrypt.org", "/imgs/providers/letsencrypt.svg"],
+    [CA_PROVIDERS.LETSENCRYPTSTAGING, "provider.letsencryptstaging", "letsencrypt.org", "/imgs/providers/letsencrypt.svg"],
+    [CA_PROVIDERS.BUYPASS, "provider.buypass", "buypass.com", "/imgs/providers/buypass.png"],
+    [CA_PROVIDERS.GOOGLETRUSTSERVICES, "provider.googletrustservices", "pki.goog", "/imgs/providers/google.svg"],
+    [CA_PROVIDERS.SSLCOM, "provider.sslcom", "ssl.com", "/imgs/providers/sslcom.svg"],
+    [CA_PROVIDERS.ZEROSSL, "provider.zerossl", "zerossl.com", "/imgs/providers/zerossl.svg"],
+    [CA_PROVIDERS.ACMECA, "provider.acmeca", "\u00A0", "/imgs/providers/acmeca.svg"],
+  ].map(([value, name, description, icon]) => {
+    return {
+      value: value as CAProviderType,
+      name: t(name),
+      description,
+      icon,
+    };
+  });
+  const [providerValue, setProviderValue] = useState<CAProviderType>(CA_PROVIDERS.LETSENCRYPT);
   const providerFormEl = useMemo(() => {
-    switch (providerType) {
+    switch (providerValue) {
       case CA_PROVIDERS.LETSENCRYPT:
         return <SSLProviderEditFormLetsEncryptConfig />;
       case CA_PROVIDERS.LETSENCRYPTSTAGING:
@@ -398,8 +494,10 @@ const SettingsSSLProvider = () => {
         return <SSLProviderEditFormSSLComConfig />;
       case CA_PROVIDERS.ZEROSSL:
         return <SSLProviderEditFormZeroSSLConfig />;
+      case CA_PROVIDERS.ACMECA:
+        return <SSLProviderEditFormACMECAConfig />;
     }
-  }, [providerType]);
+  }, [providerValue]);
 
   const updateContextSettings = async (settings: MaybeModelRecordWithId<SettingsModel<SSLProviderSettingsContent>>) => {
     setFormPending(true);
@@ -407,7 +505,7 @@ const SettingsSSLProvider = () => {
     try {
       const resp = await saveSettings(settings);
       setSettings(resp);
-      setProviderType(resp.content?.provider);
+      setProviderValue(resp.content?.provider);
 
       message.success(t("common.text.operation_succeeded"));
     } catch (err) {
@@ -427,58 +525,41 @@ const SettingsSSLProvider = () => {
     >
       <h2>{t("settings.sslprovider.ca.title")}</h2>
       <Show when={!loading} fallback={<Skeleton active />}>
-        <Form form={formInst} disabled={formPending} layout="vertical" initialValues={{ provider: providerType }}>
+        <Form form={formInst} disabled={formPending} layout="vertical" initialValues={{ provider: providerValue }}>
           <div className="mb-2">
             <Typography.Text type="secondary">
               <span dangerouslySetInnerHTML={{ __html: t("settings.sslprovider.ca.tips") }}></span>
             </Typography.Text>
           </div>
 
-          <Form.Item name="provider" label={t("settings.sslprovider.form.provider.label")}>
-            <CheckCard.Group className="w-full" onChange={(value) => setProviderType(value as CAProviderType)}>
-              <CheckCard
-                avatar={<img src={"/imgs/providers/letsencrypt.svg"} className="size-8" />}
-                size="small"
-                title={t("provider.letsencrypt")}
-                description="letsencrypt.org"
-                value={CA_PROVIDERS.LETSENCRYPT}
-              />
-              <CheckCard
-                avatar={<img src={"/imgs/providers/letsencrypt.svg"} className="size-8" />}
-                size="small"
-                title={t("provider.letsencryptstaging")}
-                description="letsencrypt.org"
-                value={CA_PROVIDERS.LETSENCRYPTSTAGING}
-              />
-              <CheckCard
-                avatar={<img src={"/imgs/providers/buypass.png"} className="size-8" />}
-                size="small"
-                title={t("provider.buypass")}
-                description="buypass.com"
-                value={CA_PROVIDERS.BUYPASS}
-              />
-              <CheckCard
-                avatar={<img src={"/imgs/providers/google.svg"} className="size-8" />}
-                size="small"
-                title={t("provider.googletrustservices")}
-                description="pki.goog"
-                value={CA_PROVIDERS.GOOGLETRUSTSERVICES}
-              />
-              <CheckCard
-                avatar={<img src={"/imgs/providers/sslcom.svg"} className="size-8" />}
-                size="small"
-                title={t("provider.sslcom")}
-                description="ssl.com"
-                value={CA_PROVIDERS.SSLCOM}
-              />
-              <CheckCard
-                avatar={<img src={"/imgs/providers/zerossl.svg"} className="size-8" />}
-                size="small"
-                title={t("provider.zerossl")}
-                description="zerossl.com"
-                value={CA_PROVIDERS.ZEROSSL}
-              />
-            </CheckCard.Group>
+          <Form.Item name="provider" label={t("settings.sslprovider.form.provider.label")} extra={t("settings.sslprovider.form.provider.help")}>
+            <div className="flex w-full flex-wrap items-center gap-4">
+              {providers.map((provider) => (
+                <Card
+                  key={provider.value}
+                  className={mergeCls("relative overflow-hidden", { ["border-primary"]: providerValue === provider.value })}
+                  style={{ width: 280 }}
+                  styles={{
+                    body: { padding: 0 },
+                  }}
+                  hoverable
+                  onClick={() => setProviderValue(provider.value)}
+                >
+                  <div className="relative z-1 px-3 py-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <img src={provider.icon} className="size-8" />
+                      </div>
+                      <div className="flex-1 overflow-hidden">
+                        <div className="truncate">{provider.name}</div>
+                        <div className="mt-1 truncate text-xs">{provider.description}</div>
+                      </div>
+                    </div>
+                  </div>
+                  {providerValue === provider.value && <div className="absolute top-0 left-0 size-full bg-primary opacity-20"></div>}
+                </Card>
+              ))}
+            </div>
           </Form.Item>
         </Form>
 

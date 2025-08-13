@@ -93,6 +93,19 @@ const WorkflowDetailDesign = () => {
         <div className="size-full pt-9">
           <div className="absolute top-8 z-10 w-full px-4">
             <div className="container">
+              <Alert
+                className="mb-2"
+                message={
+                  <div>
+                    该子页面即将在 v0.4.0 中被移除。
+                    <br />
+                    This subpage will be dropped in v0.4.0.
+                  </div>
+                }
+                showIcon
+                closable
+                type="warning"
+              />
               <div className="flex items-center justify-end gap-4">
                 <div className="flex flex-1 items-center justify-end gap-4 overflow-hidden">
                   <div className="flex-1 overflow-hidden">

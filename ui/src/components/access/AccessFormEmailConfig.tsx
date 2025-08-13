@@ -117,7 +117,12 @@ const AccessFormEmailConfig = ({ form: formInst, formName, disabled, initialValu
         <Input allowClear placeholder={t("access.form.email_sender_name.placeholder")} />
       </Form.Item>
 
-      <Form.Item name="receiverAddress" label={t("access.form.email_receiver_address.label")} rules={[formRule]}>
+      <Form.Item
+        name="receiverAddress"
+        label={t("access.form.email_receiver_address.label")}
+        extra={t("access.form.email_receiver_address.help")}
+        rules={[formRule]}
+      >
         <Input type="email" allowClear placeholder={t("access.form.email_receiver_address.placeholder")} />
       </Form.Item>
     </Form>

@@ -1,9 +1,10 @@
 import { getI18n, useTranslation } from "react-i18next";
-import { Alert, Form } from "antd";
+import { Form } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
 import CodeInput from "@/components/CodeInput";
+import Tips from "@/components/Tips";
 
 import { useFormNestedFieldsContext } from "./_context";
 
@@ -19,10 +20,10 @@ const BizDeployNodeConfigFormProviderWebhook = () => {
   const initialValues = getInitialValues();
 
   const handleWebhookDataBlur = () => {
-    const value = formInst.getFieldValue("webhookData");
+    const value = formInst.getFieldValue([parentNamePath, "webhookData"]);
     try {
       const json = JSON.stringify(JSON.parse(value), null, 2);
-      formInst.setFieldValue("webhookData", json);
+      formInst.setFieldValue([parentNamePath, "webhookData"], json);
     } catch {
       return;
     }
@@ -34,8 +35,8 @@ const BizDeployNodeConfigFormProviderWebhook = () => {
         name={[parentNamePath, "webhookData"]}
         initialValue={initialValues.webhookData}
         label={t("workflow_node.deploy.form.webhook_data.label")}
+        extra={t("workflow_node.deploy.form.webhook_data.help")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.webhook_data.tooltip") }}></span>}
       >
         <CodeInput
           height="auto"
@@ -48,7 +49,7 @@ const BizDeployNodeConfigFormProviderWebhook = () => {
       </Form.Item>
 
       <Form.Item>
-        <Alert type="info" message={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.webhook_data.guide") }}></span>} />
+        <Tips message={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.webhook_data.guide") }}></span>} />
       </Form.Item>
     </>
   );
@@ -58,7 +59,7 @@ const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   return {};
 };
 
-const getSchema = ({ i18n = getI18n() }: { i18n: ReturnType<typeof getI18n> }) => {
+const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) => {
   const { t } = i18n;
 
   return z.object({

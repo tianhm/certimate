@@ -8,7 +8,7 @@ import { nanoid } from "nanoid";
 import { debounce, isEqual } from "radash";
 
 import Show from "@/components/Show";
-import WorkflowEditor, { type EditorInstance as WorkflowEditorInstance } from "@/components/workflow/designer/Editor";
+import WorkflowDesigner, { type DesignerInstance as WorkflowDesignerInstance } from "@/components/workflow/designer/Designer";
 import WorkflowNodeDrawer from "@/components/workflow/designer/NodeDrawer";
 import WorkflowToolbar from "@/components/workflow/designer/Toolbar";
 import { type WorkflowNode, WorkflowNodeType } from "@/domain/workflow";
@@ -41,22 +41,22 @@ const WorkflowDetailDesign = () => {
     setAllowPublish(!isPendingOrRunning && hasChanges);
   }, [workflow.content, workflow.draft, workflow.hasDraft, isPendingOrRunning]);
 
-  const editorRef = useRef<WorkflowEditorInstance>(null);
-  const [editorData, setEditorData] = useState<FlowDocumentJSON>();
+  const designerRef = useRef<WorkflowDesignerInstance>(null);
+  const [degisnerData, setEditorData] = useState<FlowDocumentJSON>();
   useDeepCompareEffect(() => {
     const data = { nodes: compactWorkflowDraft(workflow.draft) };
-    editorRef.current?.document?.fromJSON(data);
+    designerRef.current?.document?.fromJSON(data);
     setEditorData(data);
   }, [workflow.draft]);
 
-  const onEditorDocumentChange = debounce({ delay: 300 }, () => {
-    if (!editorRef.current || editorRef.current.document.disposed) return;
+  const onDesignerDocumentChange = debounce({ delay: 300 }, () => {
+    if (!designerRef.current || designerRef.current.document.disposed) return;
 
-    console.log("document changed", editorRef.current!.document.toJSON());
+    console.log("document changed", designerRef.current!.document.toJSON());
   });
 
   useEffect(() => {
-    const disposable = editorRef.current?.document?.originTree?.onTreeChange(onEditorDocumentChange);
+    const disposable = designerRef.current?.document?.originTree?.onTreeChange(onDesignerDocumentChange);
     return () => disposable?.dispose();
   }, []);
 
@@ -80,7 +80,7 @@ const WorkflowDetailDesign = () => {
   };
 
   const handlePublishClick = async () => {
-    if (!(await editorRef.current!.validateAllNodes())) {
+    if (!(await designerRef.current!.validateAllNodes())) {
       message.warning(t("workflow.detail.design.uncompleted_design.alert"));
       return;
     }
@@ -113,9 +113,9 @@ const WorkflowDetailDesign = () => {
           },
         }}
       >
-        <WorkflowEditor
-          ref={editorRef}
-          initialData={editorData}
+        <WorkflowDesigner
+          ref={designerRef}
+          initialData={degisnerData}
           onNodeClick={(_, node) => {
             setDrawerNode(node);
             setNodeDrawerOpen(true);
@@ -123,6 +123,19 @@ const WorkflowDetailDesign = () => {
         >
           <div className="absolute top-8 z-10 w-full px-4">
             <div className="container">
+              <Alert
+                className="mb-2"
+                message={
+                  <div>
+                    该子页面仍在建设中，目前各节点数据只读，如需编辑请使用旧版编排工具。
+                    <br />
+                    This subpage is under construction. All node data is read-only currently. Please use the legacy designer if you want to edit workflow.
+                  </div>
+                }
+                showIcon
+                closable
+                type="warning"
+              />
               <div className="flex items-center justify-end gap-4">
                 <div className="flex flex-1 items-center justify-end gap-4 overflow-hidden">
                   <div className="flex-1 overflow-hidden">
@@ -169,7 +182,7 @@ const WorkflowDetailDesign = () => {
           </div>
 
           <WorkflowNodeDrawer {...nodeDrawerProps} />
-        </WorkflowEditor>
+        </WorkflowDesigner>
       </Card>
     </div>
   );

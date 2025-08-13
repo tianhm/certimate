@@ -50,7 +50,7 @@ const NotifyNodeConfigFormDiscordBotConfig = ({
         name="channelId"
         label={t("workflow_node.notify.form.discordbot_channel_id.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.notify.form.discordbot_channel_id.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.notify.form.discordbot_channel_id.help") }}></span>}
       >
         <Input allowClear placeholder={t("workflow_node.notify.form.discordbot_channel_id.placeholder")} />
       </Form.Item>

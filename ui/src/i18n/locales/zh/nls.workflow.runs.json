@@ -1,18 +1,19 @@
 {
-  "workflow_run.action.view.button": "查看详情",
-  "workflow_run.action.cancel.button": "取消运行",
+  "workflow_run.action.view.menu": "查看详情",
+  "workflow_run.action.cancel.menu": "取消运行",
   "workflow_run.action.cancel.modal.title": "取消运行",
   "workflow_run.action.cancel.modal.content": "确定要取消此运行吗？取消后仅会中止流程，但不会回滚已执行的节点。",
-  "workflow_run.action.delete.button": "删除运行历史",
+  "workflow_run.action.delete.menu": "删除运行",
   "workflow_run.action.delete.modal.title": "删除运行「{{name}}」",
   "workflow_run.action.delete.modal.content": "确定要删除该工作流运行历史吗？删除后仅会清除日志历史，但不会影响签发的证书。<br>注意此操作不可撤销，请谨慎操作。",
+  "workflow_run.action.batch_delete.modal.title": "删除运行历史",
+  "workflow_run.action.batch_delete.modal.content": "确定要删除这 {{count}} 个被选中的工作流运行历史吗？删除后仅会清除日志历史，但不会影响签发的证书。<br>注意此操作不可撤销，请谨慎操作。",
 
   "workflow_run.deletion.alert": "运行历史中包含工作流各节点的运行结果，删除后可能导致因找不到前次运行结果而触发重新申请或部署证书。如无必要请勿提前删除，建议保留至少 180 天。",
   "workflow_run.cancellation.alert": "如遇进程意外中止、服务器超时等原因，你可以手动取消长时间挂起的运行，避免阻塞后续运行。",
 
   "workflow_run.nodata.description": "当前未找到任何运行历史。请先运行此工作流。",
 
-  "workflow_run.props.id": "ID",
   "workflow_run.props.status": "状态",
   "workflow_run.props.status.pending": "等待运行",
   "workflow_run.props.status.running": "运行中",

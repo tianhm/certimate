@@ -4,10 +4,11 @@ import { IconArrowsSplit, IconCircleX } from "@tabler/icons-react";
 import { nanoid } from "nanoid";
 
 import { BaseNode, BranchNode } from "./_shared";
-import { type NodeRegistry, NodeType } from "./typings";
+import { NodeKindType, type NodeRegistry, NodeType } from "./typings";
 
 export const TryCatchNodeRegistry: NodeRegistry = {
   type: NodeType.TryCatch,
+  kindType: NodeKindType.Logic,
 
   meta: {
     helpText: getI18n().t("workflow_node.try_catch.help"),
@@ -65,6 +66,7 @@ export const TryCatchNodeRegistry: NodeRegistry = {
 
 export const CatchBlockNodeRegistry: NodeRegistry = {
   type: NodeType.CatchBlock,
+  kindType: NodeKindType.Logic,
 
   meta: {
     labelText: getI18n().t("workflow_node.catch_block.label"),

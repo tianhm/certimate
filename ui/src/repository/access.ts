@@ -35,7 +35,7 @@ export const remove = async (record: MaybeModelRecordWithId<AccessModel> | Maybe
       batch.collection(COLLECTION_NAME_ACCESS).update(item.id, { deleted: deletedAt });
     }
     const res = await batch.send();
-    return res.every((e) => e.status === 200);
+    return res.every((e) => e.status >= 200 && e.status < 400);
   } else {
     await pb.collection(COLLECTION_NAME_ACCESS).update<AccessModel>(record.id!, { deleted: deletedAt });
     return true;

@@ -20,10 +20,10 @@ const BizNotifyNodeConfigFormProviderWebhook = () => {
   const initialValues = getInitialValues();
 
   const handleWebhookDataBlur = () => {
-    const value = formInst.getFieldValue("webhookData");
+    const value = formInst.getFieldValue([parentNamePath, "webhookData"]);
     try {
       const json = JSON.stringify(JSON.parse(value), null, 2);
-      formInst.setFieldValue("webhookData", json);
+      formInst.setFieldValue([parentNamePath, "webhookData"], json);
     } catch {
       return;
     }
@@ -35,8 +35,8 @@ const BizNotifyNodeConfigFormProviderWebhook = () => {
         name={[parentNamePath, "webhookData"]}
         initialValue={initialValues.webhookData}
         label={t("workflow_node.notify.form.webhook_data.label")}
+        extra={t("workflow_node.notify.form.webhook_data.help")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.notify.form.webhook_data.tooltip") }}></span>}
       >
         <CodeInput
           height="auto"
@@ -59,7 +59,7 @@ const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   return {};
 };
 
-const getSchema = ({ i18n = getI18n() }: { i18n: ReturnType<typeof getI18n> }) => {
+const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) => {
   const { t } = i18n;
 
   return z.object({

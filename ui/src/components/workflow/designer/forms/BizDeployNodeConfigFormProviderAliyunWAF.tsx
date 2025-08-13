@@ -56,6 +56,7 @@ const BizDeployNodeConfigFormProviderAliyunWAF = () => {
         name={[parentNamePath, "domain"]}
         initialValue={initialValues.domain}
         label={t("workflow_node.deploy.form.aliyun_waf_domain.label")}
+        extra={t("workflow_node.deploy.form.aliyun_waf_domain.help")}
         rules={[formRule]}
         tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.aliyun_waf_domain.tooltip") }}></span>}
       >
@@ -73,7 +74,7 @@ const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   };
 };
 
-const getSchema = ({ i18n = getI18n() }: { i18n: ReturnType<typeof getI18n> }) => {
+const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) => {
   const { t } = i18n;
 
   return z.object({

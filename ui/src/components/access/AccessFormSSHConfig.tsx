@@ -135,17 +135,14 @@ const AccessFormSSHConfig = ({ form: formInst, formName, disabled, initialValues
       </div>
 
       <Form.Item name="authMethod" label={t("access.form.ssh_auth_method.label")} rules={[formRule]}>
-        <Select placeholder={t("access.form.ssh_auth_method.placeholder")}>
-          <Select.Option key={AUTH_METHOD_NONE} value={AUTH_METHOD_NONE}>
-            {t("access.form.ssh_auth_method.option.none.label")}
-          </Select.Option>
-          <Select.Option key={AUTH_METHOD_PASSWORD} value={AUTH_METHOD_PASSWORD}>
-            {t("access.form.ssh_auth_method.option.password.label")}
-          </Select.Option>
-          <Select.Option key={AUTH_METHOD_KEY} value={AUTH_METHOD_KEY}>
-            {t("access.form.ssh_auth_method.option.key.label")}
-          </Select.Option>
-        </Select>
+        <Select
+          options={[AUTH_METHOD_NONE, AUTH_METHOD_PASSWORD, AUTH_METHOD_KEY].map((s) => ({
+            key: s,
+            label: t(`access.form.ssh_auth_method.option.${s}.label`),
+            value: s,
+          }))}
+          placeholder={t("access.form.ssh_auth_method.placeholder")}
+        />
       </Form.Item>
 
       <Form.Item name="username" label={t("access.form.ssh_username.label")} rules={[formRule]}>

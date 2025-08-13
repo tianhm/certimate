@@ -1,8 +1,9 @@
 import { getI18n, useTranslation } from "react-i18next";
-import { Alert, Form, Input } from "antd";
+import { Form, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
+import Tips from "@/components/Tips";
 import { validDomainName } from "@/utils/validators";
 
 import { useFormNestedFieldsContext } from "./_context";
@@ -20,7 +21,7 @@ const BizDeployNodeConfigFormProviderUpyunFile = () => {
   return (
     <>
       <Form.Item>
-        <Alert type="info" message={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.upyun_file.guide") }}></span>} />
+        <Tips message={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.upyun_file.guide") }}></span>} />
       </Form.Item>
 
       <Form.Item
@@ -42,7 +43,7 @@ const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   };
 };
 
-const getSchema = ({ i18n = getI18n() }: { i18n: ReturnType<typeof getI18n> }) => {
+const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) => {
   const { t } = i18n;
 
   return z.object({

@@ -142,7 +142,7 @@ const CertificateList = () => {
             items: [
               {
                 key: "view",
-                label: t("certificate.action.view.button"),
+                label: t("certificate.action.view.menu"),
                 icon: (
                   <span className="anticon scale-125">
                     <IconBrowserShare size="1em" />
@@ -157,7 +157,7 @@ const CertificateList = () => {
               },
               {
                 key: "delete",
-                label: t("certificate.action.delete.button"),
+                label: t("certificate.action.delete.menu"),
                 danger: true,
                 icon: (
                   <span className="anticon scale-125">
@@ -250,11 +250,11 @@ const CertificateList = () => {
 
           return prev;
         });
-        setTableSelectedRowKeys([]);
       },
       onSuccess: (res) => {
         setTableData(res.items);
         setTableTotal(res.totalItems);
+        setTableSelectedRowKeys([]);
       },
       onError: (err) => {
         if (err instanceof ClientResponseError && err.isAbort) {
@@ -340,7 +340,6 @@ const CertificateList = () => {
         try {
           const resp = await removeCertificate(records);
           if (resp) {
-            setTableSelectedRowKeys([]);
             setTableData((prev) => prev.filter((item) => !records.some((record) => record.id === item.id)));
             setTableTotal((prev) => prev - records.length);
             refreshData();
@@ -405,6 +404,7 @@ const CertificateList = () => {
                 <Skeleton />
               ) : (
                 <Empty
+                  className="py-24"
                   title={t("certificate.nodata.title")}
                   description={loadedError ? getErrMsg(loadedError) : t("certificate.nodata.description")}
                   icon={<IconCertificate size={24} />}
@@ -454,7 +454,7 @@ const CertificateList = () => {
               }}
             >
               <div className="flex size-full items-center justify-end gap-x-2 overflow-hidden px-4 py-2">
-                <Button icon={<IconTrash size="1.25em" />} danger ghost onClick={handleBatchDeleteClick}>
+                <Button danger ghost onClick={handleBatchDeleteClick}>
                   {t("common.button.delete")}
                 </Button>
               </div>

@@ -62,7 +62,7 @@ export const remove = async (record: MaybeModelRecordWithId<WorkflowModel> | May
       batch.collection(COLLECTION_NAME_WORKFLOW).delete(item.id);
     }
     const res = await batch.send();
-    return res.every((e) => e.status === 200);
+    return res.every((e) => e.status >= 200 && e.status < 400);
   } else {
     return await pb.collection(COLLECTION_NAME_WORKFLOW).delete(record.id);
   }

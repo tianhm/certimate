@@ -33,7 +33,7 @@ const CAProviderSelect = ({ onFilter, ...props }: CAProviderSelectProps) => {
     temp.unshift({
       key: "",
       value: "",
-      label: t("provider.text.default_ca_provider.label"),
+      label: t("provider.text.default_ca_provider"),
       data: {} as CAProvider,
     });
 
@@ -45,7 +45,7 @@ const CAProviderSelect = ({ onFilter, ...props }: CAProviderSelectProps) => {
       return (
         <div className="flex items-center gap-2 truncate overflow-hidden">
           <Typography.Text className="italic" ellipsis italic>
-            {t("provider.text.default_ca_provider.label")}
+            {t("provider.text.default_ca_provider")}
           </Typography.Text>
         </div>
       );

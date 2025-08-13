@@ -1,10 +1,9 @@
 import { forwardRef, memo, useEffect, useImperativeHandle, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
-import { QuestionCircleOutlined as IconQuestionCircleOutlined } from "@ant-design/icons";
 import { IconChevronRight, IconCircleMinus, IconPlus } from "@tabler/icons-react";
 import { useControllableValue } from "ahooks";
-import { AutoComplete, Button, Divider, Flex, Form, type FormInstance, Input, InputNumber, Select, Switch, Tooltip, Typography } from "antd";
+import { AutoComplete, Button, Divider, Flex, Form, type FormInstance, Input, InputNumber, Select, Switch, Typography } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
@@ -269,7 +268,7 @@ const ApplyNodeConfigForm = forwardRef<ApplyNodeConfigFormInstance, ApplyNodeCon
             name="domains"
             label={t("workflow_node.apply.form.domains.label")}
             rules={[formRule]}
-            tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.apply.form.domains.tooltip") }}></span>}
+            tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.apply.form.domains.help") }}></span>}
           >
             <MultipleSplitValueInput
               modalTitle={t("workflow_node.apply.form.domains.multiple_input_modal.title")}
@@ -319,11 +318,6 @@ const ApplyNodeConfigForm = forwardRef<ApplyNodeConfigFormInstance, ApplyNodeCon
               <div className="flex w-full items-center justify-between gap-4">
                 <div className="max-w-full grow truncate">
                   <span>{t("workflow_node.apply.form.provider_access.label")}</span>
-                  <Tooltip title={t("workflow_node.apply.form.provider_access.tooltip")}>
-                    <Typography.Text className="ms-1" type="secondary">
-                      <IconQuestionCircleOutlined />
-                    </Typography.Text>
-                  </Tooltip>
                 </div>
                 <div className="text-right">
                   <AccessEditDrawer
@@ -590,7 +584,7 @@ const EmailInput = memo(
   ({ disabled, placeholder, ...props }: { disabled?: boolean; placeholder?: string; value?: string; onChange?: (value: string) => void }) => {
     const { emails, fetchEmails, removeEmail } = useContactEmailsStore();
     useEffect(() => {
-      fetchEmails();
+      fetchEmails(false);
     }, []);
 
     const [value, setValue] = useControllableValue<string>(props, {

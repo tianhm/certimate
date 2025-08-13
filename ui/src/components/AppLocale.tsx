@@ -30,9 +30,7 @@ export interface AppLocaleDropdownProps {
   trigger?: DropdownProps["trigger"];
 }
 
-const AppLocaleDropdown = (props: AppLocaleDropdownProps) => {
-  const { children, trigger = ["click"] } = props;
-
+const AppLocaleDropdown = ({ children, trigger = ["click"] }: AppLocaleDropdownProps) => {
   const items = useAppLocaleMenuItems();
 
   return (
@@ -62,9 +60,7 @@ export interface AppLocaleLinkButtonProps {
   showIcon?: boolean;
 }
 
-const AppLocaleLinkButton = (props: AppLocaleLinkButtonProps) => {
-  const { className, style, showIcon = true } = props;
-
+const AppLocaleLinkButton = ({ className, style, showIcon = true }: AppLocaleLinkButtonProps) => {
   const { t } = useTranslation();
   const { i18n } = useTranslation();
 

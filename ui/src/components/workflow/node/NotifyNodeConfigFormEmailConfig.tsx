@@ -52,7 +52,7 @@ const NotifyNodeConfigFormEmailConfig = ({ form: formInst, formName, disabled, i
         name="receiverAddress"
         label={t("workflow_node.notify.form.email_receiver_address.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.notify.form.email_receiver_address.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.notify.form.email_receiver_address.help") }}></span>}
       >
         <Input type="email" allowClear placeholder={t("workflow_node.notify.form.email_receiver_address.placeholder")} />
       </Form.Item>

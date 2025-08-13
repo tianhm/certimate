@@ -13,8 +13,7 @@ export interface BizDeployNodeConfigDrawerProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-const BizDeployNodeConfigDrawer = (_: BizDeployNodeConfigDrawerProps) => {
-  const { node, ...props } = _;
+const BizDeployNodeConfigDrawer = ({ node, ...props }: BizDeployNodeConfigDrawerProps) => {
   if (node.flowNodeType !== NodeType.BizDeploy) {
     console.warn(`[certimate] current workflow node type is not: ${NodeType.BizDeploy}`);
   }

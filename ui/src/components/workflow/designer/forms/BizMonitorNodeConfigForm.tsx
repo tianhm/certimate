@@ -59,7 +59,7 @@ const BizMonitorNodeConfigForm = ({ node, ...props }: BizMonitorNodeConfigFormPr
             </div>
           </div>
 
-          <Form.Item name="domain" label={t("workflow_node.monitor.form.domain.label")} rules={[formRule]}>
+          <Form.Item name="domain" label={t("workflow_node.monitor.form.domain.label")} extra={t("workflow_node.monitor.form.domain.help")} rules={[formRule]}>
             <Input placeholder={t("workflow_node.monitor.form.domain.placeholder")} />
           </Form.Item>
 
@@ -72,7 +72,7 @@ const BizMonitorNodeConfigForm = ({ node, ...props }: BizMonitorNodeConfigFormPr
   );
 };
 
-const getAnchorItems = ({ i18n = getI18n() }: { i18n: ReturnType<typeof getI18n> }): Required<AnchorProps>["items"] => {
+const getAnchorItems = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }): Required<AnchorProps>["items"] => {
   const { t } = i18n;
 
   return ["parameters"].map((key) => ({
@@ -86,7 +86,7 @@ const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   return defaultNodeConfigForMonitor();
 };
 
-const getSchema = ({ i18n = getI18n() }: { i18n: ReturnType<typeof getI18n> }) => {
+const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) => {
   const { t } = i18n;
 
   return z.object({

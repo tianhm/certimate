@@ -58,6 +58,7 @@ const AccessFormSlackBotConfig = ({ form: formInst, formName, disabled, initialV
       <Form.Item
         name="channelId"
         label={t("access.form.slackbot_channel_id.label")}
+        extra={t("access.form.slackbot_channel_id.help")}
         rules={[formRule]}
         tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.slackbot_channel_id.tooltip") }}></span>}
       >

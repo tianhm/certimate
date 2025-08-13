@@ -65,6 +65,7 @@ const AccessFormTelegramBotConfig = ({ form: formInst, formName, disabled, initi
       <Form.Item
         name="chatId"
         label={t("access.form.telegrambot_chat_id.label")}
+        extra={t("access.form.telegrambot_chat_id.help")}
         rules={[formRule]}
         tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.telegrambot_chat_id.tooltip") }}></span>}
       >

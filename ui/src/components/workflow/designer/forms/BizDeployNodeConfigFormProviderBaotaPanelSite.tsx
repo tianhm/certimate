@@ -61,6 +61,7 @@ const BizDeployNodeConfigFormProviderBaotaPanelSite = () => {
           name={[parentNamePath, "siteNames"]}
           initialValue={initialValues.siteNames}
           label={t("workflow_node.deploy.form.baotapanel_site_names.label")}
+          extra={t("workflow_node.deploy.form.baotapanel_site_names.help")}
           rules={[formRule]}
           tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.baotapanel_site_names.tooltip") }}></span>}
         >
@@ -83,7 +84,7 @@ const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   };
 };
 
-const getSchema = ({ i18n = getI18n() }: { i18n: ReturnType<typeof getI18n> }) => {
+const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) => {
   const { t } = i18n;
 
   return z

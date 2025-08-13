@@ -359,7 +359,7 @@ const DeployNodeConfigFormSSHConfig = ({ form: formInst, formName, disabled, ini
         name="certPath"
         label={t("workflow_node.deploy.form.ssh_cert_path.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.ssh_cert_path.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.ssh_cert_path.help") }}></span>}
       >
         <Input placeholder={t("workflow_node.deploy.form.ssh_cert_path.placeholder")} />
       </Form.Item>
@@ -369,7 +369,7 @@ const DeployNodeConfigFormSSHConfig = ({ form: formInst, formName, disabled, ini
           name="keyPath"
           label={t("workflow_node.deploy.form.ssh_key_path.label")}
           rules={[formRule]}
-          tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.ssh_key_path.tooltip") }}></span>}
+          tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.ssh_key_path.help") }}></span>}
         >
           <Input placeholder={t("workflow_node.deploy.form.ssh_key_path.placeholder")} />
         </Form.Item>
@@ -378,7 +378,7 @@ const DeployNodeConfigFormSSHConfig = ({ form: formInst, formName, disabled, ini
           name="certPathForServerOnly"
           label={t("workflow_node.deploy.form.ssh_servercert_path.label")}
           rules={[formRule]}
-          tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.ssh_servercert_path.tooltip") }}></span>}
+          tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.ssh_servercert_path.help") }}></span>}
         >
           <Input allowClear placeholder={t("workflow_node.deploy.form.ssh_servercert_path.placeholder")} />
         </Form.Item>
@@ -387,7 +387,7 @@ const DeployNodeConfigFormSSHConfig = ({ form: formInst, formName, disabled, ini
           name="certPathForIntermediaOnly"
           label={t("workflow_node.deploy.form.ssh_intermediacert_path.label")}
           rules={[formRule]}
-          tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.ssh_intermediacert_path.tooltip") }}></span>}
+          tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.ssh_intermediacert_path.help") }}></span>}
         >
           <Input allowClear placeholder={t("workflow_node.deploy.form.ssh_intermediacert_path.placeholder")} />
         </Form.Item>

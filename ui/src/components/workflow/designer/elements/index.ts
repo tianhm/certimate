@@ -9,7 +9,7 @@ import DragNode from "./DragNode";
 import Null from "./Null";
 import TryCatchCollapse from "./TryCatchCollapse";
 
-export const getFlowComponents = () => {
+export const getAllElements = () => {
   return {
     [FlowRendererKey.ADDER]: Adder,
     [FlowRendererKey.BRANCH_ADDER]: BranchAdder,

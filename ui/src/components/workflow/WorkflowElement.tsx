@@ -15,6 +15,10 @@ import StartNode from "./node/StartNode";
 import UnknownNode from "./node/UnknownNode";
 import UploadNode from "./node/UploadNode";
 
+/**
+ *
+ * @deprecated
+ */
 export interface WorkflowElementProps {
   node: WorkflowNode;
   disabled?: boolean;

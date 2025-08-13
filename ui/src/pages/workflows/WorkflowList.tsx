@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { IconCirclePlus, IconCopy, IconDots, IconEdit, IconHierarchy3, IconPlus, IconReload, IconTrash } from "@tabler/icons-react";
+import { IconCirclePlus, IconCopy, IconDots, IconEdit, IconHierarchy3, IconPlayerPlay, IconPlus, IconReload, IconTrash } from "@tabler/icons-react";
 import { useRequest } from "ahooks";
 import { App, Button, Dropdown, Flex, Input, Segmented, Skeleton, Switch, Table, type TableProps, Typography, theme } from "antd";
 import dayjs from "dayjs";
 import { ClientResponseError } from "pocketbase";
 
+import { startRun as startWorkflowRun } from "@/api/workflows";
 import Empty from "@/components/Empty";
 import Show from "@/components/Show";
-import WorkflowStatusIcon from "@/components/workflow/WorkflowStatusIcon";
+import WorkflowStatus from "@/components/workflow/WorkflowStatus";
 import { WORKFLOW_TRIGGERS, type WorkflowModel, cloneNode, initWorkflow, isAllNodesValidated } from "@/domain/workflow";
 import { useAppSettings } from "@/hooks";
 import { list as listWorkflows, remove as removeWorkflow, save as saveWorkflow } from "@/repository/workflow";
@@ -107,10 +108,9 @@ const WorkflowList = () => {
           return <></>;
         } else {
           return (
-            <Flex gap="small">
-              <WorkflowStatusIcon color={true} size="1.25em" status={lastRunStatus} />
-              <Typography.Text>{lastRunTime ? dayjs(lastRunTime).format("YYYY-MM-DD HH:mm:ss") : ""}</Typography.Text>
-            </Flex>
+            <WorkflowStatus type="filled" value={lastRunStatus}>
+              {lastRunTime ? dayjs(lastRunTime).format("YYYY-MM-DD HH:mm:ss") : ""}
+            </WorkflowStatus>
           );
         }
       },
@@ -134,7 +134,7 @@ const WorkflowList = () => {
             items: [
               {
                 key: "edit",
-                label: t("workflow.action.edit.button"),
+                label: t("workflow.action.edit.menu"),
                 icon: (
                   <span className="anticon scale-125">
                     <IconEdit size="1em" />
@@ -146,7 +146,7 @@ const WorkflowList = () => {
               },
               {
                 key: "duplicate",
-                label: t("workflow.action.duplicate.button"),
+                label: t("workflow.action.duplicate.menu"),
                 icon: (
                   <span className="anticon scale-125">
                     <IconCopy size="1em" />
@@ -157,11 +157,23 @@ const WorkflowList = () => {
                 },
               },
               {
+                key: "run",
+                label: t("workflow.action.run.menu"),
+                icon: (
+                  <span className="anticon scale-125">
+                    <IconPlayerPlay size="1em" />
+                  </span>
+                ),
+                onClick: () => {
+                  handleRecordRunClick(record);
+                },
+              },
+              {
                 type: "divider",
               },
               {
                 key: "delete",
-                label: t("workflow.action.delete.button"),
+                label: t("workflow.action.delete.menu"),
                 danger: true,
                 icon: (
                   <span className="anticon scale-125">
@@ -259,6 +271,7 @@ const WorkflowList = () => {
       onSuccess: (res) => {
         setTableData(res.items);
         setTableTotal(res.totalItems);
+        setTableSelectedRowKeys([]);
       },
       onError: (err) => {
         if (err instanceof ClientResponseError && err.isAbort) {
@@ -318,6 +331,17 @@ const WorkflowList = () => {
           });
         });
       }
+    } catch (err) {
+      console.error(err);
+      notification.error({ message: t("common.text.request_error"), description: getErrMsg(err) });
+    }
+  };
+
+  const handleRecordRunClick = async (workflow: WorkflowModel) => {
+    try {
+      await startWorkflowRun(workflow.id);
+
+      message.info(t("workflow.action.run.prompt"));
     } catch (err) {
       console.error(err);
       notification.error({ message: t("common.text.request_error"), description: getErrMsg(err) });
@@ -400,7 +424,6 @@ const WorkflowList = () => {
         try {
           const resp = await removeWorkflow(records);
           if (resp) {
-            setTableSelectedRowKeys([]);
             setTableData((prev) => prev.filter((item) => !records.some((record) => record.id === item.id)));
             setTableTotal((prev) => prev - records.length);
             refreshData();
@@ -469,6 +492,7 @@ const WorkflowList = () => {
                 <Skeleton />
               ) : (
                 <Empty
+                  className="py-24"
                   title={t("workflow.nodata.title")}
                   description={loadedError ? getErrMsg(loadedError) : t("workflow.nodata.description")}
                   icon={<IconHierarchy3 size={24} />}
@@ -518,7 +542,7 @@ const WorkflowList = () => {
               }}
             >
               <div className="flex size-full items-center justify-end gap-x-2 overflow-hidden px-4 py-2">
-                <Button icon={<IconTrash size="1.25em" />} danger ghost onClick={handleBatchDeleteClick}>
+                <Button danger ghost onClick={handleBatchDeleteClick}>
                   {t("common.button.delete")}
                 </Button>
               </div>

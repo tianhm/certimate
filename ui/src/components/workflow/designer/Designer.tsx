@@ -14,14 +14,14 @@ import { createMinimapPlugin } from "@flowgram.ai/minimap-plugin";
 import "@flowgram.ai/fixed-layout-editor/index.css";
 import { theme } from "antd";
 
-import { getFlowComponents } from "./components";
-import { EditorContextProvider } from "./EditorContext";
+import { DegisnerContextProvider } from "./DesignerContext";
+import { getAllElements } from "./elements";
 import NodeRender from "./NodeRender";
-import { getFlowNodeRegistries } from "./nodes";
+import { getAllNodeRegistries } from "./nodes";
 import { BranchNode } from "./nodes/_shared";
 import "./flowgram.css";
 
-export interface EditorProps {
+export interface DesignerProps {
   className?: string;
   style?: React.CSSProperties;
   children?: React.ReactNode;
@@ -30,12 +30,12 @@ export interface EditorProps {
   onNodeClick?: (ctx: FixedLayoutPluginContext, node: FlowNodeEntity) => void;
 }
 
-export interface EditorInstance extends FixedLayoutPluginContext {
+export interface DesignerInstance extends FixedLayoutPluginContext {
   validateNode(node: string | FlowNodeEntity): Promise<boolean>;
   validateAllNodes(): Promise<boolean>;
 }
 
-const Editor = forwardRef<EditorInstance, EditorProps>(({ className, style, children, initialData, readonly, onNodeClick }, ref) => {
+const Designer = forwardRef<DesignerInstance, DesignerProps>(({ className, style, children, initialData, readonly, onNodeClick }, ref) => {
   const { token: themeToken } = theme.useToken();
 
   const flowgramEditorRef = useRef<FixedLayoutPluginContext>(null);
@@ -80,16 +80,16 @@ const Editor = forwardRef<EditorInstance, EditorProps>(({ className, style, chil
       },
 
       materials: {
-        components: getFlowComponents(),
+        components: getAllElements(),
         renderTexts: {
           [FlowTextKey.TRY_START_TEXT]: "Try",
-          [FlowTextKey.TRY_END_TEXT]: "Finally",
+          [FlowTextKey.TRY_END_TEXT]: "Then",
           [FlowTextKey.CATCH_TEXT]: "Catch",
         },
         renderDefaultNode: NodeRender,
       },
 
-      nodeRegistries: getFlowNodeRegistries(),
+      nodeRegistries: getAllNodeRegistries(),
 
       getNodeDefaultRegistry(type) {
         return {
@@ -172,12 +172,12 @@ const Editor = forwardRef<EditorInstance, EditorProps>(({ className, style, chil
 
   return (
     <FixedLayoutEditorProvider ref={flowgramEditorRef} {...flowgramEditorProps}>
-      <EditorContextProvider value={{ onNodeClick: (node) => onNodeClick?.(flowgramEditorRef.current!, node) }}>
+      <DegisnerContextProvider value={{ onNodeClick: (node) => onNodeClick?.(flowgramEditorRef.current!, node) }}>
         <EditorRenderer className={className} style={style} />
         {children}
-      </EditorContextProvider>
+      </DegisnerContextProvider>
     </FixedLayoutEditorProvider>
   );
 });
 
-export default Editor;
+export default Designer;

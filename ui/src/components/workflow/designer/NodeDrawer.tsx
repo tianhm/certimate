@@ -22,9 +22,7 @@ export interface NodeDrawerProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-const NodeDrawer = (_: NodeDrawerProps) => {
-  const { node, trigger, ...props } = _;
-
+const NodeDrawer = ({ node, trigger, ...props }: NodeDrawerProps) => {
   const [open, setOpen] = useControllableValue<boolean>(props, {
     valuePropName: "open",
     defaultValuePropName: "defaultOpen",

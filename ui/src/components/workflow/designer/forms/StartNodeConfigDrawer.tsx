@@ -13,8 +13,7 @@ export interface StartNodeConfigDrawerProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-const StartNodeConfigDrawer = (_: StartNodeConfigDrawerProps) => {
-  const { node, ...props } = _;
+const StartNodeConfigDrawer = ({ node, ...props }: StartNodeConfigDrawerProps) => {
   if (node.flowNodeType !== NodeType.Start) {
     console.warn(`[certimate] current workflow node type is not: ${NodeType.Start}`);
   }

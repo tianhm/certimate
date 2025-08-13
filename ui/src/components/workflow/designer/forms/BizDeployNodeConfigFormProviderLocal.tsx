@@ -223,17 +223,15 @@ const BizDeployNodeConfigFormProviderLocal = () => {
         label={t("workflow_node.deploy.form.local_format.label")}
         rules={[formRule]}
       >
-        <Select placeholder={t("workflow_node.deploy.form.local_format.placeholder")} onSelect={handleFormatSelect}>
-          <Select.Option key={FORMAT_PEM} value={FORMAT_PEM}>
-            {t("workflow_node.deploy.form.local_format.option.pem.label")}
-          </Select.Option>
-          <Select.Option key={FORMAT_PFX} value={FORMAT_PFX}>
-            {t("workflow_node.deploy.form.local_format.option.pfx.label")}
-          </Select.Option>
-          <Select.Option key={FORMAT_JKS} value={FORMAT_JKS}>
-            {t("workflow_node.deploy.form.local_format.option.jks.label")}
-          </Select.Option>
-        </Select>
+        <Select
+          options={[FORMAT_PEM, FORMAT_PFX, FORMAT_JKS].map((s) => ({
+            key: s,
+            label: t(`workflow_node.deploy.form.local_format.option.${s.toLowerCase()}.label`),
+            value: s,
+          }))}
+          placeholder={t("workflow_node.deploy.form.local_format.placeholder")}
+          onSelect={handleFormatSelect}
+        />
       </Form.Item>
 
       <Form.Item
@@ -328,17 +326,13 @@ const BizDeployNodeConfigFormProviderLocal = () => {
         label={t("workflow_node.deploy.form.local_shell_env.label")}
         rules={[formRule]}
       >
-        <Select placeholder={t("workflow_node.deploy.form.local_shell_env.placeholder")}>
-          <Select.Option key={SHELLENV_SH} value={SHELLENV_SH}>
-            {t("workflow_node.deploy.form.local_shell_env.option.sh.label")}
-          </Select.Option>
-          <Select.Option key={SHELLENV_CMD} value={SHELLENV_CMD}>
-            {t("workflow_node.deploy.form.local_shell_env.option.cmd.label")}
-          </Select.Option>
-          <Select.Option key={SHELLENV_POWERSHELL} value={SHELLENV_POWERSHELL}>
-            {t("workflow_node.deploy.form.local_shell_env.option.powershell.label")}
-          </Select.Option>
-        </Select>
+        <Select
+          options={[SHELLENV_SH, SHELLENV_CMD, SHELLENV_POWERSHELL].map((s) => ({
+            key: s,
+            label: t(`workflow_node.deploy.form.local_shell_env.option.${s.toLowerCase()}.label`),
+            value: s,
+          }))}
+        />
       </Form.Item>
 
       <Form.Item label={t("workflow_node.deploy.form.local_pre_command.label")}>

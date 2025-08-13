@@ -4,7 +4,7 @@ import { type AdderProps as FlowgramAdderProps, useClientContext } from "@flowgr
 import { IconPlus } from "@tabler/icons-react";
 import { Button, Dropdown, type MenuProps } from "antd";
 
-import { getFlowNodeRegistries } from "../nodes";
+import { getAllNodeRegistries } from "../nodes";
 
 export interface AdderProps extends FlowgramAdderProps {}
 
@@ -14,7 +14,7 @@ const Adder = ({ from, hoverActivated }: AdderProps) => {
   const ctx = useClientContext();
   const { operation, playground } = ctx;
 
-  const menuItems = getFlowNodeRegistries()
+  const menuItems = getAllNodeRegistries()
     .filter((registry) => {
       if (registry.meta?.addDisable != null) {
         return !registry.meta.addDisable;

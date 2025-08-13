@@ -417,7 +417,7 @@
   "access.form.ssh_auth_method.placeholder": "请选择认证方式",
   "access.form.ssh_auth_method.option.none.label": "无",
   "access.form.ssh_auth_method.option.password.label": "密码",
-  "access.form.ssh_auth_method.option.key.label": "密钥",
+  "access.form.ssh_auth_method.option.key.label": "SSH 密钥",
   "access.form.ssh_username.label": "用户名",
   "access.form.ssh_username.placeholder": "请输入用户名",
   "access.form.ssh_password.label": "密码",

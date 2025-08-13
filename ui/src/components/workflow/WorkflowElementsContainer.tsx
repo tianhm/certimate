@@ -5,6 +5,10 @@ import { Button, Card, Typography } from "antd";
 import WorkflowElements from "@/components/workflow/WorkflowElements";
 import { mergeCls } from "@/utils/css";
 
+/**
+ *
+ * @deprecated
+ */
 export interface WorkflowElementsProps {
   className?: string;
   style?: React.CSSProperties;

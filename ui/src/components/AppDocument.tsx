@@ -10,9 +10,7 @@ export interface AppDocumentLinkButtonProps {
   showIcon?: boolean;
 }
 
-const AppDocumentLinkButton = (props: AppDocumentLinkButtonProps) => {
-  const { className, style, showIcon = true } = props;
-
+const AppDocumentLinkButton = ({ className, style, showIcon = true }: AppDocumentLinkButtonProps) => {
   const { i18n, t } = useTranslation();
 
   const handleDocumentClick = () => {

@@ -263,17 +263,15 @@ const BizDeployNodeConfigFormProviderSSH = () => {
         label={t("workflow_node.deploy.form.ssh_format.label")}
         rules={[formRule]}
       >
-        <Select placeholder={t("workflow_node.deploy.form.ssh_format.placeholder")} onSelect={handleFormatSelect}>
-          <Select.Option key={FORMAT_PEM} value={FORMAT_PEM}>
-            {t("workflow_node.deploy.form.ssh_format.option.pem.label")}
-          </Select.Option>
-          <Select.Option key={FORMAT_PFX} value={FORMAT_PFX}>
-            {t("workflow_node.deploy.form.ssh_format.option.pfx.label")}
-          </Select.Option>
-          <Select.Option key={FORMAT_JKS} value={FORMAT_JKS}>
-            {t("workflow_node.deploy.form.ssh_format.option.jks.label")}
-          </Select.Option>
-        </Select>
+        <Select
+          options={[FORMAT_PEM, FORMAT_PFX, FORMAT_JKS].map((s) => ({
+            key: s,
+            label: <span className="font-mono">{t(`workflow_node.deploy.form.ssh_format.option.${s.toLowerCase()}.label`)}</span>,
+            value: s,
+          }))}
+          placeholder={t("workflow_node.deploy.form.ssh_format.placeholder")}
+          onSelect={handleFormatSelect}
+        />
       </Form.Item>
 
       <Form.Item

@@ -18,9 +18,7 @@ export interface AccessProviderPickerProps {
   onSelect?: (value: string) => void;
 }
 
-const AccessProviderPicker = ({ className, style, autoFocus, placeholder, showOptionTags, onFilter, onSelect, ...props }: AccessProviderPickerProps) => {
-  const { gap = "middle" } = props;
-
+const AccessProviderPicker = ({ className, style, autoFocus, gap = "middle", placeholder, showOptionTags, onFilter, onSelect }: AccessProviderPickerProps) => {
   const { t } = useTranslation();
 
   const wrapperRef = useRef<HTMLDivElement>(null);

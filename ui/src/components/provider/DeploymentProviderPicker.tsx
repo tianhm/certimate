@@ -19,9 +19,7 @@ export interface DeploymentProviderPickerProps {
   onSelect?: (value: string) => void;
 }
 
-const DeploymentProviderPicker = ({ className, style, autoFocus, onFilter, placeholder, onSelect, ...props }: DeploymentProviderPickerProps) => {
-  const { gap = "middle" } = props;
-
+const DeploymentProviderPicker = ({ className, style, autoFocus, gap = "middle", placeholder, onFilter, onSelect }: DeploymentProviderPickerProps) => {
   const { t } = useTranslation();
 
   const { accesses, fetchAccesses } = useAccessesStore(useZustandShallowSelector(["accesses", "fetchAccesses"]));

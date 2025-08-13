@@ -13,8 +13,7 @@ export interface BranchBlockNodeConfigDrawerProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-const BranchBlockNodeConfigDrawer = (_: BranchBlockNodeConfigDrawerProps) => {
-  const { node, ...props } = _;
+const BranchBlockNodeConfigDrawer = ({ node, ...props }: BranchBlockNodeConfigDrawerProps) => {
   if (node.flowNodeType !== NodeType.BranchBlock) {
     console.warn(`[certimate] current workflow node type is not: ${NodeType.BranchBlock}`);
   }

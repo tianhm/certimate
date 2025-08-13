@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { type NodeRenderProps, useClientContext, useNodeRender, useRefresh } from "@flowgram.ai/fixed-layout-editor";
 
-import { useEditorContext } from "./EditorContext";
+import { useDesignerContext } from "./DesignerContext";
 import { NodeRenderContextProvider } from "./NodeRenderContext";
 import { type NodeRegistry } from "./nodes/typings";
 
@@ -13,6 +13,8 @@ const Node = (_: NodeProps) => {
   const refresh = useRefresh();
 
   const nodeRender = useNodeRender();
+
+  const designer = useDesignerContext();
 
   useEffect(() => {
     const d = ctx.document.originTree.onTreeChange(() => refresh());
@@ -28,11 +30,10 @@ const Node = (_: NodeProps) => {
     };
   }, [nodeRender.form]);
 
-  const { onNodeClick } = useEditorContext();
   const handleNodeClick = () => {
     const node = nodeRender.node;
     if (node.getNodeRegistry<NodeRegistry>().meta?.clickable) {
-      onNodeClick?.(node);
+      designer.onNodeClick?.(node);
     }
   };
 

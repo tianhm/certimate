@@ -11,7 +11,7 @@ import Empty from "@/components/Empty";
 import Show from "@/components/Show";
 import Tips from "@/components/Tips";
 import WorkflowRunDetailDrawer from "@/components/workflow/WorkflowRunDetailDrawer";
-import WorkflowStatusTag from "@/components/workflow/WorkflowStatusTag";
+import WorkflowStatus from "@/components/workflow/WorkflowStatus";
 import { WORKFLOW_TRIGGERS } from "@/domain/workflow";
 import { WORKFLOW_RUN_STATUSES, type WorkflowRunModel } from "@/domain/workflowRun";
 import { useAppSettings, useZustandShallowSelector } from "@/hooks";
@@ -52,7 +52,7 @@ const WorkflowDetailRuns = () => {
       key: "status",
       title: t("workflow_run.props.status"),
       render: (_, record) => {
-        return <WorkflowStatusTag status={record.status} />;
+        return <WorkflowStatus type="filled" value={record.status} />;
       },
     },
     {

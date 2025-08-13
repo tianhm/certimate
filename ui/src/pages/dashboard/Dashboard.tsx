@@ -15,14 +15,14 @@ import {
   IconShieldCheckered,
 } from "@tabler/icons-react";
 import { useRequest } from "ahooks";
-import { App, Button, Card, Col, Divider, Flex, Grid, Row, Skeleton, Table, type TableProps, Typography } from "antd";
+import { App, Button, Card, Col, Row, Skeleton, Table, type TableProps, Typography } from "antd";
 import dayjs from "dayjs";
 import { ClientResponseError } from "pocketbase";
 
 import { get as getStatistics } from "@/api/statistics";
 import Empty from "@/components/Empty";
 import WorkflowRunDetailDrawer from "@/components/workflow/WorkflowRunDetailDrawer";
-import WorkflowStatusTag from "@/components/workflow/WorkflowStatusTag";
+import WorkflowStatus from "@/components/workflow/WorkflowStatus";
 import { type Statistics } from "@/domain/statistics";
 import { type WorkflowRunModel } from "@/domain/workflowRun";
 import { useBrowserTheme } from "@/hooks";
@@ -35,8 +35,6 @@ const Dashboard = () => {
 
   const { t } = useTranslation();
 
-  const breakpoints = Grid.useBreakpoint();
-
   return (
     <div className="px-6 py-4">
       <div className="container">
@@ -48,26 +46,25 @@ const Dashboard = () => {
           <StatisticCards />
         </div>
 
-        <Divider />
+        <div className="mt-8">
+          <h3>{t("dashboard.shortcut")}</h3>
+          <div className="flex items-center gap-4 not-md:flex-wrap">
+            <Button icon={<IconCirclePlus size="1em" />} shape="round" size="large" type="primary" onClick={() => navigate("/workflows/new")}>
+              <span className="text-sm">{t("dashboard.shortcut.create_workflow")}</span>
+            </Button>
+            <Button icon={<IconLock size="1em" />} shape="round" size="large" onClick={() => navigate("/settings/account")}>
+              <span className="text-sm">{t("dashboard.shortcut.change_account")}</span>
+            </Button>
+            <Button icon={<IconPlugConnected size="1em" />} shape="round" size="large" onClick={() => navigate("/settings/ssl-provider")}>
+              <span className="text-sm">{t("dashboard.shortcut.configure_ca")}</span>
+            </Button>
+          </div>
+        </div>
 
-        <Flex justify="stretch" vertical={!breakpoints.lg} gap={16}>
-          <Card className="transition-all max-lg:flex-1 lg:w-[280px] xl:w-[360px]" title={t("dashboard.quick_actions")}>
-            <div className="flex flex-col gap-4">
-              <Button block type="primary" size="large" icon={<IconCirclePlus size="1.25em" />} onClick={() => navigate("/workflows/new")}>
-                <span className="text-sm">{t("dashboard.quick_actions.create_workflow")}</span>
-              </Button>
-              <Button block size="large" icon={<IconLock size="1.25em" />} onClick={() => navigate("/settings/account")}>
-                <span className="text-sm">{t("dashboard.quick_actions.change_password")}</span>
-              </Button>
-              <Button block size="large" icon={<IconPlugConnected size="1.25em" />} onClick={() => navigate("/settings/ssl-provider")}>
-                <span className="text-sm">{t("dashboard.quick_actions.configure_ca")}</span>
-              </Button>
-            </div>
-          </Card>
-          <Card className="flex-1" title={t("dashboard.latest_workflow_runs")}>
-            <WorkflowRunHistoryTable />
-          </Card>
-        </Flex>
+        <div className="mt-8">
+          <h3>{t("dashboard.latest_workflow_runs")}</h3>
+          <WorkflowRunHistoryTable />
+        </div>
       </div>
     </div>
   );
@@ -268,7 +265,7 @@ const WorkflowRunHistoryTable = ({ className, style }: { className?: string; sty
       key: "status",
       title: t("workflow_run.props.status"),
       render: (_, record) => {
-        return <WorkflowStatusTag status={record.status} />;
+        return <WorkflowStatus type="filled" value={record.status} />;
       },
     },
     {

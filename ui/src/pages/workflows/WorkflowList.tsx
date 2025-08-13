@@ -10,7 +10,7 @@ import { ClientResponseError } from "pocketbase";
 import { startRun as startWorkflowRun } from "@/api/workflows";
 import Empty from "@/components/Empty";
 import Show from "@/components/Show";
-import WorkflowStatusIcon from "@/components/workflow/WorkflowStatusIcon";
+import WorkflowStatus from "@/components/workflow/WorkflowStatus";
 import { WORKFLOW_TRIGGERS, type WorkflowModel, cloneNode, initWorkflow, isAllNodesValidated } from "@/domain/workflow";
 import { useAppSettings } from "@/hooks";
 import { list as listWorkflows, remove as removeWorkflow, save as saveWorkflow } from "@/repository/workflow";
@@ -108,10 +108,9 @@ const WorkflowList = () => {
           return <></>;
         } else {
           return (
-            <Flex gap="small">
-              <WorkflowStatusIcon color={true} size="1.25em" status={lastRunStatus} />
-              <Typography.Text>{lastRunTime ? dayjs(lastRunTime).format("YYYY-MM-DD HH:mm:ss") : ""}</Typography.Text>
-            </Flex>
+            <WorkflowStatus type="filled" value={lastRunStatus}>
+              {lastRunTime ? dayjs(lastRunTime).format("YYYY-MM-DD HH:mm:ss") : ""}
+            </WorkflowStatus>
           );
         }
       },

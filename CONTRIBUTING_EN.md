@@ -87,7 +87,7 @@ Before opening a Pull Request, please open an issue to discuss the change and ge
 
 ### Pull Request Process
 
-1. Fork the repository.
+1. Fork the repository, and then checkout `main` branch.
 2. Before you draft a PR, please open an issue to discuss the changes you want to make.
 3. Create a new branch for your changes.
 4. Please add tests for your changes accordingly.

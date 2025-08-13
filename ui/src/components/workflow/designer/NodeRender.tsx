@@ -14,16 +14,25 @@ const Node = (_: NodeProps) => {
 
   const nodeRender = useNodeRender();
 
-  const designer = useDesignerContext();
+  const { onDocumentChange: fireOnDocumentChange, onNodeChange: fireOnNodeChange, onNodeClick: fireOnNodeClick } = useDesignerContext();
 
   useEffect(() => {
     const d = ctx.document.originTree.onTreeChange(() => refresh());
+
     return () => d.dispose();
   }, []);
 
   useEffect(() => {
-    const d1 = nodeRender.form?.onFormValuesChange?.(() => refresh());
-    const d2 = nodeRender.form?.onValidate?.(() => refresh());
+    const d1 = nodeRender.form?.onFormValuesChange?.(() => {
+      refresh();
+
+      fireOnNodeChange(nodeRender.node);
+      fireOnDocumentChange();
+    });
+    const d2 = nodeRender.form?.onValidate?.(() => {
+      refresh();
+    });
+
     return () => {
       d1?.dispose();
       d2?.dispose();
@@ -33,7 +42,7 @@ const Node = (_: NodeProps) => {
   const handleNodeClick = () => {
     const node = nodeRender.node;
     if (node.getNodeRegistry<NodeRegistry>().meta?.clickable) {
-      designer.onNodeClick?.(node);
+      fireOnNodeClick(node);
     }
   };
 

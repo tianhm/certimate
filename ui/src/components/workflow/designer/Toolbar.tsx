@@ -25,6 +25,7 @@ const Toolbar = ({ className, style }: ToolbarProps) => {
 
   useEffect(() => {
     const d = playground.config.onReadonlyOrDisabledChange(() => refresh());
+
     return () => d.dispose();
   }, [playground]);
 

@@ -150,6 +150,7 @@ const InternalNodeMenuButton = ({
     };
     const d1 = node.onEntityChange(callback);
     const d2 = node.parent?.onEntityChange?.(callback);
+
     return () => {
       d1?.dispose();
       d2?.dispose();

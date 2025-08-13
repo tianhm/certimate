@@ -55,12 +55,7 @@ const WorkflowDetailDesign = () => {
     console.log("document changed", designerRef.current!.document.toJSON());
   });
 
-  useEffect(() => {
-    const disposable = designerRef.current?.document?.originTree?.onTreeChange(onDesignerDocumentChange);
-    return () => disposable?.dispose();
-  }, []);
-
-  const { setNode: setDrawerNode, setOpen: setNodeDrawerOpen, ...nodeDrawerProps } = WorkflowNodeDrawer.useProps();
+  const { drawerProps: nodeDrawerProps, ...nodeDrawer } = WorkflowNodeDrawer.useDrawer();
 
   const handleRollbackClick = () => {
     modal.confirm({
@@ -116,9 +111,9 @@ const WorkflowDetailDesign = () => {
         <WorkflowDesigner
           ref={designerRef}
           initialData={degisnerData}
+          onDocumentChange={onDesignerDocumentChange}
           onNodeClick={(_, node) => {
-            setDrawerNode(node);
-            setNodeDrawerOpen(true);
+            nodeDrawer.open(node);
           }}
         >
           <div className="absolute top-8 z-10 w-full px-4">

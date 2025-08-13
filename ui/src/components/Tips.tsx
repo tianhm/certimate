@@ -16,10 +16,12 @@ const Tips = ({ className, style, message }: TipsProps) => {
       style={style}
       message={
         <Flex gap="small">
-          <div>
+          <div style={{ marginTop: "1px" }}>
             <IconBulb size={18} color={themeToken.colorInfo} />
           </div>
-          <Typography.Text>{message}</Typography.Text>
+          <div style={{ flex: 1 }}>
+            <Typography.Text>{message}</Typography.Text>
+          </div>
         </Flex>
       }
       type="info"

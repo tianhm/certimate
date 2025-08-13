@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { type AdderProps as FlowgramAdderProps, useClientContext } from "@flowgram.ai/fixed-layout-editor";
 
@@ -14,6 +15,7 @@ const Adder = ({ from, hoverActivated }: AdderProps) => {
   const ctx = useClientContext();
   const { operation, playground } = ctx;
 
+  const [menuOpen, setMenuOpen] = useState(false); // 使用受控组件，避免下拉菜单展开时鼠标移出而产生的布局抖动
   const menuItems = getAllNodeRegistries()
     .filter((registry) => {
       if (registry.meta?.addDisable != null) {
@@ -66,8 +68,8 @@ const Adder = ({ from, hoverActivated }: AdderProps) => {
 
   return playground.config.readonlyOrDisabled ? null : (
     <div className="relative">
-      <Dropdown menu={{ items: menuItems }} placement="bottomRight" trigger={["click"]}>
-        {hoverActivated ? (
+      <Dropdown menu={{ items: menuItems }} placement="bottomRight" trigger={["click"]} open={menuOpen} onOpenChange={setMenuOpen}>
+        {hoverActivated || menuOpen ? (
           <Button icon={<IconPlus size="1em" stroke={3} />} shape="circle" size="small" type="primary" />
         ) : (
           <div className="size-2 rounded-full bg-primary opacity-75"></div>

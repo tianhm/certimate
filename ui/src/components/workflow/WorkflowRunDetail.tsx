@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { IconBrowserShare, IconCheck, IconChevronRight, IconDownload, IconSettings2 } from "@tabler/icons-react";
 import { useRequest } from "ahooks";
-import { App, Button, Collapse, Divider, Dropdown, Empty, Flex, Skeleton, Spin, Table, type TableProps, Tooltip, Typography, theme } from "antd";
+import { App, Button, Collapse, Divider, Dropdown, Empty, Skeleton, Spin, Table, type TableProps, Tooltip, Typography } from "antd";
 import dayjs from "dayjs";
 import { ClientResponseError } from "pocketbase";
 
@@ -43,7 +43,6 @@ const WorkflowRunDetail = ({ data, ...props }: WorkflowRunDetailProps) => {
 const WorkflowRunLogs = ({ runId, runStatus }: { runId: string; runStatus: string }) => {
   const { t } = useTranslation();
 
-  const { token: themeToken } = theme.useToken();
   const { theme: browserTheme } = useBrowserTheme();
 
   type Log = Pick<WorkflowLogModel, "timestamp" | "level" | "message" | "data">;

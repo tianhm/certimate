@@ -123,6 +123,19 @@ const WorkflowDetailDesign = () => {
         >
           <div className="absolute top-8 z-10 w-full px-4">
             <div className="container">
+              <Alert
+                className="mb-2"
+                message={
+                  <div>
+                    该子页面仍在建设中，目前各节点数据只读，如需编辑请使用旧版编排工具。
+                    <br />
+                    This subpage is under construction. All node data is read-only currently. Please use the legacy designer if you want to edit workflow.
+                  </div>
+                }
+                showIcon
+                closable
+                type="warning"
+              />
               <div className="flex items-center justify-end gap-4">
                 <div className="flex flex-1 items-center justify-end gap-4 overflow-hidden">
                   <div className="flex-1 overflow-hidden">

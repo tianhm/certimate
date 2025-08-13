@@ -140,7 +140,7 @@ jobs:
           GOOS: windows
         run: |
           mkdir -p dist/windows
-          for ARCH in amd64 arm64; do
+          for ARCH in amd64 arm64 386; do
             go env -w GOARCH=$ARCH
             go build -ldflags="-s -w -X github.com/certimate-go/certimate.Version=${GITHUB_REF#refs/tags/}" -o dist/windows/certimate_${GITHUB_REF#refs/tags/}_windows_$ARCH.exe
           done

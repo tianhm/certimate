@@ -12,10 +12,10 @@ import DeploymentProviderPicker from "@/components/provider/DeploymentProviderPi
 import DeploymentProviderSelect from "@/components/provider/DeploymentProviderSelect";
 import Show from "@/components/Show";
 import { ACCESS_USAGES, DEPLOYMENT_PROVIDERS, accessProvidersMap, deploymentProvidersMap } from "@/domain/provider";
-import { type WorkflowNodeConfigForDeploy, WorkflowNodeType, defaultNodeConfigForDeploy } from "@/domain/workflow";
-import { useAntdForm, useZustandShallowSelector } from "@/hooks";
-import { useWorkflowStore } from "@/stores/workflow";
+import { type WorkflowNodeConfigForDeploy, defaultNodeConfigForDeploy } from "@/domain/workflow";
+import { useAntdForm } from "@/hooks";
 
+import { getAllPreviousNodes } from "../_util";
 import { FormNestedFieldsContextProvider, NodeFormContextProvider } from "./_context";
 import BizDeployNodeConfigFormProvider1PanelConsole from "./BizDeployNodeConfigFormProvider1PanelConsole";
 import BizDeployNodeConfigFormProvider1PanelSite from "./BizDeployNodeConfigFormProvider1PanelSite";
@@ -126,13 +126,21 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
 
   const { token: themeToken } = theme.useToken();
 
-  const { getWorkflowOuptutBeforeId } = useWorkflowStore(useZustandShallowSelector(["updateNode", "getWorkflowOuptutBeforeId"]));
-
   const initialValues = useMemo(() => {
     return getNodeForm(node)?.getValueIn("config") as WorkflowNodeConfigForDeploy | undefined;
   }, [node]);
 
-  const formSchema = getSchema({ i18n });
+  const formSchema = getSchema({ i18n }).superRefine((values, ctx) => {
+    if (values.certificateOutputNodeId) {
+      if (!certificateOutputNodeIdOptions.some((option) => option.value === values.certificateOutputNodeId)) {
+        ctx.addIssue({
+          code: "custom",
+          message: t("workflow_node.deploy.form.certificate_output_node_id.placeholder"),
+          path: ["certificateOutputNodeId"],
+        });
+      }
+    }
+  });
   const formRule = createSchemaFieldRule(formSchema);
   const { form: formInst, formProps } = useAntdForm({
     form: props.form,
@@ -141,6 +149,17 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
   });
 
   const fieldProvider = Form.useWatch<string>("provider", { form: formInst, preserve: true });
+
+  const certificateOutputNodeIdOptions = useMemo(() => {
+    return getAllPreviousNodes(node)
+      .filter((node) => node.flowNodeType === NodeType.BizApply || node.flowNodeType === NodeType.BizUpload)
+      .map((node) => {
+        return {
+          label: getNodeForm(node)?.getValueIn("name"),
+          value: node.id,
+        };
+      });
+  }, [node]);
 
   const [showProviderAccess, setShowProviderAccess] = useState(false);
   useEffect(() => {
@@ -152,25 +171,6 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
       setShowProviderAccess(false);
     }
   }, [fieldProvider]);
-
-  // TODO: 适配 flowgram
-  const certificateCandidates = useMemo(() => {
-    const previousNodes = getWorkflowOuptutBeforeId(node.id, "certificate");
-    return previousNodes
-      .filter((node) => node.type === WorkflowNodeType.Apply || node.type === WorkflowNodeType.Upload)
-      .map((item) => {
-        return {
-          label: item.name,
-          options: (item.outputs ?? [])?.map((output) => {
-            return {
-              label: output.label,
-              value: `${item.id}#${output.name}`,
-            };
-          }),
-        };
-      })
-      .filter((group) => group.options.length > 0);
-  }, [node.id]);
 
   const NestedProviderConfigFields = useMemo(() => {
     /*
@@ -369,7 +369,6 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
 
   const handleProviderPick = (value: string) => {
     formInst.setFieldValue("provider", value);
-    console.log();
   };
 
   const handleProviderSelect = (value?: string | undefined) => {
@@ -380,7 +379,7 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
       const oldValues = formInst.getFieldsValue();
       const newValues: Record<string, unknown> = {};
       for (const key in oldValues) {
-        if (key === "provider" || key === "providerAccessId" || key === "certificate" || key === "skipOnLastSucceeded") {
+        if (key === "certificateOutputNodeId" || key === "provider" || key === "providerAccessId" || key === "skipOnLastSucceeded") {
           newValues[key] = oldValues[key];
         } else {
           delete newValues[key];
@@ -455,22 +454,24 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
             </Form.Item>
 
             <Form.Item
-              name="certificate"
-              label={t("workflow_node.deploy.form.certificate.label")}
-              extra={t("workflow_node.deploy.form.certificate.help")}
+              name="certificateOutputNodeId"
+              label={t("workflow_node.deploy.form.certificate_output_node_id.label")}
+              extra={t("workflow_node.deploy.form.certificate_output_node_id.help")}
               rules={[formRule]}
             >
               <Select
-                labelRender={({ label, value }) => {
-                  if (value != null) {
-                    const group = certificateCandidates.find((group) => group.options.some((option) => option.value === value));
-                    return `${group?.label} - ${label}`;
-                  }
-
-                  return <span style={{ color: themeToken.colorTextPlaceholder }}>{t("workflow_node.deploy.form.certificate.placeholder")}</span>;
+                optionRender={({ label, value }) => {
+                  return (
+                    <div className="flex items-center justify-between gap-4 overflow-hidden">
+                      <div className="flex-1 truncate">{label}</div>
+                      <div className="origin-right scale-90 font-mono text-xs" style={{ color: themeToken.colorTextSecondary }}>
+                        (NodeID: {value})
+                      </div>
+                    </div>
+                  );
                 }}
-                options={certificateCandidates}
-                placeholder={t("workflow_node.deploy.form.certificate.placeholder")}
+                options={certificateOutputNodeIdOptions}
+                placeholder={t("workflow_node.deploy.form.certificate_output_node_id.placeholder")}
               />
             </Form.Item>
           </div>
@@ -529,8 +530,6 @@ const getAnchorItems = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n
 
 const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   return {
-    certificate: "",
-    provider: "",
     ...defaultNodeConfigForDeploy(),
   };
 };
@@ -540,8 +539,10 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
 
   return z
     .object({
-      certificate: z.string().nonempty(t("workflow_node.deploy.form.certificate.placeholder")),
-      provider: z.string().nonempty(t("workflow_node.deploy.form.provider.placeholder")),
+      certificateOutputNodeId: z
+        .string(t("workflow_node.deploy.form.certificate_output_node_id.placeholder"))
+        .nonempty(t("workflow_node.deploy.form.certificate_output_node_id.placeholder")),
+      provider: z.string(t("workflow_node.deploy.form.provider.placeholder")).nonempty(t("workflow_node.deploy.form.provider.placeholder")),
       providerAccessId: z.string().nullish(),
       providerConfig: z.any().nullish(),
       skipOnLastSucceeded: z.boolean().nullish(),

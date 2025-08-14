@@ -1,9 +1,11 @@
 import { getI18n } from "react-i18next";
 import { FeedbackLevel, Field } from "@flowgram.ai/fixed-layout-editor";
 import { IconCloudUpload } from "@tabler/icons-react";
-import { nanoid } from "nanoid";
+
+import { defaultNodeConfigForUpload } from "@/domain/workflow";
 
 import { BaseNode } from "./_shared";
+import { newNodeId } from "../_util";
 import { NodeKindType, type NodeRegistry, NodeType } from "./typings";
 import BizUploadNodeConfigForm from "../forms/BizUploadNodeConfigForm";
 
@@ -50,10 +52,11 @@ export const BizUploadNodeRegistry: NodeRegistry = {
     const { t } = getI18n();
 
     return {
-      id: nanoid(),
+      id: newNodeId(),
       type: NodeType.BizUpload,
       data: {
         name: t("workflow_node.upload.default_name"),
+        config: defaultNodeConfigForUpload(),
       },
     };
   },

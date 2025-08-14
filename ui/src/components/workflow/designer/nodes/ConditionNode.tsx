@@ -2,11 +2,11 @@ import { getI18n } from "react-i18next";
 import { FeedbackLevel, Field, FlowNodeBaseType, FlowNodeSplitType } from "@flowgram.ai/fixed-layout-editor";
 import { IconFilter, IconFilterFilled, IconSitemap } from "@tabler/icons-react";
 import { Typography } from "antd";
-import { nanoid } from "nanoid";
 
 import { type Expr, ExprType } from "@/domain/workflow";
 
 import { BaseNode, BranchNode } from "./_shared";
+import { newNodeId } from "../_util";
 import { NodeKindType, type NodeRegistry, NodeType } from "./typings";
 import BranchBlockNodeConfigForm from "../forms/BranchBlockNodeConfigForm";
 
@@ -40,14 +40,14 @@ export const ConditionNodeRegistry: NodeRegistry = {
     const { t } = getI18n();
 
     return {
-      id: nanoid(),
+      id: newNodeId(),
       type: NodeType.Condition,
       data: {
         name: t("workflow_node.condition.default_name"),
       },
       blocks: [
         {
-          id: nanoid(),
+          id: newNodeId(),
           type: NodeType.BranchBlock,
           blocks: [],
           data: {
@@ -55,7 +55,7 @@ export const ConditionNodeRegistry: NodeRegistry = {
           },
         },
         {
-          id: nanoid(),
+          id: newNodeId(),
           type: NodeType.BranchBlock,
           data: {
             name: t("workflow_node.branch_block.default_name") + " 2",
@@ -165,7 +165,7 @@ export const BranchBlockNodeRegistry: NodeRegistry = {
     }
 
     return {
-      id: nanoid(),
+      id: newNodeId(),
       type: NodeType.BranchBlock,
       data: {
         name: nodeName,

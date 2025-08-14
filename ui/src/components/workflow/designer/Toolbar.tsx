@@ -19,7 +19,7 @@ const Toolbar = ({ className, style }: ToolbarProps) => {
   const ctx = useClientContext();
   const { playground } = ctx;
 
-  const tools = usePlaygroundTools({ minZoom: 0.1, maxZoom: 3, padding: 48 });
+  const tools = usePlaygroundTools({ minZoom: 0.1, maxZoom: 3 });
 
   const refresh = useRefresh();
 

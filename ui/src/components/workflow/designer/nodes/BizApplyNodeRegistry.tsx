@@ -2,12 +2,13 @@ import { getI18n } from "react-i18next";
 import { FeedbackLevel, Field } from "@flowgram.ai/fixed-layout-editor";
 import { IconContract } from "@tabler/icons-react";
 import { Avatar } from "antd";
-import { nanoid } from "nanoid";
 
 import { acmeDns01ProvidersMap } from "@/domain/provider";
+import { defaultNodeConfigForApply } from "@/domain/workflow";
 
 import { BaseNode } from "./_shared";
 import { NodeKindType, type NodeRegistry, NodeType } from "./typings";
+import { newNodeId } from "../_util";
 import BizApplyNodeConfigForm from "../forms/BizApplyNodeConfigForm";
 
 export const BizApplyNodeRegistry: NodeRegistry = {
@@ -64,10 +65,11 @@ export const BizApplyNodeRegistry: NodeRegistry = {
     const { t } = getI18n();
 
     return {
-      id: nanoid(),
+      id: newNodeId(),
       type: NodeType.BizApply,
       data: {
         name: t("workflow_node.apply.default_name"),
+        config: defaultNodeConfigForApply(),
       },
     };
   },

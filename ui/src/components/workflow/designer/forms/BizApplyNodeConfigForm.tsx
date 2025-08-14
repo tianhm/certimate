@@ -555,13 +555,13 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
       }, t("common.errmsg.domain_invalid")),
       contactEmail: z.email(t("common.errmsg.email_invalid")),
       challengeType: z.string().nullish(),
-      provider: z.string().nonempty(t("workflow_node.apply.form.provider.placeholder")),
-      providerAccessId: z.string().nonempty(t("workflow_node.apply.form.provider_access.placeholder")),
+      provider: z.string(t("workflow_node.apply.form.provider.placeholder")).nonempty(t("workflow_node.apply.form.provider.placeholder")),
+      providerAccessId: z.string(t("workflow_node.apply.form.provider_access.placeholder")).nonempty(t("workflow_node.apply.form.provider_access.placeholder")),
       providerConfig: z.any().nullish(),
       caProvider: z.string().nullish(),
       caProviderAccessId: z.string().nullish(),
       caProviderConfig: z.any().nullish(),
-      keyAlgorithm: z.string().nonempty(t("workflow_node.apply.form.key_algorithm.placeholder")),
+      keyAlgorithm: z.string(t("workflow_node.apply.form.key_algorithm.placeholder")).nonempty(t("workflow_node.apply.form.key_algorithm.placeholder")),
       nameservers: z
         .string()
         .nullish()

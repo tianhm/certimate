@@ -213,8 +213,6 @@ const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   return {
     subject: "",
     message: "",
-    provider: "",
-    providerAccessId: "",
     ...defaultNodeConfigForNotify(),
   };
 };
@@ -231,8 +229,8 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
       .string()
       .min(1, t("workflow_node.notify.form.message.placeholder"))
       .max(20480, t("common.errmsg.string_max", { max: 20480 })),
-    provider: z.string().nonempty(t("workflow_node.notify.form.provider.placeholder")),
-    providerAccessId: z.string().nonempty(t("workflow_node.notify.form.provider_access.placeholder")),
+    provider: z.string(t("workflow_node.notify.form.provider.placeholder")).nonempty(t("workflow_node.notify.form.provider.placeholder")),
+    providerAccessId: z.string(t("workflow_node.notify.form.provider_access.placeholder")).nonempty(t("workflow_node.notify.form.provider_access.placeholder")),
     providerConfig: z.any().nullish(),
     skipOnAllPrevSkipped: z.boolean().nullish(),
   });

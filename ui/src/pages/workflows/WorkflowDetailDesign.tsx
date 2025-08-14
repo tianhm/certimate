@@ -8,9 +8,7 @@ import { nanoid } from "nanoid";
 import { debounce, isEqual } from "radash";
 
 import Show from "@/components/Show";
-import WorkflowDesigner, { type DesignerInstance as WorkflowDesignerInstance } from "@/components/workflow/designer/Designer";
-import WorkflowNodeDrawer from "@/components/workflow/designer/NodeDrawer";
-import WorkflowToolbar from "@/components/workflow/designer/Toolbar";
+import { WorkflowDesigner, type WorkflowDesignerInstance, WorkflowNodeDrawer, WorkflowToolbar } from "@/components/workflow/designer";
 import { type WorkflowNode, WorkflowNodeType } from "@/domain/workflow";
 import { WORKFLOW_RUN_STATUSES } from "@/domain/workflowRun";
 import { useZustandShallowSelector } from "@/hooks";
@@ -222,6 +220,8 @@ const compactWorkflowDraft = (root: WorkflowNode | undefined) => {
               data: {
                 name: current.name,
                 config: current.config,
+                inputs: current.inputs,
+                outputs: current.outputs,
               },
             });
             break;
@@ -233,6 +233,8 @@ const compactWorkflowDraft = (root: WorkflowNode | undefined) => {
               data: {
                 name: current.name,
                 config: current.config,
+                inputs: current.inputs,
+                outputs: current.outputs,
               },
             });
             break;
@@ -244,6 +246,8 @@ const compactWorkflowDraft = (root: WorkflowNode | undefined) => {
               data: {
                 name: current.name,
                 config: current.config,
+                inputs: current.inputs,
+                outputs: current.outputs,
               },
             });
             break;
@@ -254,7 +258,13 @@ const compactWorkflowDraft = (root: WorkflowNode | undefined) => {
               type: "bizDeploy",
               data: {
                 name: current.name,
-                config: current.config,
+                config: {
+                  ...current.config,
+                  certificate: undefined,
+                  certificateOutputNodeId: (current.config?.certificate as string)?.split("#")?.shift(),
+                },
+                inputs: current.inputs,
+                outputs: current.outputs,
               },
             });
             break;
@@ -266,6 +276,8 @@ const compactWorkflowDraft = (root: WorkflowNode | undefined) => {
               data: {
                 name: current.name,
                 config: current.config,
+                inputs: current.inputs,
+                outputs: current.outputs,
               },
             });
             break;

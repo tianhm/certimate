@@ -114,7 +114,6 @@ export const NodeConfigDrawer = ({ children, afterClose, anchor, footer = true, 
 
     const { promise, resolve, reject } = Promise.withResolvers();
     if (changed) {
-      console.log(oldValues, newValues);
       modal.confirm({
         title: t("common.text.operation_confirm"),
         content: t("workflow.detail.design.unsaved_changes.confirm"),
@@ -192,7 +191,7 @@ export const NodeConfigDrawer = ({ children, afterClose, anchor, footer = true, 
       }
       onClose={handleClose}
     >
-      <div ref={containerRef} style={{ height: "100%", overflow: "auto" }}>
+      <div ref={containerRef} style={{ height: "100%", overflowX: "hidden", overflowY: "auto" }}>
         {children}
       </div>
     </Drawer>

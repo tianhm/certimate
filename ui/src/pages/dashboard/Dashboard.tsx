@@ -368,7 +368,6 @@ const WorkflowRunHistoryTable = ({ className, style }: { className?: string; sty
         rowClassName="cursor-pointer"
         rowKey={(record) => record.id}
         scroll={{ x: "max(100%, 720px)" }}
-        size="small"
         onRow={(record) => ({
           onClick: () => {
             handleRecordDetailClick(record);

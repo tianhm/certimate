@@ -24,6 +24,4 @@ export const getAllNodeRegistries = () => {
   ];
 };
 
-export { duplicateNodeJSON } from "./_shared";
-
 export type * from "./typings";

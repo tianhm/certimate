@@ -1,9 +1,9 @@
 ﻿import { getI18n } from "react-i18next";
 import { Field } from "@flowgram.ai/fixed-layout-editor";
 import { IconArrowsSplit, IconCircleX } from "@tabler/icons-react";
-import { nanoid } from "nanoid";
 
 import { BaseNode, BranchNode } from "./_shared";
+import { newNodeId } from "../_util";
 import { NodeKindType, type NodeRegistry, NodeType } from "./typings";
 
 export const TryCatchNodeRegistry: NodeRegistry = {
@@ -32,23 +32,23 @@ export const TryCatchNodeRegistry: NodeRegistry = {
     const { t } = getI18n();
 
     return {
-      id: nanoid(),
+      id: newNodeId(),
       type: NodeType.TryCatch,
       data: {
         name: t("workflow_node.try_catch.default_name"),
       },
       blocks: [
         {
-          id: nanoid(),
+          id: newNodeId(),
           type: NodeType.TryBlock,
           blocks: [],
         },
         {
-          id: nanoid(),
+          id: newNodeId(),
           type: NodeType.CatchBlock,
           blocks: [
             {
-              id: nanoid(),
+              id: newNodeId(),
               type: NodeType.End,
               data: {
                 name: t("workflow_node.end.default_name"),
@@ -106,11 +106,11 @@ export const CatchBlockNodeRegistry: NodeRegistry = {
     const { t } = getI18n();
 
     return {
-      id: nanoid(),
+      id: newNodeId(),
       type: NodeType.CatchBlock,
       blocks: [
         {
-          id: nanoid(),
+          id: newNodeId(),
           type: NodeType.End,
           data: {
             name: t("workflow_node.end.default_name"),

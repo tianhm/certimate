@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from "react";
+import { forwardRef, useImperativeHandle, useMemo, useRef } from "react";
 import {
   ConstantKeys,
   EditorRenderer,
@@ -119,6 +119,18 @@ const Designer = forwardRef<DesignerInstance, DesignerProps>(
           }),
         ],
 
+        onInit: (ctx) => {
+          const callback = () => {
+            if (rendered.current) {
+              onDocumentChange?.(flowgramEditorRef.current!);
+            }
+          };
+          ctx.document.onNodeCreate(callback);
+          ctx.document.onNodeUpdate(callback);
+          ctx.document.onNodeDispose(callback);
+          ctx.document.originTree.onTreeChange(callback);
+        },
+
         onAllLayersRendered: (ctx) => {
           rendered.current = true;
 
@@ -128,50 +140,34 @@ const Designer = forwardRef<DesignerInstance, DesignerProps>(
           }, 1);
         },
       }),
-      [themeToken, initialData, readonly]
+      [themeToken, initialData, readonly, onDocumentChange]
     );
-
-    useEffect(() => {
-      const callback = () => {
-        if (rendered.current) {
-          onDocumentChange?.(flowgramEditorRef.current!);
-        }
-      };
-      const d1 = flowgramEditorRef.current?.document?.onNodeCreate(callback);
-      const d2 = flowgramEditorRef.current?.document?.onNodeUpdate(callback);
-      const d3 = flowgramEditorRef.current?.document?.onNodeDispose(callback);
-      const d4 = flowgramEditorRef.current?.document?.renderTree?.onTreeChange(callback);
-
-      return () => {
-        d1?.dispose();
-        d2?.dispose();
-        d3?.dispose();
-        d4?.dispose();
-      };
-    }, [onDocumentChange]);
 
     useImperativeHandle(ref, () => {
       return {
+        get clipboard() {
+          return flowgramEditorRef.current!.clipboard;
+        },
         get container() {
           return flowgramEditorRef.current!.container;
         },
         get document() {
           return flowgramEditorRef.current!.document;
         },
-        get playground() {
-          return flowgramEditorRef.current!.playground;
+        get history() {
+          return flowgramEditorRef.current!.history;
         },
         get operation() {
           return flowgramEditorRef.current!.operation;
         },
-        get clipboard() {
-          return flowgramEditorRef.current!.clipboard;
+        get playground() {
+          return flowgramEditorRef.current!.playground;
         },
         get selection() {
           return flowgramEditorRef.current!.selection;
         },
-        get history() {
-          return flowgramEditorRef.current!.history;
+        get tools() {
+          return flowgramEditorRef.current!.tools;
         },
 
         get(identifier) {

@@ -140,7 +140,6 @@ export type WorkflowNodeConfigForStart = {
 export const defaultNodeConfigForStart = (): Partial<WorkflowNodeConfigForStart> => {
   return {
     trigger: WORKFLOW_TRIGGERS.MANUAL,
-    triggerCron: "0 0 * * *",
   };
 };
 
@@ -199,7 +198,9 @@ export const defaultNodeConfigForMonitor = (): Partial<WorkflowNodeConfigForMoni
 };
 
 export type WorkflowNodeConfigForDeploy = {
+  /** @deprecated **/
   certificate: string;
+  certificateOutputNodeId: string;
   provider: string;
   providerAccessId?: string;
   providerConfig?: Record<string, unknown>;

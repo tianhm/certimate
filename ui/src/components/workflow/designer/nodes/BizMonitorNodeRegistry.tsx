@@ -1,9 +1,11 @@
 import { getI18n } from "react-i18next";
 import { FeedbackLevel, Field } from "@flowgram.ai/fixed-layout-editor";
 import { IconDeviceDesktopSearch } from "@tabler/icons-react";
-import { nanoid } from "nanoid";
+
+import { defaultNodeConfigForMonitor } from "@/domain/workflow";
 
 import { BaseNode } from "./_shared";
+import { newNodeId } from "../_util";
 import { NodeKindType, type NodeRegistry, NodeType } from "./typings";
 import BizMonitorNodeConfigForm from "../forms/BizMonitorNodeConfigForm";
 
@@ -60,10 +62,11 @@ export const BizMonitorNodeRegistry: NodeRegistry = {
     const { t } = getI18n();
 
     return {
-      id: nanoid(),
+      id: newNodeId(),
       type: NodeType.BizMonitor,
       data: {
         name: t("workflow_node.monitor.default_name"),
+        config: defaultNodeConfigForMonitor(),
       },
     };
   },

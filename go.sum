@@ -692,6 +692,8 @@ github.com/nrdcg/bunny-go v0.0.0-20240207213615-dde5bf4577a3 h1:ouZ2JWDl8IW5k1qu
 github.com/nrdcg/bunny-go v0.0.0-20240207213615-dde5bf4577a3/go.mod h1:ZwadWt7mVhMHMbAQ1w8IhDqtWO3eWqWq72W7trnaiE8=
 github.com/nrdcg/desec v0.10.0 h1:qrEDiqnsvNU9QE7lXIXi/tIHAfyaFXKxF2/8/52O8uM=
 github.com/nrdcg/desec v0.10.0/go.mod h1:5+4vyhMRTs49V9CNoODF/HwT8Mwxv9DJ6j+7NekUnBs=
+github.com/nrdcg/goacmedns v0.2.0 h1:ADMbThobzEMnr6kg2ohs4KGa3LFqmgiBA22/6jUWJR0=
+github.com/nrdcg/goacmedns v0.2.0/go.mod h1:T5o6+xvSLrQpugmwHvrSNkzWht0UGAwj2ACBMhh73Cg=
 github.com/nrdcg/mailinabox v0.2.0 h1:IKq8mfKiVwNW2hQii/ng1dJ4yYMMv3HAP3fMFIq2CFk=
 github.com/nrdcg/mailinabox v0.2.0/go.mod h1:0yxqeYOiGyxAu7Sb94eMxHPIOsPYXAjTeA9ZhePhGnc=
 github.com/nrdcg/namesilo v0.2.1 h1:kLjCjsufdW/IlC+iSfAqj0iQGgKjlbUUeDJio5Y6eMg=

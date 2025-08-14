@@ -13,6 +13,7 @@ import { useAntdForm, useAntdFormName } from "@/hooks";
 
 import AccessForm1PanelConfig from "./AccessForm1PanelConfig";
 import AccessFormACMECAConfig from "./AccessFormACMECAConfig";
+import AccessFormACMEDNSConfig from "./AccessFormACMEDNSConfig";
 import AccessFormACMEHttpReqConfig from "./AccessFormACMEHttpReqConfig";
 import AccessFormAliyunConfig from "./AccessFormAliyunConfig";
 import AccessFormAPISIXConfig from "./AccessFormAPISIXConfig";
@@ -193,6 +194,8 @@ const AccessForm = forwardRef<AccessFormInstance, AccessFormProps>(({ className,
         return <AccessForm1PanelConfig {...nestedFormProps} />;
       case ACCESS_PROVIDERS.ACMECA:
         return <AccessFormACMECAConfig {...nestedFormProps} />;
+      case ACCESS_PROVIDERS.ACMEDNS:
+        return <AccessFormACMEDNSConfig {...nestedFormProps} />;
       case ACCESS_PROVIDERS.ACMEHTTPREQ:
         return <AccessFormACMEHttpReqConfig {...nestedFormProps} />;
       case ACCESS_PROVIDERS.ALIYUN:

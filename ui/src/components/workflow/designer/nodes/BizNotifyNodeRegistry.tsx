@@ -4,16 +4,16 @@ import { IconSend } from "@tabler/icons-react";
 import { Avatar } from "antd";
 
 import { notificationProvidersMap } from "@/domain/provider";
-import { defaultNodeConfigForNotify } from "@/domain/workflow";
+import { newNode } from "@/domain/workflow";
 
 import { BaseNode } from "./_shared";
-import { newNodeId } from "../_util";
 import { NodeKindType, type NodeRegistry, NodeType } from "./typings";
 import BizNotifyNodeConfigForm from "../forms/BizNotifyNodeConfigForm";
 
 export const BizNotifyNodeRegistry: NodeRegistry = {
   type: NodeType.BizNotify,
-  kindType: NodeKindType.Business,
+
+  kind: NodeKindType.Business,
 
   meta: {
     helpText: getI18n().t("workflow_node.notify.help"),
@@ -68,15 +68,6 @@ export const BizNotifyNodeRegistry: NodeRegistry = {
   },
 
   onAdd: () => {
-    const { t } = getI18n();
-
-    return {
-      id: newNodeId(),
-      type: NodeType.BizNotify,
-      data: {
-        name: t("workflow_node.notify.default_name"),
-        config: defaultNodeConfigForNotify(),
-      },
-    };
+    return newNode(NodeType.BizNotify, { i18n: getI18n() });
   },
 };

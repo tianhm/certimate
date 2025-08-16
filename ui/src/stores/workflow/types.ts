@@ -1,4 +1,4 @@
-import { type WorkflowModel, type WorkflowNode } from "@/domain/workflow";
+import { type WorkflowModel } from "@/domain/workflow";
 
 export interface WorkflowState {
   workflow: WorkflowModel;
@@ -9,20 +9,13 @@ export interface WorkflowActions {
   init(id: string): void;
   destroy(): void;
 
-  setBaseInfo: (name: string, description: string) => void;
-  setEnabled(enabled: boolean): void;
+  setName: (name: Required<WorkflowModel>["name"]) => void;
+  setDescription: (description: Required<WorkflowModel>["description"]) => void;
+  setEnabled(enabled: Required<WorkflowModel>["enabled"]): void;
+  setDraft(draft: Required<WorkflowModel>["draft"]): void;
+
   publish(): void;
   rollback(): void;
-
-  addNode: (node: WorkflowNode, previousNodeId: string) => void;
-  duplicateNode: (node: WorkflowNode) => void;
-  updateNode: (node: WorkflowNode) => void;
-  removeNode: (node: WorkflowNode) => void;
-  addBranch: (branchId: string) => void;
-  duplicateBranch: (branchId: string, index: number) => void;
-  removeBranch: (branchId: string, index: number) => void;
-
-  getWorkflowOuptutBeforeId: (nodeId: string, typeFilter?: string | string[]) => WorkflowNode[];
 }
 
 export interface WorkflowStore extends WorkflowState, WorkflowActions {}

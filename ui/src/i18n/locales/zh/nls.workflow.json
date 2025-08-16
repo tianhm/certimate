@@ -19,7 +19,7 @@
   "workflow.action.batch_delete.modal.title": "删除工作流",
   "workflow.action.batch_delete.modal.content": "确定要删除这 {{count}} 个被选中的工作流吗？<br>注意此操作不可撤销，请谨慎操作。",
   "workflow.action.enable.button": "启用",
-  "workflow.action.enable.errmsg.uncompleted": "请先完成流程编排并发布更改",
+  "workflow.action.enable.errmsg.unpublished": "请先完成流程编排并发布更改",
   "workflow.action.disable.button": "停用",
   "workflow.action.run.button": "运行",
   "workflow.action.run.menu": "运行工作流",

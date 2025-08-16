@@ -12,7 +12,7 @@ import DeploymentProviderPicker from "@/components/provider/DeploymentProviderPi
 import DeploymentProviderSelect from "@/components/provider/DeploymentProviderSelect";
 import Show from "@/components/Show";
 import { ACCESS_USAGES, DEPLOYMENT_PROVIDERS, accessProvidersMap, deploymentProvidersMap } from "@/domain/provider";
-import { type WorkflowNodeConfigForDeploy, defaultNodeConfigForDeploy } from "@/domain/workflow";
+import { type WorkflowNodeConfigForBizDeploy, defaultNodeConfigForBizDeploy } from "@/domain/workflow";
 import { useAntdForm } from "@/hooks";
 
 import { getAllPreviousNodes } from "../_util";
@@ -127,7 +127,7 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
   const { token: themeToken } = theme.useToken();
 
   const initialValues = useMemo(() => {
-    return getNodeForm(node)?.getValueIn("config") as WorkflowNodeConfigForDeploy | undefined;
+    return getNodeForm(node)?.getValueIn("config") as WorkflowNodeConfigForBizDeploy | undefined;
   }, [node]);
 
   const formSchema = getSchema({ i18n }).superRefine((values, ctx) => {
@@ -530,7 +530,7 @@ const getAnchorItems = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n
 
 const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   return {
-    ...defaultNodeConfigForDeploy(),
+    ...defaultNodeConfigForBizDeploy(),
   };
 };
 

@@ -12,6 +12,7 @@ import { useAntdFormName } from "@/hooks";
 
 import { useNodeFormContext } from "./_context";
 import { getAllPreviousNodes } from "../_util";
+import { NodeType } from "../nodes/typings";
 
 export interface BranchBlockNodeConfigFormExpressionEditorProps {
   className?: string;
@@ -161,6 +162,7 @@ const BranchBlockNodeConfigFormExpressionEditor = forwardRef<BranchBlockNodeConf
 
     const ciSelectorOptions = useMemo(() => {
       return getAllPreviousNodes(node)
+        .filter((node) => node.flowNodeType === NodeType.BizApply || node.flowNodeType === NodeType.BizUpload || node.flowNodeType === NodeType.BizMonitor)
         .map((node) => {
           const form = getNodeForm(node);
           const group = {
@@ -179,28 +181,14 @@ const BranchBlockNodeConfigFormExpressionEditor = forwardRef<BranchBlockNodeConf
             options: Array<{ label: string; value: string }>(),
           };
 
-          for (const output of form?.getValueIn("outputs") ?? []) {
-            switch (output.type) {
-              case "certificate":
-                group.options.push({
-                  label: `${output.label} - ${t("workflow.variables.selector.validity.label")}`,
-                  value: `${node.id}#${output.name}.validity#boolean`,
-                });
-                group.options.push({
-                  label: `${output.label} - ${t("workflow.variables.selector.days_left.label")}`,
-                  value: `${node.id}#${output.name}.daysLeft#number`,
-                });
-                break;
-
-              default:
-                group.options.push({
-                  label: `${output.label}`,
-                  value: `${node.id}#${output.name}#${output.type}`,
-                });
-                console.warn("[certimate] invalid workflow output type in condition expressions", output);
-                break;
-            }
-          }
+          group.options.push({
+            label: `${t("workflow.variables.type.certificate.label")} - ${t("workflow.variables.selector.validity.label")}`,
+            value: `${node.id}#certificate.validity#boolean`,
+          });
+          group.options.push({
+            label: `${t("workflow.variables.type.certificate.label")} - ${t("workflow.variables.selector.days_left.label")}`,
+            value: `${node.id}#certificate.daysLeft#number`,
+          });
 
           return group;
         })

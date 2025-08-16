@@ -4,16 +4,17 @@ import { IconPackage } from "@tabler/icons-react";
 import { Avatar } from "antd";
 
 import { deploymentProvidersMap } from "@/domain/provider";
-import { defaultNodeConfigForDeploy } from "@/domain/workflow";
+import { newNode } from "@/domain/workflow";
 
-import { getAllPreviousNodes, newNodeId } from "../_util";
+import { getAllPreviousNodes } from "../_util";
 import { BaseNode } from "./_shared";
 import { NodeKindType, type NodeRegistry, NodeType } from "./typings";
 import BizDeployNodeConfigForm from "../forms/BizDeployNodeConfigForm";
 
 export const BizDeployNodeRegistry: NodeRegistry = {
   type: NodeType.BizDeploy,
-  kindType: NodeKindType.Business,
+
+  kind: NodeKindType.Business,
 
   meta: {
     helpText: getI18n().t("workflow_node.deploy.help"),
@@ -76,15 +77,6 @@ export const BizDeployNodeRegistry: NodeRegistry = {
   },
 
   onAdd: () => {
-    const { t } = getI18n();
-
-    return {
-      id: newNodeId(),
-      type: NodeType.BizDeploy,
-      data: {
-        name: t("workflow_node.deploy.default_name"),
-        config: defaultNodeConfigForDeploy(),
-      },
-    };
+    return newNode(NodeType.BizDeploy, { i18n: getI18n() });
   },
 };

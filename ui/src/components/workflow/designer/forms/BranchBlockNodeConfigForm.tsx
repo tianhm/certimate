@@ -5,7 +5,7 @@ import { type AnchorProps, Form, type FormInstance } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
-import { type WorkflowNodeConfigForCondition, defaultNodeConfigForCondition } from "@/domain/workflow";
+import { type WorkflowNodeConfigForBranchBlock, defaultNodeConfigForBranchBlock } from "@/domain/workflow";
 import { useAntdForm } from "@/hooks";
 
 import { NodeFormContextProvider } from "./_context";
@@ -26,7 +26,7 @@ const BranchBlockNodeConfigForm = ({ node, ...props }: BranchBlockNodeConfigForm
   const { i18n, t } = useTranslation();
 
   const initialValues = useMemo(() => {
-    return getNodeForm(node)?.getValueIn("config") as WorkflowNodeConfigForCondition | undefined;
+    return getNodeForm(node)?.getValueIn("config") as WorkflowNodeConfigForBranchBlock | undefined;
   }, [node]);
 
   const formSchema = getSchema({ i18n }).superRefine(async (values, ctx) => {
@@ -55,7 +55,7 @@ const BranchBlockNodeConfigForm = ({ node, ...props }: BranchBlockNodeConfigForm
     <NodeFormContextProvider value={{ node }}>
       <Form {...formProps} clearOnDestroy={true} form={formInst} layout="vertical" preserve={false} scrollToFirstError>
         <div id="parameters" data-anchor="parameters">
-          <Form.Item name="expression" label={t("workflow_node.condition.form.expression.label")} rules={[formRule]}>
+          <Form.Item name="expression" label={t("workflow_node.branch_block.form.expression.label")} rules={[formRule]}>
             <BranchBlockNodeConfigFormExpressionEditor ref={exprEditorRef} />
           </Form.Item>
         </div>
@@ -75,7 +75,7 @@ const getAnchorItems = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n
 };
 
 const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
-  return defaultNodeConfigForCondition();
+  return defaultNodeConfigForBranchBlock();
 };
 
 const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) => {

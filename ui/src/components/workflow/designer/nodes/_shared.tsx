@@ -142,7 +142,7 @@ const InternalNodeMenuButton = ({
   const [menuRemoveDisabled, setMenuRemoveDisabled] = useState(() => getLatestRemoveDisabledState());
   useEffect(() => {
     // 这里不能使用 useMemo() 来决定 menuRemoveDisabled，因为依赖项没有发生改变（对象引用始终是同一个）
-    // 因此需要使用 useEffect() 来监听 node 和 node.parent 的变化，并更新 menuRemoveDisabled 的状态
+    // 因此需要使用事件钩子来监听，并更新 menuRemoveDisabled 的状态
     const callback = () => {
       setMenuDuplicateDisabled(getLatestDuplicateDisabledState());
       setMenuRemoveDisabled(getLatestRemoveDisabledState());

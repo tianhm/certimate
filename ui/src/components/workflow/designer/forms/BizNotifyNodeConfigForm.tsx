@@ -10,7 +10,7 @@ import AccessEditDrawer from "@/components/access/AccessEditDrawer";
 import AccessSelect from "@/components/access/AccessSelect";
 import NotificationProviderSelect from "@/components/provider/NotificationProviderSelect";
 import { ACCESS_USAGES, NOTIFICATION_PROVIDERS, accessProvidersMap, notificationProvidersMap } from "@/domain/provider";
-import { type WorkflowNodeConfigForNotify, defaultNodeConfigForNotify } from "@/domain/workflow";
+import { type WorkflowNodeConfigForBizNotify, defaultNodeConfigForBizNotify } from "@/domain/workflow";
 import { useAntdForm, useZustandShallowSelector } from "@/hooks";
 import { useAccessesStore } from "@/stores/access";
 
@@ -38,7 +38,7 @@ const BizNotifyNodeConfigForm = ({ node, ...props }: BizNotifyNodeConfigFormProp
   const { accesses } = useAccessesStore(useZustandShallowSelector("accesses"));
 
   const initialValues = useMemo(() => {
-    return getNodeForm(node)?.getValueIn("config") as WorkflowNodeConfigForNotify | undefined;
+    return getNodeForm(node)?.getValueIn("config") as WorkflowNodeConfigForBizNotify | undefined;
   }, [node]);
 
   const formSchema = getSchema({ i18n });
@@ -117,6 +117,14 @@ const BizNotifyNodeConfigForm = ({ node, ...props }: BizNotifyNodeConfigFormProp
           <Form.Item name="message" label={t("workflow_node.notify.form.message.label")} rules={[formRule]}>
             <Input.TextArea autoSize={{ minRows: 3, maxRows: 10 }} placeholder={t("workflow_node.notify.form.message.placeholder")} />
           </Form.Item>
+        </div>
+
+        <div id="channel" data-anchor="channel">
+          <Divider size="small">
+            <Typography.Text className="text-xs font-normal" type="secondary">
+              {t("workflow_node.notify.form_anchor.channel.title")}
+            </Typography.Text>
+          </Divider>
 
           <Form.Item name="provider" label={t("workflow_node.notify.form.provider.label")} hidden={!showProvider} rules={[formRule]}>
             <NotificationProviderSelect
@@ -202,7 +210,7 @@ const BizNotifyNodeConfigForm = ({ node, ...props }: BizNotifyNodeConfigFormProp
 const getAnchorItems = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }): Required<AnchorProps>["items"] => {
   const { t } = i18n;
 
-  return ["parameters", "strategy"].map((key) => ({
+  return ["parameters", "channel", "strategy"].map((key) => ({
     key: key,
     title: t(`workflow_node.notify.form_anchor.${key}.tab`),
     href: "#" + key,
@@ -213,7 +221,7 @@ const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   return {
     subject: "",
     message: "",
-    ...defaultNodeConfigForNotify(),
+    ...defaultNodeConfigForBizNotify(),
   };
 };
 

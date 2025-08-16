@@ -10,7 +10,8 @@ import StartNodeConfigForm from "../forms/StartNodeConfigForm";
 
 export const StartNodeRegistry: NodeRegistry = {
   type: NodeType.Start,
-  kindType: NodeKindType.Common,
+
+  kind: NodeKindType.Basis,
 
   meta: {
     helpText: getI18n().t("workflow_node.start.help"),

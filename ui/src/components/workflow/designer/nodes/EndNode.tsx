@@ -2,13 +2,15 @@ import { getI18n } from "react-i18next";
 import { FlowNodeBaseType } from "@flowgram.ai/fixed-layout-editor";
 import { IconLogout } from "@tabler/icons-react";
 
+import { newNode } from "@/domain/workflow";
+
 import { BaseNode } from "./_shared";
-import { newNodeId } from "../_util";
 import { NodeKindType, type NodeRegistry, NodeType } from "./typings";
 
 export const EndNodeRegistry: NodeRegistry = {
   type: NodeType.End,
-  kindType: NodeKindType.Common,
+
+  kind: NodeKindType.Basis,
 
   meta: {
     helpText: getI18n().t("workflow_node.end.help"),
@@ -54,14 +56,6 @@ export const EndNodeRegistry: NodeRegistry = {
   },
 
   onAdd() {
-    const { t } = getI18n();
-
-    return {
-      id: newNodeId(),
-      type: NodeType.End,
-      data: {
-        name: t("workflow_node.end.default_name"),
-      },
-    };
+    return newNode(NodeType.End, { i18n: getI18n() });
   },
 };

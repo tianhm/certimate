@@ -4,16 +4,16 @@ import { IconContract } from "@tabler/icons-react";
 import { Avatar } from "antd";
 
 import { acmeDns01ProvidersMap } from "@/domain/provider";
-import { defaultNodeConfigForApply } from "@/domain/workflow";
+import { newNode } from "@/domain/workflow";
 
 import { BaseNode } from "./_shared";
 import { NodeKindType, type NodeRegistry, NodeType } from "./typings";
-import { newNodeId } from "../_util";
 import BizApplyNodeConfigForm from "../forms/BizApplyNodeConfigForm";
 
 export const BizApplyNodeRegistry: NodeRegistry = {
   type: NodeType.BizApply,
-  kindType: NodeKindType.Business,
+
+  kind: NodeKindType.Business,
 
   meta: {
     helpText: getI18n().t("workflow_node.apply.help"),
@@ -62,15 +62,6 @@ export const BizApplyNodeRegistry: NodeRegistry = {
   },
 
   onAdd: () => {
-    const { t } = getI18n();
-
-    return {
-      id: newNodeId(),
-      type: NodeType.BizApply,
-      data: {
-        name: t("workflow_node.apply.default_name"),
-        config: defaultNodeConfigForApply(),
-      },
-    };
+    return newNode(NodeType.BizApply, { i18n: getI18n() });
   },
 };

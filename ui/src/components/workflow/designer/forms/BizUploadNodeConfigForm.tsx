@@ -7,7 +7,7 @@ import { z } from "zod";
 
 import { validateCertificate, validatePrivateKey } from "@/api/certificates";
 import TextFileInput from "@/components/TextFileInput";
-import { type WorkflowNodeConfigForUpload, defaultNodeConfigForUpload } from "@/domain/workflow";
+import { type WorkflowNodeConfigForBizUpload, defaultNodeConfigForBizUpload } from "@/domain/workflow";
 import { useAntdForm } from "@/hooks";
 import { getErrMsg } from "@/utils/error";
 
@@ -27,7 +27,7 @@ const BizUploadNodeConfigForm = ({ node, ...props }: BizUploadNodeConfigFormProp
   const { i18n, t } = useTranslation();
 
   const initialValues = useMemo(() => {
-    return getNodeForm(node)?.getValueIn("config") as WorkflowNodeConfigForUpload | undefined;
+    return getNodeForm(node)?.getValueIn("config") as WorkflowNodeConfigForBizUpload | undefined;
   }, [node]);
 
   const formSchema = getSchema({ i18n });
@@ -129,7 +129,7 @@ const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   return {
     certificate: "",
     privateKey: "",
-    ...defaultNodeConfigForUpload(),
+    ...defaultNodeConfigForBizUpload(),
   };
 };
 

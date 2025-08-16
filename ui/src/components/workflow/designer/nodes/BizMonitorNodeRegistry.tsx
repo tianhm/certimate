@@ -2,16 +2,16 @@ import { getI18n } from "react-i18next";
 import { FeedbackLevel, Field } from "@flowgram.ai/fixed-layout-editor";
 import { IconDeviceDesktopSearch } from "@tabler/icons-react";
 
-import { defaultNodeConfigForMonitor } from "@/domain/workflow";
+import { newNode } from "@/domain/workflow";
 
 import { BaseNode } from "./_shared";
-import { newNodeId } from "../_util";
 import { NodeKindType, type NodeRegistry, NodeType } from "./typings";
 import BizMonitorNodeConfigForm from "../forms/BizMonitorNodeConfigForm";
 
 export const BizMonitorNodeRegistry: NodeRegistry = {
   type: NodeType.BizMonitor,
-  kindType: NodeKindType.Business,
+
+  kind: NodeKindType.Business,
 
   meta: {
     helpText: getI18n().t("workflow_node.monitor.help"),
@@ -59,15 +59,6 @@ export const BizMonitorNodeRegistry: NodeRegistry = {
   },
 
   onAdd: () => {
-    const { t } = getI18n();
-
-    return {
-      id: newNodeId(),
-      type: NodeType.BizMonitor,
-      data: {
-        name: t("workflow_node.monitor.default_name"),
-        config: defaultNodeConfigForMonitor(),
-      },
-    };
+    return newNode(NodeType.BizMonitor, { i18n: getI18n() });
   },
 };

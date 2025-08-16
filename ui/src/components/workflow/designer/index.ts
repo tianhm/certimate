@@ -11,6 +11,4 @@ export const WorkflowNodeDrawer = NodeDrawer;
 export { type ToolbarProps as WorkflowToolbarProps } from "./Toolbar";
 export const WorkflowToolbar = Toolbar;
 
-export * from "./_util";
-
 export type * from "./nodes/typings";

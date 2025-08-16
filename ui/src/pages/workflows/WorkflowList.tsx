@@ -11,7 +11,7 @@ import { startRun as startWorkflowRun } from "@/api/workflows";
 import Empty from "@/components/Empty";
 import Show from "@/components/Show";
 import WorkflowStatus from "@/components/workflow/WorkflowStatus";
-import { WORKFLOW_TRIGGERS, type WorkflowModel, cloneNode, initWorkflow, isAllNodesValidated } from "@/domain/workflow";
+import { WORKFLOW_TRIGGERS, type WorkflowModel, duplicateNodes } from "@/domain/workflow";
 import { useAppSettings } from "@/hooks";
 import { list as listWorkflows, remove as removeWorkflow, save as saveWorkflow } from "@/repository/workflow";
 import { getErrMsg } from "@/utils/error";
@@ -164,6 +164,7 @@ const WorkflowList = () => {
                     <IconPlayerPlay size="1em" />
                   </span>
                 ),
+                disabled: !record.hasContent,
                 onClick: () => {
                   handleRecordRunClick(record);
                 },
@@ -312,8 +313,8 @@ const WorkflowList = () => {
 
   const handleRecordActiveChange = async (workflow: WorkflowModel) => {
     try {
-      if (!workflow.enabled && (!workflow.content || !isAllNodesValidated(workflow.content))) {
-        message.warning(t("workflow.action.enable.errmsg.uncompleted"));
+      if (!workflow.enabled && !workflow.content) {
+        message.warning(t("workflow.action.enable.errmsg.unpublished"));
         return;
       }
 
@@ -359,11 +360,7 @@ const WorkflowList = () => {
             description: workflow.description,
             trigger: workflow.trigger,
             triggerCron: workflow.triggerCron,
-            draft: workflow.content
-              ? cloneNode(workflow.content, { withCopySuffix: false })
-              : workflow.draft
-                ? cloneNode(workflow.draft, { withCopySuffix: false })
-                : initWorkflow().draft,
+            draft: { nodes: duplicateNodes(workflow.content?.nodes ?? workflow.draft?.nodes ?? [], { withCopySuffix: false }) },
             hasDraft: true,
           } as WorkflowModel;
           const resp = await saveWorkflow(workflowCopy);

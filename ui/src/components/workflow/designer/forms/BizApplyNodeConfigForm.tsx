@@ -3,7 +3,7 @@ import { getI18n, useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { type FlowNodeEntity, getNodeForm } from "@flowgram.ai/fixed-layout-editor";
 import { IconChevronRight, IconCircleMinus, IconPlus } from "@tabler/icons-react";
-import { useControllableValue } from "ahooks";
+import { useAsyncEffect, useControllableValue } from "ahooks";
 import { type AnchorProps, AutoComplete, Button, Divider, Flex, Form, type FormInstance, Input, InputNumber, Select, Switch, Typography } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
@@ -15,7 +15,7 @@ import ACMEDns01ProviderSelect from "@/components/provider/ACMEDns01ProviderSele
 import CAProviderSelect from "@/components/provider/CAProviderSelect";
 import Show from "@/components/Show";
 import { ACCESS_USAGES, ACME_DNS01_PROVIDERS, accessProvidersMap, acmeDns01ProvidersMap, caProvidersMap } from "@/domain/provider";
-import { type WorkflowNodeConfigForApply, defaultNodeConfigForApply } from "@/domain/workflow";
+import { type WorkflowNodeConfigForBizApply, defaultNodeConfigForBizApply } from "@/domain/workflow";
 import { useAntdForm, useZustandShallowSelector } from "@/hooks";
 import { useAccessesStore } from "@/stores/access";
 import { useContactEmailsStore } from "@/stores/contact";
@@ -46,7 +46,7 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
   const { accesses } = useAccessesStore(useZustandShallowSelector("accesses"));
 
   const initialValues = useMemo(() => {
-    return getNodeForm(node)?.getValueIn("config") as WorkflowNodeConfigForApply | undefined;
+    return getNodeForm(node)?.getValueIn("config") as WorkflowNodeConfigForBizApply | undefined;
   }, [node]);
 
   const formSchema = getSchema({ i18n });
@@ -245,6 +245,16 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
             </Typography.Text>
           </Divider>
 
+          <Form.Item name="keyAlgorithm" label={t("workflow_node.apply.form.key_algorithm.label")} rules={[formRule]}>
+            <Select
+              options={["RSA2048", "RSA3072", "RSA4096", "RSA8192", "EC256", "EC384"].map((e) => ({
+                label: e,
+                value: e,
+              }))}
+              placeholder={t("workflow_node.apply.form.key_algorithm.placeholder")}
+            />
+          </Form.Item>
+
           <Form.Item className="relative" label={t("workflow_node.apply.form.ca_provider.label")}>
             <div className="absolute -top-[6px] right-0 -translate-y-full">
               <Show when={!fieldCAProvider}>
@@ -300,16 +310,6 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
                 }}
               />
             </Form.Item>
-          </Form.Item>
-
-          <Form.Item name="keyAlgorithm" label={t("workflow_node.apply.form.key_algorithm.label")} rules={[formRule]}>
-            <Select
-              options={["RSA2048", "RSA3072", "RSA4096", "RSA8192", "EC256", "EC384"].map((e) => ({
-                label: e,
-                value: e,
-              }))}
-              placeholder={t("workflow_node.apply.form.key_algorithm.placeholder")}
-            />
           </Form.Item>
 
           <Form.Item
@@ -451,9 +451,7 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
 const InternalEmailInput = memo(
   ({ disabled, placeholder, ...props }: { disabled?: boolean; placeholder?: string; value?: string; onChange?: (value: string) => void }) => {
     const { emails, fetchEmails, removeEmail } = useContactEmailsStore();
-    useEffect(() => {
-      fetchEmails(false);
-    }, []);
+    useAsyncEffect(() => fetchEmails(false), []);
 
     const [value, setValue] = useControllableValue<string>(props, {
       valuePropName: "value",
@@ -538,7 +536,7 @@ const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
     domains: "",
     provider: "",
     providerAccessId: "",
-    ...defaultNodeConfigForApply(),
+    ...defaultNodeConfigForBizApply(),
   };
 };
 

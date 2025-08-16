@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useAsyncEffect } from "ahooks";
 import { Avatar, Select, type SelectProps, Typography, theme } from "antd";
 
 import { type AccessModel } from "@/domain/access";
@@ -15,9 +16,7 @@ const AccessSelect = ({ onFilter, ...props }: AccessTypeSelectProps) => {
   const { token: themeToken } = theme.useToken();
 
   const { accesses, loadedAtOnce, fetchAccesses } = useAccessesStore(useZustandShallowSelector(["accesses", "loadedAtOnce", "fetchAccesses"]));
-  useEffect(() => {
-    fetchAccesses(false);
-  }, []);
+  useAsyncEffect(() => fetchAccesses(false), []);
 
   const [options, setOptions] = useState<Array<{ key: string; value: string; label: string; data: AccessModel }>>([]);
   useEffect(() => {

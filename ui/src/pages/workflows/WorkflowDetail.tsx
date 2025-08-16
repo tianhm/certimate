@@ -7,7 +7,6 @@ import { App, Button, Input, type InputRef, Segmented, Skeleton } from "antd";
 
 import { startRun as startWorkflowRun } from "@/api/workflows";
 import Show from "@/components/Show";
-import { isAllNodesValidated } from "@/domain/workflow";
 import { WORKFLOW_RUN_STATUSES } from "@/domain/workflowRun";
 import { useZustandShallowSelector } from "@/hooks";
 import { useWorkflowStore } from "@/stores/workflow";
@@ -36,7 +35,6 @@ const WorkflowDetail = () => {
   const divHeaderSize = useSize(divHeaderRef);
 
   const tabs = [
-    ["design-legacy", "workflow.detail.design_legacy.tab", <IconRobot size="1em" />], // TODO: 正式发布时移除
     ["design", "workflow.detail.design.tab", <IconRobot size="1em" />],
     ["runs", "workflow.detail.runs.tab", <IconHistory size="1em" />],
   ] satisfies [string, string, React.ReactElement][];
@@ -94,8 +92,8 @@ const WorkflowDetail = () => {
 
   const handleActiveClick = async () => {
     try {
-      if (!workflow.enabled && (!workflow.content || !isAllNodesValidated(workflow.content))) {
-        message.warning(t("workflow.action.enable.errmsg.uncompleted"));
+      if (!workflow.enabled && !workflow.content) {
+        message.warning(t("workflow.action.enable.errmsg.unpublished"));
         return;
       }
 
@@ -171,7 +169,7 @@ const WorkflowDetailBaseName = () => {
 
   const { notification } = App.useApp();
 
-  const { workflow, initialized, setBaseInfo: setWorkflowBaseInfo } = useWorkflowStore(useZustandShallowSelector(["workflow", "initialized", "setBaseInfo"]));
+  const { workflow, initialized, ...workflowStore } = useWorkflowStore(useZustandShallowSelector(["workflow", "initialized", "setName"]));
 
   const inputRef = useRef<InputRef>(null);
   const [editing, setEditing] = useState(false);
@@ -203,7 +201,7 @@ const WorkflowDetailBaseName = () => {
     setEditing(false);
 
     try {
-      await setWorkflowBaseInfo(value, workflow.description!);
+      await workflowStore.setName(value);
     } catch (err) {
       notification.error({ message: t("common.text.request_error"), description: getErrMsg(err) });
 
@@ -249,7 +247,7 @@ const WorkflowDetailBaseDescription = () => {
 
   const { notification } = App.useApp();
 
-  const { workflow, initialized, setBaseInfo: setWorkflowBaseInfo } = useWorkflowStore(useZustandShallowSelector(["workflow", "initialized", "setBaseInfo"]));
+  const { workflow, initialized, ...workflowStore } = useWorkflowStore(useZustandShallowSelector(["workflow", "initialized", "setDescription"]));
 
   const inputRef = useRef<InputRef>(null);
   const [editing, setEditing] = useState(false);
@@ -281,7 +279,7 @@ const WorkflowDetailBaseDescription = () => {
     setEditing(false);
 
     try {
-      await setWorkflowBaseInfo(workflow.name!, value);
+      await workflowStore.setDescription(value);
     } catch (err) {
       notification.error({ message: t("common.text.request_error"), description: getErrMsg(err) });
 

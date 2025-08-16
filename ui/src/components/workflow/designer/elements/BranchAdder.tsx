@@ -18,11 +18,15 @@ const BranchAdder = ({ node }: BranchAdderProps) => {
     let block: FlowNodeEntity;
     switch (node.flowNodeType) {
       case NodeType.Condition:
-        block = operation.addBlock(node, BranchBlockNodeRegistry.onAdd!(ctx, node));
+        {
+          block = operation.addBlock(node, BranchBlockNodeRegistry.onAdd!(ctx, node));
+        }
         break;
 
       case NodeType.TryCatch:
-        block = operation.addBlock(node, CatchBlockNodeRegistry.onAdd!(ctx, node));
+        {
+          block = operation.addBlock(node, CatchBlockNodeRegistry.onAdd!(ctx, node));
+        }
         break;
 
       default:
@@ -38,7 +42,8 @@ const BranchAdder = ({ node }: BranchAdderProps) => {
     }, 1);
   };
 
-  return playground.config.readonlyOrDisabled ? null : (
+  // TryCatch 暂不支持添加分支
+  return playground.config.readonlyOrDisabled || node.flowNodeType === NodeType.TryCatch ? null : (
     <div
       className="relative"
       onMouseEnter={() => node.firstChild?.renderData?.toggleMouseEnter()}

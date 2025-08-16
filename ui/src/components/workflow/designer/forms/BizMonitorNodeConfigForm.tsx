@@ -6,7 +6,7 @@ import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
 import Tips from "@/components/Tips";
-import { type WorkflowNodeConfigForMonitor, defaultNodeConfigForMonitor } from "@/domain/workflow";
+import { type WorkflowNodeConfigForBizMonitor, defaultNodeConfigForBizMonitor } from "@/domain/workflow";
 import { useAntdForm } from "@/hooks";
 import { validDomainName, validIPv4Address, validIPv6Address, validPortNumber } from "@/utils/validators";
 
@@ -26,7 +26,7 @@ const BizMonitorNodeConfigForm = ({ node, ...props }: BizMonitorNodeConfigFormPr
   const { i18n, t } = useTranslation();
 
   const initialValues = useMemo(() => {
-    return getNodeForm(node)?.getValueIn("config") as WorkflowNodeConfigForMonitor | undefined;
+    return getNodeForm(node)?.getValueIn("config") as WorkflowNodeConfigForBizMonitor | undefined;
   }, [node]);
 
   const formSchema = getSchema({ i18n });
@@ -83,7 +83,7 @@ const getAnchorItems = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n
 };
 
 const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
-  return defaultNodeConfigForMonitor();
+  return defaultNodeConfigForBizMonitor();
 };
 
 const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) => {

@@ -47,7 +47,7 @@ const WorkflowNew = () => {
       let workflow = {} as WorkflowModel;
       workflow.name = t("workflow.new.templates.default_name");
       workflow.description = t("workflow.new.templates.default_description", { date: dayjs().format("YYYY-MM-DD HH:mm") });
-      workflow.draft = { nodes: [] };
+      workflow.graphDraft = { nodes: [] };
       workflow.hasDraft = true;
 
       switch (key) {
@@ -56,7 +56,7 @@ const WorkflowNew = () => {
             const startNode = newNode(WORKFLOW_NODE_TYPES.START, { i18n: i18n });
             const endNode = newNode(WORKFLOW_NODE_TYPES.END, { i18n: i18n });
 
-            workflow.draft!.nodes = [startNode, endNode];
+            workflow.graphDraft!.nodes = [startNode, endNode];
           }
           break;
 
@@ -93,7 +93,7 @@ const WorkflowNew = () => {
             tryCatchNode.blocks!.at(1)!.blocks ??= [];
             tryCatchNode.blocks!.at(1)!.blocks!.unshift(notifyOnFailureNode);
 
-            workflow.draft!.nodes = [startNode, tryCatchNode, endNode];
+            workflow.graphDraft!.nodes = [startNode, tryCatchNode, endNode];
           }
           break;
 
@@ -199,7 +199,7 @@ const WorkflowNew = () => {
             conditionNode.blocks!.at(1)!.blocks ??= [];
             conditionNode.blocks!.at(1)!.blocks!.push(notifyOnExpiredNode);
 
-            workflow.draft!.nodes = [startNode, tryCatchNode, endNode];
+            workflow.graphDraft!.nodes = [startNode, tryCatchNode, endNode];
           }
           break;
 

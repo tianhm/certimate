@@ -95,19 +95,19 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => {
       });
     },
 
-    setDraft: async (draft) => {
+    orchestrate: async (graph) => {
       ensureInitialized();
 
       const resp = await saveWorkflow({
         id: get().workflow.id!,
-        draft: draft,
-        hasDraft: !isEqual(draft, get().workflow.content),
+        graphDraft: graph,
+        hasDraft: !isEqual(graph, get().workflow.graphContent),
       });
 
       set((state) => {
         return {
           workflow: produce(state.workflow, (draft) => {
-            draft.draft = resp.draft;
+            draft.graphDraft = resp.graphDraft;
             draft.hasDraft = resp.hasDraft;
           }),
         };
@@ -117,14 +117,14 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => {
     publish: async () => {
       ensureInitialized();
 
-      const tree = get().workflow.draft!;
-      if (tree?.nodes?.[0]?.type !== WORKFLOW_NODE_TYPES.START) throw "Workflow nodes tree of draft in invalid";
-      const startConfig = tree.nodes[0].data.config as WorkflowNodeConfigForStart;
+      const graph = get().workflow.graphDraft!;
+      if (graph?.nodes?.[0]?.type !== WORKFLOW_NODE_TYPES.START) throw "Workflow nodes tree of draft in invalid";
+      const startConfig = graph.nodes[0].data.config as WorkflowNodeConfigForStart;
       const resp = await saveWorkflow({
         id: get().workflow.id!,
         trigger: startConfig.trigger,
         triggerCron: startConfig.triggerCron,
-        content: tree,
+        graphContent: graph,
         hasContent: true,
         hasDraft: false,
       });
@@ -134,7 +134,7 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => {
           workflow: produce(state.workflow, (draft) => {
             draft.trigger = resp.trigger;
             draft.triggerCron = resp.triggerCron;
-            draft.content = resp.content;
+            draft.graphContent = resp.graphContent;
             draft.hasContent = resp.hasContent;
             draft.hasDraft = resp.hasDraft;
           }),
@@ -145,15 +145,15 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => {
     rollback: async () => {
       ensureInitialized();
 
-      const tree = get().workflow.content!;
-      if (tree?.nodes?.[0]?.type !== WORKFLOW_NODE_TYPES.START) throw "Workflow nodes tree of content in invalid";
-      const startConfig = tree.nodes[0].data.config as WorkflowNodeConfigForStart;
+      const graph = get().workflow.graphContent!;
+      if (graph?.nodes?.[0]?.type !== WORKFLOW_NODE_TYPES.START) throw "Workflow nodes tree of content in invalid";
+      const startConfig = graph.nodes[0].data.config as WorkflowNodeConfigForStart;
       const resp = await saveWorkflow({
         id: get().workflow.id!,
         trigger: startConfig.trigger,
         triggerCron: startConfig.triggerCron,
         hasContent: true,
-        draft: tree,
+        graphDraft: graph,
         hasDraft: false,
       });
 
@@ -163,7 +163,7 @@ export const useWorkflowStore = create<WorkflowStore>((set, get) => {
             draft.trigger = resp.trigger;
             draft.triggerCron = resp.triggerCron;
             draft.hasContent = resp.hasContent;
-            draft.draft = resp.draft;
+            draft.graphDraft = resp.graphDraft;
             draft.hasDraft = resp.hasDraft;
           }),
         };

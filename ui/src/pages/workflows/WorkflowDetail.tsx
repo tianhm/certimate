@@ -54,7 +54,7 @@ const WorkflowDetail = () => {
     navigate(`/workflows/${workflowId}/${value}`);
   };
 
-  const runButtonDisabled = useMemo(() => !workflow?.content, [workflow]);
+  const runButtonDisabled = useMemo(() => !workflow.hasContent, [workflow]);
   const [runButtonLoading, setRunButtonLoading] = useState(false);
   useEffect(() => {
     const pending = workflow.lastRunStatus === WORKFLOW_RUN_STATUSES.PENDING || workflow.lastRunStatus === WORKFLOW_RUN_STATUSES.RUNNING;
@@ -92,7 +92,7 @@ const WorkflowDetail = () => {
 
   const handleActiveClick = async () => {
     try {
-      if (!workflow.enabled && !workflow.content) {
+      if (!workflow.enabled && !workflow.graphContent) {
         message.warning(t("workflow.action.enable.errmsg.unpublished"));
         return;
       }

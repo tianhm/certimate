@@ -108,6 +108,7 @@ export const getAllPreviousNodes = (node: FlowNodeEntity): FlowNodeEntity[] => {
 
     return true;
   });
+  // console.log(node.document.toString());
   // console.log(node.document.root);
   // console.log(prevNodes);
   return prevNodes;

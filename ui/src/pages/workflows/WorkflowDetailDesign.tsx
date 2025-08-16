@@ -18,7 +18,7 @@ const WorkflowDetailDesign = () => {
   const { token: themeToken } = theme.useToken();
   const { message, modal, notification } = App.useApp();
 
-  const { workflow, ...workflowStore } = useWorkflowStore(useZustandShallowSelector(["workflow", "setDraft", "publish", "rollback"]));
+  const { workflow, ...workflowStore } = useWorkflowStore(useZustandShallowSelector(["workflow", "orchestrate", "publish", "rollback"]));
 
   const [workflowRunDisabled, setWorkflowRunDisabled] = useState(false);
   const workflowRollbackDisabled = useMemo(
@@ -39,22 +39,22 @@ const WorkflowDetailDesign = () => {
     if (designerPending.current) return;
 
     try {
-      const tree = workflow.draft ?? { nodes: [] };
-      designerRef.current!.document.fromJSON(tree);
+      const graph = workflow.graphDraft ?? { nodes: [] };
+      designerRef.current!.document.fromJSON(graph);
       setDesignerError(void 0);
     } catch (err) {
       console.error(err);
       setDesignerError(err);
     }
-  }, [workflow.draft]);
+  }, [workflow.graphDraft]);
 
   const handleDesignerDocumentChange = debounce({ delay: 300 }, async () => {
     if (designerRef.current == null || designerRef.current.document.disposed) return;
 
     designerPending.current = true;
     try {
-      const tree = designerRef.current!.document.toJSON();
-      await workflowStore.setDraft(tree);
+      const graph = designerRef.current!.document.toJSON();
+      await workflowStore.orchestrate(graph);
     } catch (err) {
       console.error(err);
       notification.error({ message: t("common.text.request_error"), description: getErrMsg(err) });

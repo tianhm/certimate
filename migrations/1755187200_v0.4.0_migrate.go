@@ -246,8 +246,10 @@ func init() {
 		}
 
 		// update collection `workflow`
-		//   - modify field `trigger` candidates, and cascading migrate field `draft` / `content`
+		//   - modify field `trigger` candidates, and cascading migrate field `graphDraft` / `graphContent`
 		//   - rename field `lastRunRefId` to `lastRunRef`
+		//   - rename field `draft` to `graphDraft`
+		//   - rename field `content` to `graphContent`
 		//   - add field `hasContent`
 		{
 			collection, err := app.FindCollectionByNameOrId("tovyif5ax6j62ur")
@@ -271,7 +273,45 @@ func init() {
 					return err
 				}
 
+				if err := collection.Fields.AddMarshaledJSONAt(6, []byte(`{
+					"hidden": false,
+					"id": "g9ohkk5o",
+					"maxSize": 5000000,
+					"name": "graphDraft",
+					"presentable": false,
+					"required": false,
+					"system": false,
+					"type": "json"
+				}`)); err != nil {
+					return err
+				}
+
+				if err := collection.Fields.AddMarshaledJSONAt(7, []byte(`{
+					"hidden": false,
+					"id": "awlphkfe",
+					"maxSize": 5000000,
+					"name": "graphContent",
+					"presentable": false,
+					"required": false,
+					"system": false,
+					"type": "json"
+				}`)); err != nil {
+					return err
+				}
+
 				if err := collection.Fields.AddMarshaledJSONAt(9, []byte(`{
+					"hidden": false,
+					"id": "bool3832150317",
+					"name": "hasContent",
+					"presentable": false,
+					"required": false,
+					"system": false,
+					"type": "bool"
+				}`)); err != nil {
+					return err
+				}
+
+				if err := collection.Fields.AddMarshaledJSONAt(10, []byte(`{
 					"cascadeDelete": false,
 					"collectionId": "qjp8lygssgwyqyz",
 					"hidden": false,
@@ -287,18 +327,6 @@ func init() {
 					return err
 				}
 
-				if err := collection.Fields.AddMarshaledJSONAt(7, []byte(`{
-					"hidden": false,
-					"id": "bool3832150317",
-					"name": "hasContent",
-					"presentable": false,
-					"required": false,
-					"system": false,
-					"type": "bool"
-				}`)); err != nil {
-					return err
-				}
-
 				if err := app.Save(collection); err != nil {
 					return err
 				}
@@ -307,7 +335,7 @@ func init() {
 					return err
 				}
 
-				if _, err := app.DB().NewQuery("UPDATE workflow SET hasContent = TRUE WHERE content IS NOT NULL").Execute(); err != nil {
+				if _, err := app.DB().NewQuery("UPDATE workflow SET hasContent = TRUE WHERE graphContent IS NOT NULL").Execute(); err != nil {
 					return err
 				}
 
@@ -320,30 +348,30 @@ func init() {
 					for _, record := range records {
 						changed := false
 
-						draft := make(map[string]any)
-						if err := record.UnmarshalJSONField("draft", &draft); err == nil {
-							if _, ok := draft["config"]; ok {
-								config := draft["config"].(map[string]any)
+						graphDraft := make(map[string]any)
+						if err := record.UnmarshalJSONField("graphDraft", &graphDraft); err == nil {
+							if _, ok := graphDraft["config"]; ok {
+								config := graphDraft["config"].(map[string]any)
 								if _, ok := config["trigger"]; ok {
 									trigger := config["trigger"].(string)
 									if trigger == "auto" {
 										config["trigger"] = "scheduled"
-										record.Set("draft", draft)
+										record.Set("graphDraft", graphDraft)
 										changed = true
 									}
 								}
 							}
 						}
 
-						content := make(map[string]any)
-						if err := record.UnmarshalJSONField("content", &content); err == nil {
-							if _, ok := content["config"]; ok {
-								config := content["config"].(map[string]any)
+						graphContent := make(map[string]any)
+						if err := record.UnmarshalJSONField("graphContent", &graphContent); err == nil {
+							if _, ok := graphContent["config"]; ok {
+								config := graphContent["config"].(map[string]any)
 								if _, ok := config["trigger"]; ok {
 									trigger := config["trigger"].(string)
 									if trigger == "auto" {
 										config["trigger"] = "scheduled"
-										record.Set("content", content)
+										record.Set("graphContent", graphContent)
 										changed = true
 									}
 								}
@@ -363,13 +391,30 @@ func init() {
 		}
 
 		// update collection `workflow_run`
-		//   - modify field `trigger` candidates, and cascading migrate field `detail`
+		//   - modify field `trigger` candidates, and cascading migrate field `graph`
+		//   - rename field `detail` to `graph`
 		//   - rename field `workflowId` to `workflowRef`
 		{
 			collection, err := app.FindCollectionByNameOrId("qjp8lygssgwyqyz")
 			if err != nil {
 				return err
 			} else if collection != nil {
+				if err := collection.Fields.AddMarshaledJSONAt(1, []byte(`{
+					"cascadeDelete": true,
+					"collectionId": "tovyif5ax6j62ur",
+					"hidden": false,
+					"id": "m8xfsyyy",
+					"maxSelect": 1,
+					"minSelect": 0,
+					"name": "workflowRef",
+					"presentable": false,
+					"required": false,
+					"system": false,
+					"type": "relation"
+				}`)); err != nil {
+					return err
+				}
+
 				if err := collection.Fields.AddMarshaledJSONAt(3, []byte(`{
 					"hidden": false,
 					"id": "jlroa3fk",
@@ -387,18 +432,15 @@ func init() {
 					return err
 				}
 
-				if err := collection.Fields.AddMarshaledJSONAt(1, []byte(`{
-					"cascadeDelete": true,
-					"collectionId": "tovyif5ax6j62ur",
+				if err := collection.Fields.AddMarshaledJSONAt(6, []byte(`{
 					"hidden": false,
-					"id": "m8xfsyyy",
-					"maxSelect": 1,
-					"minSelect": 0,
-					"name": "workflowRef",
+					"id": "json772177811",
+					"maxSize": 5000000,
+					"name": "graph",
 					"presentable": false,
 					"required": false,
 					"system": false,
-					"type": "relation"
+					"type": "json"
 				}`)); err != nil {
 					return err
 				}
@@ -428,15 +470,15 @@ func init() {
 					for _, record := range records {
 						changed := false
 
-						detail := make(map[string]any)
-						if err := record.UnmarshalJSONField("detail", &detail); err == nil {
-							if _, ok := detail["config"]; ok {
-								config := detail["config"].(map[string]any)
+						graphContent := make(map[string]any)
+						if err := record.UnmarshalJSONField("graph", &graphContent); err == nil {
+							if _, ok := graphContent["config"]; ok {
+								config := graphContent["config"].(map[string]any)
 								if _, ok := config["trigger"]; ok {
 									trigger := config["trigger"].(string)
 									if trigger == "auto" {
 										config["trigger"] = "scheduled"
-										record.Set("detail", detail)
+										record.Set("graph", graphContent)
 										changed = true
 									}
 								}
@@ -829,7 +871,7 @@ func init() {
 			}
 
 			// update collection `workflow`
-			//   - migrate field `draft` / `content`
+			//   - migrate field `graphDraft` / `graphContent`
 			{
 				collection, err := app.FindCollectionByNameOrId("tovyif5ax6j62ur")
 				if err != nil {
@@ -842,34 +884,34 @@ func init() {
 						for _, record := range records {
 							changed := false
 
-							draft := make(map[string]any)
-							if err := record.UnmarshalJSONField("draft", &draft); err == nil {
-								if len(draft) > 0 {
-									if _, ok := draft["nodes"]; !ok {
+							graphDraft := make(map[string]any)
+							if err := record.UnmarshalJSONField("graphDraft", &graphDraft); err == nil {
+								if len(graphDraft) > 0 {
+									if _, ok := graphDraft["nodes"]; !ok {
 										legacyRootNode := &dLegacyWorkflowNode{}
-										if err := record.UnmarshalJSONField("draft", legacyRootNode); err != nil {
+										if err := record.UnmarshalJSONField("graphDraft", legacyRootNode); err != nil {
 											return err
 										} else {
-											draft = make(map[string]any)
-											draft["nodes"] = convertNode(legacyRootNode)
-											record.Set("draft", draft)
+											graphDraft = make(map[string]any)
+											graphDraft["nodes"] = convertNode(legacyRootNode)
+											record.Set("graphDraft", graphDraft)
 											changed = true
 										}
 									}
 								}
 							}
 
-							content := make(map[string]any)
-							if err := record.UnmarshalJSONField("content", &content); err == nil {
-								if len(content) > 0 {
-									if _, ok := content["nodes"]; !ok {
+							graphContent := make(map[string]any)
+							if err := record.UnmarshalJSONField("graphContent", &graphContent); err == nil {
+								if len(graphContent) > 0 {
+									if _, ok := graphContent["nodes"]; !ok {
 										legacyRootNode := &dLegacyWorkflowNode{}
-										if err := record.UnmarshalJSONField("content", legacyRootNode); err != nil {
+										if err := record.UnmarshalJSONField("graphContent", legacyRootNode); err != nil {
 											return err
 										} else {
-											content = make(map[string]any)
-											content["nodes"] = convertNode(legacyRootNode)
-											record.Set("content", content)
+											graphContent = make(map[string]any)
+											graphContent["nodes"] = convertNode(legacyRootNode)
+											record.Set("graphContent", graphContent)
 											record.Set("hasContent", true)
 											changed = true
 										}
@@ -890,7 +932,7 @@ func init() {
 			}
 
 			// update collection `workflow_run`
-			//   - migrate field `detail`
+			//   - migrate field `graph`
 			{
 				collection, err := app.FindCollectionByNameOrId("qjp8lygssgwyqyz")
 				if err != nil {
@@ -903,17 +945,17 @@ func init() {
 						for _, record := range records {
 							changed := false
 
-							detail := make(map[string]any)
-							if err := record.UnmarshalJSONField("detail", &detail); err == nil {
-								if len(detail) > 0 {
-									if _, ok := detail["nodes"]; !ok {
+							graphContent := make(map[string]any)
+							if err := record.UnmarshalJSONField("graph", &graphContent); err == nil {
+								if len(graphContent) > 0 {
+									if _, ok := graphContent["nodes"]; !ok {
 										legacyRootNode := &dLegacyWorkflowNode{}
-										if err := record.UnmarshalJSONField("detail", legacyRootNode); err != nil {
+										if err := record.UnmarshalJSONField("graph", legacyRootNode); err != nil {
 											return err
 										} else {
-											detail = make(map[string]any)
-											detail["nodes"] = convertNode(legacyRootNode)
-											record.Set("detail", detail)
+											graphContent = make(map[string]any)
+											graphContent["nodes"] = convertNode(legacyRootNode)
+											record.Set("graph", graphContent)
 											changed = true
 										}
 									}

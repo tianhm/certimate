@@ -120,7 +120,7 @@ func (s *WorkflowService) StartRun(ctx context.Context, req *dtos.WorkflowStartR
 		Status:     domain.WorkflowRunStatusTypePending,
 		Trigger:    req.RunTrigger,
 		StartedAt:  time.Now(),
-		Detail:     workflow.Content,
+		Graph:      workflow.GraphContent,
 	}
 	if resp, err := s.workflowRunRepo.Save(ctx, run); err != nil {
 		return err
@@ -130,7 +130,7 @@ func (s *WorkflowService) StartRun(ctx context.Context, req *dtos.WorkflowStartR
 
 	s.dispatcher.Dispatch(&dispatcher.WorkflowWorkerData{
 		WorkflowId:      run.WorkflowId,
-		WorkflowContent: run.Detail,
+		WorkflowContent: run.Graph,
 		RunId:           run.Id,
 	})
 

@@ -17,9 +17,10 @@ type Workflow struct {
 	Trigger       WorkflowTriggerType   `json:"trigger" db:"trigger"`
 	TriggerCron   string                `json:"triggerCron" db:"triggerCron"`
 	Enabled       bool                  `json:"enabled" db:"enabled"`
-	Content       *WorkflowNode         `json:"content" db:"content"`
-	Draft         *WorkflowNode         `json:"draft" db:"draft"`
+	GraphDraft    *WorkflowNode         `json:"graphDraft" db:"graphDraft"`
+	GraphContent  *WorkflowNode         `json:"graphContent" db:"graphContent"`
 	HasDraft      bool                  `json:"hasDraft" db:"hasDraft"`
+	HasContent    bool                  `json:"hasContent" db:"hasContent"`
 	LastRunId     string                `json:"lastRunId" db:"lastRunRef"`
 	LastRunStatus WorkflowRunStatusType `json:"lastRunStatus" db:"lastRunStatus"`
 	LastRunTime   time.Time             `json:"lastRunTime" db:"lastRunTime"`

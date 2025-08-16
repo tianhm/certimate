@@ -79,9 +79,10 @@ func (r *WorkflowRepository) Save(ctx context.Context, workflow *domain.Workflow
 	record.Set("trigger", string(workflow.Trigger))
 	record.Set("triggerCron", workflow.TriggerCron)
 	record.Set("enabled", workflow.Enabled)
-	record.Set("content", workflow.Content)
-	record.Set("draft", workflow.Draft)
+	record.Set("graphDraft", workflow.GraphDraft)
+	record.Set("graphContent", workflow.GraphContent)
 	record.Set("hasDraft", workflow.HasDraft)
+	record.Set("hasContent", workflow.HasContent)
 	record.Set("lastRunRef", workflow.LastRunId)
 	record.Set("lastRunStatus", string(workflow.LastRunStatus))
 	record.Set("lastRunTime", workflow.LastRunTime)
@@ -100,13 +101,13 @@ func (r *WorkflowRepository) castRecordToModel(record *core.Record) (*domain.Wor
 		return nil, fmt.Errorf("record is nil")
 	}
 
-	content := &domain.WorkflowNode{}
-	if err := record.UnmarshalJSONField("content", content); err != nil {
+	graphDraft := &domain.WorkflowNode{}
+	if err := record.UnmarshalJSONField("graphDraft", graphDraft); err != nil {
 		return nil, err
 	}
 
-	draft := &domain.WorkflowNode{}
-	if err := record.UnmarshalJSONField("draft", draft); err != nil {
+	graphContent := &domain.WorkflowNode{}
+	if err := record.UnmarshalJSONField("graphContent", graphContent); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +122,10 @@ func (r *WorkflowRepository) castRecordToModel(record *core.Record) (*domain.Wor
 		Trigger:       domain.WorkflowTriggerType(record.GetString("trigger")),
 		TriggerCron:   record.GetString("triggerCron"),
 		Enabled:       record.GetBool("enabled"),
-		Content:       content,
-		Draft:         draft,
+		GraphDraft:    graphDraft,
+		GraphContent:  graphContent,
 		HasDraft:      record.GetBool("hasDraft"),
+		HasContent:    record.GetBool("hasContent"),
 		LastRunId:     record.GetString("lastRunRef"),
 		LastRunStatus: domain.WorkflowRunStatusType(record.GetString("lastRunStatus")),
 		LastRunTime:   record.GetDateTime("lastRunTime").Time(),

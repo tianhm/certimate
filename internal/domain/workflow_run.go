@@ -13,7 +13,7 @@ type WorkflowRun struct {
 	Trigger    WorkflowTriggerType   `json:"trigger" db:"trigger"`
 	StartedAt  time.Time             `json:"startedAt" db:"startedAt"`
 	EndedAt    time.Time             `json:"endedAt" db:"endedAt"`
-	Detail     *WorkflowNode         `json:"detail" db:"detail"`
+	Graph      *WorkflowNode         `json:"graph" db:"graph"`
 	Error      string                `json:"error" db:"error"`
 }
 

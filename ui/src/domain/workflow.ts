@@ -10,20 +10,20 @@ export interface WorkflowModel extends BaseModel {
   trigger: string;
   triggerCron?: string;
   enabled?: boolean;
-  content?: {
-    nodes: WorkflowNode[];
-  };
-  hasContent?: boolean;
-  draft?: {
-    nodes: WorkflowNode[];
-  };
+  graphDraft?: WorkflowGraph;
+  graphContent?: WorkflowGraph;
   hasDraft?: boolean;
+  hasContent?: boolean;
   lastRunRef?: string;
   lastRunStatus?: string;
   lastRunTime?: string;
   expand?: {
     lastRunRef?: WorkflowRunModel;
   };
+}
+
+export interface WorkflowGraph {
+  nodes: WorkflowNode[];
 }
 
 export const WORKFLOW_TRIGGERS = Object.freeze({

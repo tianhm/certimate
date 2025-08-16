@@ -313,7 +313,7 @@ const WorkflowList = () => {
 
   const handleRecordActiveChange = async (workflow: WorkflowModel) => {
     try {
-      if (!workflow.enabled && !workflow.content) {
+      if (!workflow.enabled && !workflow.graphContent) {
         message.warning(t("workflow.action.enable.errmsg.unpublished"));
         return;
       }
@@ -360,7 +360,7 @@ const WorkflowList = () => {
             description: workflow.description,
             trigger: workflow.trigger,
             triggerCron: workflow.triggerCron,
-            draft: { nodes: duplicateNodes(workflow.content?.nodes ?? workflow.draft?.nodes ?? [], { withCopySuffix: false }) },
+            graphDraft: { nodes: duplicateNodes(workflow.graphContent?.nodes ?? workflow.graphDraft?.nodes ?? [], { withCopySuffix: false }) },
             hasDraft: true,
           } as WorkflowModel;
           const resp = await saveWorkflow(workflowCopy);

@@ -49,6 +49,7 @@ const (
 	WorkflowTriggerTypeManual    = WorkflowTriggerType("manual")
 )
 
+// Deprecated
 type WorkflowNode struct {
 	Id   string           `json:"id"`
 	Type WorkflowNodeType `json:"type"`
@@ -198,6 +199,7 @@ func (n *WorkflowNode) GetConfigForCondition() WorkflowNodeConfigForCondition {
 	}
 }
 
+// Deprecated
 type WorkflowNodeIO struct {
 	Label         string                      `json:"label"`
 	Name          string                      `json:"name"`
@@ -207,6 +209,8 @@ type WorkflowNodeIO struct {
 	ValueSelector WorkflowNodeIOValueSelector `json:"valueSelector"`
 }
 
+// Deprecated
 type WorkflowNodeIOValueSelector = expr.ExprValueSelector
 
+// Deprecated
 const WorkflowNodeIONameCertificate string = "certificate"

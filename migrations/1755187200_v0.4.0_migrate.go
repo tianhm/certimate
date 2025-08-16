@@ -2,9 +2,12 @@ package migrations
 
 import (
 	"encoding/json"
+	"regexp"
+	"strings"
 
 	"github.com/pocketbase/pocketbase/core"
 	m "github.com/pocketbase/pocketbase/migrations"
+	"github.com/samber/lo"
 )
 
 func init() {
@@ -12,7 +15,26 @@ func init() {
 		tracer := NewTracer("v0.4.0")
 		tracer.Printf("go ...")
 
+		// update collection `settings`
+		{
+			collection, err := app.FindCollectionByNameOrId("dy6ccjb60spfy6p")
+			if err != nil {
+				return err
+			} else if collection != nil {
+				if _, err := app.DB().NewQuery("DELETE FROM settings WHERE name = 'notifyChannels'").Execute(); err != nil {
+					return err
+				}
+
+				if _, err := app.DB().NewQuery("DELETE FROM settings WHERE name = 'notifyTemplates'").Execute(); err != nil {
+					return err
+				}
+
+				tracer.Printf("collection '%s' updated", collection.Name)
+			}
+		}
+
 		// update collection `access`
+		//   - modify field `config` schema: rename property `defaultReceiver` to `receiver`
 		{
 			collection, err := app.FindCollectionByNameOrId("4yzbv8urny5ja1e")
 			if err != nil {
@@ -96,6 +118,13 @@ func init() {
 		}
 
 		// update collection `certificate`
+		//   - modify field `source` candidates
+		//   - rename field `effectAt` to `validityNotBefore`
+		//   - rename field `expireAt` to `validityNotAfter`
+		//   - rename field `workflowId` to `workflowRef`
+		//   - rename field `workflowRunId` to `workflowRunRef`
+		//   - rename field `workflowOutputId` to `workflowOutputRef`
+		//   - rename field `workflowOutputId` to `workflowOutputRef`
 		{
 			collection, err := app.FindCollectionByNameOrId("4szxr9x43tpj6np")
 			if err != nil {
@@ -217,6 +246,9 @@ func init() {
 		}
 
 		// update collection `workflow`
+		//   - modify field `trigger` candidates, and cascading migrate field `draft` / `content`
+		//   - rename field `lastRunRefId` to `lastRunRef`
+		//   - add field `hasContent`
 		{
 			collection, err := app.FindCollectionByNameOrId("tovyif5ax6j62ur")
 			if err != nil {
@@ -255,11 +287,27 @@ func init() {
 					return err
 				}
 
+				if err := collection.Fields.AddMarshaledJSONAt(7, []byte(`{
+					"hidden": false,
+					"id": "bool3832150317",
+					"name": "hasContent",
+					"presentable": false,
+					"required": false,
+					"system": false,
+					"type": "bool"
+				}`)); err != nil {
+					return err
+				}
+
 				if err := app.Save(collection); err != nil {
 					return err
 				}
 
 				if _, err := app.DB().NewQuery("UPDATE workflow SET trigger = 'scheduled' WHERE trigger = 'auto'").Execute(); err != nil {
+					return err
+				}
+
+				if _, err := app.DB().NewQuery("UPDATE workflow SET hasContent = TRUE WHERE content IS NOT NULL").Execute(); err != nil {
 					return err
 				}
 
@@ -315,27 +363,13 @@ func init() {
 		}
 
 		// update collection `workflow_run`
+		//   - modify field `trigger` candidates, and cascading migrate field `detail`
+		//   - rename field `workflowId` to `workflowRef`
 		{
 			collection, err := app.FindCollectionByNameOrId("qjp8lygssgwyqyz")
 			if err != nil {
 				return err
 			} else if collection != nil {
-				if err := collection.Fields.AddMarshaledJSONAt(1, []byte(`{
-					"cascadeDelete": true,
-					"collectionId": "tovyif5ax6j62ur",
-					"hidden": false,
-					"id": "m8xfsyyy",
-					"maxSelect": 1,
-					"minSelect": 0,
-					"name": "workflowRef",
-					"presentable": false,
-					"required": false,
-					"system": false,
-					"type": "relation"
-				}`)); err != nil {
-					return err
-				}
-
 				if err := collection.Fields.AddMarshaledJSONAt(3, []byte(`{
 					"hidden": false,
 					"id": "jlroa3fk",
@@ -349,6 +383,22 @@ func init() {
 						"manual",
 						"scheduled"
 					]
+				}`)); err != nil {
+					return err
+				}
+
+				if err := collection.Fields.AddMarshaledJSONAt(1, []byte(`{
+					"cascadeDelete": true,
+					"collectionId": "tovyif5ax6j62ur",
+					"hidden": false,
+					"id": "m8xfsyyy",
+					"maxSelect": 1,
+					"minSelect": 0,
+					"name": "workflowRef",
+					"presentable": false,
+					"required": false,
+					"system": false,
+					"type": "relation"
 				}`)); err != nil {
 					return err
 				}
@@ -406,6 +456,9 @@ func init() {
 		}
 
 		// update collection `workflow_output`
+		//   - rename field `workflowId` to `workflowRef`
+		//   - rename field `runId` to `runRef`
+		//   - delete field `node`
 		{
 			collection, err := app.FindCollectionByNameOrId("bqnxb95f2cooowp")
 			if err != nil {
@@ -453,6 +506,10 @@ func init() {
 					return err
 				}
 
+				if field := collection.Fields.GetByName("node"); field != nil {
+					collection.Fields.RemoveById(field.GetId())
+				}
+
 				if err := app.Save(collection); err != nil {
 					return err
 				}
@@ -462,6 +519,10 @@ func init() {
 		}
 
 		// update collection `workflow_logs`
+		//   - modify field `level` type
+		//   - rename field `workflowId` to `workflowRef`
+		//   - rename field `runId` to `runRef`
+		//   - migrate field `message`
 		{
 			collection, err := app.FindCollectionByNameOrId("pbc_1682296116")
 			if err != nil {
@@ -565,11 +626,355 @@ func init() {
 					return err
 				}
 
+				if _, err := app.DB().NewQuery("UPDATE workflow_logs SET message = REPLACE(message, 'certificiate', 'certificate') WHERE level = 0").Execute(); err != nil {
+					return err
+				}
+				if _, err := app.DB().NewQuery("UPDATE workflow_logs SET message = REPLACE(message, 'ready to apply certificate', 'ready to request certificate') WHERE level = 0").Execute(); err != nil {
+					return err
+				}
+				if _, err := app.DB().NewQuery("UPDATE workflow_logs SET message = REPLACE(message, 'ready to obtain certificate', 'ready to request certificate') WHERE level = 0").Execute(); err != nil {
+					return err
+				}
+
 				if err := app.Save(collection); err != nil {
 					return err
 				}
 
 				tracer.Printf("collection '%s' updated", collection.Name)
+			}
+		}
+
+		// adapt to new workflow data structure
+		{
+			type dLegacyWorkflowNode struct {
+				Id       string                 `json:"id"`
+				Type     string                 `json:"type"`
+				Name     string                 `json:"name"`
+				Config   map[string]any         `json:"config,omitempty"`
+				Next     *dLegacyWorkflowNode   `json:"next,omitempty"`
+				Branches []*dLegacyWorkflowNode `json:"branches,omitempty"`
+			}
+
+			type dWorkflowNodeData struct {
+				Name   string         `json:"name"`
+				Config map[string]any `json:"config,omitempty"`
+			}
+
+			type dWorkflowNode struct {
+				Id     string            `json:"id"`
+				Type   string            `json:"type"`
+				Data   dWorkflowNodeData `json:"data"`
+				Blocks []*dWorkflowNode  `json:"blocks,omitempty"`
+			}
+
+			convertNode := func(root *dLegacyWorkflowNode) []*dWorkflowNode {
+				lang := lo.
+					IfF(root == nil, func() string { return "zh" }).
+					ElseIf(regexp.MustCompile(`[\p{Han}]`).MatchString(root.Name), "zh").
+					Else("en")
+
+				var deepConvertNode func(node *dLegacyWorkflowNode) []*dWorkflowNode
+				deepConvertNode = func(node *dLegacyWorkflowNode) []*dWorkflowNode {
+					temp := make([]*dWorkflowNode, 0)
+
+					current := node
+					for current != nil {
+						current.Config = lo.PickBy(current.Config, func(key string, value any) bool {
+							str, ok := value.(string)
+							return !ok || str != ""
+						})
+
+						switch current.Type {
+						case "start":
+							temp = append(temp, &dWorkflowNode{
+								Id:   current.Id,
+								Type: "start",
+								Data: dWorkflowNodeData{
+									Name:   current.Name,
+									Config: current.Config,
+								},
+							})
+
+						case "apply", "upload", "monitor", "notify":
+							temp = append(temp, &dWorkflowNode{
+								Id:   current.Id,
+								Type: "biz" + strings.Title(current.Type),
+								Data: dWorkflowNodeData{
+									Name:   current.Name,
+									Config: current.Config,
+								},
+							})
+
+						case "deploy":
+							if s, ok := current.Config["certificate"].(string); ok {
+								current.Config["certificateOutputNodeId"] = strings.Split(s, "#")[0]
+								delete(current.Config, "certificate")
+							}
+
+							temp = append(temp, &dWorkflowNode{
+								Id:   current.Id,
+								Type: "bizDeploy",
+								Data: dWorkflowNodeData{
+									Name:   current.Name,
+									Config: current.Config,
+								},
+							})
+
+						case "execute_result_branch":
+							if len(temp) == 0 {
+								break
+							}
+
+							tryNode, _ := lo.Last(temp)
+							temp = lo.DropRight(temp, 1)
+
+							branches := lo.GroupBy(current.Branches, func(b *dLegacyWorkflowNode) string { return b.Type })
+							successBranch := lo.IfF(len(branches["execute_success"]) > 0, func() *dLegacyWorkflowNode {
+								return branches["execute_success"][0]
+							}).Else(nil)
+							failureBranch := lo.IfF(len(branches["execute_failure"]) > 0, func() *dLegacyWorkflowNode {
+								return branches["execute_failure"][0]
+							}).Else(nil)
+							successBranchId := lo.If(successBranch != nil, successBranch.Id).Else(core.GenerateDefaultRandomId())
+							failureBranchId := lo.If(failureBranch != nil, failureBranch.Id).Else(core.GenerateDefaultRandomId())
+
+							catchBlocks := lo.If(failureBranch != nil && failureBranch.Next != nil, deepConvertNode(failureBranch.Next)).Else([]*dWorkflowNode{})
+							catchBlocks = append(catchBlocks, &dWorkflowNode{
+								Id:   core.GenerateDefaultRandomId(),
+								Type: "end",
+								Data: dWorkflowNodeData{
+									Name: lo.If(lang == "en", "End").Else("结束"),
+								},
+							})
+
+							tryCatchNode := &dWorkflowNode{
+								Id:   current.Id,
+								Type: "tryCatch",
+								Data: dWorkflowNodeData{
+									Name:   lo.If(lang == "en", "Try to ...").Else("尝试执行…"),
+									Config: current.Config,
+								},
+								Blocks: []*dWorkflowNode{
+									{
+										Id:   successBranchId,
+										Type: "tryBlock",
+										Data: dWorkflowNodeData{
+											Name: "",
+										},
+										Blocks: []*dWorkflowNode{tryNode},
+									},
+									{
+										Id:   failureBranchId,
+										Type: "catchBlock",
+										Data: dWorkflowNodeData{
+											Name: lo.If(lang == "en", "On failed ...").Else("若执行失败…"),
+										},
+										Blocks: catchBlocks,
+									},
+								},
+							}
+
+							temp = append(temp, tryCatchNode)
+							current = successBranch
+
+						case "branch":
+							branchNode := &dWorkflowNode{
+								Id:   current.Id,
+								Type: "condition",
+								Data: dWorkflowNodeData{
+									Name:   lo.If(lang == "en", "Parallel").Else("并行"),
+									Config: current.Config,
+								},
+								Blocks: lo.Map(current.Branches, func(b *dLegacyWorkflowNode, _ int) *dWorkflowNode {
+									return &dWorkflowNode{
+										Id:   b.Id,
+										Type: "branchBlock",
+										Data: dWorkflowNodeData{
+											Name:   b.Name,
+											Config: b.Config,
+										},
+										Blocks: deepConvertNode(b.Next),
+									}
+								}),
+							}
+
+							temp = append(temp, branchNode)
+						}
+
+						if current != nil {
+							current = current.Next
+						}
+					}
+
+					return temp
+				}
+
+				nodes := lo.Ternary(root == nil, []*dWorkflowNode{
+					{
+						Id:   core.GenerateDefaultRandomId(),
+						Type: "start",
+						Data: dWorkflowNodeData{
+							Name: lo.If(lang == "en", "Start").Else("开始"),
+						},
+					},
+				}, deepConvertNode(root))
+
+				return append(nodes, &dWorkflowNode{
+					Id:   core.GenerateDefaultRandomId(),
+					Type: "end",
+					Data: dWorkflowNodeData{
+						Name: lo.If(lang == "en", "End").Else("结束"),
+					},
+				})
+			}
+
+			// update collection `workflow`
+			//   - migrate field `draft` / `content`
+			{
+				collection, err := app.FindCollectionByNameOrId("tovyif5ax6j62ur")
+				if err != nil {
+					return err
+				} else if collection != nil {
+					records, err := app.FindAllRecords(collection)
+					if err != nil {
+						return err
+					} else {
+						for _, record := range records {
+							changed := false
+
+							draft := make(map[string]any)
+							if err := record.UnmarshalJSONField("draft", &draft); err == nil {
+								if len(draft) > 0 {
+									if _, ok := draft["nodes"]; !ok {
+										legacyRootNode := &dLegacyWorkflowNode{}
+										if err := record.UnmarshalJSONField("draft", legacyRootNode); err != nil {
+											return err
+										} else {
+											draft = make(map[string]any)
+											draft["nodes"] = convertNode(legacyRootNode)
+											record.Set("draft", draft)
+											changed = true
+										}
+									}
+								}
+							}
+
+							content := make(map[string]any)
+							if err := record.UnmarshalJSONField("content", &content); err == nil {
+								if len(content) > 0 {
+									if _, ok := content["nodes"]; !ok {
+										legacyRootNode := &dLegacyWorkflowNode{}
+										if err := record.UnmarshalJSONField("content", legacyRootNode); err != nil {
+											return err
+										} else {
+											content = make(map[string]any)
+											content["nodes"] = convertNode(legacyRootNode)
+											record.Set("content", content)
+											record.Set("hasContent", true)
+											changed = true
+										}
+									}
+								}
+							}
+
+							if changed {
+								if err := app.Save(record); err != nil {
+									return err
+								}
+
+								tracer.Printf("record #%s in collection '%s' updated", record.Id, collection.Name)
+							}
+						}
+					}
+				}
+			}
+
+			// update collection `workflow_run`
+			//   - migrate field `detail`
+			{
+				collection, err := app.FindCollectionByNameOrId("qjp8lygssgwyqyz")
+				if err != nil {
+					return err
+				} else if collection != nil {
+					records, err := app.FindAllRecords(collection)
+					if err != nil {
+						return err
+					} else {
+						for _, record := range records {
+							changed := false
+
+							detail := make(map[string]any)
+							if err := record.UnmarshalJSONField("detail", &detail); err == nil {
+								if len(detail) > 0 {
+									if _, ok := detail["nodes"]; !ok {
+										legacyRootNode := &dLegacyWorkflowNode{}
+										if err := record.UnmarshalJSONField("detail", legacyRootNode); err != nil {
+											return err
+										} else {
+											detail = make(map[string]any)
+											detail["nodes"] = convertNode(legacyRootNode)
+											record.Set("detail", detail)
+											changed = true
+										}
+									}
+								}
+							}
+
+							if changed {
+								if err := app.Save(record); err != nil {
+									return err
+								}
+
+								tracer.Printf("record #%s in collection '%s' updated", record.Id, collection.Name)
+							}
+						}
+					}
+				}
+			}
+
+			// update collection `workflow_output`
+			//   - migrate field `outputs`
+			{
+				collection, err := app.FindCollectionByNameOrId("bqnxb95f2cooowp")
+				if err != nil {
+					return err
+				} else if collection != nil {
+					records, err := app.FindAllRecords(collection)
+					if err != nil {
+						return err
+					} else {
+						for _, record := range records {
+							changed := false
+
+							outputs := make([]map[string]any, 0)
+							if err := record.UnmarshalJSONField("outputs", &outputs); err == nil {
+								for i, output := range outputs {
+									if _, ok := output["label"]; ok {
+										output["valueType"] = "string"
+										delete(output, "label")
+										delete(output, "required")
+										delete(output, "valueSelector")
+										outputs[i] = output
+									} else {
+										continue
+									}
+									record.Set("outputs", outputs)
+									changed = true
+								}
+							} else {
+								println(err.Error())
+							}
+
+							if changed {
+								if err := app.Save(record); err != nil {
+									return err
+								}
+
+								tracer.Printf("record #%s in collection '%s' updated", record.Id, collection.Name)
+							}
+						}
+					}
+				}
 			}
 		}
 

@@ -8,6 +8,6 @@ type WorkflowOutput struct {
 	RunId      string           `json:"runId" db:"runRef"`
 	NodeId     string           `json:"nodeId" db:"nodeId"`
 	Node       *WorkflowNode    `json:"node" db:"node"`
-	Outputs    []WorkflowNodeIO `json:"outputs" db:"outputs"`
+	Outputs    []WorkflowNodeIO `json:"outputs" db:"outputs"` // Deprecated
 	Succeeded  bool             `json:"succeeded" db:"succeeded"`
 }

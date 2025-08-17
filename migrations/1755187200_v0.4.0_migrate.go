@@ -247,6 +247,7 @@ func init() {
 
 		// update collection `workflow`
 		//   - modify field `trigger` candidates, and cascading migrate field `graphDraft` / `graphContent`
+		//   - modify field `lastRunStatus` candidates
 		//   - rename field `lastRunRefId` to `lastRunRef`
 		//   - rename field `draft` to `graphDraft`
 		//   - rename field `content` to `graphContent`
@@ -327,6 +328,26 @@ func init() {
 					return err
 				}
 
+				if err := collection.Fields.AddMarshaledJSONAt(11, []byte(`{
+					"hidden": false,
+					"id": "zivdxh23",
+					"maxSelect": 1,
+					"name": "lastRunStatus",
+					"presentable": false,
+					"required": false,
+					"system": false,
+					"type": "select",
+					"values": [
+						"pending",
+						"processing",
+						"succeeded",
+						"failed",
+						"canceled"
+					]
+				}`)); err != nil {
+					return err
+				}
+
 				if err := app.Save(collection); err != nil {
 					return err
 				}
@@ -336,6 +357,10 @@ func init() {
 				}
 
 				if _, err := app.DB().NewQuery("UPDATE workflow SET hasContent = TRUE WHERE graphContent IS NOT NULL").Execute(); err != nil {
+					return err
+				}
+
+				if _, err := app.DB().NewQuery("UPDATE workflow SET lastRunStatus = 'processing' WHERE lastRunStatus = 'running'").Execute(); err != nil {
 					return err
 				}
 
@@ -392,6 +417,7 @@ func init() {
 
 		// update collection `workflow_run`
 		//   - modify field `trigger` candidates, and cascading migrate field `graph`
+		//   - modify field `status` candidates
 		//   - rename field `detail` to `graph`
 		//   - rename field `workflowId` to `workflowRef`
 		{
@@ -411,6 +437,26 @@ func init() {
 					"required": false,
 					"system": false,
 					"type": "relation"
+				}`)); err != nil {
+					return err
+				}
+
+				if err := collection.Fields.AddMarshaledJSONAt(2, []byte(`{
+					"hidden": false,
+					"id": "qldmh0tw",
+					"maxSelect": 1,
+					"name": "status",
+					"presentable": false,
+					"required": false,
+					"system": false,
+					"type": "select",
+					"values": [
+						"pending",
+						"processing",
+						"succeeded",
+						"failed",
+						"canceled"
+					]
 				}`)); err != nil {
 					return err
 				}
@@ -458,6 +504,10 @@ func init() {
 				}
 
 				if _, err := app.DB().NewQuery("UPDATE workflow_run SET trigger = 'scheduled' WHERE trigger = 'auto'").Execute(); err != nil {
+					return err
+				}
+
+				if _, err := app.DB().NewQuery("UPDATE workflow_run SET status = 'processing' WHERE status = 'running'").Execute(); err != nil {
 					return err
 				}
 
@@ -737,10 +787,14 @@ func init() {
 								},
 							})
 
-						case "apply", "upload", "monitor", "notify":
+						case "apply":
+							if _, ok := current.Config["challengeType"].(string); !ok {
+								current.Config["challengeType"] = "dns-01"
+							}
+
 							temp = append(temp, &dWorkflowNode{
 								Id:   current.Id,
-								Type: "biz" + strings.Title(current.Type),
+								Type: "bizApply",
 								Data: dWorkflowNodeData{
 									Name:   current.Name,
 									Config: current.Config,
@@ -756,6 +810,16 @@ func init() {
 							temp = append(temp, &dWorkflowNode{
 								Id:   current.Id,
 								Type: "bizDeploy",
+								Data: dWorkflowNodeData{
+									Name:   current.Name,
+									Config: current.Config,
+								},
+							})
+
+						case "upload", "monitor", "notify":
+							temp = append(temp, &dWorkflowNode{
+								Id:   current.Id,
+								Type: "biz" + strings.Title(current.Type),
 								Data: dWorkflowNodeData{
 									Name:   current.Name,
 									Config: current.Config,

@@ -14,7 +14,7 @@ export interface WorkflowRunModel extends BaseModel {
 
 export const WORKFLOW_RUN_STATUSES = Object.freeze({
   PENDING: "pending",
-  RUNNING: "running",
+  PROCESSING: "processing",
   SUCCEEDED: "succeeded",
   FAILED: "failed",
   CANCELED: "canceled",

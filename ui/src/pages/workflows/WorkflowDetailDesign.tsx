@@ -27,8 +27,8 @@ const WorkflowDetailDesign = () => {
   );
   const workflowPublishDisabled = useMemo(() => workflowRunDisabled || !workflow.hasDraft, [workflowRunDisabled, workflow.hasDraft]);
   useEffect(() => {
-    const disabled = workflow.lastRunStatus === WORKFLOW_RUN_STATUSES.PENDING || workflow.lastRunStatus === WORKFLOW_RUN_STATUSES.RUNNING;
-    setWorkflowRunDisabled(disabled);
+    const running = workflow.lastRunStatus === WORKFLOW_RUN_STATUSES.PENDING || workflow.lastRunStatus === WORKFLOW_RUN_STATUSES.PROCESSING;
+    setWorkflowRunDisabled(running);
   }, [workflow.lastRunStatus]);
 
   const designerRef = useRef<WorkflowDesignerInstance>(null);

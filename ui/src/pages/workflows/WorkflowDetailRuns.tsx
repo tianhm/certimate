@@ -99,7 +99,7 @@ const WorkflowDetailRuns = () => {
       fixed: "right",
       width: 64,
       render: (_, record) => {
-        const cancelDisabled = !([WORKFLOW_RUN_STATUSES.PENDING, WORKFLOW_RUN_STATUSES.RUNNING] as string[]).includes(record.status);
+        const cancelDisabled = !([WORKFLOW_RUN_STATUSES.PENDING, WORKFLOW_RUN_STATUSES.PROCESSING] as string[]).includes(record.status);
         const deleteDisabled = !cancelDisabled;
 
         return (
@@ -224,7 +224,7 @@ const WorkflowDetailRuns = () => {
   );
 
   useEffect(() => {
-    const items = tableData.filter((e) => e.status === WORKFLOW_RUN_STATUSES.PENDING || e.status === WORKFLOW_RUN_STATUSES.RUNNING);
+    const items = tableData.filter((e) => e.status === WORKFLOW_RUN_STATUSES.PENDING || e.status === WORKFLOW_RUN_STATUSES.PROCESSING);
     for (const item of items) {
       subscribeWorkflowRun(item.id, (cb) => {
         setTableData((prev) => {
@@ -239,7 +239,7 @@ const WorkflowDetailRuns = () => {
           detailDrawerProps.data = { ...detailDrawerProps.data, ...cb.record };
         }
 
-        if (cb.record.status !== WORKFLOW_RUN_STATUSES.PENDING && cb.record.status !== WORKFLOW_RUN_STATUSES.RUNNING) {
+        if (cb.record.status !== WORKFLOW_RUN_STATUSES.PENDING && cb.record.status !== WORKFLOW_RUN_STATUSES.PROCESSING) {
           unsubscribeWorkflowRun(item.id);
         }
       });
@@ -325,7 +325,7 @@ const WorkflowDetailRuns = () => {
       okButtonProps: { danger: true },
       onOk: async () => {
         // 未结束的记录不允许删除
-        records = records.filter((record) => !([WORKFLOW_RUN_STATUSES.PENDING, WORKFLOW_RUN_STATUSES.RUNNING] as string[]).includes(record.status));
+        records = records.filter((record) => !([WORKFLOW_RUN_STATUSES.PENDING, WORKFLOW_RUN_STATUSES.PROCESSING] as string[]).includes(record.status));
         try {
           const resp = await removeWorkflowRun(records);
           if (resp) {

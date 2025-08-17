@@ -57,8 +57,8 @@ const WorkflowDetail = () => {
   const runButtonDisabled = useMemo(() => !workflow.hasContent, [workflow]);
   const [runButtonLoading, setRunButtonLoading] = useState(false);
   useEffect(() => {
-    const pending = workflow.lastRunStatus === WORKFLOW_RUN_STATUSES.PENDING || workflow.lastRunStatus === WORKFLOW_RUN_STATUSES.RUNNING;
-    setRunButtonLoading(pending);
+    const running = workflow.lastRunStatus === WORKFLOW_RUN_STATUSES.PENDING || workflow.lastRunStatus === WORKFLOW_RUN_STATUSES.PROCESSING;
+    setRunButtonLoading(running);
   }, [workflow.lastRunStatus]);
 
   const handleRunClick = () => {

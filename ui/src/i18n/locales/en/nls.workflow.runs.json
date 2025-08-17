@@ -16,7 +16,7 @@
 
   "workflow_run.props.status": "Status",
   "workflow_run.props.status.pending": "Pending",
-  "workflow_run.props.status.running": "Running",
+  "workflow_run.props.status.processing": "Processing",
   "workflow_run.props.status.succeeded": "Succeeded",
   "workflow_run.props.status.failed": "Failed",
   "workflow_run.props.status.canceled": "Canceled",

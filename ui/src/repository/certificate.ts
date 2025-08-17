@@ -16,7 +16,7 @@ export const list = async (request: ListRequest) => {
 
   const filters: string[] = ["deleted=null"];
   if (request.keyword) {
-    filters.push(pb.filter("(subjectAltNames~{:keyword} || serialNumber={:keyword})", { keyword: request.keyword }));
+    filters.push(pb.filter("(id={:keyword} || serialNumber={:keyword} || subjectAltNames~{:keyword})", { keyword: request.keyword }));
   }
   if (request.state === "expireSoon") {
     filters.push(pb.filter("validityNotAfter<{:expiredAt} && validityNotAfter>@now", { expiredAt: dayjs().add(20, "d").toDate() }));

@@ -17,7 +17,7 @@ export const list = async (request: ListRequest) => {
 
   const filters: string[] = [];
   if (request.keyword) {
-    filters.push(pb.filter("name~{:keyword}", { keyword: request.keyword }));
+    filters.push(pb.filter("(id={:keyword} || name~{:keyword})", { keyword: request.keyword }));
   }
   if (request.enabled != null) {
     filters.push(pb.filter("enabled={:enabled}", { enabled: request.enabled }));

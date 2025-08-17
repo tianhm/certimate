@@ -205,7 +205,7 @@ const AccessList = () => {
         .filter((e) => {
           const keyword = (filters["keyword"] as string | undefined)?.trim();
           if (keyword) {
-            return e.name.includes(keyword);
+            return e.id === keyword || e.name.includes(keyword);
           }
 
           return true;

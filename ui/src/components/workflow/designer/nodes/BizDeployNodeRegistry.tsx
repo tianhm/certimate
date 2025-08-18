@@ -39,7 +39,10 @@ export const BizDeployNodeRegistry: NodeRegistry = {
         }
       },
       ["config.certificateOutputNodeId"]: ({ value, context: { node } }) => {
-        if (!getAllPreviousNodes(node).includes(value)) {
+        if (value == null) return;
+
+        const prevNodeIds = getAllPreviousNodes(node).map((e) => e.id);
+        if (!prevNodeIds.includes(value)) {
           return {
             message: "Invalid input",
             level: FeedbackLevel.Error,

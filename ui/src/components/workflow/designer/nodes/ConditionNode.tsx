@@ -5,6 +5,7 @@ import { Typography } from "antd";
 
 import { type Expr, ExprType, newNode } from "@/domain/workflow";
 
+import { getAllPreviousNodes } from "../_util";
 import { BaseNode, BranchNode } from "./_shared";
 import { NodeKindType, type NodeRegistry, NodeType } from "./typings";
 import BranchBlockNodeConfigForm from "../forms/BranchBlockNodeConfigForm";
@@ -68,6 +69,38 @@ export const BranchBlockNodeRegistry: NodeRegistry = {
         if (!res.success) {
           return {
             message: res.error.message,
+            level: FeedbackLevel.Error,
+          };
+        }
+      },
+      ["config.expression"]: ({ value, context: { node } }) => {
+        if (value == null) return;
+
+        const prevNodeIds = getAllPreviousNodes(node).map((e) => e.id);
+        const deepValidate = (expr: Expr) => {
+          if ("selector" in expr) {
+            if (!prevNodeIds.includes(expr.selector.id)) {
+              return false;
+            }
+          }
+
+          if ("left" in expr) {
+            if (!deepValidate(expr.left)) {
+              return false;
+            }
+          }
+
+          if ("right" in expr) {
+            if (!deepValidate(expr.right)) {
+              return false;
+            }
+          }
+
+          return true;
+        };
+        if (!deepValidate(value)) {
+          return {
+            message: "Invalid input",
             level: FeedbackLevel.Error,
           };
         }

@@ -6,8 +6,15 @@ import { useControllableValue } from "ahooks";
 import { Button, Form, Input, Radio, Select, theme } from "antd";
 
 import Show from "@/components/Show";
-import type { Expr, ExprComparisonOperator, ExprLogicalOperator, ExprValue, ExprValueSelector, ExprValueType } from "@/domain/workflow";
-import { ExprType } from "@/domain/workflow";
+import {
+  type Expr,
+  type ExprComparisonOperator,
+  type ExprLogicalOperator,
+  ExprType,
+  type ExprValue,
+  type ExprValueSelector,
+  type ExprValueType,
+} from "@/domain/workflow";
 import { useAntdFormName } from "@/hooks";
 
 import { useNodeFormContext } from "./_context";
@@ -146,7 +153,7 @@ const BranchBlockNodeConfigFormExpressionEditor = forwardRef<BranchBlockNodeConf
     const { node } = useNodeFormContext();
 
     const [formInst] = Form.useForm<ConditionFormValues>();
-    const formName = useAntdFormName({ form: formInst, name: "workflowNodeConditionConfigFormExpressionEditorForm" });
+    const formName = useAntdFormName({ form: formInst, name: "workflowNodeBranchBlockConfigFormExpressionEditorForm" });
     const [formModel, setFormModel] = useState<ConditionFormValues>(getInitialValues());
 
     useEffect(() => {

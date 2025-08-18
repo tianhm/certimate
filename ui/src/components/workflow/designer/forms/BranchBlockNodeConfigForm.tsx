@@ -5,7 +5,16 @@ import { type AnchorProps, Form, type FormInstance } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
-import { type WorkflowNodeConfigForBranchBlock, defaultNodeConfigForBranchBlock } from "@/domain/workflow";
+import {
+  type Expr,
+  type ExprComparisonOperator,
+  type ExprLogicalOperator,
+  ExprType,
+  type ExprValueType,
+  type WorkflowNodeConfigForBranchBlock,
+  defaultNodeConfigForBranchBlock,
+} from "@/domain/workflow";
+
 import { useAntdForm } from "@/hooks";
 
 import { NodeFormContextProvider } from "./_context";
@@ -34,11 +43,13 @@ const BranchBlockNodeConfigForm = ({ node, ...props }: BranchBlockNodeConfigForm
       try {
         await exprEditorRef.current!.validate();
       } catch {
-        ctx.addIssue({
-          code: "custom",
-          message: t("workflow_node.branch_block.form.expression.errmsg.invalid"),
-          path: ["expression"],
-        });
+        if (!ctx.issues.some((issue) => issue.path?.[0] === "expression")) {
+          ctx.addIssue({
+            code: "custom",
+            message: t("workflow_node.branch_block.form.expression.errmsg.invalid"),
+            path: ["expression"],
+          });
+        }
       }
     }
   });
@@ -79,10 +90,51 @@ const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
 };
 
 const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) => {
-  const { t: _ } = i18n;
+  const { t } = i18n;
+
+  const exprSchema: z.ZodType<Expr> = z.lazy(() =>
+    z.discriminatedUnion("type", [
+      z.object({
+        type: z.literal(ExprType.Constant),
+        value: z.string(),
+        valueType: z.string<ExprValueType>(),
+      }),
+
+      z.object({
+        type: z.literal(ExprType.Variant),
+        selector: z.object({
+          id: z.string(),
+          name: z.string(),
+          type: z.string<ExprValueType>(),
+        }),
+      }),
+
+      z.object({
+        type: z.literal(ExprType.Comparison),
+        operator: z.string<ExprComparisonOperator>(),
+        left: exprSchema,
+        right: exprSchema,
+      }),
+
+      z.object({
+        type: z.literal(ExprType.Logical),
+        operator: z.string<ExprLogicalOperator>(),
+        left: exprSchema,
+        right: exprSchema,
+      }),
+
+      z.object({
+        type: z.literal(ExprType.Not),
+        expr: exprSchema,
+      }),
+    ])
+  );
 
   return z.object({
-    expression: z.any().nullish(),
+    expression: z
+      .any()
+      .nullish()
+      .refine((v) => v == null || exprSchema.safeParse(v).success, t("workflow_node.branch_block.form.expression.errmsg.invalid")),
   });
 };
 

@@ -24,7 +24,10 @@ const WorkflowDetail = () => {
   const { id: workflowId } = useParams();
   const { workflow, initialized, ...workflowState } = useWorkflowStore(useZustandShallowSelector(["workflow", "initialized", "init", "destroy", "setEnabled"]));
   useEffect(() => {
-    workflowState.init(workflowId!);
+    Promise.try(() => workflowState.init(workflowId!)).catch((err) => {
+      console.error(err);
+      notification.error({ message: t("common.text.request_error"), description: getErrMsg(err) });
+    });
 
     return () => {
       workflowState.destroy();

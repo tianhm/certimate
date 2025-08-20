@@ -85,12 +85,12 @@ func (r *WorkflowLogRepository) Save(ctx context.Context, workflowLog *domain.Wo
 
 func (r *WorkflowLogRepository) castRecordToModel(record *core.Record) (*domain.WorkflowLog, error) {
 	if record == nil {
-		return nil, fmt.Errorf("record is nil")
+		return nil, fmt.Errorf("the record is nil")
 	}
 
 	logdata := make(map[string]any)
 	if err := record.UnmarshalJSONField("data", &logdata); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("field 'data' is malformed")
 	}
 
 	workflowLog := &domain.WorkflowLog{

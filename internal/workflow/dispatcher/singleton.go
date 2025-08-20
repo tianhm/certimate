@@ -15,7 +15,7 @@ type workflowRepository interface {
 
 type workflowRunRepository interface {
 	GetById(ctx context.Context, id string) (*domain.WorkflowRun, error)
-	Save(ctx context.Context, workflowRun *domain.WorkflowRun) (*domain.WorkflowRun, error)
+	SaveWithCascading(ctx context.Context, workflowRun *domain.WorkflowRun) (*domain.WorkflowRun, error)
 }
 
 type workflowLogRepository interface {
@@ -29,7 +29,11 @@ var (
 
 func GetSingletonDispatcher() *WorkflowDispatcher {
 	intanceOnce.Do(func() {
-		instance = newWorkflowDispatcher(repository.NewWorkflowRepository(), repository.NewWorkflowRunRepository(), repository.NewWorkflowLogRepository())
+		instance = newWorkflowDispatcher(
+			repository.NewWorkflowRepository(),
+			repository.NewWorkflowRunRepository(),
+			repository.NewWorkflowLogRepository(),
+		)
 	})
 
 	return instance

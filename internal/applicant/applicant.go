@@ -41,19 +41,20 @@ type Applicant interface {
 }
 
 type ApplicantWithWorkflowNodeConfig struct {
-	Node   *domain.WorkflowNode
-	Logger *slog.Logger
+	WorkflowId string
+	Node       *domain.WorkflowNode
+	Logger     *slog.Logger
 }
 
 func NewWithWorkflowNode(config ApplicantWithWorkflowNodeConfig) (Applicant, error) {
 	if config.Node == nil {
-		return nil, fmt.Errorf("node is nil")
+		return nil, fmt.Errorf("the node is nil")
 	}
-	if config.Node.Type != domain.WorkflowNodeTypeApply {
-		return nil, fmt.Errorf("node type is not '%s'", string(domain.WorkflowNodeTypeApply))
+	if config.Node.Type != domain.WorkflowNodeTypeBizApply {
+		return nil, fmt.Errorf("the node type is '%s', expected '%s'", string(config.Node.Type), string(domain.WorkflowNodeTypeBizApply))
 	}
 
-	nodeCfg := config.Node.GetConfigForApply()
+	nodeCfg := config.Node.GetConfigForBizApply()
 	options := &applicantProviderOptions{
 		Domains:                 lo.Filter(strings.Split(nodeCfg.Domains, ";"), func(s string, _ int) bool { return s != "" }),
 		ContactEmail:            nodeCfg.ContactEmail,
@@ -109,8 +110,8 @@ func NewWithWorkflowNode(config ApplicantWithWorkflowNodeConfig) (Applicant, err
 		options.CAProviderAccessConfig = sslProviderConfig.Config[options.CAProvider]
 	}
 
-	certRepo := repository.NewCertificateRepository()
-	lastCertificate, _ := certRepo.GetByWorkflowNodeId(context.Background(), config.Node.Id)
+	certificateRepo := repository.NewCertificateRepository()
+	lastCertificate, _ := certificateRepo.GetByWorkflowIdAndNodeId(context.Background(), config.WorkflowId, config.Node.Id)
 	if lastCertificate != nil && !lastCertificate.ACMERenewed {
 		newCertSan := slices.Clone(options.Domains)
 		oldCertSan := strings.Split(lastCertificate.SubjectAltNames, ";")

@@ -88,7 +88,7 @@ func (r *WorkflowOutputRepository) SaveWithCertificate(ctx context.Context, work
 
 		// 写入证书 ID 到工作流输出结果中
 		for i, item := range workflowOutput.Outputs {
-			if item.Name == string(domain.WorkflowNodeIONameCertificate) {
+			if item.Type == "certificate" {
 				workflowOutput.Outputs[i].Value = certificate.Id
 				break
 			}
@@ -104,17 +104,12 @@ func (r *WorkflowOutputRepository) SaveWithCertificate(ctx context.Context, work
 
 func (r *WorkflowOutputRepository) castRecordToModel(record *core.Record) (*domain.WorkflowOutput, error) {
 	if record == nil {
-		return nil, fmt.Errorf("record is nil")
+		return nil, fmt.Errorf("the record is nil")
 	}
 
-	node := &domain.WorkflowNode{}
-	if err := record.UnmarshalJSONField("node", node); err != nil {
-		return nil, err
-	}
-
-	outputs := make([]domain.WorkflowNodeIO, 0)
+	outputs := make([]*domain.WorkflowOutputEntry, 0)
 	if err := record.UnmarshalJSONField("outputs", &outputs); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("field 'outputs' is malformed")
 	}
 
 	workflowOutput := &domain.WorkflowOutput{
@@ -126,7 +121,6 @@ func (r *WorkflowOutputRepository) castRecordToModel(record *core.Record) (*doma
 		WorkflowId: record.GetString("workflowRef"),
 		RunId:      record.GetString("runRef"),
 		NodeId:     record.GetString("nodeId"),
-		Node:       node,
 		Outputs:    outputs,
 		Succeeded:  record.GetBool("succeeded"),
 	}
@@ -151,7 +145,6 @@ func (r *WorkflowOutputRepository) saveRecord(workflowOutput *domain.WorkflowOut
 	record.Set("workflowRef", workflowOutput.WorkflowId)
 	record.Set("runRef", workflowOutput.RunId)
 	record.Set("nodeId", workflowOutput.NodeId)
-	record.Set("node", workflowOutput.Node)
 	record.Set("outputs", workflowOutput.Outputs)
 	record.Set("succeeded", workflowOutput.Succeeded)
 	if err := app.GetApp().Save(record); err != nil {

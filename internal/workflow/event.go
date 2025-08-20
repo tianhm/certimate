@@ -13,35 +13,38 @@ import (
 )
 
 func Register() {
-	app := app.GetApp()
-	app.OnRecordCreateRequest(domain.CollectionNameWorkflow).BindFunc(func(e *core.RecordRequestEvent) error {
+	pb := app.GetApp()
+	pb.OnRecordCreateRequest(domain.CollectionNameWorkflow).BindFunc(func(e *core.RecordRequestEvent) error {
 		if err := e.Next(); err != nil {
 			return err
 		}
 
 		if err := onWorkflowRecordCreateOrUpdate(e.Request.Context(), e.Record); err != nil {
+			app.GetLogger().Error(err.Error())
 			return err
 		}
 
 		return nil
 	})
-	app.OnRecordUpdateRequest(domain.CollectionNameWorkflow).BindFunc(func(e *core.RecordRequestEvent) error {
+	pb.OnRecordUpdateRequest(domain.CollectionNameWorkflow).BindFunc(func(e *core.RecordRequestEvent) error {
 		if err := e.Next(); err != nil {
 			return err
 		}
 
 		if err := onWorkflowRecordCreateOrUpdate(e.Request.Context(), e.Record); err != nil {
+			app.GetLogger().Error(err.Error())
 			return err
 		}
 
 		return nil
 	})
-	app.OnRecordDeleteRequest(domain.CollectionNameWorkflow).BindFunc(func(e *core.RecordRequestEvent) error {
+	pb.OnRecordDeleteRequest(domain.CollectionNameWorkflow).BindFunc(func(e *core.RecordRequestEvent) error {
 		if err := e.Next(); err != nil {
 			return err
 		}
 
 		if err := onWorkflowRecordDelete(e.Request.Context(), e.Record); err != nil {
+			app.GetLogger().Error(err.Error())
 			return err
 		}
 

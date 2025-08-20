@@ -58,12 +58,13 @@ func (r *CertificateRepository) GetById(ctx context.Context, id string) (*domain
 	return r.castRecordToModel(record)
 }
 
-func (r *CertificateRepository) GetByWorkflowNodeId(ctx context.Context, workflowNodeId string) (*domain.Certificate, error) {
+func (r *CertificateRepository) GetByWorkflowIdAndNodeId(ctx context.Context, workflowId string, workflowNodeId string) (*domain.Certificate, error) {
 	records, err := app.GetApp().FindRecordsByFilter(
 		domain.CollectionNameCertificate,
-		"workflowNodeId={:workflowNodeId} && deleted=null",
+		"workflowRef={:workflowId} && workflowNodeId={:workflowNodeId} && deleted=null",
 		"-created",
 		1, 0,
+		dbx.Params{"workflowId": workflowId},
 		dbx.Params{"workflowNodeId": workflowNodeId},
 	)
 	if err != nil {
@@ -169,7 +170,7 @@ func (r *CertificateRepository) DeleteWhere(ctx context.Context, exprs ...dbx.Ex
 
 func (r *CertificateRepository) castRecordToModel(record *core.Record) (*domain.Certificate, error) {
 	if record == nil {
-		return nil, fmt.Errorf("record is nil")
+		return nil, fmt.Errorf("the record is nil")
 	}
 
 	certificate := &domain.Certificate{

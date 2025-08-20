@@ -49,6 +49,40 @@ func (r *WorkflowRunRepository) Save(ctx context.Context, workflowRun *domain.Wo
 		}
 	}
 
+	record.Set("workflowRef", workflowRun.WorkflowId)
+	record.Set("trigger", string(workflowRun.Trigger))
+	record.Set("status", string(workflowRun.Status))
+	record.Set("startedAt", workflowRun.StartedAt)
+	record.Set("endedAt", workflowRun.EndedAt)
+	record.Set("graph", workflowRun.Graph)
+	record.Set("error", workflowRun.Error)
+	err = app.GetApp().Save(record)
+	if err != nil {
+		return workflowRun, err
+	}
+
+	return workflowRun, nil
+}
+
+func (r *WorkflowRunRepository) SaveWithCascading(ctx context.Context, workflowRun *domain.WorkflowRun) (*domain.WorkflowRun, error) {
+	collection, err := app.GetApp().FindCollectionByNameOrId(domain.CollectionNameWorkflowRun)
+	if err != nil {
+		return workflowRun, err
+	}
+
+	var record *core.Record
+	if workflowRun.Id == "" {
+		record = core.NewRecord(collection)
+	} else {
+		record, err = app.GetApp().FindRecordById(collection, workflowRun.Id)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return workflowRun, err
+			}
+			record = core.NewRecord(collection)
+		}
+	}
+
 	err = app.GetApp().RunInTransaction(func(txApp core.App) error {
 		record.Set("workflowRef", workflowRun.WorkflowId)
 		record.Set("trigger", string(workflowRun.Trigger))
@@ -122,12 +156,12 @@ func (r *WorkflowRunRepository) DeleteWhere(ctx context.Context, exprs ...dbx.Ex
 
 func (r *WorkflowRunRepository) castRecordToModel(record *core.Record) (*domain.WorkflowRun, error) {
 	if record == nil {
-		return nil, fmt.Errorf("record is nil")
+		return nil, fmt.Errorf("the record is nil")
 	}
 
-	graph := &domain.WorkflowNode{}
+	graph := &domain.WorkflowGraphWithResult{}
 	if err := record.UnmarshalJSONField("graph", &graph); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("field 'graph' is malformed")
 	}
 
 	workflowRun := &domain.WorkflowRun{

@@ -23,13 +23,13 @@ type NotifierWithWorkflowNodeConfig struct {
 
 func NewWithWorkflowNode(config NotifierWithWorkflowNodeConfig) (Notifier, error) {
 	if config.Node == nil {
-		return nil, fmt.Errorf("node is nil")
+		return nil, fmt.Errorf("the node is nil")
 	}
-	if config.Node.Type != domain.WorkflowNodeTypeNotify {
-		return nil, fmt.Errorf("node type is not '%s'", string(domain.WorkflowNodeTypeNotify))
+	if config.Node.Type != domain.WorkflowNodeTypeBizNotify {
+		return nil, fmt.Errorf("the node type is '%s', expected '%s'", string(config.Node.Type), string(domain.WorkflowNodeTypeBizNotify))
 	}
 
-	nodeCfg := config.Node.GetConfigForNotify()
+	nodeCfg := config.Node.GetConfigForBizNotify()
 	options := &notifierProviderOptions{
 		Provider:              domain.NotificationProviderType(nodeCfg.Provider),
 		ProviderAccessConfig:  make(map[string]any),

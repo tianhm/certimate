@@ -38,9 +38,9 @@ type workflowWorker struct {
 }
 
 type WorkflowWorkerData struct {
-	WorkflowId      string
-	WorkflowContent *domain.WorkflowNode
-	RunId           string
+	WorkflowId    string
+	WorkflowGraph *domain.WorkflowGraph
+	RunId         string
 }
 
 type WorkflowDispatcher struct {
@@ -63,7 +63,11 @@ type WorkflowDispatcher struct {
 	workflowLogRepo workflowLogRepository
 }
 
-func newWorkflowDispatcher(workflowRepo workflowRepository, workflowRunRepo workflowRunRepository, workflowLogRepo workflowLogRepository) *WorkflowDispatcher {
+func newWorkflowDispatcher(
+	workflowRepo workflowRepository,
+	workflowRunRepo workflowRunRepository,
+	workflowLogRepo workflowLogRepository,
+) *WorkflowDispatcher {
 	dispatcher := &WorkflowDispatcher{
 		semaphore: make(chan struct{}, maxWorkers),
 
@@ -99,7 +103,7 @@ func newWorkflowDispatcher(workflowRepo workflowRepository, workflowRunRepo work
 
 func (d *WorkflowDispatcher) Dispatch(data *WorkflowWorkerData) {
 	if data == nil {
-		panic("worker data is nil")
+		panic("workflow dispatcher: the worker data is nil")
 	}
 
 	d.enqueueWorker(data)
@@ -135,9 +139,9 @@ func (d *WorkflowDispatcher) Cancel(runId string) {
 	// 已挂起，查询 WorkflowRun 并更新其状态为 Canceled
 	if !hasWorker {
 		if run, err := d.workflowRunRepo.GetById(context.Background(), runId); err == nil {
-			if run.Status == domain.WorkflowRunStatusTypePending || run.Status == domain.WorkflowRunStatusTypeRunning {
+			if run.Status == domain.WorkflowRunStatusTypePending || run.Status == domain.WorkflowRunStatusTypeProcessing {
 				run.Status = domain.WorkflowRunStatusTypeCanceled
-				d.workflowRunRepo.Save(context.Background(), run)
+				d.workflowRunRepo.SaveWithCascading(context.Background(), run)
 			}
 		}
 	}
@@ -182,6 +186,7 @@ func (d *WorkflowDispatcher) dequeueWorker() {
 			return
 		}
 
+		// TODO: 优化队列
 		data := d.queue[0]
 		d.queue = d.queue[1:]
 		d.queueMutex.Unlock()
@@ -225,7 +230,7 @@ func (d *WorkflowDispatcher) work(ctx context.Context, data *WorkflowWorkerData)
 				run.Status = domain.WorkflowRunStatusTypeFailed
 				run.EndedAt = time.Now()
 				run.Error = fmt.Sprintf("workflow run panic: %v", r)
-				if _, err := d.workflowRunRepo.Save(ctx, run); err != nil {
+				if _, err := d.workflowRunRepo.SaveWithCascading(ctx, run); err != nil {
 					log.Default().Println("Failed to save workflow run after panic:", err)
 				}
 			}
@@ -257,13 +262,13 @@ func (d *WorkflowDispatcher) work(ctx context.Context, data *WorkflowWorkerData)
 		return
 	} else if ctx.Err() != nil {
 		run.Status = domain.WorkflowRunStatusTypeCanceled
-		d.workflowRunRepo.Save(ctx, run)
+		d.workflowRunRepo.SaveWithCascading(ctx, run)
 		return
 	}
 
-	// 更新 WorkflowRun 状态为 Running
-	run.Status = domain.WorkflowRunStatusTypeRunning
-	if _, err := d.workflowRunRepo.Save(ctx, run); err != nil {
+	// 更新 WorkflowRun 状态为 Processing
+	run.Status = domain.WorkflowRunStatusTypeProcessing
+	if _, err := d.workflowRunRepo.SaveWithCascading(ctx, run); err != nil {
 		if !(errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded)) {
 			panic(err)
 		}
@@ -281,7 +286,7 @@ func (d *WorkflowDispatcher) work(ctx context.Context, data *WorkflowWorkerData)
 			run.Error = runErr.Error()
 		}
 
-		if _, err := d.workflowRunRepo.Save(ctx, run); err != nil {
+		if _, err := d.workflowRunRepo.SaveWithCascading(ctx, run); err != nil {
 			if !(errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded)) {
 				panic(err)
 			}
@@ -298,7 +303,7 @@ func (d *WorkflowDispatcher) work(ctx context.Context, data *WorkflowWorkerData)
 	} else {
 		run.Status = domain.WorkflowRunStatusTypeFailed
 	}
-	if _, err := d.workflowRunRepo.Save(ctx, run); err != nil {
+	if _, err := d.workflowRunRepo.SaveWithCascading(ctx, run); err != nil {
 		if !(errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded)) {
 			panic(err)
 		}

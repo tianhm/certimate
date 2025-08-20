@@ -111,7 +111,7 @@ func (c *Certificate) PopulateFromPEM(certPEM, privkeyPEM string) *Certificate {
 
 	certX509, _ := xcert.ParseCertificateFromPEM(certPEM)
 	if certX509 != nil {
-		c.PopulateFromX509(certX509)
+		return c.PopulateFromX509(certX509)
 	}
 
 	return c

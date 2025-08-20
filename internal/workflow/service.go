@@ -22,7 +22,7 @@ type workflowRepository interface {
 
 type workflowRunRepository interface {
 	GetById(ctx context.Context, id string) (*domain.WorkflowRun, error)
-	Save(ctx context.Context, workflowRun *domain.WorkflowRun) (*domain.WorkflowRun, error)
+	SaveWithCascading(ctx context.Context, workflowRun *domain.WorkflowRun) (*domain.WorkflowRun, error)
 	DeleteWhere(ctx context.Context, exprs ...dbx.Expression) (int, error)
 }
 
@@ -54,7 +54,7 @@ func (s *WorkflowService) InitSchedule(ctx context.Context) error {
 	app.GetScheduler().MustAdd("workflowHistoryRunsCleanup", "0 0 * * *", func() {
 		settings, err := s.settingsRepo.GetByName(ctx, "persistence")
 		if err != nil {
-			app.GetLogger().Error("failed to get persistence settings", "err", err)
+			app.GetLogger().Error(fmt.Sprintf("failed to get persistence settings: %w", err))
 			return
 		}
 
@@ -63,11 +63,11 @@ func (s *WorkflowService) InitSchedule(ctx context.Context) error {
 			ret, err := s.workflowRunRepo.DeleteWhere(
 				context.Background(),
 				dbx.NewExp(fmt.Sprintf("status!='%s'", string(domain.WorkflowRunStatusTypePending))),
-				dbx.NewExp(fmt.Sprintf("status!='%s'", string(domain.WorkflowRunStatusTypeRunning))),
+				dbx.NewExp(fmt.Sprintf("status!='%s'", string(domain.WorkflowRunStatusTypeProcessing))),
 				dbx.NewExp(fmt.Sprintf("endedAt<DATETIME('now', '-%d days')", persistenceSettings.WorkflowRunsMaxDaysRetention)),
 			)
 			if err != nil {
-				app.GetLogger().Error("failed to delete workflow history runs", "err", err)
+				app.GetLogger().Error(fmt.Sprintf("failed to delete workflow history runs: %w", err))
 			}
 
 			if ret > 0 {
@@ -76,7 +76,7 @@ func (s *WorkflowService) InitSchedule(ctx context.Context) error {
 		}
 	})
 
-	// 工作流
+	// 工作流后台任务
 	{
 		workflows, err := s.workflowRepo.ListEnabledScheduled(ctx)
 		if err != nil {
@@ -93,6 +93,7 @@ func (s *WorkflowService) InitSchedule(ctx context.Context) error {
 				})
 			})
 			if err != nil {
+				app.GetLogger().Error(fmt.Sprintf("failed to add workflow #%s to scheduler: %w", workflow.Id, err))
 				errs = append(errs, err)
 			}
 
@@ -111,8 +112,8 @@ func (s *WorkflowService) StartRun(ctx context.Context, req *dtos.WorkflowStartR
 		return err
 	}
 
-	if workflow.LastRunStatus == domain.WorkflowRunStatusTypePending || workflow.LastRunStatus == domain.WorkflowRunStatusTypeRunning {
-		return errors.New("workflow is already pending or running")
+	if workflow.LastRunStatus == domain.WorkflowRunStatusTypePending || workflow.LastRunStatus == domain.WorkflowRunStatusTypeProcessing {
+		return errors.New("workflow is already pending or processing")
 	}
 
 	run := &domain.WorkflowRun{
@@ -120,18 +121,18 @@ func (s *WorkflowService) StartRun(ctx context.Context, req *dtos.WorkflowStartR
 		Status:     domain.WorkflowRunStatusTypePending,
 		Trigger:    req.RunTrigger,
 		StartedAt:  time.Now(),
-		Graph:      workflow.GraphContent,
+		Graph:      &domain.WorkflowGraphWithResult{WorkflowGraph: *workflow.GraphContent},
 	}
-	if resp, err := s.workflowRunRepo.Save(ctx, run); err != nil {
+	if resp, err := s.workflowRunRepo.SaveWithCascading(ctx, run); err != nil {
 		return err
 	} else {
 		run = resp
 	}
 
 	s.dispatcher.Dispatch(&dispatcher.WorkflowWorkerData{
-		WorkflowId:      run.WorkflowId,
-		WorkflowContent: run.Graph,
-		RunId:           run.Id,
+		WorkflowId:    run.WorkflowId,
+		WorkflowGraph: &run.Graph.WorkflowGraph,
+		RunId:         run.Id,
 	})
 
 	return nil
@@ -148,8 +149,8 @@ func (s *WorkflowService) CancelRun(ctx context.Context, req *dtos.WorkflowCance
 		return err
 	} else if workflowRun.WorkflowId != workflow.Id {
 		return errors.New("workflow run not found")
-	} else if workflowRun.Status != domain.WorkflowRunStatusTypePending && workflowRun.Status != domain.WorkflowRunStatusTypeRunning {
-		return errors.New("workflow run is not pending or running")
+	} else if workflowRun.Status != domain.WorkflowRunStatusTypePending && workflowRun.Status != domain.WorkflowRunStatusTypeProcessing {
+		return errors.New("workflow run is not pending or processing")
 	}
 
 	s.dispatcher.Cancel(workflowRun.Id)

@@ -49,7 +49,7 @@ const StartNodeConfigForm = ({ node, ...props }: StartNodeConfigFormProps) => {
 
   const handleTriggerChange = (value: string) => {
     if (value === WORKFLOW_TRIGGERS.SCHEDULED) {
-      formInst.setFieldValue("triggerCron", initialValues?.triggerCron || getInitialValues().triggerCron);
+      formInst.setFieldValue("triggerCron", initialValues?.triggerCron || "0 0 * * *");
     } else {
       formInst.setFieldValue("triggerCron", void 0);
     }

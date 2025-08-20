@@ -98,17 +98,17 @@ func (r *WorkflowRepository) Save(ctx context.Context, workflow *domain.Workflow
 
 func (r *WorkflowRepository) castRecordToModel(record *core.Record) (*domain.Workflow, error) {
 	if record == nil {
-		return nil, fmt.Errorf("record is nil")
+		return nil, fmt.Errorf("the record is nil")
 	}
 
-	graphDraft := &domain.WorkflowNode{}
+	graphDraft := &domain.WorkflowGraph{}
 	if err := record.UnmarshalJSONField("graphDraft", graphDraft); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("field 'graphDraft' is malformed")
 	}
 
-	graphContent := &domain.WorkflowNode{}
+	graphContent := &domain.WorkflowGraph{}
 	if err := record.UnmarshalJSONField("graphContent", graphContent); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("field 'graphContent' is malformed")
 	}
 
 	workflow := &domain.Workflow{

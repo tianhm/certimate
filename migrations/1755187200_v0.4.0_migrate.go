@@ -16,6 +16,7 @@ func init() {
 		tracer.Printf("go ...")
 
 		// update collection `settings`
+		//   - delete records: 'notifyChannels', 'notifyTemplates'
 		{
 			collection, err := app.FindCollectionByNameOrId("dy6ccjb60spfy6p")
 			if err != nil {
@@ -35,11 +36,16 @@ func init() {
 
 		// update collection `access`
 		//   - modify field `config` schema: rename property `defaultReceiver` to `receiver`
+		//   - delete records: 'local'
 		{
 			collection, err := app.FindCollectionByNameOrId("4yzbv8urny5ja1e")
 			if err != nil {
 				return err
 			} else if collection != nil {
+				if _, err := app.DB().NewQuery("DELETE FROM access WHERE provider = 'local'").Execute(); err != nil {
+					return err
+				}
+
 				records, err := app.FindAllRecords(collection)
 				if err != nil {
 					return err
@@ -621,16 +627,16 @@ func init() {
 				return err
 			} else if collection != nil {
 				if field := collection.Fields.GetByName("level"); field != nil && field.Type() == "text" {
-					if _, err := app.DB().NewQuery("UPDATE workflow_logs SET level = -4 WHERE level = 'DEBUG'").Execute(); err != nil {
+					if _, err := app.DB().NewQuery("UPDATE workflow_logs SET level = '-4' WHERE level = 'DEBUG'").Execute(); err != nil {
 						return err
 					}
-					if _, err := app.DB().NewQuery("UPDATE workflow_logs SET level = 0 WHERE level = 'INFO'").Execute(); err != nil {
+					if _, err := app.DB().NewQuery("UPDATE workflow_logs SET level = '0' WHERE level = 'INFO'").Execute(); err != nil {
 						return err
 					}
-					if _, err := app.DB().NewQuery("UPDATE workflow_logs SET level = 4 WHERE level = 'WARN'").Execute(); err != nil {
+					if _, err := app.DB().NewQuery("UPDATE workflow_logs SET level = '4' WHERE level = 'WARN'").Execute(); err != nil {
 						return err
 					}
-					if _, err := app.DB().NewQuery("UPDATE workflow_logs SET level = 8 WHERE level = 'ERROR'").Execute(); err != nil {
+					if _, err := app.DB().NewQuery("UPDATE workflow_logs SET level = '8' WHERE level = 'ERROR'").Execute(); err != nil {
 						return err
 					}
 
@@ -649,6 +655,10 @@ func init() {
 						return err
 					}
 					if err := app.Save(collection); err != nil {
+						return err
+					}
+
+					if _, err := app.DB().NewQuery("UPDATE workflow_logs SET level = levelTmp").Execute(); err != nil {
 						return err
 					}
 

@@ -1,0 +1,269 @@
+﻿package engine
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"log/slog"
+	"sync"
+
+	"github.com/certimate-go/certimate/internal/app"
+	"github.com/certimate-go/certimate/pkg/logging"
+)
+
+type WorkflowEngine interface {
+	Invoke(ctx context.Context, workflowId string, runId string, graph *Graph) error
+
+	OnStart(callback func(ctx context.Context) error)
+	OnEnd(callback func(ctx context.Context) error)
+	OnError(callback func(ctx context.Context, err error) error)
+	OnNodeStart(callback func(ctx context.Context, node *Node) error)
+	OnNodeEnd(callback func(ctx context.Context, node *Node, res *NodeExecutionResult) error)
+	OnNodeError(callback func(ctx context.Context, node *Node, err error) error)
+	OnNodeLogging(callback func(ctx context.Context, node *Node, log logging.Record) error)
+}
+
+type workflowEngine struct {
+	executorRegistry map[NodeType]NodeExecutor
+
+	hooksMtx           sync.RWMutex
+	onStartHooks       [](func(ctx context.Context) error)
+	onEndHooks         [](func(ctx context.Context) error)
+	onErrorHooks       [](func(ctx context.Context, err error) error)
+	onNodeStartHooks   [](func(ctx context.Context, node *Node) error)
+	onNodeEndHooks     [](func(ctx context.Context, node *Node, res *NodeExecutionResult) error)
+	onNodeErrorHooks   [](func(ctx context.Context, node *Node, err error) error)
+	onNodeLoggingHooks [](func(ctx context.Context, node *Node, log logging.Record) error)
+}
+
+var _ WorkflowEngine = (*workflowEngine)(nil)
+
+func (we *workflowEngine) Invoke(ctx context.Context, workflowId string, runId string, runGraph *Graph) error {
+	we.fireOnStartHooks(ctx)
+
+	defer func() {
+		if r := recover(); r != nil {
+			we.fireOnErrorHooks(ctx, fmt.Errorf("workflow engine panic: %v", r))
+		}
+	}()
+
+	wfCtx := (&WorkflowContext{}).
+		SetExecutingWorkflow(workflowId, runId, runGraph).
+		SetEngine(we).
+		SetVariablesManager(newWorkflowIOsManager()).
+		SetInputsManager(newWorkflowIOsManager()).
+		SetContext(ctx)
+	if err := we.executeBlocks(wfCtx, runGraph.Nodes); err != nil {
+		if !errors.Is(err, errInterrupted) {
+			we.fireOnErrorHooks(ctx, err)
+			return err
+		}
+	}
+
+	we.fireOnEndHooks(ctx)
+
+	return nil
+}
+
+func (we *workflowEngine) OnStart(callback func(ctx context.Context) error) {
+	we.hooksMtx.Lock()
+	defer we.hooksMtx.Unlock()
+	we.onStartHooks = append(we.onStartHooks, callback)
+}
+
+func (we *workflowEngine) OnEnd(callback func(ctx context.Context) error) {
+	we.hooksMtx.Lock()
+	defer we.hooksMtx.Unlock()
+	we.onEndHooks = append(we.onEndHooks, callback)
+}
+
+func (we *workflowEngine) OnError(callback func(ctx context.Context, err error) error) {
+	we.hooksMtx.Lock()
+	defer we.hooksMtx.Unlock()
+	we.onErrorHooks = append(we.onErrorHooks, callback)
+}
+
+func (we *workflowEngine) OnNodeStart(callback func(ctx context.Context, node *Node) error) {
+	we.hooksMtx.Lock()
+	defer we.hooksMtx.Unlock()
+	we.onNodeStartHooks = append(we.onNodeStartHooks, callback)
+}
+
+func (we *workflowEngine) OnNodeEnd(callback func(ctx context.Context, node *Node, res *NodeExecutionResult) error) {
+	we.hooksMtx.Lock()
+	defer we.hooksMtx.Unlock()
+	we.onNodeEndHooks = append(we.onNodeEndHooks, callback)
+}
+
+func (we *workflowEngine) OnNodeError(callback func(ctx context.Context, node *Node, err error) error) {
+	we.hooksMtx.Lock()
+	defer we.hooksMtx.Unlock()
+	we.onNodeErrorHooks = append(we.onNodeErrorHooks, callback)
+}
+
+func (we *workflowEngine) OnNodeLogging(callback func(ctx context.Context, node *Node, log logging.Record) error) {
+	we.hooksMtx.Lock()
+	defer we.hooksMtx.Unlock()
+	we.onNodeLoggingHooks = append(we.onNodeLoggingHooks, callback)
+}
+
+func (we *workflowEngine) executeNode(wfCtx *WorkflowContext, node *Node) error {
+	executor, ok := we.executorRegistry[node.Type]
+	if !ok {
+		err := fmt.Errorf("workflow engine: no executor registered for node type: '%s'", node.Type)
+		return err
+	} else {
+		logger := slog.New(logging.NewHookHandler(&logging.HookHandlerOptions{
+			Level: slog.LevelDebug,
+			WriteFunc: func(ctx context.Context, record *logging.Record) error {
+				we.fireOnNodeLoggingHooks(ctx, node, *record)
+				return nil
+			},
+		}))
+		executor.SetLogger(logger)
+	}
+
+	execCtx := (&NodeExecutionContext{}).
+		SetExecutingWorkflow(wfCtx.WorkflowId, wfCtx.RunId, wfCtx.RunGraph).
+		SetExecutingNode(node).
+		SetEngine(we).
+		SetVariablesManager(wfCtx.variables).
+		SetInputsManager(wfCtx.inputs).
+		SetContext(wfCtx.ctx)
+
+	we.fireOnNodeStartHooks(wfCtx.ctx, node)
+
+	execRes, err := executor.Execute(execCtx)
+	if err != nil {
+		we.fireOnNodeErrorHooks(wfCtx.ctx, node, err)
+		return err
+	}
+
+	we.fireOnNodeEndHooks(wfCtx.ctx, node, execRes)
+
+	if execRes != nil {
+		if execRes.Variables != nil {
+			for _, variable := range execRes.Variables {
+				wfCtx.variables.Add(variable)
+			}
+		}
+
+		if execRes.Outputs != nil {
+			for _, output := range execRes.Outputs {
+				wfCtx.inputs.Add(output)
+			}
+		}
+
+		if execRes.Interrupted {
+			return errInterrupted
+		}
+	}
+
+	return nil
+}
+
+func (we *workflowEngine) executeBlocks(wfCtx *WorkflowContext, blocks []*Node) error {
+	for _, node := range blocks {
+		select {
+		case <-wfCtx.ctx.Done():
+			return wfCtx.ctx.Err()
+		default:
+		}
+
+		err := we.executeNode(wfCtx, node)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (we *workflowEngine) fireOnStartHooks(ctx context.Context) {
+	we.hooksMtx.RLock()
+	defer we.hooksMtx.RUnlock()
+	for _, cb := range we.onStartHooks {
+		if cbErr := cb(ctx); cbErr != nil {
+			app.GetLogger().Error("workflow engine: error in onStart hook", slog.Any("error", cbErr))
+		}
+	}
+}
+
+func (we *workflowEngine) fireOnEndHooks(ctx context.Context) {
+	we.hooksMtx.RLock()
+	defer we.hooksMtx.RUnlock()
+	for _, cb := range we.onEndHooks {
+		if cbErr := cb(ctx); cbErr != nil {
+			app.GetLogger().Error("workflow engine: error in onEnd hook", slog.Any("error", cbErr))
+		}
+	}
+}
+
+func (we *workflowEngine) fireOnErrorHooks(ctx context.Context, err error) {
+	we.hooksMtx.RLock()
+	defer we.hooksMtx.RUnlock()
+	for _, cb := range we.onErrorHooks {
+		if cbErr := cb(ctx, err); cbErr != nil {
+			app.GetLogger().Error("workflow engine: error in onError hook", slog.Any("error", cbErr))
+		}
+	}
+}
+
+func (we *workflowEngine) fireOnNodeStartHooks(ctx context.Context, node *Node) {
+	we.hooksMtx.RLock()
+	defer we.hooksMtx.RUnlock()
+	for _, cb := range we.onNodeStartHooks {
+		if cbErr := cb(ctx, node); cbErr != nil {
+			app.GetLogger().Error("workflow engine: error in onNodeStart hook", slog.Any("error", cbErr))
+		}
+	}
+}
+
+func (we *workflowEngine) fireOnNodeEndHooks(ctx context.Context, node *Node, result *NodeExecutionResult) {
+	we.hooksMtx.RLock()
+	defer we.hooksMtx.RUnlock()
+	for _, cb := range we.onNodeEndHooks {
+		if cbErr := cb(ctx, node, result); cbErr != nil {
+			app.GetLogger().Error("workflow engine: error in onNodeEnd hook", slog.Any("error", cbErr))
+		}
+	}
+}
+
+func (we *workflowEngine) fireOnNodeErrorHooks(ctx context.Context, node *Node, err error) {
+	we.hooksMtx.RLock()
+	defer we.hooksMtx.RUnlock()
+	for _, cb := range we.onNodeErrorHooks {
+		if cbErr := cb(ctx, node, err); cbErr != nil {
+			app.GetLogger().Error("workflow engine: error in onNodeError hook", slog.Any("error", cbErr))
+		}
+	}
+}
+
+func (we *workflowEngine) fireOnNodeLoggingHooks(ctx context.Context, node *Node, log logging.Record) {
+	we.hooksMtx.RLock()
+	defer we.hooksMtx.RUnlock()
+	for _, cb := range we.onNodeLoggingHooks {
+		if cbErr := cb(ctx, node, log); cbErr != nil {
+			app.GetLogger().Error("workflow engine: error in onNodeLogging hook", slog.Any("error", cbErr))
+		}
+	}
+}
+
+func NewWorkflowEngine() WorkflowEngine {
+	engine := &workflowEngine{
+		executorRegistry: make(map[NodeType]NodeExecutor),
+	}
+	engine.executorRegistry[NodeTypeStart] = newStartNodeExecutor()
+	engine.executorRegistry[NodeTypeEnd] = newEndNodeExecutor()
+	engine.executorRegistry[NodeTypeCondition] = newConditionNodeExecutor()
+	engine.executorRegistry[NodeTypeBranchBlock] = newBranchBlockNodeExecutor()
+	engine.executorRegistry[NodeTypeTryCatch] = newTryCatchNodeExecutor()
+	engine.executorRegistry[NodeTypeTryBlock] = newTryBlockNodeExecutor()
+	engine.executorRegistry[NodeTypeCatchBlock] = newCatchBlockNodeExecutor()
+	engine.executorRegistry[NodeTypeBizApply] = newBizApplyNodeExecutor()
+	engine.executorRegistry[NodeTypeBizUpload] = newBizUploadNodeExecutor()
+	engine.executorRegistry[NodeTypeBizMonitor] = newBizMonitorNodeExecutor()
+	engine.executorRegistry[NodeTypeBizDeploy] = newBizDeployNodeExecutor()
+	engine.executorRegistry[NodeTypeBizNotify] = newBizNotifyNodeExecutor()
+	return engine
+}

@@ -667,7 +667,7 @@ func init() {
 						return err
 					}
 
-					if _, err := app.DB().NewQuery("UPDATE workflow_logs SET level = levelTmp").Execute(); err != nil {
+					if _, err := app.DB().NewQuery("UPDATE workflow_logs SET levelTmp = level").Execute(); err != nil {
 						return err
 					}
 

@@ -56,7 +56,7 @@ func (ne *bizNotifyNodeExecutor) checkCanSkip(execCtx *NodeExecutionContext) (_s
 
 	var total, skipped int32
 	for _, variable := range execCtx.variables.All() {
-		if variable.Scope != "" && variable.Key == wfVariableKeyNodeSkipped {
+		if variable.Scope != "" && variable.Key == stateVariableKeyNodeSkipped {
 			total++
 			if variable.Value == true {
 				skipped++

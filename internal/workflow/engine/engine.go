@@ -52,8 +52,8 @@ func (we *workflowEngine) Invoke(ctx context.Context, workflowId string, runId s
 	wfCtx := (&WorkflowContext{}).
 		SetExecutingWorkflow(workflowId, runId, runGraph).
 		SetEngine(we).
-		SetVariablesManager(newWorkflowIOsManager()).
-		SetInputsManager(newWorkflowIOsManager()).
+		SetVariablesManager(newStateManager()).
+		SetInputsManager(newStateManager()).
 		SetContext(ctx)
 	if err := we.executeBlocks(wfCtx, runGraph.Nodes); err != nil {
 		if !errors.Is(err, errInterrupted) {

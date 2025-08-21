@@ -65,7 +65,7 @@ func (ne *branchBlockNodeExecutor) Execute(execCtx *NodeExecutionContext) (*Node
 	if nodeCfg.Expression == nil {
 		ne.logger.Info("enter this branch without any conditions")
 	} else {
-		variables := lo.Reduce(execCtx.variables.All(), func(acc map[string]map[string]any, entry NodeIOEntry, _ int) map[string]map[string]any {
+		variables := lo.Reduce(execCtx.variables.All(), func(acc map[string]map[string]any, entry StateEntry, _ int) map[string]map[string]any {
 			if _, ok := acc[entry.Scope]; !ok {
 				acc[entry.Scope] = make(map[string]any)
 			}

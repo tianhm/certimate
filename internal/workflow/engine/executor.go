@@ -41,13 +41,13 @@ func (c *NodeExecutionContext) SetEngine(engine WorkflowEngine) *NodeExecutionCo
 	return c
 }
 
-func (c *NodeExecutionContext) SetVariablesManager(variablesMgr WorkflowIOsManager) *NodeExecutionContext {
-	c.variables = variablesMgr
+func (c *NodeExecutionContext) SetVariablesManager(manager StateManager) *NodeExecutionContext {
+	c.variables = manager
 	return c
 }
 
-func (c *NodeExecutionContext) SetInputsManager(inputsMgr WorkflowIOsManager) *NodeExecutionContext {
-	c.inputs = inputsMgr
+func (c *NodeExecutionContext) SetInputsManager(manager StateManager) *NodeExecutionContext {
+	c.inputs = manager
 	return c
 }
 
@@ -60,13 +60,13 @@ type NodeExecutionResult struct {
 	Interrupted bool // 是否中断执行（通常由 End 节点主动触发）
 
 	variablesMtx sync.RWMutex
-	Variables    []NodeIOEntry
+	Variables    []StateEntry
 	outputsMtx   sync.RWMutex
-	Outputs      []NodeIOEntry
+	Outputs      []StateEntry
 }
 
 func (r *NodeExecutionResult) AddVariable(scope string, key string, value any, valueType string) {
-	r.AddVariableEntry(NodeIOEntry{
+	r.AddVariableEntry(StateEntry{
 		Scope:     scope,
 		Type:      "",
 		Key:       key,
@@ -75,12 +75,12 @@ func (r *NodeExecutionResult) AddVariable(scope string, key string, value any, v
 	})
 }
 
-func (r *NodeExecutionResult) AddVariableEntry(entry NodeIOEntry) {
+func (r *NodeExecutionResult) AddVariableEntry(entry StateEntry) {
 	r.variablesMtx.Lock()
 	defer r.variablesMtx.Unlock()
 
 	if r.Variables == nil {
-		r.Variables = make([]NodeIOEntry, 0)
+		r.Variables = make([]StateEntry, 0)
 	}
 
 	for i, item := range r.Variables {
@@ -93,7 +93,7 @@ func (r *NodeExecutionResult) AddVariableEntry(entry NodeIOEntry) {
 }
 
 func (r *NodeExecutionResult) AddOutput(scope string, type_ string, key string, value any, valueType string) {
-	r.AddOutputEntry(NodeIOEntry{
+	r.AddOutputEntry(StateEntry{
 		Scope:     scope,
 		Type:      type_,
 		Key:       key,
@@ -102,12 +102,12 @@ func (r *NodeExecutionResult) AddOutput(scope string, type_ string, key string, 
 	})
 }
 
-func (r *NodeExecutionResult) AddOutputEntry(entry NodeIOEntry) {
+func (r *NodeExecutionResult) AddOutputEntry(entry StateEntry) {
 	r.outputsMtx.Lock()
 	defer r.outputsMtx.Unlock()
 
 	if r.Outputs == nil {
-		r.Outputs = make([]NodeIOEntry, 0)
+		r.Outputs = make([]StateEntry, 0)
 	}
 
 	for i, t := range r.Outputs {

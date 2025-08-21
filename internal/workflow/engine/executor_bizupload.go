@@ -33,7 +33,7 @@ func (ne *bizUploadNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 	if skippable, reason := ne.checkCanSkip(execCtx, lastOutput, lastCertificate); skippable {
 		ne.logger.Info(fmt.Sprintf("skip this uploading, because %s", reason))
 
-		execRes.AddVariable(execCtx.Node.Id, wfVariableKeyNodeSkipped, true, "boolean")
+		execRes.AddVariable(execCtx.Node.Id, stateVariableKeyNodeSkipped, true, "boolean")
 		return execRes, nil
 	} else if reason != "" {
 		ne.logger.Info(fmt.Sprintf("re-upload, because %s", reason))
@@ -70,9 +70,9 @@ func (ne *bizUploadNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 	}
 
 	// 记录中间结果
-	execRes.AddVariable(execCtx.Node.Id, wfVariableKeyNodeSkipped, false, "boolean")
-	execRes.AddVariable(execCtx.Node.Id, wfVariableKeyCertificateValidity, true, "boolean")
-	execRes.AddVariable(execCtx.Node.Id, wfVariableKeyCertificateDaysLeft, int32(time.Until(certificate.ValidityNotAfter).Hours()/24), "number")
+	execRes.AddVariable(execCtx.Node.Id, stateVariableKeyNodeSkipped, false, "boolean")
+	execRes.AddVariable(execCtx.Node.Id, stateVariableKeyCertificateValidity, true, "boolean")
+	execRes.AddVariable(execCtx.Node.Id, stateVariableKeyCertificateDaysLeft, int32(time.Until(certificate.ValidityNotAfter).Hours()/24), "number")
 
 	ne.logger.Info("uploading completed")
 	return execRes, nil

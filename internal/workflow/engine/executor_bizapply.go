@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"maps"
+	"math"
 	"time"
 
 	"github.com/certimate-go/certimate/internal/applicant"
@@ -29,13 +30,16 @@ func (ne *bizApplyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 	lastOutput, lastCertificate, err := ne.getLastOutputArtifacts(execCtx)
 	if err != nil {
 		return execRes, err
+	} else if lastCertificate != nil {
+		execRes.AddVariable(execCtx.Node.Id, stateVarKeyCertificateValidity, time.Now().After(lastCertificate.ValidityNotAfter), "boolean")
+		execRes.AddVariable(execCtx.Node.Id, stateVarKeyCertificateDaysLeft, int32(time.Until(lastCertificate.ValidityNotAfter).Hours()/24), "number")
 	}
 
 	// 检测是否可以跳过本次执行
 	if skippable, reason := ne.checkCanSkip(execCtx, lastOutput, lastCertificate); skippable {
 		ne.logger.Info(fmt.Sprintf("skip this application, because %s", reason))
 
-		execRes.AddVariable(execCtx.Node.Id, stateVariableKeyNodeSkipped, true, "boolean")
+		execRes.AddVariable(execCtx.Node.Id, stateVarKeyNodeSkipped, true, "boolean")
 		return execRes, nil
 	} else if reason != "" {
 		ne.logger.Info(fmt.Sprintf("re-apply, because %s", reason))
@@ -109,9 +113,9 @@ func (ne *bizApplyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 	}
 
 	// 记录中间结果
-	execRes.AddVariable(execCtx.Node.Id, stateVariableKeyNodeSkipped, false, "boolean")
-	execRes.AddVariable(execCtx.Node.Id, stateVariableKeyCertificateValidity, true, "boolean")
-	execRes.AddVariable(execCtx.Node.Id, stateVariableKeyCertificateDaysLeft, int32(time.Until(certificate.ValidityNotAfter).Hours()/24), "number")
+	execRes.AddVariable(execCtx.Node.Id, stateVarKeyNodeSkipped, false, "boolean")
+	execRes.AddVariable(execCtx.Node.Id, stateVarKeyCertificateValidity, true, "boolean")
+	execRes.AddVariable(execCtx.Node.Id, stateVarKeyCertificateDaysLeft, int32(time.Until(certificate.ValidityNotAfter).Hours()/24), "number")
 
 	ne.logger.Info("application completed")
 	return execRes, nil
@@ -174,11 +178,8 @@ func (ne *bizApplyNodeExecutor) checkCanSkip(execCtx *NodeExecutionContext, last
 	if lastCertificate != nil {
 		renewalInterval := time.Duration(thisNodeCfg.SkipBeforeExpiryDays) * time.Hour * 24
 		expirationTime := time.Until(lastCertificate.ValidityNotAfter)
-		daysLeft := int(expirationTime.Hours() / 24)
+		daysLeft := int(math.Floor(expirationTime.Hours() / 24))
 		if expirationTime > renewalInterval {
-			// TODO: 优化此处逻辑，[checkCanSkip] 方法不应该修改中间结果，违背单一职责
-			// ne.outputs[variableKeyCertificateValidity] = strconv.FormatBool(true)
-			// ne.outputs[variableKeyCertificateDaysLeft] = strconv.FormatInt(int64(daysLeft), 10)
 			return true, fmt.Sprintf("the last issued certificate #%s expires in %d day(s), next renewal will be in %d day(s)", lastCertificate.Id, daysLeft, thisNodeCfg.SkipBeforeExpiryDays)
 		}
 

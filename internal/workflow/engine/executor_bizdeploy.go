@@ -42,7 +42,7 @@ func (ne *bizDeployNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 		if skippable, reason := ne.checkCanSkip(execCtx, lastOutput); skippable {
 			ne.logger.Info(fmt.Sprintf("skip this deployment, because %s", reason))
 
-			execRes.AddVariable(execCtx.Node.Id, stateVariableKeyNodeSkipped, true, "boolean")
+			execRes.AddVariable(execCtx.Node.Id, stateVarKeyNodeSkipped, true, "boolean")
 			return execRes, nil
 		} else if reason != "" {
 			ne.logger.Info(fmt.Sprintf("re-deploy, because %s", reason))
@@ -82,7 +82,7 @@ func (ne *bizDeployNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 	}
 
 	// 记录中间结果
-	execRes.AddVariable(execCtx.Node.Id, stateVariableKeyNodeSkipped, false, "boolean")
+	execRes.AddVariable(execCtx.Node.Id, stateVarKeyNodeSkipped, false, "boolean")
 
 	ne.logger.Info("deployment completed")
 	return execRes, nil

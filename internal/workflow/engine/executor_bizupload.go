@@ -27,13 +27,16 @@ func (ne *bizUploadNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 	lastOutput, lastCertificate, err := ne.getLastOutputArtifacts(execCtx)
 	if err != nil {
 		return execRes, err
+	} else if lastCertificate != nil {
+		execRes.AddVariable(execCtx.Node.Id, stateVarKeyCertificateValidity, time.Now().After(lastCertificate.ValidityNotAfter), "boolean")
+		execRes.AddVariable(execCtx.Node.Id, stateVarKeyCertificateDaysLeft, int32(time.Until(lastCertificate.ValidityNotAfter).Hours()/24), "number")
 	}
 
 	// 检测是否可以跳过本次执行
 	if skippable, reason := ne.checkCanSkip(execCtx, lastOutput, lastCertificate); skippable {
 		ne.logger.Info(fmt.Sprintf("skip this uploading, because %s", reason))
 
-		execRes.AddVariable(execCtx.Node.Id, stateVariableKeyNodeSkipped, true, "boolean")
+		execRes.AddVariable(execCtx.Node.Id, stateVarKeyNodeSkipped, true, "boolean")
 		return execRes, nil
 	} else if reason != "" {
 		ne.logger.Info(fmt.Sprintf("re-upload, because %s", reason))
@@ -70,9 +73,9 @@ func (ne *bizUploadNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 	}
 
 	// 记录中间结果
-	execRes.AddVariable(execCtx.Node.Id, stateVariableKeyNodeSkipped, false, "boolean")
-	execRes.AddVariable(execCtx.Node.Id, stateVariableKeyCertificateValidity, true, "boolean")
-	execRes.AddVariable(execCtx.Node.Id, stateVariableKeyCertificateDaysLeft, int32(time.Until(certificate.ValidityNotAfter).Hours()/24), "number")
+	execRes.AddVariable(execCtx.Node.Id, stateVarKeyNodeSkipped, false, "boolean")
+	execRes.AddVariable(execCtx.Node.Id, stateVarKeyCertificateValidity, true, "boolean")
+	execRes.AddVariable(execCtx.Node.Id, stateVarKeyCertificateDaysLeft, int32(time.Until(certificate.ValidityNotAfter).Hours()/24), "number")
 
 	ne.logger.Info("uploading completed")
 	return execRes, nil
@@ -112,10 +115,6 @@ func (ne *bizUploadNodeExecutor) checkCanSkip(execCtx *NodeExecutionContext, las
 	}
 
 	if lastCertificate != nil {
-		// TODO: 优化此处逻辑，[checkCanSkip] 方法不应该修改中间结果，违背单一职责
-		// daysLeft := int(time.Until(lastCertificate.ValidityNotAfter).Hours() / 24)
-		// execCtx.SetInputEntry(execCtx.Node.Id, variableKeyCertificateValidity, strconv.FormatBool(daysLeft > 0))
-		// execCtx.SetInputEntry(execCtx.Node.Id, variableKeyCertificateDaysLeft, strconv.FormatInt(int64(daysLeft), 10))
 		return true, "the last uploaded certificate already exists"
 	}
 

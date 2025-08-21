@@ -68,8 +68,8 @@ func (ne *bizMonitorNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeE
 		if len(certs) == 0 {
 			ne.logger.Warn("no ssl certificates retrieved in http response")
 
-			execRes.AddVariable(execCtx.Node.Id, stateVariableKeyCertificateValidity, false, "boolean")
-			execRes.AddVariable(execCtx.Node.Id, stateVariableKeyCertificateDaysLeft, 0, "number")
+			execRes.AddVariable(execCtx.Node.Id, stateVarKeyCertificateValidity, false, "boolean")
+			execRes.AddVariable(execCtx.Node.Id, stateVarKeyCertificateDaysLeft, 0, "number")
 		} else {
 			cert := certs[0] // 只取证书链中的第一个证书，即服务器证书
 			ne.logger.Info(fmt.Sprintf("ssl certificate retrieved (serial='%s', subject='%s', issuer='%s', not_before='%s', not_after='%s', sans='%s')",
@@ -86,9 +86,9 @@ func (ne *bizMonitorNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeE
 			}
 
 			validated := isCertPeriodValid && isCertHostMatched
-			daysLeft := int(math.Floor(cert.NotAfter.Sub(now).Hours() / 24))
-			execRes.AddVariable(execCtx.Node.Id, stateVariableKeyCertificateValidity, validated, "boolean")
-			execRes.AddVariable(execCtx.Node.Id, stateVariableKeyCertificateDaysLeft, daysLeft, "number")
+			daysLeft := int(math.Floor(time.Until(cert.NotAfter).Hours() / 24))
+			execRes.AddVariable(execCtx.Node.Id, stateVarKeyCertificateValidity, validated, "boolean")
+			execRes.AddVariable(execCtx.Node.Id, stateVarKeyCertificateDaysLeft, daysLeft, "number")
 
 			if validated {
 				ne.logger.Info(fmt.Sprintf("the certificate is valid, and will expire in %d day(s)", daysLeft))

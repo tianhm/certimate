@@ -133,7 +133,7 @@ const (
 )
 
 const (
-	stateVariableKeyCertificateValidity = "certificate.validity" // ValueType: "bool"
-	stateVariableKeyCertificateDaysLeft = "certificate.daysLeft" // ValueType: "int32"
-	stateVariableKeyNodeSkipped         = "node.skipped"         // ValueType: "bool"
+	stateVarKeyNodeSkipped         = "node.skipped"         // ValueType: "boolean"
+	stateVarKeyCertificateValidity = "certificate.validity" // ValueType: "boolean"
+	stateVarKeyCertificateDaysLeft = "certificate.daysLeft" // ValueType: "number"
 )

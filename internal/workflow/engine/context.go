@@ -10,8 +10,8 @@ type WorkflowContext struct {
 	RunGraph   *Graph
 
 	engine    WorkflowEngine
-	variables StateManager
-	inputs    StateManager
+	variables VariableManager
+	inputs    InOutManager
 
 	ctx context.Context
 }
@@ -28,12 +28,12 @@ func (c *WorkflowContext) SetEngine(engine WorkflowEngine) *WorkflowContext {
 	return c
 }
 
-func (c *WorkflowContext) SetVariablesManager(manager StateManager) *WorkflowContext {
-	c.variables = manager
+func (c *WorkflowContext) SetVariablesManager(inputs VariableManager) *WorkflowContext {
+	c.variables = inputs
 	return c
 }
 
-func (c *WorkflowContext) SetInputsManager(manager StateManager) *WorkflowContext {
+func (c *WorkflowContext) SetInputsManager(manager InOutManager) *WorkflowContext {
 	c.inputs = manager
 	return c
 }

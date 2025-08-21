@@ -16,6 +16,11 @@ import (
 	xtls "github.com/certimate-go/certimate/pkg/utils/tls"
 )
 
+/**
+ * Result Variables:
+ *   - certificate.validity: boolean
+ *   - certificate.daysLeft: number
+ */
 type bizMonitorNodeExecutor struct {
 	nodeExecutor
 
@@ -23,7 +28,7 @@ type bizMonitorNodeExecutor struct {
 }
 
 func (ne *bizMonitorNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExecutionResult, error) {
-	execRes := &NodeExecutionResult{}
+	execRes := newNodeExecutionResult(execCtx.Node)
 
 	nodeCfg := execCtx.Node.Data.Config.AsBizMonitor()
 	ne.logger.Info("ready to monitor certificate ...", slog.Any("config", nodeCfg))
@@ -68,8 +73,8 @@ func (ne *bizMonitorNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeE
 		if len(certs) == 0 {
 			ne.logger.Warn("no ssl certificates retrieved in http response")
 
-			execRes.AddVariable(execCtx.Node.Id, stateVarKeyCertificateValidity, false, "boolean")
-			execRes.AddVariable(execCtx.Node.Id, stateVarKeyCertificateDaysLeft, 0, "number")
+			execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateValidity, false, "boolean")
+			execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateDaysLeft, 0, "number")
 		} else {
 			cert := certs[0] // 只取证书链中的第一个证书，即服务器证书
 			ne.logger.Info(fmt.Sprintf("ssl certificate retrieved (serial='%s', subject='%s', issuer='%s', not_before='%s', not_after='%s', sans='%s')",
@@ -87,8 +92,8 @@ func (ne *bizMonitorNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeE
 
 			validated := isCertPeriodValid && isCertHostMatched
 			daysLeft := int(math.Floor(time.Until(cert.NotAfter).Hours() / 24))
-			execRes.AddVariable(execCtx.Node.Id, stateVarKeyCertificateValidity, validated, "boolean")
-			execRes.AddVariable(execCtx.Node.Id, stateVarKeyCertificateDaysLeft, daysLeft, "number")
+			execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateValidity, validated, "boolean")
+			execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateDaysLeft, daysLeft, "number")
 
 			if validated {
 				ne.logger.Info(fmt.Sprintf("the certificate is valid, and will expire in %d day(s)", daysLeft))

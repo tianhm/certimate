@@ -7,7 +7,7 @@ import (
 )
 
 type certificateRepository interface {
-	GetByWorkflowIdAndNodeId(ctx context.Context, workflowId string, workflowNodeId string) (*domain.Certificate, error)
+	GetById(ctx context.Context, id string) (*domain.Certificate, error)
 	GetByWorkflowRunIdAndNodeId(ctx context.Context, workflowRunId string, workflowNodeId string) (*domain.Certificate, error)
 	Save(ctx context.Context, certificate *domain.Certificate) (*domain.Certificate, error)
 }
@@ -19,7 +19,6 @@ type workflowRunRepository interface {
 type workflowOutputRepository interface {
 	GetByNodeId(ctx context.Context, workflowNodeId string) (*domain.WorkflowOutput, error)
 	Save(ctx context.Context, workflowOutput *domain.WorkflowOutput) (*domain.WorkflowOutput, error)
-	SaveWithCertificate(ctx context.Context, workflowOutput *domain.WorkflowOutput, certificate *domain.Certificate) (*domain.WorkflowOutput, error)
 }
 
 type settingsRepository interface {

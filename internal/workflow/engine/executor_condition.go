@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"strconv"
 
 	"github.com/samber/lo"
 )
@@ -21,7 +20,7 @@ func (ne *conditionNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 		engine = we
 	}
 
-	execRes := &NodeExecutionResult{}
+	execRes := newNodeExecutionResult(execCtx.Node)
 
 	errs := make([]error, 0)
 	blocks := lo.Filter(execCtx.Node.Blocks, func(n *Node, _ int) bool { return n.Type == NodeTypeBranchBlock })
@@ -59,28 +58,19 @@ type branchBlockNodeExecutor struct {
 }
 
 func (ne *branchBlockNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExecutionResult, error) {
-	execRes := &NodeExecutionResult{}
+	execRes := newNodeExecutionResult(execCtx.Node)
 
 	nodeCfg := execCtx.Node.Data.Config.AsBranchBlock()
 	if nodeCfg.Expression == nil {
 		ne.logger.Info("enter this branch without any conditions")
 	} else {
-		variables := lo.Reduce(execCtx.variables.All(), func(acc map[string]map[string]any, entry StateEntry, _ int) map[string]map[string]any {
-			if _, ok := acc[entry.Scope]; !ok {
-				acc[entry.Scope] = make(map[string]any)
+		variables := lo.Reduce(execCtx.variables.All(), func(acc map[string]map[string]any, state VariableState, _ int) map[string]map[string]any {
+			if _, ok := acc[state.Scope]; !ok {
+				acc[state.Scope] = make(map[string]any)
 			}
 
 			// 这里需要把所有值都转换为字符串形式，因为 Expression.Eval 仅支持字符串类型的值
-			var value any
-			if entry.ValueType == "number" {
-				value = fmt.Sprintf("%d", entry.Value)
-			} else if entry.ValueType == "boolean" {
-				value = strconv.FormatBool(entry.Value.(bool))
-			} else {
-				value = entry.Value
-			}
-			acc[entry.Scope][entry.Key] = value
-
+			acc[state.Scope][state.Key] = state.ValueString()
 			return acc
 		}, make(map[string]map[string]any))
 

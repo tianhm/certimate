@@ -133,7 +133,6 @@ func (r *CertificateRepository) Save(ctx context.Context, certificate *domain.Ce
 	record.Set("acmeRenewed", certificate.ACMERenewed)
 	record.Set("workflowRef", certificate.WorkflowId)
 	record.Set("workflowRunRef", certificate.WorkflowRunId)
-	record.Set("workflowOutputRef", certificate.WorkflowOutputId)
 	record.Set("workflowNodeId", certificate.WorkflowNodeId)
 	if err := app.GetApp().Save(record); err != nil {
 		return certificate, err
@@ -195,7 +194,6 @@ func (r *CertificateRepository) castRecordToModel(record *core.Record) (*domain.
 		ACMERenewed:       record.GetBool("acmeRenewed"),
 		WorkflowId:        record.GetString("workflowRef"),
 		WorkflowRunId:     record.GetString("workflowRunRef"),
-		WorkflowOutputId:  record.GetString("workflowOutputRef"),
 		WorkflowNodeId:    record.GetString("workflowNodeId"),
 	}
 	return certificate, nil

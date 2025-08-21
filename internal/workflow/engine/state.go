@@ -1,135 +1,279 @@
 ﻿package engine
 
 import (
+	"fmt"
 	"slices"
+	"strconv"
 	"sync"
 )
 
-type StateEntry struct {
+type VariableState struct {
 	Scope     string // 零值时表示全局的，否则表示指定节点的
-	Type      string // 仅表示输入输出有值，表示变量无值
 	Key       string
 	Value     any
-	ValueType string `options:"string | number | boolean"`
+	ValueType string
 }
 
-type StateManager interface {
-	All() []StateEntry
+func (s VariableState) ValueString() string {
+	switch s.ValueType {
+	case "string":
+		return s.Value.(string)
+	case "number":
+		return fmt.Sprintf("%d", s.Value)
+	case "boolean":
+		return strconv.FormatBool(s.Value.(bool))
+	default:
+		return fmt.Sprintf("%v", s.Value)
+	}
+}
+
+type VariableManager interface {
+	All() []VariableState
 	Erase()
 
-	Add(entry StateEntry)
-	Get(name string) (*StateEntry, bool)
-	GetScoped(scope string, name string) (*StateEntry, bool)
-	Take(name string) (*StateEntry, bool)
-	TakeScoped(scope string, name string) (*StateEntry, bool)
-	Remove(name string) bool
-	RemoveScoped(scope string, name string) bool
+	Add(entry VariableState)
+	Set(name string, value any, valueType string)
+	SetScoped(scope string, name string, value any, valueType string)
+	Get(name string) (*VariableState, bool)
+	GetScoped(scope string, key string) (*VariableState, bool)
+	Take(key string) (*VariableState, bool)
+	TakeScoped(scope string, key string) (*VariableState, bool)
+	Remove(key string) bool
+	RemoveScoped(scope string, key string) bool
 }
 
-type stateManager struct {
-	entriesMtx sync.RWMutex
-	entries    []StateEntry
+type variableManager struct {
+	statesMtx sync.RWMutex
+	states    []VariableState
 }
 
-var _ StateManager = (*stateManager)(nil)
+var _ VariableManager = (*variableManager)(nil)
 
-func (m *stateManager) All() []StateEntry {
-	m.entriesMtx.RLock()
-	defer m.entriesMtx.RUnlock()
+func (m *variableManager) All() []VariableState {
+	m.statesMtx.RLock()
+	defer m.statesMtx.RUnlock()
 
-	if m.entries == nil {
-		return make([]StateEntry, 0)
+	if m.states == nil {
+		return make([]VariableState, 0)
 	}
 
-	return slices.Clone(m.entries)
+	return slices.Clone(m.states)
 }
 
-func (m *stateManager) Erase() {
-	m.entriesMtx.Lock()
-	defer m.entriesMtx.Unlock()
+func (m *variableManager) Erase() {
+	m.statesMtx.Lock()
+	defer m.statesMtx.Unlock()
 
-	m.entries = make([]StateEntry, 0)
+	m.states = make([]VariableState, 0)
 }
 
-func (m *stateManager) Add(entry StateEntry) {
-	m.entriesMtx.Lock()
-	defer m.entriesMtx.Unlock()
+func (m *variableManager) Add(state VariableState) {
+	m.statesMtx.Lock()
+	defer m.statesMtx.Unlock()
 
-	if m.entries == nil {
-		m.entries = make([]StateEntry, 0)
+	if m.states == nil {
+		m.states = make([]VariableState, 0)
 	}
 
-	for i, item := range m.entries {
-		if item.Scope == entry.Scope && item.Key == entry.Key {
-			m.entries[i] = entry
+	for i, item := range m.states {
+		if item.Scope == state.Scope && item.Key == state.Key {
+			m.states[i] = state
 			return
 		}
 	}
-	m.entries = append(m.entries, entry)
+	m.states = append(m.states, state)
 }
 
-func (m *stateManager) Get(name string) (*StateEntry, bool) {
-	return m.GetScoped("", name)
+func (m *variableManager) Set(key string, value any, valueType string) {
+	m.SetScoped("", key, value, valueType)
 }
 
-func (m *stateManager) GetScoped(scope string, name string) (*StateEntry, bool) {
-	m.entriesMtx.RLock()
-	defer m.entriesMtx.RUnlock()
+func (m *variableManager) SetScoped(scope string, key string, value any, valueType string) {
+	m.Add(VariableState{Scope: scope, Key: key, Value: value, ValueType: valueType})
+}
 
-	if m.entries == nil {
+func (m *variableManager) Get(key string) (*VariableState, bool) {
+	return m.GetScoped("", key)
+}
+
+func (m *variableManager) GetScoped(scope string, key string) (*VariableState, bool) {
+	m.statesMtx.RLock()
+	defer m.statesMtx.RUnlock()
+
+	if m.states == nil {
 		return nil, false
 	}
 
-	for _, item := range m.entries {
-		if item.Scope == scope && item.Key == name {
+	for _, item := range m.states {
+		if item.Scope == scope && item.Key == key {
 			return &item, true
 		}
 	}
 	return nil, false
 }
 
-func (m *stateManager) Take(name string) (*StateEntry, bool) {
-	return m.TakeScoped("", name)
+func (m *variableManager) Take(key string) (*VariableState, bool) {
+	return m.TakeScoped("", key)
 }
 
-func (m *stateManager) TakeScoped(scope, name string) (*StateEntry, bool) {
-	m.entriesMtx.Lock()
-	defer m.entriesMtx.Unlock()
+func (m *variableManager) TakeScoped(scope string, key string) (*VariableState, bool) {
+	m.statesMtx.Lock()
+	defer m.statesMtx.Unlock()
 
-	if m.entries == nil {
+	if m.states == nil {
 		return nil, false
 	}
 
-	for i, item := range m.entries {
-		if item.Scope == scope && item.Key == name {
-			m.entries = slices.Delete(m.entries, i, i+1)
+	for i, item := range m.states {
+		if item.Scope == scope && item.Key == key {
+			m.states = slices.Delete(m.states, i, i+1)
 			return &item, true
 		}
 	}
 	return nil, false
 }
 
-func (m *stateManager) Remove(name string) bool {
-	return m.RemoveScoped("", name)
+func (m *variableManager) Remove(key string) bool {
+	return m.RemoveScoped("", key)
 }
 
-func (m *stateManager) RemoveScoped(scope string, name string) bool {
-	_, ok := m.TakeScoped(scope, name)
+func (m *variableManager) RemoveScoped(scope string, key string) bool {
+	_, ok := m.TakeScoped(scope, key)
 	return ok
 }
 
-func newStateManager() StateManager {
-	return &stateManager{
-		entries: make([]StateEntry, 0),
+func newVariableManager() VariableManager {
+	return &variableManager{
+		states: make([]VariableState, 0),
+	}
+}
+
+type InOutState struct {
+	NodeId     string
+	Type       string
+	Name       string
+	Value      any
+	ValueType  string
+	Persistent bool
+}
+
+func (s InOutState) ValueString() string {
+	switch s.ValueType {
+	case "string":
+		return s.Value.(string)
+	case "number":
+		return fmt.Sprintf("%d", s.Value)
+	case "boolean":
+		return strconv.FormatBool(s.Value.(bool))
+	default:
+		return fmt.Sprintf("%v", s.Value)
+	}
+}
+
+type InOutManager interface {
+	All() []InOutState
+	Erase()
+
+	Add(state InOutState)
+	Set(nodeId string, stype string, name string, value any, valueType string, persistent bool)
+	Get(nodeId string, name string) (*InOutState, bool)
+	Take(nodeId string, name string) (*InOutState, bool)
+	Remove(nodeId string, name string) bool
+}
+
+type inoutManager struct {
+	statesMtx sync.RWMutex
+	states    []InOutState
+}
+
+var _ InOutManager = (*inoutManager)(nil)
+
+func (m *inoutManager) All() []InOutState {
+	m.statesMtx.RLock()
+	defer m.statesMtx.RUnlock()
+
+	if m.states == nil {
+		return make([]InOutState, 0)
+	}
+
+	return slices.Clone(m.states)
+}
+
+func (m *inoutManager) Erase() {
+	m.statesMtx.Lock()
+	defer m.statesMtx.Unlock()
+
+	m.states = make([]InOutState, 0)
+}
+
+func (m *inoutManager) Add(state InOutState) {
+	m.statesMtx.Lock()
+	defer m.statesMtx.Unlock()
+
+	if m.states == nil {
+		m.states = make([]InOutState, 0)
+	}
+
+	for i, item := range m.states {
+		if item.NodeId == state.NodeId && item.Name == state.Name {
+			m.states[i] = state
+			return
+		}
+	}
+	m.states = append(m.states, state)
+}
+
+func (m *inoutManager) Set(nodeId string, stype string, name string, value any, valueType string, persistent bool) {
+	m.Add(InOutState{NodeId: nodeId, Type: stype, Name: name, Value: value, ValueType: valueType, Persistent: persistent})
+}
+
+func (m *inoutManager) Get(nodeId string, name string) (*InOutState, bool) {
+	m.statesMtx.RLock()
+	defer m.statesMtx.RUnlock()
+
+	if m.states == nil {
+		return nil, false
+	}
+
+	for _, item := range m.states {
+		if item.NodeId == nodeId && item.Name == name {
+			return &item, true
+		}
+	}
+	return nil, false
+}
+
+func (m *inoutManager) Take(nodeId string, name string) (*InOutState, bool) {
+	m.statesMtx.Lock()
+	defer m.statesMtx.Unlock()
+
+	if m.states == nil {
+		return nil, false
+	}
+
+	for i, item := range m.states {
+		if item.NodeId == nodeId && item.Name == name {
+			m.states = slices.Delete(m.states, i, i+1)
+			return &item, true
+		}
+	}
+	return nil, false
+}
+
+func (m *inoutManager) Remove(nodeId string, name string) bool {
+	_, ok := m.Take(nodeId, name)
+	return ok
+}
+
+func newInOutManager() InOutManager {
+	return &inoutManager{
+		states: make([]InOutState, 0),
 	}
 }
 
 const (
-	stateIOTypeCertificate = "certificate"
-)
-
-const (
-	stateIOKeyCertificate = "certificate"
+	stateIOTypeRef = "ref"
+	stateIOType    = "recordRef"
 )
 
 const (

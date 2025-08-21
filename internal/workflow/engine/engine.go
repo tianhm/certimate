@@ -7,7 +7,11 @@ import (
 	"log/slog"
 	"sync"
 
+	"github.com/samber/lo"
+
 	"github.com/certimate-go/certimate/internal/app"
+	"github.com/certimate-go/certimate/internal/domain"
+	"github.com/certimate-go/certimate/internal/repository"
 	"github.com/certimate-go/certimate/pkg/logging"
 )
 
@@ -26,7 +30,7 @@ type WorkflowEngine interface {
 type workflowEngine struct {
 	logger *slog.Logger
 
-	executorRegistry map[NodeType]NodeExecutor
+	executors map[NodeType]NodeExecutor
 
 	hooksMtx           sync.RWMutex
 	onStartHooks       [](func(ctx context.Context) error)
@@ -36,6 +40,8 @@ type workflowEngine struct {
 	onNodeEndHooks     [](func(ctx context.Context, node *Node, res *NodeExecutionResult) error)
 	onNodeErrorHooks   [](func(ctx context.Context, node *Node, err error) error)
 	onNodeLoggingHooks [](func(ctx context.Context, node *Node, log logging.Record) error)
+
+	wfoutputRepo workflowOutputRepository
 }
 
 var _ WorkflowEngine = (*workflowEngine)(nil)
@@ -52,8 +58,8 @@ func (we *workflowEngine) Invoke(ctx context.Context, workflowId string, runId s
 	wfCtx := (&WorkflowContext{}).
 		SetExecutingWorkflow(workflowId, runId, runGraph).
 		SetEngine(we).
-		SetVariablesManager(newStateManager()).
-		SetInputsManager(newStateManager()).
+		SetVariablesManager(newVariableManager()).
+		SetInputsManager(newInOutManager()).
 		SetContext(ctx)
 	if err := we.executeBlocks(wfCtx, runGraph.Nodes); err != nil {
 		if !errors.Is(err, errInterrupted) {
@@ -110,7 +116,7 @@ func (we *workflowEngine) OnNodeLogging(callback func(ctx context.Context, node 
 }
 
 func (we *workflowEngine) executeNode(wfCtx *WorkflowContext, node *Node) error {
-	executor, ok := we.executorRegistry[node.Type]
+	executor, ok := we.executors[node.Type]
 	if !ok {
 		err := fmt.Errorf("workflow engine: no executor registered for node type: '%s'", node.Type)
 		return err
@@ -125,16 +131,9 @@ func (we *workflowEngine) executeNode(wfCtx *WorkflowContext, node *Node) error 
 		executor.SetLogger(logger)
 	}
 
-	execCtx := (&NodeExecutionContext{}).
-		SetExecutingWorkflow(wfCtx.WorkflowId, wfCtx.RunId, wfCtx.RunGraph).
-		SetExecutingNode(node).
-		SetEngine(we).
-		SetVariablesManager(wfCtx.variables).
-		SetInputsManager(wfCtx.inputs).
-		SetContext(wfCtx.ctx)
-
 	we.fireOnNodeStartHooks(wfCtx.ctx, node)
 
+	execCtx := newNodeExecutionContext(wfCtx, node)
 	execRes, err := executor.Execute(execCtx)
 	if err != nil {
 		we.fireOnNodeErrorHooks(wfCtx.ctx, node, err)
@@ -153,6 +152,30 @@ func (we *workflowEngine) executeNode(wfCtx *WorkflowContext, node *Node) error 
 		if execRes.Outputs != nil {
 			for _, output := range execRes.Outputs {
 				wfCtx.inputs.Add(output)
+			}
+		}
+
+		execOutputs := lo.Filter(execRes.Outputs, func(state InOutState, _ int) bool { return state.Persistent })
+		if execRes.outputForced || len(execOutputs) > 0 {
+			output := &domain.WorkflowOutput{
+				WorkflowId: execCtx.WorkflowId,
+				RunId:      execCtx.RunId,
+				NodeId:     execCtx.Node.Id,
+				NodeConfig: execCtx.Node.Data.Config,
+				Succeeded:  true, // 目前恒为 true
+			}
+			if len(execOutputs) > 0 {
+				output.Outputs = lo.Map(execOutputs, func(state InOutState, _ int) *domain.WorkflowOutputEntry {
+					return &domain.WorkflowOutputEntry{
+						Name:      state.Name,
+						Type:      state.Type,
+						Value:     state.ValueString(),
+						ValueType: state.ValueType,
+					}
+				})
+			}
+			if _, err := we.wfoutputRepo.Save(execCtx.ctx, output); err != nil {
+				we.logger.Warn("failed to save node output")
 			}
 		}
 
@@ -253,20 +276,21 @@ func (we *workflowEngine) fireOnNodeLoggingHooks(ctx context.Context, node *Node
 
 func NewWorkflowEngine() WorkflowEngine {
 	engine := &workflowEngine{
-		executorRegistry: make(map[NodeType]NodeExecutor),
-		logger:           app.GetLogger(),
+		logger:       app.GetLogger(),
+		executors:    make(map[NodeType]NodeExecutor),
+		wfoutputRepo: repository.NewWorkflowOutputRepository(),
 	}
-	engine.executorRegistry[NodeTypeStart] = newStartNodeExecutor()
-	engine.executorRegistry[NodeTypeEnd] = newEndNodeExecutor()
-	engine.executorRegistry[NodeTypeCondition] = newConditionNodeExecutor()
-	engine.executorRegistry[NodeTypeBranchBlock] = newBranchBlockNodeExecutor()
-	engine.executorRegistry[NodeTypeTryCatch] = newTryCatchNodeExecutor()
-	engine.executorRegistry[NodeTypeTryBlock] = newTryBlockNodeExecutor()
-	engine.executorRegistry[NodeTypeCatchBlock] = newCatchBlockNodeExecutor()
-	engine.executorRegistry[NodeTypeBizApply] = newBizApplyNodeExecutor()
-	engine.executorRegistry[NodeTypeBizUpload] = newBizUploadNodeExecutor()
-	engine.executorRegistry[NodeTypeBizMonitor] = newBizMonitorNodeExecutor()
-	engine.executorRegistry[NodeTypeBizDeploy] = newBizDeployNodeExecutor()
-	engine.executorRegistry[NodeTypeBizNotify] = newBizNotifyNodeExecutor()
+	engine.executors[NodeTypeStart] = newStartNodeExecutor()
+	engine.executors[NodeTypeEnd] = newEndNodeExecutor()
+	engine.executors[NodeTypeCondition] = newConditionNodeExecutor()
+	engine.executors[NodeTypeBranchBlock] = newBranchBlockNodeExecutor()
+	engine.executors[NodeTypeTryCatch] = newTryCatchNodeExecutor()
+	engine.executors[NodeTypeTryBlock] = newTryBlockNodeExecutor()
+	engine.executors[NodeTypeCatchBlock] = newCatchBlockNodeExecutor()
+	engine.executors[NodeTypeBizApply] = newBizApplyNodeExecutor()
+	engine.executors[NodeTypeBizUpload] = newBizUploadNodeExecutor()
+	engine.executors[NodeTypeBizMonitor] = newBizMonitorNodeExecutor()
+	engine.executors[NodeTypeBizDeploy] = newBizDeployNodeExecutor()
+	engine.executors[NodeTypeBizNotify] = newBizNotifyNodeExecutor()
 	return engine
 }

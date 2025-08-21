@@ -15,7 +15,7 @@ type bizNotifyNodeExecutor struct {
 }
 
 func (ne *bizNotifyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExecutionResult, error) {
-	execRes := &NodeExecutionResult{}
+	execRes := newNodeExecutionResult(execCtx.Node)
 
 	nodeCfg := execCtx.Node.Data.Config.AsBizNotify()
 	ne.logger.Info("ready to send notification ...", slog.Any("config", nodeCfg))

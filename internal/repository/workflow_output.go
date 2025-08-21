@@ -51,57 +51,6 @@ func (r *WorkflowOutputRepository) Save(ctx context.Context, workflowOutput *dom
 	return workflowOutput, nil
 }
 
-func (r *WorkflowOutputRepository) SaveWithCertificate(ctx context.Context, workflowOutput *domain.WorkflowOutput, certificate *domain.Certificate) (*domain.WorkflowOutput, error) {
-	record, err := r.saveRecord(workflowOutput)
-	if err != nil {
-		return workflowOutput, err
-	} else {
-		workflowOutput.Id = record.Id
-		workflowOutput.CreatedAt = record.GetDateTime("created").Time()
-		workflowOutput.UpdatedAt = record.GetDateTime("updated").Time()
-	}
-
-	if certificate == nil {
-		panic("certificate is nil")
-	} else {
-		if certificate.WorkflowId != "" && certificate.WorkflowId != workflowOutput.WorkflowId {
-			return workflowOutput, fmt.Errorf("certificate #%s is not belong to workflow #%s", certificate.Id, workflowOutput.WorkflowId)
-		}
-		if certificate.WorkflowRunId != "" && certificate.WorkflowRunId != workflowOutput.RunId {
-			return workflowOutput, fmt.Errorf("certificate #%s is not belong to workflow run #%s", certificate.Id, workflowOutput.RunId)
-		}
-		if certificate.WorkflowNodeId != "" && certificate.WorkflowNodeId != workflowOutput.NodeId {
-			return workflowOutput, fmt.Errorf("certificate #%s is not belong to workflow node #%s", certificate.Id, workflowOutput.NodeId)
-		}
-		if certificate.WorkflowOutputId != "" && certificate.WorkflowOutputId != workflowOutput.Id {
-			return workflowOutput, fmt.Errorf("certificate #%s is not belong to workflow output #%s", certificate.Id, workflowOutput.Id)
-		}
-
-		certificate.WorkflowId = workflowOutput.WorkflowId
-		certificate.WorkflowRunId = workflowOutput.RunId
-		certificate.WorkflowNodeId = workflowOutput.NodeId
-		certificate.WorkflowOutputId = workflowOutput.Id
-		certificate, err := NewCertificateRepository().Save(ctx, certificate)
-		if err != nil {
-			return workflowOutput, err
-		}
-
-		// 写入证书 ID 到工作流输出结果中
-		for i, item := range workflowOutput.Outputs {
-			if item.Type == "certificate" {
-				workflowOutput.Outputs[i].Value = certificate.Id
-				break
-			}
-		}
-		record.Set("outputs", workflowOutput.Outputs)
-		if err := app.GetApp().Save(record); err != nil {
-			return workflowOutput, err
-		}
-	}
-
-	return workflowOutput, err
-}
-
 func (r *WorkflowOutputRepository) castRecordToModel(record *core.Record) (*domain.WorkflowOutput, error) {
 	if record == nil {
 		return nil, fmt.Errorf("the record is nil")

@@ -9,7 +9,7 @@ type startNodeExecutor struct {
 }
 
 func (e *startNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExecutionResult, error) {
-	execRes := &NodeExecutionResult{}
+	execRes := newNodeExecutionResult(execCtx.Node)
 
 	return execRes, nil
 }

@@ -9,7 +9,7 @@ type endNodeExecutor struct {
 }
 
 func (e *endNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExecutionResult, error) {
-	execRes := &NodeExecutionResult{}
+	execRes := newNodeExecutionResult(execCtx.Node)
 	execRes.Interrupted = true
 
 	return execRes, nil

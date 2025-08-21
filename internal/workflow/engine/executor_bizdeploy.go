@@ -4,12 +4,17 @@ import (
 	"fmt"
 	"log/slog"
 	"maps"
+	"strings"
 
 	"github.com/certimate-go/certimate/internal/deployer"
 	"github.com/certimate-go/certimate/internal/domain"
 	"github.com/certimate-go/certimate/internal/repository"
 )
 
+/**
+ * Result Variables:
+ *   - node.skipped: boolean
+ */
 type bizDeployNodeExecutor struct {
 	nodeExecutor
 
@@ -18,7 +23,7 @@ type bizDeployNodeExecutor struct {
 }
 
 func (ne *bizDeployNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExecutionResult, error) {
-	execRes := &NodeExecutionResult{}
+	execRes := newNodeExecutionResult(execCtx.Node)
 
 	nodeCfg := execCtx.Node.Data.Config.AsBizDeploy()
 	ne.logger.Info("ready to deploy certificate ...", slog.Any("config", nodeCfg))
@@ -30,19 +35,31 @@ func (ne *bizDeployNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 	}
 
 	// 获取前序节点输出证书
-	// TODO: 利用输入而非查库
-	certificate, err := ne.certificateRepo.GetByWorkflowIdAndNodeId(execCtx.ctx, execCtx.WorkflowId, nodeCfg.CertificateOutputNodeId)
-	if err != nil {
-		ne.logger.Warn("invalid certificate output")
-		return execRes, err
+	var inputCertificate *domain.Certificate
+	if inputState, ok := execCtx.inputs.Get(nodeCfg.CertificateOutputNodeId, "certificate"); ok {
+		if inputStateValue, ok := inputState.Value.(string); ok {
+			s := strings.Split(inputStateValue, "#")
+			if len(s) == 2 {
+				certificate, err := ne.certificateRepo.GetById(execCtx.ctx, s[1])
+				if err != nil {
+					ne.logger.Warn("failed to get input certificate")
+					return execRes, err
+				}
+
+				inputCertificate = certificate
+			}
+		}
+	}
+	if inputCertificate == nil {
+		return execRes, fmt.Errorf("invalid input certificate")
 	}
 
 	// 检测是否可以跳过本次执行
-	if lastOutput != nil && certificate.CreatedAt.Before(lastOutput.UpdatedAt) {
+	if lastOutput != nil && inputCertificate.CreatedAt.Before(lastOutput.UpdatedAt) {
 		if skippable, reason := ne.checkCanSkip(execCtx, lastOutput); skippable {
 			ne.logger.Info(fmt.Sprintf("skip this deployment, because %s", reason))
 
-			execRes.AddVariable(execCtx.Node.Id, stateVarKeyNodeSkipped, true, "boolean")
+			execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyNodeSkipped, true, "boolean")
 			return execRes, nil
 		} else if reason != "" {
 			ne.logger.Info(fmt.Sprintf("re-deploy, because %s", reason))
@@ -54,8 +71,8 @@ func (ne *bizDeployNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 	deployer, err := deployer.NewWithWorkflowNode(deployer.DeployerWithWorkflowNodeConfig{
 		Node:           execCtx.Node,
 		Logger:         ne.logger,
-		CertificatePEM: certificate.Certificate,
-		PrivateKeyPEM:  certificate.PrivateKey,
+		CertificatePEM: inputCertificate.Certificate,
+		PrivateKeyPEM:  inputCertificate.PrivateKey,
 	})
 	if err != nil {
 		ne.logger.Warn("failed to create deployer provider")
@@ -68,21 +85,9 @@ func (ne *bizDeployNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 		return execRes, err
 	}
 
-	// 保存执行结果
-	output := &domain.WorkflowOutput{
-		WorkflowId: execCtx.WorkflowId,
-		RunId:      execCtx.RunId,
-		NodeId:     execCtx.Node.Id,
-		NodeConfig: execCtx.Node.Data.Config,
-		Succeeded:  true,
-	}
-	if _, err := ne.wfoutputRepo.Save(execCtx.ctx, output); err != nil {
-		ne.logger.Warn("failed to save node output")
-		return execRes, err
-	}
-
-	// 记录中间结果
-	execRes.AddVariable(execCtx.Node.Id, stateVarKeyNodeSkipped, false, "boolean")
+	// 节点输出
+	execRes.outputForced = true
+	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyNodeSkipped, false, "boolean")
 
 	ne.logger.Info("deployment completed")
 	return execRes, nil

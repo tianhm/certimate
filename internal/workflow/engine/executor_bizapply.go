@@ -13,6 +13,15 @@ import (
 	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
 )
 
+/**
+ * Result Variables:
+ *   - node.skipped: boolean
+ *   - certificate.validity: boolean
+ *   - certificate.daysLeft: number
+ *
+ * Result Outputs:
+ *   - ref: certificate: string
+ */
 type bizApplyNodeExecutor struct {
 	nodeExecutor
 
@@ -21,7 +30,7 @@ type bizApplyNodeExecutor struct {
 }
 
 func (ne *bizApplyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExecutionResult, error) {
-	execRes := &NodeExecutionResult{}
+	execRes := newNodeExecutionResult(execCtx.Node)
 
 	nodeCfg := execCtx.Node.Data.Config.AsBizApply()
 	ne.logger.Info("ready to request certificate ...", slog.Any("config", nodeCfg))
@@ -31,15 +40,16 @@ func (ne *bizApplyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 	if err != nil {
 		return execRes, err
 	} else if lastCertificate != nil {
-		execRes.AddVariable(execCtx.Node.Id, stateVarKeyCertificateValidity, time.Now().After(lastCertificate.ValidityNotAfter), "boolean")
-		execRes.AddVariable(execCtx.Node.Id, stateVarKeyCertificateDaysLeft, int32(time.Until(lastCertificate.ValidityNotAfter).Hours()/24), "number")
+		execRes.AddOutput(stateIOTypeRef, "certificate", fmt.Sprintf("%s#%s", domain.CollectionNameCertificate, lastCertificate.Id), "string")
+		execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateValidity, time.Now().After(lastCertificate.ValidityNotAfter), "boolean")
+		execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateDaysLeft, int32(time.Until(lastCertificate.ValidityNotAfter).Hours()/24), "number")
 	}
 
 	// 检测是否可以跳过本次执行
 	if skippable, reason := ne.checkCanSkip(execCtx, lastOutput, lastCertificate); skippable {
 		ne.logger.Info(fmt.Sprintf("skip this application, because %s", reason))
 
-		execRes.AddVariable(execCtx.Node.Id, stateVarKeyNodeSkipped, true, "boolean")
+		execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyNodeSkipped, true, "boolean")
 		return execRes, nil
 	} else if reason != "" {
 		ne.logger.Info(fmt.Sprintf("re-apply, because %s", reason))
@@ -66,13 +76,14 @@ func (ne *bizApplyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 		return execRes, err
 	}
 
-	// 解析证书并生成实体
+	// 解析证书
 	certX509, err := xcert.ParseCertificateFromPEM(applyResult.FullChainCertificate)
 	if err != nil {
 		ne.logger.Warn("failed to parse certificate, may be the CA responded error")
 		return execRes, err
 	}
 
+	// 保存证书实体
 	certificate := &domain.Certificate{
 		Source:            domain.CertificateSourceTypeRequest,
 		Certificate:       applyResult.FullChainCertificate,
@@ -81,29 +92,16 @@ func (ne *bizApplyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 		ACMEAccountUrl:    applyResult.ACMEAccountUrl,
 		ACMECertUrl:       applyResult.ACMECertUrl,
 		ACMECertStableUrl: applyResult.ACMECertStableUrl,
+		WorkflowId:        execCtx.WorkflowId,
+		WorkflowRunId:     execCtx.RunId,
+		WorkflowNodeId:    execCtx.Node.Id,
 	}
 	certificate.PopulateFromX509(certX509)
-
-	// 保存执行结果
-	// TODO: 解耦
-	output := &domain.WorkflowOutput{
-		WorkflowId: execCtx.WorkflowId,
-		RunId:      execCtx.RunId,
-		NodeId:     execCtx.Node.Id,
-		NodeConfig: execCtx.Node.Data.Config,
-		Succeeded:  true,
-		Outputs: []*domain.WorkflowOutputEntry{
-			{
-				Name:      "certificate",
-				Type:      "certificate",
-				Value:     certificate.Id,
-				ValueType: "string",
-			},
-		},
-	}
-	if _, err := ne.wfoutputRepo.SaveWithCertificate(execCtx.ctx, output, certificate); err != nil {
-		ne.logger.Warn("failed to save node output")
+	if certificate, err := ne.certificateRepo.Save(execCtx.ctx, certificate); err != nil {
+		ne.logger.Warn("failed to save certificate")
 		return execRes, err
+	} else {
+		ne.logger.Info("certificate saved", slog.String("recordId", certificate.Id))
 	}
 
 	// 保存 ARI 记录
@@ -112,10 +110,11 @@ func (ne *bizApplyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 		ne.certificateRepo.Save(execCtx.ctx, lastCertificate)
 	}
 
-	// 记录中间结果
-	execRes.AddVariable(execCtx.Node.Id, stateVarKeyNodeSkipped, false, "boolean")
-	execRes.AddVariable(execCtx.Node.Id, stateVarKeyCertificateValidity, true, "boolean")
-	execRes.AddVariable(execCtx.Node.Id, stateVarKeyCertificateDaysLeft, int32(time.Until(certificate.ValidityNotAfter).Hours()/24), "number")
+	// 节点输出
+	execRes.AddOutputWithPersistent(stateIOTypeRef, "certificate", fmt.Sprintf("%s#%s", domain.CollectionNameCertificate, certificate.Id), "string")
+	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyNodeSkipped, false, "boolean")
+	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateValidity, true, "boolean")
+	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateDaysLeft, int32(time.Until(certificate.ValidityNotAfter).Hours()/24), "number")
 
 	ne.logger.Info("application completed")
 	return execRes, nil

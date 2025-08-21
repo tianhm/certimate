@@ -2,6 +2,7 @@ package migrations
 
 import (
 	"encoding/json"
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -129,8 +130,7 @@ func init() {
 		//   - rename field `expireAt` to `validityNotAfter`
 		//   - rename field `workflowId` to `workflowRef`
 		//   - rename field `workflowRunId` to `workflowRunRef`
-		//   - rename field `workflowOutputId` to `workflowOutputRef`
-		//   - rename field `workflowOutputId` to `workflowOutputRef`
+		//   - rename field `workflowOutputId`(aka `workflowOutputRef`)
 		{
 			collection, err := app.FindCollectionByNameOrId("4szxr9x43tpj6np")
 			if err != nil {
@@ -213,21 +213,8 @@ func init() {
 					return err
 				}
 
-				if err := collection.Fields.AddMarshaledJSONAt(17, []byte(`{
-					"cascadeDelete": false,
-					"collectionId": "bqnxb95f2cooowp",
-					"hidden": false,
-					"id": "2ohlr0yd",
-					"maxSelect": 1,
-					"minSelect": 0,
-					"name": "workflowOutputRef",
-					"presentable": false,
-					"required": false,
-					"system": false,
-					"type": "relation"
-				}`)); err != nil {
-					return err
-				}
+				collection.Fields.RemoveByName("workflowOutputId")
+				collection.Fields.RemoveByName("workflowOutputRef")
 
 				if err := json.Unmarshal([]byte(`{
 					"indexes": [
@@ -1092,6 +1079,12 @@ func init() {
 										delete(output, "label")
 										delete(output, "required")
 										delete(output, "valueSelector")
+
+										if output["type"] == "certificate" {
+											output["type"] = "ref"
+											output["value"] = fmt.Sprintf("certificate#%s", output["value"])
+										}
+
 										outputs[i] = output
 									} else {
 										continue

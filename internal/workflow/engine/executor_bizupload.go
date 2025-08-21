@@ -10,6 +10,15 @@ import (
 	"github.com/certimate-go/certimate/internal/repository"
 )
 
+/**
+ * Result Variables:
+ *   - node.skipped: boolean
+ *   - certificate.validity: boolean
+ *   - certificate.daysLeft: number
+ *
+ * Result Outputs:
+ *   - ref: certificate: string
+ */
 type bizUploadNodeExecutor struct {
 	nodeExecutor
 
@@ -18,7 +27,7 @@ type bizUploadNodeExecutor struct {
 }
 
 func (ne *bizUploadNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExecutionResult, error) {
-	execRes := &NodeExecutionResult{}
+	execRes := newNodeExecutionResult(execCtx.Node)
 
 	nodeCfg := execCtx.Node.Data.Config.AsBizUpload()
 	ne.logger.Info("ready to upload certiticate ...", slog.Any("config", nodeCfg))
@@ -28,15 +37,16 @@ func (ne *bizUploadNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 	if err != nil {
 		return execRes, err
 	} else if lastCertificate != nil {
-		execRes.AddVariable(execCtx.Node.Id, stateVarKeyCertificateValidity, time.Now().After(lastCertificate.ValidityNotAfter), "boolean")
-		execRes.AddVariable(execCtx.Node.Id, stateVarKeyCertificateDaysLeft, int32(time.Until(lastCertificate.ValidityNotAfter).Hours()/24), "number")
+		execRes.AddOutput(stateIOTypeRef, "certificate", fmt.Sprintf("%s#%s", domain.CollectionNameCertificate, lastCertificate.Id), "string")
+		execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateValidity, time.Now().After(lastCertificate.ValidityNotAfter), "boolean")
+		execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateDaysLeft, int32(time.Until(lastCertificate.ValidityNotAfter).Hours()/24), "number")
 	}
 
 	// 检测是否可以跳过本次执行
 	if skippable, reason := ne.checkCanSkip(execCtx, lastOutput, lastCertificate); skippable {
 		ne.logger.Info(fmt.Sprintf("skip this uploading, because %s", reason))
 
-		execRes.AddVariable(execCtx.Node.Id, stateVarKeyNodeSkipped, true, "boolean")
+		execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyNodeSkipped, true, "boolean")
 		return execRes, nil
 	} else if reason != "" {
 		ne.logger.Info(fmt.Sprintf("re-upload, because %s", reason))
@@ -44,38 +54,26 @@ func (ne *bizUploadNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 		ne.logger.Info("no found last uploaded certificate, begin to upload")
 	}
 
-	// 生成证书实体
+	// 保存证书实体
 	certificate := &domain.Certificate{
-		Source: domain.CertificateSourceTypeUpload,
+		Source:         domain.CertificateSourceTypeUpload,
+		WorkflowId:     execCtx.WorkflowId,
+		WorkflowRunId:  execCtx.RunId,
+		WorkflowNodeId: execCtx.Node.Id,
 	}
 	certificate.PopulateFromPEM(nodeCfg.Certificate, nodeCfg.PrivateKey)
-
-	// 保存执行结果
-	// TODO: 解耦
-	output := &domain.WorkflowOutput{
-		WorkflowId: execCtx.WorkflowId,
-		RunId:      execCtx.RunId,
-		NodeId:     execCtx.Node.Id,
-		NodeConfig: execCtx.Node.Data.Config,
-		Succeeded:  true,
-		Outputs: []*domain.WorkflowOutputEntry{
-			{
-				Name:      "certificate",
-				Type:      "certificate",
-				Value:     certificate.Id,
-				ValueType: "string",
-			},
-		},
-	}
-	if _, err := ne.wfoutputRepo.SaveWithCertificate(execCtx.ctx, output, certificate); err != nil {
-		ne.logger.Warn("failed to save node output")
+	if certificate, err := ne.certificateRepo.Save(execCtx.ctx, certificate); err != nil {
+		ne.logger.Warn("failed to save certificate")
 		return execRes, err
+	} else {
+		ne.logger.Info("certificate saved", slog.String("recordId", certificate.Id))
 	}
 
-	// 记录中间结果
-	execRes.AddVariable(execCtx.Node.Id, stateVarKeyNodeSkipped, false, "boolean")
-	execRes.AddVariable(execCtx.Node.Id, stateVarKeyCertificateValidity, true, "boolean")
-	execRes.AddVariable(execCtx.Node.Id, stateVarKeyCertificateDaysLeft, int32(time.Until(certificate.ValidityNotAfter).Hours()/24), "number")
+	// 节点输出
+	execRes.AddOutputWithPersistent(stateIOTypeRef, "certificate", fmt.Sprintf("%s#%s", domain.CollectionNameCertificate, certificate.Id), "string")
+	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyNodeSkipped, false, "boolean")
+	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateValidity, true, "boolean")
+	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateDaysLeft, int32(time.Until(certificate.ValidityNotAfter).Hours()/24), "number")
 
 	ne.logger.Info("uploading completed")
 	return execRes, nil

@@ -20,7 +20,7 @@ func (ne *tryCatchNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 		engine = we
 	}
 
-	execRes := &NodeExecutionResult{}
+	execRes := newNodeExecutionResult(execCtx.Node)
 
 	tryErrs := make([]error, 0)
 	tryBlocks := lo.Filter(execCtx.Node.Blocks, func(n *Node, _ int) bool { return n.Type == NodeTypeTryBlock })
@@ -87,7 +87,7 @@ func (ne *tryBlockNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 		engine = we
 	}
 
-	execRes := &NodeExecutionResult{}
+	execRes := newNodeExecutionResult(execCtx.Node)
 
 	if err := engine.executeBlocks(execCtx.Clone(), execCtx.Node.Blocks); err != nil {
 		return execRes, err
@@ -107,7 +107,7 @@ type catchBlockNodeExecutor struct {
 }
 
 func (ne *catchBlockNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExecutionResult, error) {
-	execRes := &NodeExecutionResult{}
+	execRes := newNodeExecutionResult(execCtx.Node)
 
 	var engine *workflowEngine
 	if we, ok := execCtx.engine.(*workflowEngine); !ok {

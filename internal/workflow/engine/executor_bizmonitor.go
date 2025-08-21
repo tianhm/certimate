@@ -25,7 +25,7 @@ type bizMonitorNodeExecutor struct {
 func (ne *bizMonitorNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExecutionResult, error) {
 	execRes := &NodeExecutionResult{}
 
-	nodeCfg := execCtx.Node.GetConfigForBizMonitor()
+	nodeCfg := execCtx.Node.Data.Config.AsBizMonitor()
 	ne.logger.Info("ready to monitor certificate ...", slog.Any("config", nodeCfg))
 
 	targetAddr := net.JoinHostPort(nodeCfg.Host, strconv.Itoa(int(nodeCfg.Port)))

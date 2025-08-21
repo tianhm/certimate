@@ -54,7 +54,7 @@ func NewWithWorkflowNode(config ApplicantWithWorkflowNodeConfig) (Applicant, err
 		return nil, fmt.Errorf("the node type is '%s', expected '%s'", string(config.Node.Type), string(domain.WorkflowNodeTypeBizApply))
 	}
 
-	nodeCfg := config.Node.GetConfigForBizApply()
+	nodeCfg := config.Node.Data.Config.AsBizApply()
 	options := &applicantProviderOptions{
 		Domains:                 lo.Filter(strings.Split(nodeCfg.Domains, ";"), func(s string, _ int) bool { return s != "" }),
 		ContactEmail:            nodeCfg.ContactEmail,

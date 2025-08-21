@@ -29,7 +29,7 @@ func NewWithWorkflowNode(config DeployerWithWorkflowNodeConfig) (Deployer, error
 		return nil, fmt.Errorf("the node type is '%s', expected '%s'", string(config.Node.Type), string(domain.WorkflowNodeTypeBizDeploy))
 	}
 
-	nodeCfg := config.Node.GetConfigForBizDeploy()
+	nodeCfg := config.Node.Data.Config.AsBizDeploy()
 	options := &deployerProviderOptions{
 		Provider:              domain.DeploymentProviderType(nodeCfg.Provider),
 		ProviderAccessConfig:  make(map[string]any),

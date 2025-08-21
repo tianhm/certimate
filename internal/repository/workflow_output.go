@@ -107,6 +107,11 @@ func (r *WorkflowOutputRepository) castRecordToModel(record *core.Record) (*doma
 		return nil, fmt.Errorf("the record is nil")
 	}
 
+	nodeConfig := make(domain.WorkflowNodeConfig)
+	if err := record.UnmarshalJSONField("nodeConfig", &nodeConfig); err != nil {
+		return nil, fmt.Errorf("field 'nodeConfig' is malformed")
+	}
+
 	outputs := make([]*domain.WorkflowOutputEntry, 0)
 	if err := record.UnmarshalJSONField("outputs", &outputs); err != nil {
 		return nil, fmt.Errorf("field 'outputs' is malformed")
@@ -121,6 +126,7 @@ func (r *WorkflowOutputRepository) castRecordToModel(record *core.Record) (*doma
 		WorkflowId: record.GetString("workflowRef"),
 		RunId:      record.GetString("runRef"),
 		NodeId:     record.GetString("nodeId"),
+		NodeConfig: nodeConfig,
 		Outputs:    outputs,
 		Succeeded:  record.GetBool("succeeded"),
 	}
@@ -145,6 +151,7 @@ func (r *WorkflowOutputRepository) saveRecord(workflowOutput *domain.WorkflowOut
 	record.Set("workflowRef", workflowOutput.WorkflowId)
 	record.Set("runRef", workflowOutput.RunId)
 	record.Set("nodeId", workflowOutput.NodeId)
+	record.Set("nodeConfig", workflowOutput.NodeConfig)
 	record.Set("outputs", workflowOutput.Outputs)
 	record.Set("succeeded", workflowOutput.Succeeded)
 	if err := app.GetApp().Save(record); err != nil {

@@ -556,7 +556,7 @@ func init() {
 		// update collection `workflow_output`
 		//   - rename field `workflowId` to `workflowRef`
 		//   - rename field `runId` to `runRef`
-		//   - delete field `node`
+		//   - rename field `node` to `nodeConfig`
 		{
 			collection, err := app.FindCollectionByNameOrId("bqnxb95f2cooowp")
 			if err != nil {
@@ -604,8 +604,17 @@ func init() {
 					return err
 				}
 
-				if field := collection.Fields.GetByName("node"); field != nil {
-					collection.Fields.RemoveById(field.GetId())
+				if err := collection.Fields.AddMarshaledJSONAt(4, []byte(`{
+					"hidden": false,
+					"id": "json2239752261",
+					"maxSize": 5000000,
+					"name": "nodeConfig",
+					"presentable": false,
+					"required": false,
+					"system": false,
+					"type": "json"
+				}`)); err != nil {
+					return err
 				}
 
 				if err := app.Save(collection); err != nil {
@@ -1049,6 +1058,7 @@ func init() {
 			}
 
 			// update collection `workflow_output`
+			//   - migrate field `nodeConfig`
 			//   - migrate field `outputs`
 			{
 				collection, err := app.FindCollectionByNameOrId("bqnxb95f2cooowp")
@@ -1061,6 +1071,18 @@ func init() {
 					} else {
 						for _, record := range records {
 							changed := false
+
+							nodeConfig := make(map[string]any)
+							if err := record.UnmarshalJSONField("nodeConfig", &nodeConfig); err == nil {
+								if _, ok := nodeConfig["id"]; ok {
+									if _, ok := nodeConfig["type"]; ok {
+										if _, ok := nodeConfig["config"]; ok {
+											record.Set("nodeConfig", nodeConfig["config"])
+											changed = true
+										}
+									}
+								}
+							}
 
 							outputs := make([]map[string]any, 0)
 							if err := record.UnmarshalJSONField("outputs", &outputs); err == nil {
@@ -1077,8 +1099,6 @@ func init() {
 									record.Set("outputs", outputs)
 									changed = true
 								}
-							} else {
-								println(err.Error())
 							}
 
 							if changed {

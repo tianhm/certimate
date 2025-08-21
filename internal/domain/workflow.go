@@ -95,8 +95,89 @@ const (
 )
 
 type WorkflowNodeData struct {
-	Name   string         `json:"name"`
-	Config map[string]any `json:"config"`
+	Name   string             `json:"name"`
+	Config WorkflowNodeConfig `json:"config"`
+}
+
+type WorkflowNodeConfig map[string]any
+
+func (c WorkflowNodeConfig) AsBizApply() WorkflowNodeConfigForBizApply {
+	return WorkflowNodeConfigForBizApply{
+		Domains:               xmaps.GetString(c, "domains"),
+		ContactEmail:          xmaps.GetString(c, "contactEmail"),
+		ChallengeType:         xmaps.GetString(c, "challengeType"),
+		Provider:              xmaps.GetString(c, "provider"),
+		ProviderAccessId:      xmaps.GetString(c, "providerAccessId"),
+		ProviderConfig:        xmaps.GetKVMapAny(c, "providerConfig"),
+		KeyAlgorithm:          xmaps.GetOrDefaultString(c, "keyAlgorithm", string(CertificateKeyAlgorithmTypeRSA2048)),
+		CAProvider:            xmaps.GetString(c, "caProvider"),
+		CAProviderAccessId:    xmaps.GetString(c, "caProviderAccessId"),
+		CAProviderConfig:      xmaps.GetKVMapAny(c, "caProviderConfig"),
+		ACMEProfile:           xmaps.GetString(c, "acmeProfile"),
+		Nameservers:           xmaps.GetString(c, "nameservers"),
+		DnsPropagationWait:    xmaps.GetInt32(c, "dnsPropagationWait"),
+		DnsPropagationTimeout: xmaps.GetInt32(c, "dnsPropagationTimeout"),
+		DnsTTL:                xmaps.GetInt32(c, "dnsTTL"),
+		DisableFollowCNAME:    xmaps.GetBool(c, "disableFollowCNAME"),
+		DisableARI:            xmaps.GetBool(c, "disableARI"),
+		SkipBeforeExpiryDays:  xmaps.GetInt32(c, "skipBeforeExpiryDays"),
+	}
+}
+
+func (c WorkflowNodeConfig) AsBizUpload() WorkflowNodeConfigForBizUpload {
+	return WorkflowNodeConfigForBizUpload{
+		Certificate: xmaps.GetString(c, "certificate"),
+		PrivateKey:  xmaps.GetString(c, "privateKey"),
+		Domains:     xmaps.GetString(c, "domains"),
+	}
+}
+
+func (c WorkflowNodeConfig) AsBizMonitor() WorkflowNodeConfigForBizMonitor {
+	host := xmaps.GetString(c, "host")
+	return WorkflowNodeConfigForBizMonitor{
+		Host:        host,
+		Port:        xmaps.GetOrDefaultInt32(c, "port", 443),
+		Domain:      xmaps.GetOrDefaultString(c, "domain", host),
+		RequestPath: xmaps.GetString(c, "path"),
+	}
+}
+
+func (c WorkflowNodeConfig) AsBizDeploy() WorkflowNodeConfigForBizDeploy {
+	return WorkflowNodeConfigForBizDeploy{
+		CertificateOutputNodeId: xmaps.GetString(c, "certificateOutputNodeId"),
+		Provider:                xmaps.GetString(c, "provider"),
+		ProviderAccessId:        xmaps.GetString(c, "providerAccessId"),
+		ProviderConfig:          xmaps.GetKVMapAny(c, "providerConfig"),
+		SkipOnLastSucceeded:     xmaps.GetBool(c, "skipOnLastSucceeded"),
+	}
+}
+
+func (c WorkflowNodeConfig) AsBizNotify() WorkflowNodeConfigForBizNotify {
+	return WorkflowNodeConfigForBizNotify{
+		Provider:             xmaps.GetString(c, "provider"),
+		ProviderAccessId:     xmaps.GetString(c, "providerAccessId"),
+		ProviderConfig:       xmaps.GetKVMapAny(c, "providerConfig"),
+		Subject:              xmaps.GetString(c, "subject"),
+		Message:              xmaps.GetString(c, "message"),
+		SkipOnAllPrevSkipped: xmaps.GetBool(c, "skipOnAllPrevSkipped"),
+	}
+}
+
+func (c WorkflowNodeConfig) AsBranchBlock() WorkflowNodeConfigForBranchBlock {
+	expression := c["expression"]
+	if expression == nil {
+		return WorkflowNodeConfigForBranchBlock{}
+	}
+
+	exprRaw, _ := json.Marshal(expression)
+	expr, err := expr.UnmarshalExpr([]byte(exprRaw))
+	if err != nil {
+		return WorkflowNodeConfigForBranchBlock{}
+	}
+
+	return WorkflowNodeConfigForBranchBlock{
+		Expression: expr,
+	}
 }
 
 type WorkflowNodeConfigForBizApply struct {
@@ -152,83 +233,4 @@ type WorkflowNodeConfigForBizNotify struct {
 
 type WorkflowNodeConfigForBranchBlock struct {
 	Expression expr.Expr `json:"expression"` // 条件表达式
-}
-
-func (n *WorkflowNode) GetConfigForBizApply() WorkflowNodeConfigForBizApply {
-	return WorkflowNodeConfigForBizApply{
-		Domains:               xmaps.GetString(n.Data.Config, "domains"),
-		ContactEmail:          xmaps.GetString(n.Data.Config, "contactEmail"),
-		ChallengeType:         xmaps.GetString(n.Data.Config, "challengeType"),
-		Provider:              xmaps.GetString(n.Data.Config, "provider"),
-		ProviderAccessId:      xmaps.GetString(n.Data.Config, "providerAccessId"),
-		ProviderConfig:        xmaps.GetKVMapAny(n.Data.Config, "providerConfig"),
-		KeyAlgorithm:          xmaps.GetOrDefaultString(n.Data.Config, "keyAlgorithm", string(CertificateKeyAlgorithmTypeRSA2048)),
-		CAProvider:            xmaps.GetString(n.Data.Config, "caProvider"),
-		CAProviderAccessId:    xmaps.GetString(n.Data.Config, "caProviderAccessId"),
-		CAProviderConfig:      xmaps.GetKVMapAny(n.Data.Config, "caProviderConfig"),
-		ACMEProfile:           xmaps.GetString(n.Data.Config, "acmeProfile"),
-		Nameservers:           xmaps.GetString(n.Data.Config, "nameservers"),
-		DnsPropagationWait:    xmaps.GetInt32(n.Data.Config, "dnsPropagationWait"),
-		DnsPropagationTimeout: xmaps.GetInt32(n.Data.Config, "dnsPropagationTimeout"),
-		DnsTTL:                xmaps.GetInt32(n.Data.Config, "dnsTTL"),
-		DisableFollowCNAME:    xmaps.GetBool(n.Data.Config, "disableFollowCNAME"),
-		DisableARI:            xmaps.GetBool(n.Data.Config, "disableARI"),
-		SkipBeforeExpiryDays:  xmaps.GetInt32(n.Data.Config, "skipBeforeExpiryDays"),
-	}
-}
-
-func (n *WorkflowNode) GetConfigForBizUpload() WorkflowNodeConfigForBizUpload {
-	return WorkflowNodeConfigForBizUpload{
-		Certificate: xmaps.GetString(n.Data.Config, "certificate"),
-		PrivateKey:  xmaps.GetString(n.Data.Config, "privateKey"),
-		Domains:     xmaps.GetString(n.Data.Config, "domains"),
-	}
-}
-
-func (n *WorkflowNode) GetConfigForBizMonitor() WorkflowNodeConfigForBizMonitor {
-	host := xmaps.GetString(n.Data.Config, "host")
-	return WorkflowNodeConfigForBizMonitor{
-		Host:        host,
-		Port:        xmaps.GetOrDefaultInt32(n.Data.Config, "port", 443),
-		Domain:      xmaps.GetOrDefaultString(n.Data.Config, "domain", host),
-		RequestPath: xmaps.GetString(n.Data.Config, "path"),
-	}
-}
-
-func (n *WorkflowNode) GetConfigForBizDeploy() WorkflowNodeConfigForBizDeploy {
-	return WorkflowNodeConfigForBizDeploy{
-		CertificateOutputNodeId: xmaps.GetString(n.Data.Config, "certificateOutputNodeId"),
-		Provider:                xmaps.GetString(n.Data.Config, "provider"),
-		ProviderAccessId:        xmaps.GetString(n.Data.Config, "providerAccessId"),
-		ProviderConfig:          xmaps.GetKVMapAny(n.Data.Config, "providerConfig"),
-		SkipOnLastSucceeded:     xmaps.GetBool(n.Data.Config, "skipOnLastSucceeded"),
-	}
-}
-
-func (n *WorkflowNode) GetConfigForBizNotify() WorkflowNodeConfigForBizNotify {
-	return WorkflowNodeConfigForBizNotify{
-		Provider:             xmaps.GetString(n.Data.Config, "provider"),
-		ProviderAccessId:     xmaps.GetString(n.Data.Config, "providerAccessId"),
-		ProviderConfig:       xmaps.GetKVMapAny(n.Data.Config, "providerConfig"),
-		Subject:              xmaps.GetString(n.Data.Config, "subject"),
-		Message:              xmaps.GetString(n.Data.Config, "message"),
-		SkipOnAllPrevSkipped: xmaps.GetBool(n.Data.Config, "skipOnAllPrevSkipped"),
-	}
-}
-
-func (n *WorkflowNode) GetConfigForBranchBlock() WorkflowNodeConfigForBranchBlock {
-	expression := n.Data.Config["expression"]
-	if expression == nil {
-		return WorkflowNodeConfigForBranchBlock{}
-	}
-
-	exprRaw, _ := json.Marshal(expression)
-	expr, err := expr.UnmarshalExpr([]byte(exprRaw))
-	if err != nil {
-		return WorkflowNodeConfigForBranchBlock{}
-	}
-
-	return WorkflowNodeConfigForBranchBlock{
-		Expression: expr,
-	}
 }

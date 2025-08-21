@@ -29,7 +29,7 @@ func NewWithWorkflowNode(config NotifierWithWorkflowNodeConfig) (Notifier, error
 		return nil, fmt.Errorf("the node type is '%s', expected '%s'", string(config.Node.Type), string(domain.WorkflowNodeTypeBizNotify))
 	}
 
-	nodeCfg := config.Node.GetConfigForBizNotify()
+	nodeCfg := config.Node.Data.Config.AsBizNotify()
 	options := &notifierProviderOptions{
 		Provider:              domain.NotificationProviderType(nodeCfg.Provider),
 		ProviderAccessConfig:  make(map[string]any),

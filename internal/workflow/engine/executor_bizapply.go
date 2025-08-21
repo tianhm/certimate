@@ -16,14 +16,13 @@ type bizApplyNodeExecutor struct {
 	nodeExecutor
 
 	certificateRepo certificateRepository
-	wfrunRepo       workflowRunRepository
 	wfoutputRepo    workflowOutputRepository
 }
 
 func (ne *bizApplyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExecutionResult, error) {
 	execRes := &NodeExecutionResult{}
 
-	nodeCfg := execCtx.Node.GetConfigForBizApply()
+	nodeCfg := execCtx.Node.Data.Config.AsBizApply()
 	ne.logger.Info("ready to request certificate ...", slog.Any("config", nodeCfg))
 
 	// 查询上次执行结果
@@ -87,6 +86,7 @@ func (ne *bizApplyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 		WorkflowId: execCtx.WorkflowId,
 		RunId:      execCtx.RunId,
 		NodeId:     execCtx.Node.Id,
+		NodeConfig: execCtx.Node.Data.Config,
 		Succeeded:  true,
 		Outputs: []*domain.WorkflowOutputEntry{
 			{
@@ -136,20 +136,11 @@ func (ne *bizApplyNodeExecutor) getLastOutputArtifacts(execCtx *NodeExecutionCon
 }
 
 func (ne *bizApplyNodeExecutor) checkCanSkip(execCtx *NodeExecutionContext, lastOutput *domain.WorkflowOutput, lastCertificate *domain.Certificate) (_skip bool, _reason string) {
-	thisNodeCfg := execCtx.Node.GetConfigForBizApply()
+	thisNodeCfg := execCtx.Node.Data.Config.AsBizApply()
 
 	if lastOutput != nil && lastOutput.Succeeded {
-		lastRun, err := ne.wfrunRepo.GetById(execCtx.ctx, lastOutput.RunId)
-		if err != nil {
-			return true, "failed to get last run"
-		}
-		lastNode, lastNodeExists := lastRun.Graph.GetNodeById(lastOutput.NodeId)
-		if !lastNodeExists {
-			return true, "failed to get last run node"
-		}
-
 		// 比较和上次申请时的关键配置（即影响证书签发的）参数是否一致
-		lastNodeCfg := lastNode.GetConfigForBizApply()
+		lastNodeCfg := lastOutput.NodeConfig.AsBizApply()
 
 		if thisNodeCfg.Domains != lastNodeCfg.Domains {
 			return false, "the configuration item 'Domains' changed"
@@ -201,7 +192,6 @@ func newBizApplyNodeExecutor() NodeExecutor {
 	return &bizApplyNodeExecutor{
 		nodeExecutor:    nodeExecutor{logger: slog.Default()},
 		certificateRepo: repository.NewCertificateRepository(),
-		wfrunRepo:       repository.NewWorkflowRunRepository(),
 		wfoutputRepo:    repository.NewWorkflowOutputRepository(),
 	}
 }

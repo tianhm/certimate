@@ -17,7 +17,7 @@ type bizNotifyNodeExecutor struct {
 func (ne *bizNotifyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExecutionResult, error) {
 	execRes := &NodeExecutionResult{}
 
-	nodeCfg := execCtx.Node.GetConfigForBizNotify()
+	nodeCfg := execCtx.Node.Data.Config.AsBizNotify()
 	ne.logger.Info("ready to send notification ...", slog.Any("config", nodeCfg))
 
 	// 检测是否可以跳过本次执行
@@ -49,7 +49,7 @@ func (ne *bizNotifyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 }
 
 func (ne *bizNotifyNodeExecutor) checkCanSkip(execCtx *NodeExecutionContext) (_skip bool) {
-	thisNodeCfg := execCtx.Node.GetConfigForBizNotify()
+	thisNodeCfg := execCtx.Node.Data.Config.AsBizNotify()
 	if !thisNodeCfg.SkipOnAllPrevSkipped {
 		return false
 	}

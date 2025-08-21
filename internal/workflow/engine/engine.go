@@ -24,6 +24,8 @@ type WorkflowEngine interface {
 }
 
 type workflowEngine struct {
+	logger *slog.Logger
+
 	executorRegistry map[NodeType]NodeExecutor
 
 	hooksMtx           sync.RWMutex
@@ -184,7 +186,7 @@ func (we *workflowEngine) fireOnStartHooks(ctx context.Context) {
 	defer we.hooksMtx.RUnlock()
 	for _, cb := range we.onStartHooks {
 		if cbErr := cb(ctx); cbErr != nil {
-			app.GetLogger().Error("workflow engine: error in onStart hook", slog.Any("error", cbErr))
+			we.logger.Error("workflow engine: error in onStart hook", slog.Any("error", cbErr))
 		}
 	}
 }
@@ -194,7 +196,7 @@ func (we *workflowEngine) fireOnEndHooks(ctx context.Context) {
 	defer we.hooksMtx.RUnlock()
 	for _, cb := range we.onEndHooks {
 		if cbErr := cb(ctx); cbErr != nil {
-			app.GetLogger().Error("workflow engine: error in onEnd hook", slog.Any("error", cbErr))
+			we.logger.Error("workflow engine: error in onEnd hook", slog.Any("error", cbErr))
 		}
 	}
 }
@@ -204,7 +206,7 @@ func (we *workflowEngine) fireOnErrorHooks(ctx context.Context, err error) {
 	defer we.hooksMtx.RUnlock()
 	for _, cb := range we.onErrorHooks {
 		if cbErr := cb(ctx, err); cbErr != nil {
-			app.GetLogger().Error("workflow engine: error in onError hook", slog.Any("error", cbErr))
+			we.logger.Error("workflow engine: error in onError hook", slog.Any("error", cbErr))
 		}
 	}
 }
@@ -214,7 +216,7 @@ func (we *workflowEngine) fireOnNodeStartHooks(ctx context.Context, node *Node) 
 	defer we.hooksMtx.RUnlock()
 	for _, cb := range we.onNodeStartHooks {
 		if cbErr := cb(ctx, node); cbErr != nil {
-			app.GetLogger().Error("workflow engine: error in onNodeStart hook", slog.Any("error", cbErr))
+			we.logger.Error("workflow engine: error in onNodeStart hook", slog.Any("error", cbErr))
 		}
 	}
 }
@@ -224,7 +226,7 @@ func (we *workflowEngine) fireOnNodeEndHooks(ctx context.Context, node *Node, re
 	defer we.hooksMtx.RUnlock()
 	for _, cb := range we.onNodeEndHooks {
 		if cbErr := cb(ctx, node, result); cbErr != nil {
-			app.GetLogger().Error("workflow engine: error in onNodeEnd hook", slog.Any("error", cbErr))
+			we.logger.Error("workflow engine: error in onNodeEnd hook", slog.Any("error", cbErr))
 		}
 	}
 }
@@ -234,7 +236,7 @@ func (we *workflowEngine) fireOnNodeErrorHooks(ctx context.Context, node *Node, 
 	defer we.hooksMtx.RUnlock()
 	for _, cb := range we.onNodeErrorHooks {
 		if cbErr := cb(ctx, node, err); cbErr != nil {
-			app.GetLogger().Error("workflow engine: error in onNodeError hook", slog.Any("error", cbErr))
+			we.logger.Error("workflow engine: error in onNodeError hook", slog.Any("error", cbErr))
 		}
 	}
 }
@@ -244,7 +246,7 @@ func (we *workflowEngine) fireOnNodeLoggingHooks(ctx context.Context, node *Node
 	defer we.hooksMtx.RUnlock()
 	for _, cb := range we.onNodeLoggingHooks {
 		if cbErr := cb(ctx, node, log); cbErr != nil {
-			app.GetLogger().Error("workflow engine: error in onNodeLogging hook", slog.Any("error", cbErr))
+			we.logger.Error("workflow engine: error in onNodeLogging hook", slog.Any("error", cbErr))
 		}
 	}
 }
@@ -252,6 +254,7 @@ func (we *workflowEngine) fireOnNodeLoggingHooks(ctx context.Context, node *Node
 func NewWorkflowEngine() WorkflowEngine {
 	engine := &workflowEngine{
 		executorRegistry: make(map[NodeType]NodeExecutor),
+		logger:           app.GetLogger(),
 	}
 	engine.executorRegistry[NodeTypeStart] = newStartNodeExecutor()
 	engine.executorRegistry[NodeTypeEnd] = newEndNodeExecutor()

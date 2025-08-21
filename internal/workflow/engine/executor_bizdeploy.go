@@ -14,14 +14,13 @@ type bizDeployNodeExecutor struct {
 	nodeExecutor
 
 	certificateRepo certificateRepository
-	wfrunRepo       workflowRunRepository
 	wfoutputRepo    workflowOutputRepository
 }
 
 func (ne *bizDeployNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExecutionResult, error) {
 	execRes := &NodeExecutionResult{}
 
-	nodeCfg := execCtx.Node.GetConfigForBizDeploy()
+	nodeCfg := execCtx.Node.Data.Config.AsBizDeploy()
 	ne.logger.Info("ready to deploy certificate ...", slog.Any("config", nodeCfg))
 
 	// 查询上次执行结果
@@ -74,6 +73,7 @@ func (ne *bizDeployNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 		WorkflowId: execCtx.WorkflowId,
 		RunId:      execCtx.RunId,
 		NodeId:     execCtx.Node.Id,
+		NodeConfig: execCtx.Node.Data.Config,
 		Succeeded:  true,
 	}
 	if _, err := ne.wfoutputRepo.Save(execCtx.ctx, output); err != nil {
@@ -98,20 +98,11 @@ func (ne *bizDeployNodeExecutor) getLastOutputArtifacts(execCtx *NodeExecutionCo
 }
 
 func (ne *bizDeployNodeExecutor) checkCanSkip(execCtx *NodeExecutionContext, lastOutput *domain.WorkflowOutput) (_skip bool, _reason string) {
-	thisNodeCfg := execCtx.Node.GetConfigForBizDeploy()
+	thisNodeCfg := execCtx.Node.Data.Config.AsBizDeploy()
 
 	if lastOutput != nil && lastOutput.Succeeded {
-		lastRun, err := ne.wfrunRepo.GetById(execCtx.ctx, lastOutput.RunId)
-		if err != nil {
-			return true, "failed to get last run"
-		}
-		lastNode, lastNodeExists := lastRun.Graph.GetNodeById(lastOutput.NodeId)
-		if !lastNodeExists {
-			return true, "failed to get last run node"
-		}
-
 		// 比较和上次部署时的关键配置（即影响证书部署的）参数是否一致
-		lastNodeCfg := lastNode.GetConfigForBizDeploy()
+		lastNodeCfg := lastOutput.NodeConfig.AsBizDeploy()
 
 		if thisNodeCfg.ProviderAccessId != lastNodeCfg.ProviderAccessId {
 			return false, "the configuration item 'ProviderAccessId' changed"
@@ -132,7 +123,6 @@ func newBizDeployNodeExecutor() NodeExecutor {
 	return &bizDeployNodeExecutor{
 		nodeExecutor:    nodeExecutor{logger: slog.Default()},
 		certificateRepo: repository.NewCertificateRepository(),
-		wfrunRepo:       repository.NewWorkflowRunRepository(),
 		wfoutputRepo:    repository.NewWorkflowOutputRepository(),
 	}
 }

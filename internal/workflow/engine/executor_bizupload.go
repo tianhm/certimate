@@ -14,14 +14,13 @@ type bizUploadNodeExecutor struct {
 	nodeExecutor
 
 	certificateRepo certificateRepository
-	wfrunRepo       workflowRunRepository
 	wfoutputRepo    workflowOutputRepository
 }
 
 func (ne *bizUploadNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExecutionResult, error) {
 	execRes := &NodeExecutionResult{}
 
-	nodeCfg := execCtx.Node.GetConfigForBizUpload()
+	nodeCfg := execCtx.Node.Data.Config.AsBizUpload()
 	ne.logger.Info("ready to upload certiticate ...", slog.Any("config", nodeCfg))
 
 	// 查询上次执行结果
@@ -54,6 +53,7 @@ func (ne *bizUploadNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 		WorkflowId: execCtx.WorkflowId,
 		RunId:      execCtx.RunId,
 		NodeId:     execCtx.Node.Id,
+		NodeConfig: execCtx.Node.Data.Config,
 		Succeeded:  true,
 		Outputs: []*domain.WorkflowOutputEntry{
 			{
@@ -97,20 +97,11 @@ func (ne *bizUploadNodeExecutor) getLastOutputArtifacts(execCtx *NodeExecutionCo
 }
 
 func (ne *bizUploadNodeExecutor) checkCanSkip(execCtx *NodeExecutionContext, lastOutput *domain.WorkflowOutput, lastCertificate *domain.Certificate) (_skip bool, _reason string) {
-	thisNodeCfg := execCtx.Node.GetConfigForBizUpload()
+	thisNodeCfg := execCtx.Node.Data.Config.AsBizUpload()
 
 	if lastOutput != nil && lastOutput.Succeeded {
-		lastRun, err := ne.wfrunRepo.GetById(execCtx.ctx, lastOutput.RunId)
-		if err != nil {
-			return true, "failed to get last run"
-		}
-		lastNode, lastNodeExists := lastRun.Graph.GetNodeById(lastOutput.NodeId)
-		if !lastNodeExists {
-			return true, "failed to get last run node"
-		}
-
 		// 比较和上次上传时的关键配置（即影响证书上传的）参数是否一致
-		lastNodeCfg := lastNode.GetConfigForBizUpload()
+		lastNodeCfg := lastOutput.NodeConfig.AsBizUpload()
 
 		if strings.TrimSpace(thisNodeCfg.Certificate) != strings.TrimSpace(lastNodeCfg.Certificate) {
 			return false, "the configuration item 'Certificate' changed"
@@ -135,7 +126,6 @@ func newBizUploadNodeExecutor() NodeExecutor {
 	return &bizUploadNodeExecutor{
 		nodeExecutor:    nodeExecutor{logger: slog.Default()},
 		certificateRepo: repository.NewCertificateRepository(),
-		wfrunRepo:       repository.NewWorkflowRunRepository(),
 		wfoutputRepo:    repository.NewWorkflowOutputRepository(),
 	}
 }

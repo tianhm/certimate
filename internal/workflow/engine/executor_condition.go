@@ -42,7 +42,7 @@ func (ne *conditionNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 	}
 
 	if len(errs) > 0 {
-		return execRes, errors.Join(errs...)
+		return execRes, fmt.Errorf("error occurred when executing child nodes: %w", errors.Join(errs...))
 	}
 
 	return execRes, nil
@@ -61,7 +61,7 @@ type branchBlockNodeExecutor struct {
 func (ne *branchBlockNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExecutionResult, error) {
 	execRes := &NodeExecutionResult{}
 
-	nodeCfg := execCtx.Node.GetConfigForBranchBlock()
+	nodeCfg := execCtx.Node.Data.Config.AsBranchBlock()
 	if nodeCfg.Expression == nil {
 		ne.logger.Info("enter this branch without any conditions")
 	} else {

@@ -2,6 +2,7 @@
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
 
 	"github.com/samber/lo"
@@ -59,10 +60,10 @@ func (ne *tryCatchNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 		}
 
 		if len(catchErrs) > 0 {
-			return execRes, errors.Join(append(tryErrs, catchErrs...)...)
+			return execRes, fmt.Errorf("error occurred when executing child nodes: %w", errors.Join(append(tryErrs, catchErrs...)...))
 		}
 
-		return execRes, errors.Join(tryErrs...)
+		return execRes, fmt.Errorf("error occurred when executing child nodes: %w", errors.Join(tryErrs...))
 	}
 
 	return execRes, nil

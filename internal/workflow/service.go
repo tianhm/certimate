@@ -14,22 +14,6 @@ import (
 	"github.com/certimate-go/certimate/internal/workflow/dispatcher"
 )
 
-type workflowRepository interface {
-	ListEnabledScheduled(ctx context.Context) ([]*domain.Workflow, error)
-	GetById(ctx context.Context, id string) (*domain.Workflow, error)
-	Save(ctx context.Context, workflow *domain.Workflow) (*domain.Workflow, error)
-}
-
-type workflowRunRepository interface {
-	GetById(ctx context.Context, id string) (*domain.WorkflowRun, error)
-	SaveWithCascading(ctx context.Context, workflowRun *domain.WorkflowRun) (*domain.WorkflowRun, error)
-	DeleteWhere(ctx context.Context, exprs ...dbx.Expression) (int, error)
-}
-
-type settingsRepository interface {
-	GetByName(ctx context.Context, name string) (*domain.Settings, error)
-}
-
 type WorkflowService struct {
 	dispatcher *dispatcher.WorkflowDispatcher
 
@@ -51,29 +35,8 @@ func NewWorkflowService(workflowRepo workflowRepository, workflowRunRepo workflo
 
 func (s *WorkflowService) InitSchedule(ctx context.Context) error {
 	// 每日清理工作流执行历史
-	app.GetScheduler().MustAdd("workflowHistoryRunsCleanup", "0 0 * * *", func() {
-		settings, err := s.settingsRepo.GetByName(ctx, "persistence")
-		if err != nil {
-			app.GetLogger().Error(fmt.Sprintf("failed to get persistence settings: %w", err))
-			return
-		}
-
-		persistenceSettings, _ := settings.UnmarshalContentAsPersistence()
-		if persistenceSettings != nil && persistenceSettings.WorkflowRunsMaxDaysRetention != 0 {
-			ret, err := s.workflowRunRepo.DeleteWhere(
-				context.Background(),
-				dbx.NewExp(fmt.Sprintf("status!='%s'", string(domain.WorkflowRunStatusTypePending))),
-				dbx.NewExp(fmt.Sprintf("status!='%s'", string(domain.WorkflowRunStatusTypeProcessing))),
-				dbx.NewExp(fmt.Sprintf("endedAt<DATETIME('now', '-%d days')", persistenceSettings.WorkflowRunsMaxDaysRetention)),
-			)
-			if err != nil {
-				app.GetLogger().Error(fmt.Sprintf("failed to delete workflow history runs: %w", err))
-			}
-
-			if ret > 0 {
-				app.GetLogger().Info(fmt.Sprintf("cleanup %d workflow history runs", ret))
-			}
-		}
+	app.GetScheduler().MustAdd("cleanupWorkflowHistoryRuns", "0 0 * * *", func() {
+		s.cleanupHistoryRuns(context.Background())
 	})
 
 	// 工作流后台任务
@@ -87,7 +50,7 @@ func (s *WorkflowService) InitSchedule(ctx context.Context) error {
 			var errs []error
 
 			err := app.GetScheduler().Add(fmt.Sprintf("workflow#%s", workflow.Id), workflow.TriggerCron, func() {
-				s.StartRun(ctx, &dtos.WorkflowStartRunReq{
+				s.StartRun(context.Background(), &dtos.WorkflowStartRunReq{
 					WorkflowId: workflow.Id,
 					RunTrigger: domain.WorkflowTriggerTypeScheduled,
 				})
@@ -160,4 +123,32 @@ func (s *WorkflowService) CancelRun(ctx context.Context, req *dtos.WorkflowCance
 
 func (s *WorkflowService) Shutdown(ctx context.Context) {
 	s.dispatcher.Shutdown()
+}
+
+func (s *WorkflowService) cleanupHistoryRuns(ctx context.Context) error {
+	settings, err := s.settingsRepo.GetByName(ctx, "persistence")
+	if err != nil {
+		app.GetLogger().Error(fmt.Sprintf("failed to get persistence settings: %w", err))
+		return err
+	}
+
+	persistenceSettings, _ := settings.UnmarshalContentAsPersistence()
+	if persistenceSettings != nil && persistenceSettings.WorkflowRunsMaxDaysRetention != 0 {
+		ret, err := s.workflowRunRepo.DeleteWhere(
+			context.Background(),
+			dbx.NewExp(fmt.Sprintf("status!='%s'", string(domain.WorkflowRunStatusTypePending))),
+			dbx.NewExp(fmt.Sprintf("status!='%s'", string(domain.WorkflowRunStatusTypeProcessing))),
+			dbx.NewExp(fmt.Sprintf("endedAt<DATETIME('now', '-%d days')", persistenceSettings.WorkflowRunsMaxDaysRetention)),
+		)
+		if err != nil {
+			app.GetLogger().Error(fmt.Sprintf("failed to delete workflow history runs: %w", err))
+			return err
+		}
+
+		if ret > 0 {
+			app.GetLogger().Info(fmt.Sprintf("cleanup %d workflow history runs", ret))
+		}
+	}
+
+	return nil
 }

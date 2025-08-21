@@ -17,16 +17,6 @@ import (
 	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
 )
 
-type certificateRepository interface {
-	ListExpireSoon(ctx context.Context) ([]*domain.Certificate, error)
-	GetById(ctx context.Context, id string) (*domain.Certificate, error)
-	DeleteWhere(ctx context.Context, exprs ...dbx.Expression) (int, error)
-}
-
-type settingsRepository interface {
-	GetByName(ctx context.Context, name string) (*domain.Settings, error)
-}
-
 type CertificateService struct {
 	certificateRepo certificateRepository
 	settingsRepo    settingsRepository
@@ -41,27 +31,8 @@ func NewCertificateService(certificateRepo certificateRepository, settingsRepo s
 
 func (s *CertificateService) InitSchedule(ctx context.Context) error {
 	// 每日清理过期证书
-	app.GetScheduler().MustAdd("certificateExpiredCleanup", "0 0 * * *", func() {
-		settings, err := s.settingsRepo.GetByName(ctx, "persistence")
-		if err != nil {
-			app.GetLogger().Error("failed to get persistence settings", "err", err)
-			return
-		}
-
-		persistenceSettings, _ := settings.UnmarshalContentAsPersistence()
-		if persistenceSettings != nil && persistenceSettings.ExpiredCertificatesMaxDaysRetention != 0 {
-			ret, err := s.certificateRepo.DeleteWhere(
-				context.Background(),
-				dbx.NewExp(fmt.Sprintf("validityNotAfter<DATETIME('now', '-%d days')", persistenceSettings.ExpiredCertificatesMaxDaysRetention)),
-			)
-			if err != nil {
-				app.GetLogger().Error("failed to delete expired certificates", "err", err)
-			}
-
-			if ret > 0 {
-				app.GetLogger().Info(fmt.Sprintf("cleanup %d expired certificates", ret))
-			}
-		}
+	app.GetScheduler().MustAdd("cleanupCertificateExpired", "0 0 * * *", func() {
+		s.cleanupExpiredCertificates(context.Background())
 	})
 
 	return nil
@@ -217,4 +188,30 @@ func (s *CertificateService) ValidatePrivateKey(ctx context.Context, req *dtos.C
 	return &dtos.CertificateValidatePrivateKeyResp{
 		IsValid: true,
 	}, nil
+}
+
+func (s *CertificateService) cleanupExpiredCertificates(ctx context.Context) error {
+	settings, err := s.settingsRepo.GetByName(ctx, "persistence")
+	if err != nil {
+		app.GetLogger().Error("failed to get persistence settings", "err", err)
+		return err
+	}
+
+	persistenceSettings, _ := settings.UnmarshalContentAsPersistence()
+	if persistenceSettings != nil && persistenceSettings.ExpiredCertificatesMaxDaysRetention != 0 {
+		ret, err := s.certificateRepo.DeleteWhere(
+			context.Background(),
+			dbx.NewExp(fmt.Sprintf("validityNotAfter<DATETIME('now', '-%d days')", persistenceSettings.ExpiredCertificatesMaxDaysRetention)),
+		)
+		if err != nil {
+			app.GetLogger().Error("failed to delete expired certificates", "err", err)
+			return err
+		}
+
+		if ret > 0 {
+			app.GetLogger().Info(fmt.Sprintf("cleanup %d expired certificates", ret))
+		}
+	}
+
+	return nil
 }

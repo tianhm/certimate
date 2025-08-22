@@ -1,6 +1,6 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useSize } from "ahooks";
+import { useAsyncEffect, useSize } from "ahooks";
 import { Avatar, Card, Checkbox, Empty, Flex, Input, type InputRef, Tabs, Tooltip, Typography } from "antd";
 
 import Show from "@/components/Show";
@@ -23,9 +23,7 @@ const DeploymentProviderPicker = ({ className, style, autoFocus, gap = "middle",
   const { t } = useTranslation();
 
   const { accesses, fetchAccesses } = useAccessesStore(useZustandShallowSelector(["accesses", "fetchAccesses"]));
-  useEffect(() => {
-    fetchAccesses(false);
-  }, []);
+  useAsyncEffect(() => fetchAccesses(false), []);
 
   const wrapperRef = useRef<HTMLDivElement>(null);
   const wrapperSize = useSize(wrapperRef);

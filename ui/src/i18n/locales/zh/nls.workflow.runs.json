@@ -16,7 +16,7 @@
 
   "workflow_run.props.status": "状态",
   "workflow_run.props.status.pending": "等待运行",
-  "workflow_run.props.status.running": "运行中",
+  "workflow_run.props.status.processing": "运行中",
   "workflow_run.props.status.succeeded": "已成功",
   "workflow_run.props.status.failed": "已失败",
   "workflow_run.props.status.canceled": "已取消",

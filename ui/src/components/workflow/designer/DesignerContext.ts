@@ -2,10 +2,14 @@
 import { type FlowNodeEntity } from "@flowgram.ai/fixed-layout-editor";
 
 export type DesignerContextType = {
+  onDocumentChange: () => void;
+  onNodeChange: (node: FlowNodeEntity) => void;
   onNodeClick: (node: FlowNodeEntity) => void;
 };
 
 export const DesignerContext = createContext<DesignerContextType>({
+  onDocumentChange: () => {},
+  onNodeChange: () => {},
   onNodeClick: () => {},
 });
 

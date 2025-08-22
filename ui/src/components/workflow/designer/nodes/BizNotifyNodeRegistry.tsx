@@ -2,9 +2,9 @@ import { getI18n } from "react-i18next";
 import { FeedbackLevel, Field } from "@flowgram.ai/fixed-layout-editor";
 import { IconSend } from "@tabler/icons-react";
 import { Avatar } from "antd";
-import { nanoid } from "nanoid";
 
 import { notificationProvidersMap } from "@/domain/provider";
+import { newNode } from "@/domain/workflow";
 
 import { BaseNode } from "./_shared";
 import { NodeKindType, type NodeRegistry, NodeType } from "./typings";
@@ -12,7 +12,8 @@ import BizNotifyNodeConfigForm from "../forms/BizNotifyNodeConfigForm";
 
 export const BizNotifyNodeRegistry: NodeRegistry = {
   type: NodeType.BizNotify,
-  kindType: NodeKindType.Business,
+
+  kind: NodeKindType.Business,
 
   meta: {
     helpText: getI18n().t("workflow_node.notify.help"),
@@ -67,14 +68,6 @@ export const BizNotifyNodeRegistry: NodeRegistry = {
   },
 
   onAdd: () => {
-    const { t } = getI18n();
-
-    return {
-      id: nanoid(),
-      type: NodeType.BizNotify,
-      data: {
-        name: t("workflow_node.notify.default_name"),
-      },
-    };
+    return newNode(NodeType.BizNotify, { i18n: getI18n() });
   },
 };

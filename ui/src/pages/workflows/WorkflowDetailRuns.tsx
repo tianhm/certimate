@@ -99,7 +99,7 @@ const WorkflowDetailRuns = () => {
       fixed: "right",
       width: 64,
       render: (_, record) => {
-        const cancelDisabled = !([WORKFLOW_RUN_STATUSES.PENDING, WORKFLOW_RUN_STATUSES.RUNNING] as string[]).includes(record.status);
+        const cancelDisabled = !([WORKFLOW_RUN_STATUSES.PENDING, WORKFLOW_RUN_STATUSES.PROCESSING] as string[]).includes(record.status);
         const deleteDisabled = !cancelDisabled;
 
         return (
@@ -120,10 +120,10 @@ const WorkflowDetailRuns = () => {
                 },
                 {
                   key: "cancel",
-                  label: t("workflow_run.action.cancel.menu"),
+                  label: <span style={{ color: cancelDisabled ? void 0 : "var(--color-warning)" }}>{t("workflow_run.action.cancel.menu")}</span>,
                   icon: (
                     <span className="anticon scale-125">
-                      <IconPlayerPause size="1em" />
+                      <IconPlayerPause size="1em" color={cancelDisabled ? void 0 : "var(--color-warning)"} />
                     </span>
                   ),
                   disabled: cancelDisabled,
@@ -224,7 +224,7 @@ const WorkflowDetailRuns = () => {
   );
 
   useEffect(() => {
-    const items = tableData.filter((e) => e.status === WORKFLOW_RUN_STATUSES.PENDING || e.status === WORKFLOW_RUN_STATUSES.RUNNING);
+    const items = tableData.filter((e) => e.status === WORKFLOW_RUN_STATUSES.PENDING || e.status === WORKFLOW_RUN_STATUSES.PROCESSING);
     for (const item of items) {
       subscribeWorkflowRun(item.id, (cb) => {
         setTableData((prev) => {
@@ -236,10 +236,10 @@ const WorkflowDetailRuns = () => {
         });
 
         if (cb.record.id === detailDrawerProps.data?.id) {
-          setDetailRecord({ ...detailDrawerProps.data, ...cb.record });
+          detailDrawerProps.data = { ...detailDrawerProps.data, ...cb.record };
         }
 
-        if (cb.record.status !== WORKFLOW_RUN_STATUSES.PENDING && cb.record.status !== WORKFLOW_RUN_STATUSES.RUNNING) {
+        if (cb.record.status !== WORKFLOW_RUN_STATUSES.PENDING && cb.record.status !== WORKFLOW_RUN_STATUSES.PROCESSING) {
           unsubscribeWorkflowRun(item.id);
         }
       });
@@ -257,11 +257,10 @@ const WorkflowDetailRuns = () => {
     setPageSize(pageSize);
   };
 
-  const { setData: setDetailRecord, setOpen: setDetailOpen, ...detailDrawerProps } = WorkflowRunDetailDrawer.useProps();
+  const { drawerProps: detailDrawerProps, ...detailDrawer } = WorkflowRunDetailDrawer.useDrawer();
 
   const handleRecordDetailClick = (workflowRun: WorkflowRunModel) => {
-    setDetailRecord(workflowRun);
-    setDetailOpen(true);
+    detailDrawer.open(workflowRun);
   };
 
   const handleRecordCancelClick = (workflowRun: WorkflowRunModel) => {
@@ -326,7 +325,7 @@ const WorkflowDetailRuns = () => {
       okButtonProps: { danger: true },
       onOk: async () => {
         // 未结束的记录不允许删除
-        records = records.filter((record) => !([WORKFLOW_RUN_STATUSES.PENDING, WORKFLOW_RUN_STATUSES.RUNNING] as string[]).includes(record.status));
+        records = records.filter((record) => !([WORKFLOW_RUN_STATUSES.PENDING, WORKFLOW_RUN_STATUSES.PROCESSING] as string[]).includes(record.status));
         try {
           const resp = await removeWorkflowRun(records);
           if (resp) {

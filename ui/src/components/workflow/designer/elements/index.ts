@@ -17,14 +17,13 @@ export const getAllElements = () => {
 
     [FlowRendererKey.COLLAPSE]: Collapse,
     [FlowRendererKey.TRY_CATCH_COLLAPSE]: TryCatchCollapse,
-    [FlowRendererKey.SLOT_COLLPASE]: Null,
+    [FlowRendererKey.SLOT_COLLAPSE]: Null,
 
     [FlowRendererKey.DRAG_NODE]: DragNode,
     [FlowRendererKey.DRAG_HIGHLIGHT_ADDER]: DragHighlightAdder,
     [FlowRendererKey.DRAG_BRANCH_HIGHLIGHT_ADDER]: DragHighlightAdder,
     [FlowRendererKey.DRAGGABLE_ADDER]: DraggingAdder,
 
-    [FlowRendererKey.CONTEXT_MENU_POPOVER]: Null,
     [FlowRendererKey.SELECTOR_BOX_POPOVER]: Null,
   };
 };

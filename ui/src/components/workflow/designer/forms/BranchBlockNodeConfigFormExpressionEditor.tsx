@@ -1,16 +1,25 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { getNodeForm } from "@flowgram.ai/fixed-layout-editor";
 import { IconCircleMinus, IconCirclePlus } from "@tabler/icons-react";
 import { useControllableValue } from "ahooks";
 import { Button, Form, Input, Radio, Select, theme } from "antd";
 
 import Show from "@/components/Show";
-import type { Expr, ExprComparisonOperator, ExprLogicalOperator, ExprValue, ExprValueSelector, ExprValueType } from "@/domain/workflow";
-import { ExprType } from "@/domain/workflow";
-import { useAntdFormName, useZustandShallowSelector } from "@/hooks";
-import { useWorkflowStore } from "@/stores/workflow";
+import {
+  type Expr,
+  type ExprComparisonOperator,
+  type ExprLogicalOperator,
+  ExprType,
+  type ExprValue,
+  type ExprValueSelector,
+  type ExprValueType,
+} from "@/domain/workflow";
+import { useAntdFormName } from "@/hooks";
 
 import { useNodeFormContext } from "./_context";
+import { getAllPreviousNodes } from "../_util";
+import { NodeType } from "../nodes/typings";
 
 export interface BranchBlockNodeConfigFormExpressionEditorProps {
   className?: string;
@@ -135,8 +144,6 @@ const BranchBlockNodeConfigFormExpressionEditor = forwardRef<BranchBlockNodeConf
 
     const { token: themeToken } = theme.useToken();
 
-    const { getWorkflowOuptutBeforeId } = useWorkflowStore(useZustandShallowSelector(["updateNode", "getWorkflowOuptutBeforeId"]));
-
     const [value, setValue] = useControllableValue<Expr | undefined>(props, {
       valuePropName: "value",
       defaultValuePropName: "defaultValue",
@@ -146,7 +153,7 @@ const BranchBlockNodeConfigFormExpressionEditor = forwardRef<BranchBlockNodeConf
     const { node } = useNodeFormContext();
 
     const [formInst] = Form.useForm<ConditionFormValues>();
-    const formName = useAntdFormName({ form: formInst, name: "workflowNodeConditionConfigFormExpressionEditorForm" });
+    const formName = useAntdFormName({ form: formInst, name: "workflowNodeBranchBlockConfigFormExpressionEditorForm" });
     const [formModel, setFormModel] = useState<ConditionFormValues>(getInitialValues());
 
     useEffect(() => {
@@ -160,43 +167,40 @@ const BranchBlockNodeConfigFormExpressionEditor = forwardRef<BranchBlockNodeConf
       }
     }, [value]);
 
-    // TODO: 适配 flowgram
-    const ciSelectorCandidates = useMemo(() => {
-      const previousNodes = getWorkflowOuptutBeforeId(node.id);
-      return previousNodes
+    const ciSelectorOptions = useMemo(() => {
+      return getAllPreviousNodes(node)
+        .filter((node) => node.flowNodeType === NodeType.BizApply || node.flowNodeType === NodeType.BizUpload || node.flowNodeType === NodeType.BizMonitor)
         .map((node) => {
+          const form = getNodeForm(node);
           const group = {
-            label: node.name,
+            data: {
+              name: form?.getValueIn("name"),
+              ...form?.values,
+            },
+            label: (
+              <div className="flex items-center justify-between gap-4 overflow-hidden">
+                <div className="flex-1 truncate">{form?.getValueIn("name")}</div>
+                <div className="origin-right scale-90 font-mono text-xs" style={{ color: themeToken.colorTextSecondary }}>
+                  (NodeID: {node.id})
+                </div>
+              </div>
+            ),
             options: Array<{ label: string; value: string }>(),
           };
 
-          for (const output of node.outputs ?? []) {
-            switch (output.type) {
-              case "certificate":
-                group.options.push({
-                  label: `${output.label} - ${t("workflow.variables.selector.validity.label")}`,
-                  value: `${node.id}#${output.name}.validity#boolean`,
-                });
-                group.options.push({
-                  label: `${output.label} - ${t("workflow.variables.selector.days_left.label")}`,
-                  value: `${node.id}#${output.name}.daysLeft#number`,
-                });
-                break;
-
-              default:
-                group.options.push({
-                  label: `${output.label}`,
-                  value: `${node.id}#${output.name}#${output.type}`,
-                });
-                console.warn("[certimate] invalid workflow output type in condition expressions", output);
-                break;
-            }
-          }
+          group.options.push({
+            label: `${t("workflow.variables.type.certificate.label")} - ${t("workflow.variables.selector.validity.label")}`,
+            value: `${node.id}#certificate.validity#boolean`,
+          });
+          group.options.push({
+            label: `${t("workflow.variables.type.certificate.label")} - ${t("workflow.variables.selector.days_left.label")}`,
+            value: `${node.id}#certificate.daysLeft#number`,
+          });
 
           return group;
         })
         .filter((item) => item.options.length > 0);
-    }, [node.id]);
+    }, [node]);
 
     const getValueTypeBySelector = (selector: string): ExprValueType | undefined => {
       if (!selector) return;
@@ -279,15 +283,15 @@ const BranchBlockNodeConfigFormExpressionEditor = forwardRef<BranchBlockNodeConf
                     <Select
                       labelRender={({ label, value }) => {
                         if (value != null) {
-                          const group = ciSelectorCandidates.find((group) => group.options.some((option) => option.value === value));
-                          return `${group?.label} - ${label}`;
+                          const group = ciSelectorOptions.find((group) => group.options.some((option) => option.value === value));
+                          return `${group?.data?.name} - ${label}`;
                         }
 
                         return (
                           <span style={{ color: themeToken.colorTextPlaceholder }}>{t("workflow_node.branch_block.form.expression.variable.placeholder")}</span>
                         );
                       }}
-                      options={ciSelectorCandidates}
+                      options={ciSelectorOptions}
                       placeholder={t("workflow_node.branch_block.form.expression.variable.placeholder")}
                     />
                   </Form.Item>

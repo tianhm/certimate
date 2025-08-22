@@ -86,12 +86,12 @@ func (r *AcmeAccountRepository) Save(ctx context.Context, acmeAccount *domain.Ac
 
 func (r *AcmeAccountRepository) castRecordToModel(record *core.Record) (*domain.AcmeAccount, error) {
 	if record == nil {
-		return nil, fmt.Errorf("record is nil")
+		return nil, fmt.Errorf("the record is nil")
 	}
 
 	resource := &registration.Resource{}
 	if err := record.UnmarshalJSONField("resource", resource); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("field 'resource' is malformed")
 	}
 
 	acmeAccount := &domain.AcmeAccount{

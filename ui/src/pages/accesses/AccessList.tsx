@@ -205,7 +205,7 @@ const AccessList = () => {
         .filter((e) => {
           const keyword = (filters["keyword"] as string | undefined)?.trim();
           if (keyword) {
-            return e.name.includes(keyword);
+            return e.id === keyword || e.name.includes(keyword);
           }
 
           return true;
@@ -281,19 +281,17 @@ const AccessList = () => {
     navigate(`/accesses/new?usage=${filters["usage"]}`);
   };
 
-  const { setData: setDetailRecord, setOpen: setDetailOpen, ...detailDrawerProps } = AccessEditDrawer.useProps();
+  const { drawerProps: detailDrawerProps, ...detailDrawer } = AccessEditDrawer.useDrawer();
   const [detailMode, setDetailMode] = useState<AccessEditDrawerProps["mode"]>("create");
 
   const handleRecordDetailClick = (access: AccessModel) => {
-    setDetailRecord(access);
     setDetailMode("edit");
-    setDetailOpen(true);
+    detailDrawer.open(access);
   };
 
   const handleRecordDuplicateClick = (access: AccessModel) => {
-    setDetailRecord({ ...access, id: void 0, name: `${access.name}-copy` });
     setDetailMode("create");
-    setDetailOpen(true);
+    detailDrawer.open({ ...access, id: void 0, name: `${access.name}-copy` });
   };
 
   const handleRecordDeleteClick = async (access: AccessModel) => {

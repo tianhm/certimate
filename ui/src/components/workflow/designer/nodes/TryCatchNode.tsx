@@ -1,14 +1,16 @@
 ﻿import { getI18n } from "react-i18next";
 import { Field } from "@flowgram.ai/fixed-layout-editor";
 import { IconArrowsSplit, IconCircleX } from "@tabler/icons-react";
-import { nanoid } from "nanoid";
+
+import { newNode } from "@/domain/workflow";
 
 import { BaseNode, BranchNode } from "./_shared";
 import { NodeKindType, type NodeRegistry, NodeType } from "./typings";
 
 export const TryCatchNodeRegistry: NodeRegistry = {
   type: NodeType.TryCatch,
-  kindType: NodeKindType.Logic,
+
+  kind: NodeKindType.Logic,
 
   meta: {
     helpText: getI18n().t("workflow_node.try_catch.help"),
@@ -29,44 +31,14 @@ export const TryCatchNodeRegistry: NodeRegistry = {
   },
 
   onAdd() {
-    const { t } = getI18n();
-
-    return {
-      id: nanoid(),
-      type: NodeType.TryCatch,
-      data: {
-        name: t("workflow_node.try_catch.default_name"),
-      },
-      blocks: [
-        {
-          id: nanoid(),
-          type: NodeType.TryBlock,
-          blocks: [],
-        },
-        {
-          id: nanoid(),
-          type: NodeType.CatchBlock,
-          blocks: [
-            {
-              id: nanoid(),
-              type: NodeType.End,
-              data: {
-                name: t("workflow_node.end.default_name"),
-              },
-            },
-          ],
-          data: {
-            name: t("workflow_node.catch_block.default_name"),
-          },
-        },
-      ],
-    };
+    return newNode(NodeType.TryCatch, { i18n: getI18n() });
   },
 };
 
 export const CatchBlockNodeRegistry: NodeRegistry = {
   type: NodeType.CatchBlock,
-  kindType: NodeKindType.Logic,
+
+  kind: NodeKindType.Logic,
 
   meta: {
     labelText: getI18n().t("workflow_node.catch_block.label"),
@@ -75,6 +47,7 @@ export const CatchBlockNodeRegistry: NodeRegistry = {
     draggable: false,
 
     addDisable: true,
+    copyDisable: true,
   },
 
   formMeta: {
@@ -103,23 +76,6 @@ export const CatchBlockNodeRegistry: NodeRegistry = {
   },
 
   onAdd() {
-    const { t } = getI18n();
-
-    return {
-      id: nanoid(),
-      type: NodeType.CatchBlock,
-      blocks: [
-        {
-          id: nanoid(),
-          type: NodeType.End,
-          data: {
-            name: t("workflow_node.end.default_name"),
-          },
-        },
-      ],
-      data: {
-        name: t("workflow_node.catch_block.default_name"),
-      },
-    };
+    return newNode(NodeType.CatchBlock, { i18n: getI18n() });
   },
 };

@@ -8,14 +8,13 @@ import {
   useClientContext,
   useWatchFormState,
 } from "@flowgram.ai/fixed-layout-editor";
-import { IconCopy, IconDotsVertical, IconExclamationCircle, IconGripVertical, IconLabel, IconX } from "@tabler/icons-react";
+import { IconCopy, IconDotsVertical, IconGripVertical, IconLabel, IconX } from "@tabler/icons-react";
 import { Button, type ButtonProps, Card, Dropdown, Input, type InputRef, Popover, Tooltip, theme } from "antd";
-import { Immer } from "immer";
-import { nanoid } from "nanoid";
 
 import { mergeCls } from "@/utils/css";
 
-import { type NodeJSON, type NodeRegistry, NodeType } from "./typings";
+import { type NodeJSON, type NodeRegistry } from "./typings";
+import { duplicateNodeJSON } from "../_util";
 import { useNodeRenderContext } from "../NodeRenderContext";
 
 const useInternalRenamingInput = ({ nodeRender }: { nodeRender: NodeRenderReturnType }) => {
@@ -44,7 +43,7 @@ const useInternalRenamingInput = ({ nodeRender }: { nodeRender: NodeRenderReturn
 
     setInputVisible(false);
 
-    nodeRender.updateData({ name: value });
+    nodeRender.updateData({ ...nodeRender.data, name: value });
   };
 
   return {
@@ -72,7 +71,7 @@ const InternalNodeCard = ({
   const nodeRegistry = nodeRender.node.getNodeRegistry<NodeRegistry>();
 
   const isActivated = useMemo(() => nodeRenderData.activated || nodeRenderData.lineActivated, [nodeRenderData.activated, nodeRenderData.lineActivated]);
-  const [isHovered, setIsHovered] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
   const [isInvalid, setIsInvalid] = useState(false);
 
   const formState = useWatchFormState(nodeRender.node);
@@ -89,8 +88,8 @@ const InternalNodeCard = ({
       style={style}
       styles={{ body: { padding: 0 } }}
       hoverable
-      onMouseEnter={() => startTransition(() => setIsHovered(true))}
-      onMouseLeave={() => startTransition(() => setIsHovered(false))}
+      onMouseEnter={() => startTransition(() => setIsHovering(true))}
+      onMouseLeave={() => startTransition(() => setIsHovering(false))}
     >
       <div className="relative z-1">{children}</div>
       <div
@@ -101,7 +100,7 @@ const InternalNodeCard = ({
           right: "-1px",
           bottom: "-1px",
           borderWidth: "2px",
-          borderColor: isHovered ? "var(--color-primary)" : isInvalid ? "var(--color-error)" : void 0,
+          borderColor: isHovering ? "var(--color-primary)" : isInvalid ? "var(--color-error)" : void 0,
         }}
       />
     </Card>
@@ -143,13 +142,14 @@ const InternalNodeMenuButton = ({
   const [menuRemoveDisabled, setMenuRemoveDisabled] = useState(() => getLatestRemoveDisabledState());
   useEffect(() => {
     // 这里不能使用 useMemo() 来决定 menuRemoveDisabled，因为依赖项没有发生改变（对象引用始终是同一个）
-    // 因此需要使用 useEffect() 来监听 node 和 node.parent 的变化，并更新 menuRemoveDisabled 的状态
+    // 因此需要使用事件钩子来监听，并更新 menuRemoveDisabled 的状态
     const callback = () => {
       setMenuDuplicateDisabled(getLatestDuplicateDisabledState());
       setMenuRemoveDisabled(getLatestRemoveDisabledState());
     };
     const d1 = node.onEntityChange(callback);
     const d2 = node.parent?.onEntityChange?.(callback);
+
     return () => {
       d1?.dispose();
       d2?.dispose();
@@ -283,11 +283,6 @@ export const BaseNode = ({ className, style, children, description }: BaseNodePr
     );
   };
 
-  const [isInvalid, setIsInvalid] = useState(false);
-
-  const formState = useWatchFormState(nodeRender.node);
-  useEffect(() => setIsInvalid(!!formState?.invalid), [formState?.invalid]);
-
   const {
     inputRef,
     visible: inputVisible,
@@ -347,9 +342,6 @@ export const BaseNode = ({ className, style, children, description }: BaseNodePr
                     {description}
                   </div>
                 )}
-              </div>
-              <div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
-                {isInvalid && <IconExclamationCircle color="var(--color-error)" size="1.25em" />}
               </div>
             </div>
           )}
@@ -460,71 +452,4 @@ export const BranchNode = ({ className, style, children, description }: BranchNo
       </div>
     </Popover>
   );
-};
-
-// TODO: 应放至领域层
-export const duplicateNodeJSON = (node: NodeJSON, options?: { withCopySuffix?: boolean }) => {
-  const { produce } = new Immer({ autoFreeze: false });
-  const deepClone = (node: NodeJSON, { withCopySuffix, nodeIdMap }: { withCopySuffix: boolean; nodeIdMap: Map<string, string> }) => {
-    return produce(node, (draft) => {
-      draft.data ??= {};
-      draft.id = nanoid();
-      draft.data.name = withCopySuffix ? `${draft.data?.name || ""}-copy` : `${draft.data?.name || ""}`;
-
-      nodeIdMap.set(node.id, draft.id); // 原节点 ID 映射到新节点 ID
-
-      if (draft.blocks) {
-        draft.blocks = draft.blocks.map((block) => deepClone(block as NodeJSON, { withCopySuffix: false, nodeIdMap }));
-      }
-
-      if (draft.data?.config) {
-        switch (draft.type) {
-          case NodeType.BizDeploy:
-            {
-              const prevNodeId = draft.data.config.certificate?.split("#")?.[0];
-              if (nodeIdMap.has(prevNodeId)) {
-                draft.data.config = {
-                  ...draft.data.config,
-                  certificate: `${nodeIdMap.get(prevNodeId)}#certificate`,
-                };
-              }
-            }
-            break;
-
-          case NodeType.Condition:
-            {
-              const stack = [] as any[];
-              const expr = draft.data.config.expression;
-              if (expr) {
-                stack.push(expr);
-                while (stack.length > 0) {
-                  const n = stack.pop()!;
-                  if ("left" in n) {
-                    stack.push(n.left);
-                    if ("selector" in n.left) {
-                      const prevNodeId = n.left.selector.id;
-                      if (nodeIdMap.has(prevNodeId)) {
-                        n.left.selector.id = nodeIdMap.get(prevNodeId)!;
-                      }
-                    }
-                  }
-                  if ("right" in n) {
-                    stack.push(n.right);
-                  }
-                }
-                draft.data.config = {
-                  ...draft.data.config,
-                  expression: expr,
-                };
-              }
-            }
-            break;
-        }
-      }
-
-      return draft;
-    });
-  };
-
-  return deepClone(node, { withCopySuffix: options?.withCopySuffix ?? true, nodeIdMap: new Map() });
 };

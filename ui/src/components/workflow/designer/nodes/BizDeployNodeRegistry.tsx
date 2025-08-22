@@ -2,17 +2,19 @@ import { getI18n } from "react-i18next";
 import { FeedbackLevel, Field } from "@flowgram.ai/fixed-layout-editor";
 import { IconPackage } from "@tabler/icons-react";
 import { Avatar } from "antd";
-import { nanoid } from "nanoid";
 
 import { deploymentProvidersMap } from "@/domain/provider";
+import { newNode } from "@/domain/workflow";
 
+import { getAllPreviousNodes } from "../_util";
 import { BaseNode } from "./_shared";
 import { NodeKindType, type NodeRegistry, NodeType } from "./typings";
 import BizDeployNodeConfigForm from "../forms/BizDeployNodeConfigForm";
 
 export const BizDeployNodeRegistry: NodeRegistry = {
   type: NodeType.BizDeploy,
-  kindType: NodeKindType.Business,
+
+  kind: NodeKindType.Business,
 
   meta: {
     helpText: getI18n().t("workflow_node.deploy.help"),
@@ -32,6 +34,17 @@ export const BizDeployNodeRegistry: NodeRegistry = {
         if (!res.success) {
           return {
             message: res.error.message,
+            level: FeedbackLevel.Error,
+          };
+        }
+      },
+      ["config.certificateOutputNodeId"]: ({ value, context: { node } }) => {
+        if (value == null) return;
+
+        const prevNodeIds = getAllPreviousNodes(node).map((e) => e.id);
+        if (!prevNodeIds.includes(value)) {
+          return {
+            message: "Invalid input",
             level: FeedbackLevel.Error,
           };
         }
@@ -67,14 +80,6 @@ export const BizDeployNodeRegistry: NodeRegistry = {
   },
 
   onAdd: () => {
-    const { t } = getI18n();
-
-    return {
-      id: nanoid(),
-      type: NodeType.BizMonitor,
-      data: {
-        name: t("workflow_node.deploy.default_name"),
-      },
-    };
+    return newNode(NodeType.BizDeploy, { i18n: getI18n() });
   },
 };

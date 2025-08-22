@@ -31,7 +31,6 @@ type Certificate struct {
 	ACMERenewed       bool                        `json:"acmeRenewed" db:"acmeRenewed"`
 	WorkflowId        string                      `json:"workflowId" db:"workflowRef"`
 	WorkflowRunId     string                      `json:"workflowRunId" db:"workflowRunRef"`
-	WorkflowOutputId  string                      `json:"workflowOutputId" db:"workflowOutputRef"`
 	WorkflowNodeId    string                      `json:"workflowNodeId" db:"workflowNodeId"`
 	DeletedAt         *time.Time                  `json:"deleted" db:"deleted"`
 }
@@ -111,7 +110,7 @@ func (c *Certificate) PopulateFromPEM(certPEM, privkeyPEM string) *Certificate {
 
 	certX509, _ := xcert.ParseCertificateFromPEM(certPEM)
 	if certX509 != nil {
-		c.PopulateFromX509(certX509)
+		return c.PopulateFromX509(certX509)
 	}
 
 	return c

@@ -11,8 +11,8 @@ import (
 )
 
 type workflowService interface {
-	StartRun(ctx context.Context, req *dtos.WorkflowStartRunReq) error
-	CancelRun(ctx context.Context, req *dtos.WorkflowCancelRunReq) error
+	StartRun(ctx context.Context, req *dtos.WorkflowStartRunReq) (*dtos.WorkflowStartRunResp, error)
+	CancelRun(ctx context.Context, req *dtos.WorkflowCancelRunReq) (*dtos.WorkflowCancelRunResp, error)
 	Shutdown(ctx context.Context)
 }
 
@@ -37,11 +37,12 @@ func (handler *WorkflowHandler) run(e *core.RequestEvent) error {
 		return resp.Err(e, err)
 	}
 
-	if err := handler.service.StartRun(e.Request.Context(), req); err != nil {
+	res, err := handler.service.StartRun(e.Request.Context(), req)
+	if err != nil {
 		return resp.Err(e, err)
 	}
 
-	return resp.Ok(e, nil)
+	return resp.Ok(e, res)
 }
 
 func (handler *WorkflowHandler) cancel(e *core.RequestEvent) error {
@@ -49,9 +50,10 @@ func (handler *WorkflowHandler) cancel(e *core.RequestEvent) error {
 	req.WorkflowId = e.Request.PathValue("workflowId")
 	req.RunId = e.Request.PathValue("runId")
 
-	if err := handler.service.CancelRun(e.Request.Context(), req); err != nil {
+	res, err := handler.service.CancelRun(e.Request.Context(), req)
+	if err != nil {
 		return resp.Err(e, err)
 	}
 
-	return resp.Ok(e, nil)
+	return resp.Ok(e, res)
 }

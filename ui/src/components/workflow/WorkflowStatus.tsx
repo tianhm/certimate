@@ -24,7 +24,7 @@ const useColor = (value: WorkflorRunStatusType | string, defaultColor?: string |
         return themeToken.colorTextSecondary;
       }
       break;
-    case WORKFLOW_RUN_STATUSES.RUNNING:
+    case WORKFLOW_RUN_STATUSES.PROCESSING:
       if (defaultColor == null || !defaultColor) {
         return themeToken.colorInfo;
       }
@@ -73,7 +73,7 @@ const WorkflowStatusIcon = ({ className, style, size = "1.25em", type = "outline
           {type === "filled" ? <IconClockFilled color={color} size={size} /> : <IconClock color={color} size={size} />}
         </span>
       );
-    case WORKFLOW_RUN_STATUSES.RUNNING:
+    case WORKFLOW_RUN_STATUSES.PROCESSING:
       return (
         <span className={mergeCls("anticon", "animate-spin", className)} style={style} role="img">
           <IconLoader3 color={color} size={size} />
@@ -125,7 +125,7 @@ const WorkflowStatus = ({ className, style, children, showIcon = true, type, val
 
   switch (value) {
     case WORKFLOW_RUN_STATUSES.PENDING:
-    case WORKFLOW_RUN_STATUSES.RUNNING:
+    case WORKFLOW_RUN_STATUSES.PROCESSING:
     case WORKFLOW_RUN_STATUSES.SUCCEEDED:
     case WORKFLOW_RUN_STATUSES.FAILED:
     case WORKFLOW_RUN_STATUSES.CANCELED:

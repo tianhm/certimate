@@ -54,7 +54,7 @@ const WorkflowRunLogs = ({ runId, runStatus }: { runId: string; runStatus: strin
     },
     {
       refreshDeps: [runId, runStatus],
-      pollingInterval: runStatus === WORKFLOW_RUN_STATUSES.PENDING || runStatus === WORKFLOW_RUN_STATUSES.RUNNING ? 3000 : 0,
+      pollingInterval: runStatus === WORKFLOW_RUN_STATUSES.PENDING || runStatus === WORKFLOW_RUN_STATUSES.PROCESSING ? 3000 : 0,
       pollingWhenHidden: false,
       throttleWait: 500,
       onSuccess: (res) => {

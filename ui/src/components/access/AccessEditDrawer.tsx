@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { startTransition, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { IconX } from "@tabler/icons-react";
 import { useControllableValue } from "ahooks";
@@ -12,6 +12,8 @@ import { getErrMsg } from "@/utils/error";
 import AccessForm, { type AccessFormInstance, type AccessFormProps } from "./AccessForm";
 
 export interface AccessEditDrawerProps {
+  afterClose?: () => void;
+  afterSubmit?: (record: AccessModel) => void;
   data?: AccessFormProps["initialValues"];
   loading?: boolean;
   mode: AccessFormProps["mode"];
@@ -19,10 +21,9 @@ export interface AccessEditDrawerProps {
   trigger?: React.ReactNode;
   usage?: AccessFormProps["usage"];
   onOpenChange?: (open: boolean) => void;
-  afterSubmit?: (record: AccessModel) => void;
 }
 
-const AccessEditDrawer = ({ mode, data, loading, trigger, usage, afterSubmit, ...props }: AccessEditDrawerProps) => {
+const AccessEditDrawer = ({ afterClose, afterSubmit, mode, data, loading, trigger, usage, ...props }: AccessEditDrawerProps) => {
   const { t } = useTranslation();
 
   const { notification } = App.useApp();
@@ -99,7 +100,8 @@ const AccessEditDrawer = ({ mode, data, loading, trigger, usage, afterSubmit, ..
       {triggerEl}
 
       <Drawer
-        afterOpenChange={setOpen}
+        afterOpenChange={(open) => !open && afterClose?.()}
+        autoFocus
         closeIcon={false}
         destroyOnHidden
         footer={
@@ -141,29 +143,41 @@ const AccessEditDrawer = ({ mode, data, loading, trigger, usage, afterSubmit, ..
   );
 };
 
-const useProps = () => {
-  const [data, setData] = useState<AccessEditDrawerProps["data"]>();
+const useDrawer = () => {
+  type DataType = AccessEditDrawerProps["data"];
+  const [data, setData] = useState<DataType>();
   const [open, setOpen] = useState<boolean>(false);
 
-  const onOpenChange = (open: boolean) => {
+  const onOpenChange = useCallback((open: boolean) => {
     setOpen(open);
-
-    if (!open) {
-      setData(void 0);
-    }
-  };
+  }, []);
 
   return {
-    data,
-    open,
-    setData,
-    setOpen,
-    onOpenChange,
+    drawerProps: {
+      afterClose: () => {
+        startTransition(() => {
+          if (!open) {
+            setData(void 0);
+          }
+        });
+      },
+      data,
+      open,
+      onOpenChange,
+    },
+
+    open: (data: NonNullable<DataType>) => {
+      setData(data);
+      setOpen(true);
+    },
+    close: () => {
+      setOpen(false);
+    },
   };
 };
 
 const _default = Object.assign(AccessEditDrawer, {
-  useProps,
+  useDrawer,
 });
 
 export default _default;

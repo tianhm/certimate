@@ -19,18 +19,19 @@ const Toolbar = ({ className, style }: ToolbarProps) => {
   const ctx = useClientContext();
   const { playground } = ctx;
 
-  const tools = usePlaygroundTools({ minZoom: 0.1, maxZoom: 3, padding: 48 });
+  const tools = usePlaygroundTools({ minZoom: 0.1, maxZoom: 3 });
 
   const refresh = useRefresh();
 
   useEffect(() => {
     const d = playground.config.onReadonlyOrDisabledChange(() => refresh());
+
     return () => d.dispose();
   }, [playground]);
 
-  const [isMinimapVisible, setIsMinimapVisible] = useState(window.screen.availWidth >= 1024);
+  const [isMinimapVisible, setIsMinimapVisible] = useState(() => window.screen.availWidth >= 1024);
 
-  const [isMouseFriendly, setIsMouseFriendly] = useState(playground.editorState.is(EditorState.STATE_MOUSE_FRIENDLY_SELECT.id));
+  const [isMouseFriendly, setIsMouseFriendly] = useState(() => playground.editorState.is(EditorState.STATE_MOUSE_FRIENDLY_SELECT.id));
 
   const handleToggleLayout = useCallback(() => {
     if (tools.isVertical) {

@@ -1,7 +1,8 @@
 import { getI18n } from "react-i18next";
 import { FeedbackLevel, Field } from "@flowgram.ai/fixed-layout-editor";
 import { IconCloudUpload } from "@tabler/icons-react";
-import { nanoid } from "nanoid";
+
+import { newNode } from "@/domain/workflow";
 
 import { BaseNode } from "./_shared";
 import { NodeKindType, type NodeRegistry, NodeType } from "./typings";
@@ -9,7 +10,8 @@ import BizUploadNodeConfigForm from "../forms/BizUploadNodeConfigForm";
 
 export const BizUploadNodeRegistry: NodeRegistry = {
   type: NodeType.BizUpload,
-  kindType: NodeKindType.Business,
+
+  kind: NodeKindType.Business,
 
   meta: {
     helpText: getI18n().t("workflow_node.upload.help"),
@@ -47,14 +49,6 @@ export const BizUploadNodeRegistry: NodeRegistry = {
   },
 
   onAdd: () => {
-    const { t } = getI18n();
-
-    return {
-      id: nanoid(),
-      type: NodeType.BizUpload,
-      data: {
-        name: t("workflow_node.upload.default_name"),
-      },
-    };
+    return newNode(NodeType.BizUpload, { i18n: getI18n() });
   },
 };

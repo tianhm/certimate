@@ -7,6 +7,7 @@ import BizUploadNodeConfigForm from "./BizUploadNodeConfigForm";
 import { NodeType } from "../nodes/typings";
 
 export interface BizUploadNodeConfigDrawerProps {
+  afterClose?: () => void;
   loading?: boolean;
   node: FlowNodeEntity;
   open?: boolean;

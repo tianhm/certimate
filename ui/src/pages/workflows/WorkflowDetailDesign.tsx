@@ -1,17 +1,12 @@
-import { useEffect, useRef, useState } from "react";
-import { getI18n, useTranslation } from "react-i18next";
-import { type FlowDocumentJSON } from "@flowgram.ai/document";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { IconArrowBackUp, IconDots } from "@tabler/icons-react";
 import { useDeepCompareEffect } from "ahooks";
-import { Alert, App, Button, Card, Dropdown, Space, theme } from "antd";
-import { nanoid } from "nanoid";
-import { debounce, isEqual } from "radash";
+import { Alert, App, Button, Card, Dropdown, Result, Space, theme } from "antd";
+import { debounce } from "radash";
 
 import Show from "@/components/Show";
-import WorkflowDesigner, { type DesignerInstance as WorkflowDesignerInstance } from "@/components/workflow/designer/Designer";
-import WorkflowNodeDrawer from "@/components/workflow/designer/NodeDrawer";
-import WorkflowToolbar from "@/components/workflow/designer/Toolbar";
-import { type WorkflowNode, WorkflowNodeType } from "@/domain/workflow";
+import { WorkflowDesigner, type WorkflowDesignerInstance, WorkflowNodeDrawer, WorkflowToolbar } from "@/components/workflow/designer";
 import { WORKFLOW_RUN_STATUSES } from "@/domain/workflowRun";
 import { useZustandShallowSelector } from "@/hooks";
 import { useWorkflowStore } from "@/stores/workflow";
@@ -23,44 +18,50 @@ const WorkflowDetailDesign = () => {
   const { token: themeToken } = theme.useToken();
   const { message, modal, notification } = App.useApp();
 
-  const { workflow } = useWorkflowStore(useZustandShallowSelector(["workflow", "publish", "rollback"]));
+  const { workflow, ...workflowStore } = useWorkflowStore(useZustandShallowSelector(["workflow", "orchestrate", "publish", "rollback"]));
 
-  const [isPendingOrRunning, setIsPendingOrRunning] = useState(false);
-  const [allowRollback, setAllowRollback] = useState(false);
-  const [allowPublish, setAllowPublish] = useState(false);
-
+  const [workflowRunDisabled, setWorkflowRunDisabled] = useState(false);
+  const workflowRollbackDisabled = useMemo(
+    () => workflowRunDisabled || !workflow.hasDraft || !workflow.hasContent,
+    [workflowRunDisabled, workflow.hasDraft, workflow.hasContent]
+  );
+  const workflowPublishDisabled = useMemo(() => workflowRunDisabled || !workflow.hasDraft, [workflowRunDisabled, workflow.hasDraft]);
   useEffect(() => {
-    const pending = workflow.lastRunStatus === WORKFLOW_RUN_STATUSES.PENDING || workflow.lastRunStatus === WORKFLOW_RUN_STATUSES.RUNNING;
-    setIsPendingOrRunning(pending);
-  }, [workflow]);
-
-  useEffect(() => {
-    const hasContent = !!workflow.content;
-    const hasChanges = workflow.hasDraft! || !isEqual(workflow.draft, workflow.content);
-    setAllowRollback(!isPendingOrRunning && hasContent && hasChanges);
-    setAllowPublish(!isPendingOrRunning && hasChanges);
-  }, [workflow.content, workflow.draft, workflow.hasDraft, isPendingOrRunning]);
+    const running = workflow.lastRunStatus === WORKFLOW_RUN_STATUSES.PENDING || workflow.lastRunStatus === WORKFLOW_RUN_STATUSES.PROCESSING;
+    setWorkflowRunDisabled(running);
+  }, [workflow.lastRunStatus]);
 
   const designerRef = useRef<WorkflowDesignerInstance>(null);
-  const [degisnerData, setEditorData] = useState<FlowDocumentJSON>();
+  const designerPending = useRef(false); // 保存中时阻止刷新画布
+  const [designerError, setDesignerError] = useState<any>();
   useDeepCompareEffect(() => {
-    const data = { nodes: compactWorkflowDraft(workflow.draft) };
-    designerRef.current?.document?.fromJSON(data);
-    setEditorData(data);
-  }, [workflow.draft]);
+    if (designerRef.current == null || designerRef.current.document.disposed) return;
+    if (designerPending.current) return;
 
-  const onDesignerDocumentChange = debounce({ delay: 300 }, () => {
-    if (!designerRef.current || designerRef.current.document.disposed) return;
+    try {
+      const graph = workflow.graphDraft ?? { nodes: [] };
+      designerRef.current!.document.fromJSON(graph);
+      setDesignerError(void 0);
+    } catch (err) {
+      console.error(err);
+      setDesignerError(err);
+    }
+  }, [workflow.graphDraft]);
 
-    console.log("document changed", designerRef.current!.document.toJSON());
+  const handleDesignerDocumentChange = debounce({ delay: 300 }, async () => {
+    if (designerRef.current == null || designerRef.current.document.disposed) return;
+
+    designerPending.current = true;
+    try {
+      const graph = designerRef.current!.document.toJSON();
+      await workflowStore.orchestrate(graph);
+    } catch (err) {
+      console.error(err);
+      notification.error({ message: t("common.text.request_error"), description: getErrMsg(err) });
+    } finally {
+      designerPending.current = false;
+    }
   });
-
-  useEffect(() => {
-    const disposable = designerRef.current?.document?.originTree?.onTreeChange(onDesignerDocumentChange);
-    return () => disposable?.dispose();
-  }, []);
-
-  const { setNode: setDrawerNode, setOpen: setNodeDrawerOpen, ...nodeDrawerProps } = WorkflowNodeDrawer.useProps();
 
   const handleRollbackClick = () => {
     modal.confirm({
@@ -68,7 +69,7 @@ const WorkflowDetailDesign = () => {
       content: t("workflow.detail.design.action.rollback.modal.content"),
       onOk: async () => {
         try {
-          alert("TODO: rollback");
+          await workflowStore.rollback();
 
           message.success(t("common.text.operation_succeeded"));
         } catch (err) {
@@ -90,7 +91,7 @@ const WorkflowDetailDesign = () => {
       content: t("workflow.detail.design.action.publish.modal.content"),
       onOk: async () => {
         try {
-          alert("TODO: publish");
+          await workflowStore.publish();
 
           message.success(t("common.text.operation_succeeded"));
         } catch (err) {
@@ -100,6 +101,8 @@ const WorkflowDetailDesign = () => {
       },
     });
   };
+
+  const { drawerProps: designerNodeDrawerProps, ...designerNodeDrawer } = WorkflowNodeDrawer.useDrawer();
 
   return (
     <div className="size-full">
@@ -113,29 +116,9 @@ const WorkflowDetailDesign = () => {
           },
         }}
       >
-        <WorkflowDesigner
-          ref={designerRef}
-          initialData={degisnerData}
-          onNodeClick={(_, node) => {
-            setDrawerNode(node);
-            setNodeDrawerOpen(true);
-          }}
-        >
+        <WorkflowDesigner ref={designerRef} onDocumentChange={handleDesignerDocumentChange} onNodeClick={(_, node) => designerNodeDrawer.open(node)}>
           <div className="absolute top-8 z-10 w-full px-4">
             <div className="container">
-              <Alert
-                className="mb-2"
-                message={
-                  <div>
-                    该子页面仍在建设中，目前各节点数据只读，如需编辑请使用旧版编排工具。
-                    <br />
-                    This subpage is under construction. All node data is read-only currently. Please use the legacy designer if you want to edit workflow.
-                  </div>
-                }
-                showIcon
-                closable
-                type="warning"
-              />
               <div className="flex items-center justify-end gap-4">
                 <div className="flex flex-1 items-center justify-end gap-4 overflow-hidden">
                   <div className="flex-1 overflow-hidden">
@@ -144,7 +127,7 @@ const WorkflowDetailDesign = () => {
                     </Show>
                   </div>
                   <Space.Compact>
-                    <Button disabled={!allowPublish} ghost type="primary" onClick={handlePublishClick}>
+                    <Button disabled={workflowPublishDisabled} ghost type="primary" onClick={handlePublishClick}>
                       {t("workflow.detail.design.action.publish.button")}
                     </Button>
                     <Dropdown
@@ -152,7 +135,7 @@ const WorkflowDetailDesign = () => {
                         items: [
                           {
                             key: "rollback",
-                            disabled: !allowRollback,
+                            disabled: workflowRollbackDisabled,
                             label: t("workflow.detail.design.action.rollback.button"),
                             icon: <IconArrowBackUp size="1.25em" />,
                             onClick: handleRollbackClick,
@@ -168,6 +151,7 @@ const WorkflowDetailDesign = () => {
               </div>
             </div>
           </div>
+
           <div className="absolute bottom-8 z-10 w-full px-4">
             <div className="container">
               <div className="flex justify-end">
@@ -181,185 +165,17 @@ const WorkflowDetailDesign = () => {
             </div>
           </div>
 
-          <WorkflowNodeDrawer {...nodeDrawerProps} />
+          {designerError && (
+            <div className="absolute top-1/2 left-1/2 z-10 w-full -translate-1/2 px-4">
+              <Result status="warning" title="Data corruption!" subTitle={`Error: ${getErrMsg(designerError)}`} />
+            </div>
+          )}
+
+          <WorkflowNodeDrawer {...designerNodeDrawerProps} />
         </WorkflowDesigner>
       </Card>
     </div>
   );
-};
-
-const compactWorkflowDraft = (root: WorkflowNode | undefined) => {
-  const { t } = getI18n();
-
-  // TODO: 仅为兼容适配 v0.3.x 数据，正式上线后待删除
-  const res: FlowDocumentJSON["nodes"] = [];
-
-  if (!root) {
-    res.push({
-      id: nanoid(),
-      type: "start",
-      data: {
-        name: t("workflow_node.start.default_name"),
-      },
-    });
-  } else {
-    const convert = (node: WorkflowNode | undefined) => {
-      const temp: typeof res = [];
-
-      let current: typeof node = node;
-      while (current) {
-        switch (current.type) {
-          case WorkflowNodeType.Start:
-            temp.push({
-              id: current.id,
-              type: "start",
-              data: {
-                name: current.name,
-                config: current.config,
-              },
-            });
-            break;
-
-          case WorkflowNodeType.Apply:
-            temp.push({
-              id: current.id,
-              type: "bizApply",
-              data: {
-                name: current.name,
-                config: current.config,
-              },
-            });
-            break;
-
-          case WorkflowNodeType.Upload:
-            temp.push({
-              id: current.id,
-              type: "bizUpload",
-              data: {
-                name: current.name,
-                config: current.config,
-              },
-            });
-            break;
-
-          case WorkflowNodeType.Monitor:
-            temp.push({
-              id: current.id,
-              type: "bizMonitor",
-              data: {
-                name: current.name,
-                config: current.config,
-              },
-            });
-            break;
-
-          case WorkflowNodeType.Deploy:
-            temp.push({
-              id: current.id,
-              type: "bizDeploy",
-              data: {
-                name: current.name,
-                config: current.config,
-              },
-            });
-            break;
-
-          case WorkflowNodeType.Notify:
-            temp.push({
-              id: current.id,
-              type: "bizNotify",
-              data: {
-                name: current.name,
-                config: current.config,
-              },
-            });
-            break;
-
-          case WorkflowNodeType.ExecuteResultBranch: {
-            const tryNode = temp.pop()!;
-            temp.push({
-              id: current.id,
-              type: "tryCatch",
-              blocks: [
-                {
-                  id: current.branches?.find((b) => b.type === WorkflowNodeType.ExecuteSuccess)?.id || nanoid(),
-                  type: "tryBlock",
-                  blocks: [tryNode],
-                  data: {
-                    name: current.branches?.find((b) => b.type === WorkflowNodeType.ExecuteSuccess)?.name,
-                  },
-                },
-                {
-                  id: current.branches?.find((b) => b.type === WorkflowNodeType.ExecuteFailure)?.id || nanoid(),
-                  type: "catchBlock",
-                  blocks: [
-                    ...convert(current.branches?.find((b) => b.type === WorkflowNodeType.ExecuteFailure)?.next),
-                    {
-                      id: nanoid(),
-                      type: "end",
-                      data: {
-                        name: t("workflow_node.end.default_name"),
-                      },
-                    },
-                  ],
-                  data: {
-                    name: current.branches?.find((b) => b.type === WorkflowNodeType.ExecuteFailure)?.name,
-                  },
-                },
-              ],
-              data: {
-                name: current.name,
-                config: current.config,
-              },
-            });
-
-            current = current.branches?.find((b) => b.type === WorkflowNodeType.ExecuteSuccess);
-            break;
-          }
-
-          case WorkflowNodeType.Branch: {
-            temp.push({
-              id: current.id,
-              type: "condition",
-              blocks:
-                current.branches?.map((branch) => {
-                  return {
-                    id: branch.id,
-                    type: "branchBlock",
-                    blocks: convert(branch.next),
-                    data: {
-                      name: branch.name,
-                      config: branch.config,
-                    },
-                  };
-                }) ?? [],
-              data: {
-                name: current.name,
-                config: current.config,
-              },
-            });
-            break;
-          }
-        }
-
-        current = current?.next;
-      }
-
-      return temp;
-    };
-
-    res.push(...convert(root));
-  }
-
-  res.push({
-    id: nanoid(),
-    type: "end",
-    data: {
-      name: t("workflow_node.end.default_name"),
-    },
-  });
-
-  return res;
 };
 
 export default WorkflowDetailDesign;

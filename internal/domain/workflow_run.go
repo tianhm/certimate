@@ -13,16 +13,16 @@ type WorkflowRun struct {
 	Trigger    WorkflowTriggerType   `json:"trigger" db:"trigger"`
 	StartedAt  time.Time             `json:"startedAt" db:"startedAt"`
 	EndedAt    time.Time             `json:"endedAt" db:"endedAt"`
-	Detail     *WorkflowNode         `json:"detail" db:"detail"`
+	Graph      *WorkflowGraph        `json:"graph" db:"graph"`
 	Error      string                `json:"error" db:"error"`
 }
 
 type WorkflowRunStatusType string
 
 const (
-	WorkflowRunStatusTypePending   WorkflowRunStatusType = "pending"
-	WorkflowRunStatusTypeRunning   WorkflowRunStatusType = "running"
-	WorkflowRunStatusTypeSucceeded WorkflowRunStatusType = "succeeded"
-	WorkflowRunStatusTypeFailed    WorkflowRunStatusType = "failed"
-	WorkflowRunStatusTypeCanceled  WorkflowRunStatusType = "canceled"
+	WorkflowRunStatusTypePending    WorkflowRunStatusType = "pending"
+	WorkflowRunStatusTypeProcessing WorkflowRunStatusType = "processing"
+	WorkflowRunStatusTypeSucceeded  WorkflowRunStatusType = "succeeded"
+	WorkflowRunStatusTypeFailed     WorkflowRunStatusType = "failed"
+	WorkflowRunStatusTypeCanceled   WorkflowRunStatusType = "canceled"
 )

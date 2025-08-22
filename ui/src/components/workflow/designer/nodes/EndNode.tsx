@@ -1,14 +1,16 @@
 import { getI18n } from "react-i18next";
 import { FlowNodeBaseType } from "@flowgram.ai/fixed-layout-editor";
 import { IconLogout } from "@tabler/icons-react";
-import { nanoid } from "nanoid";
+
+import { newNode } from "@/domain/workflow";
 
 import { BaseNode } from "./_shared";
 import { NodeKindType, type NodeRegistry, NodeType } from "./typings";
 
 export const EndNodeRegistry: NodeRegistry = {
   type: NodeType.End,
-  kindType: NodeKindType.Common,
+
+  kind: NodeKindType.Basis,
 
   meta: {
     helpText: getI18n().t("workflow_node.end.help"),
@@ -37,22 +39,11 @@ export const EndNodeRegistry: NodeRegistry = {
     // You can only add to the last node of the branch
     if (!from.isLast) return false;
 
-    /**
-     * condition
-     *  blockIcon
-     *  inlineBlocks
-     *    block1
-     *      blockOrderIcon
-     *      <---- [add end]
-     *    block2
-     *      blockOrderIcon
-     *      end
-     */
-    // originParent can determine whether it is condition , and then determine whether it is the last one
+    // `originParent` can determine whether it is condition, and then determine whether it is the last one
     // https://github.com/bytedance/flowgram.ai/pull/146
     if (from.parent && from.parent.parent?.flowNodeType === FlowNodeBaseType.INLINE_BLOCKS && from.parent.originParent && !from.parent.originParent.isLast) {
       const allBranches = from.parent.parent!.blocks;
-      // Determine whether the last node of all branch is end, All branches are not allowed to be end
+      // Determine whether the last node of all branch is end, all branches are not allowed to be end
       const branchEndCount = allBranches.filter((block) => block.blocks[block.blocks.length - 1]?.getNodeMeta().isNodeEnd).length;
       return branchEndCount < allBranches.length - 1;
     }
@@ -65,14 +56,6 @@ export const EndNodeRegistry: NodeRegistry = {
   },
 
   onAdd() {
-    const { t } = getI18n();
-
-    return {
-      id: nanoid(),
-      type: NodeType.End,
-      data: {
-        name: t("workflow_node.end.default_name"),
-      },
-    };
+    return newNode(NodeType.End, { i18n: getI18n() });
   },
 };

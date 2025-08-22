@@ -34,7 +34,7 @@ func NewHookHandler(opts *HookHandlerOptions) *HookHandler {
 	}
 
 	if h.options.WriteFunc == nil {
-		panic("`options.WriteFunc` is nil")
+		panic("the `options.WriteFunc` is nil")
 	}
 
 	if h.options.Level == nil {

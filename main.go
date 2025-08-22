@@ -68,6 +68,6 @@ func main() {
 	})
 
 	if err := app.Start(); err != nil {
-		slog.Error("[CERTIMATE] Start failed.", "err", err)
+		slog.Error("[CERTIMATE] Start failed.", slog.Any("error", err))
 	}
 }

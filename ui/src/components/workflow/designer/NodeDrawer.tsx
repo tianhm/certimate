@@ -1,4 +1,4 @@
-import { startTransition, useMemo, useState } from "react";
+import { startTransition, useCallback, useMemo, useState } from "react";
 import { type FlowNodeEntity } from "@flowgram.ai/fixed-layout-editor";
 import { useControllableValue } from "ahooks";
 
@@ -14,6 +14,7 @@ import StartNodeConfigDrawer from "./forms/StartNodeConfigDrawer";
 import { NodeType } from "./nodes/typings";
 
 export interface NodeDrawerProps {
+  afterClose?: () => void;
   children?: React.ReactNode;
   loading?: boolean;
   node?: FlowNodeEntity;
@@ -68,31 +69,41 @@ const NodeDrawer = ({ node, trigger, ...props }: NodeDrawerProps) => {
   );
 };
 
-const useProps = () => {
-  const [node, setNode] = useState<NodeDrawerProps["node"]>();
+const useDrawer = () => {
+  type NodeDataType = NodeDrawerProps["node"];
+  const [node, setNode] = useState<NodeDataType>();
   const [open, setOpen] = useState<boolean>(false);
 
-  const onOpenChange = (open: boolean) => {
+  const onOpenChange = useCallback((open: boolean) => {
     setOpen(open);
-
-    startTransition(() => {
-      if (!open) {
-        setNode(void 0);
-      }
-    });
-  };
+  }, []);
 
   return {
-    node,
-    open,
-    setNode,
-    setOpen,
-    onOpenChange,
+    drawerProps: {
+      afterClose: () => {
+        startTransition(() => {
+          if (!open) {
+            setNode(void 0);
+          }
+        });
+      },
+      node,
+      open,
+      onOpenChange,
+    },
+
+    open: (node: NonNullable<NodeDataType>) => {
+      setNode(node);
+      setOpen(true);
+    },
+    close: () => {
+      setOpen(false);
+    },
   };
 };
 
 const _default = Object.assign(NodeDrawer, {
-  useProps,
+  useDrawer,
 });
 
 export default _default;

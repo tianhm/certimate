@@ -58,12 +58,13 @@ func (r *CertificateRepository) GetById(ctx context.Context, id string) (*domain
 	return r.castRecordToModel(record)
 }
 
-func (r *CertificateRepository) GetByWorkflowNodeId(ctx context.Context, workflowNodeId string) (*domain.Certificate, error) {
+func (r *CertificateRepository) GetByWorkflowIdAndNodeId(ctx context.Context, workflowId string, workflowNodeId string) (*domain.Certificate, error) {
 	records, err := app.GetApp().FindRecordsByFilter(
 		domain.CollectionNameCertificate,
-		"workflowNodeId={:workflowNodeId} && deleted=null",
+		"workflowRef={:workflowId} && workflowNodeId={:workflowNodeId} && deleted=null",
 		"-created",
 		1, 0,
+		dbx.Params{"workflowId": workflowId},
 		dbx.Params{"workflowNodeId": workflowNodeId},
 	)
 	if err != nil {
@@ -132,7 +133,6 @@ func (r *CertificateRepository) Save(ctx context.Context, certificate *domain.Ce
 	record.Set("acmeRenewed", certificate.ACMERenewed)
 	record.Set("workflowRef", certificate.WorkflowId)
 	record.Set("workflowRunRef", certificate.WorkflowRunId)
-	record.Set("workflowOutputRef", certificate.WorkflowOutputId)
 	record.Set("workflowNodeId", certificate.WorkflowNodeId)
 	if err := app.GetApp().Save(record); err != nil {
 		return certificate, err
@@ -169,7 +169,7 @@ func (r *CertificateRepository) DeleteWhere(ctx context.Context, exprs ...dbx.Ex
 
 func (r *CertificateRepository) castRecordToModel(record *core.Record) (*domain.Certificate, error) {
 	if record == nil {
-		return nil, fmt.Errorf("record is nil")
+		return nil, fmt.Errorf("the record is nil")
 	}
 
 	certificate := &domain.Certificate{
@@ -194,7 +194,6 @@ func (r *CertificateRepository) castRecordToModel(record *core.Record) (*domain.
 		ACMERenewed:       record.GetBool("acmeRenewed"),
 		WorkflowId:        record.GetString("workflowRef"),
 		WorkflowRunId:     record.GetString("workflowRunRef"),
-		WorkflowOutputId:  record.GetString("workflowOutputRef"),
 		WorkflowNodeId:    record.GetString("workflowNodeId"),
 	}
 	return certificate, nil

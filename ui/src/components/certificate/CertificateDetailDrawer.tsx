@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { startTransition, useCallback, useState } from "react";
 import { IconX } from "@tabler/icons-react";
 import { useControllableValue } from "ahooks";
 import { Button, Drawer, Flex } from "antd";
@@ -9,6 +9,7 @@ import { useTriggerElement } from "@/hooks";
 import CertificateDetail from "./CertificateDetail";
 
 export interface CertificateDetailDrawerProps {
+  afterClose?: () => void;
   data?: CertificateModel;
   loading?: boolean;
   open?: boolean;
@@ -16,7 +17,7 @@ export interface CertificateDetailDrawerProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-const CertificateDetailDrawer = ({ data, loading, trigger, ...props }: CertificateDetailDrawerProps) => {
+const CertificateDetailDrawer = ({ afterClose, data, loading, trigger, ...props }: CertificateDetailDrawerProps) => {
   const [open, setOpen] = useControllableValue<boolean>(props, {
     valuePropName: "open",
     defaultValuePropName: "defaultOpen",
@@ -30,7 +31,8 @@ const CertificateDetailDrawer = ({ data, loading, trigger, ...props }: Certifica
       {triggerEl}
 
       <Drawer
-        afterOpenChange={setOpen}
+        afterOpenChange={(open) => !open && afterClose?.()}
+        autoFocus
         closeIcon={false}
         destroyOnHidden
         open={open}
@@ -60,29 +62,41 @@ const CertificateDetailDrawer = ({ data, loading, trigger, ...props }: Certifica
   );
 };
 
-const useProps = () => {
-  const [data, setData] = useState<CertificateDetailDrawerProps["data"]>();
+const useDrawer = () => {
+  type DataType = CertificateDetailDrawerProps["data"];
+  const [data, setData] = useState<DataType>();
   const [open, setOpen] = useState<boolean>(false);
 
-  const onOpenChange = (open: boolean) => {
+  const onOpenChange = useCallback((open: boolean) => {
     setOpen(open);
-
-    if (!open) {
-      setData(void 0);
-    }
-  };
+  }, []);
 
   return {
-    data,
-    open,
-    setData,
-    setOpen,
-    onOpenChange,
+    drawerProps: {
+      afterClose: () => {
+        startTransition(() => {
+          if (!open) {
+            setData(void 0);
+          }
+        });
+      },
+      data,
+      open,
+      onOpenChange,
+    },
+
+    open: (data: NonNullable<DataType>) => {
+      setData(data);
+      setOpen(true);
+    },
+    close: () => {
+      setOpen(false);
+    },
   };
 };
 
 const _default = Object.assign(CertificateDetailDrawer, {
-  useProps,
+  useDrawer,
 });
 
 export default _default;

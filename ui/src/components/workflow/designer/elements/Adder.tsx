@@ -31,12 +31,12 @@ const Adder = ({ from, hoverActivated }: AdderProps) => {
     })
     .reduce(
       (acc, registry) => {
-        let group = acc.find((item) => item!.key === registry.kindType);
+        let group = acc.find((item) => item!.key === registry.kind);
         if (!group) {
           group = {
-            key: registry.kindType,
+            key: registry.kind,
             type: "group",
-            label: registry.kindType ? t(`workflow_node.kind.${registry.kindType}`) : null,
+            label: registry.kind ? t(`workflow_node.kind.${registry.kind}`) : null,
             children: [],
           };
           acc.push(group);

@@ -36,12 +36,12 @@ func (r *AccessRepository) GetById(ctx context.Context, id string) (*domain.Acce
 
 func (r *AccessRepository) castRecordToModel(record *core.Record) (*domain.Access, error) {
 	if record == nil {
-		return nil, fmt.Errorf("record is nil")
+		return nil, fmt.Errorf("the record is nil")
 	}
 
 	config := make(map[string]any)
 	if err := record.UnmarshalJSONField("config", &config); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("field 'config' is malformed")
 	}
 
 	access := &domain.Access{

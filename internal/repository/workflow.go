@@ -79,9 +79,10 @@ func (r *WorkflowRepository) Save(ctx context.Context, workflow *domain.Workflow
 	record.Set("trigger", string(workflow.Trigger))
 	record.Set("triggerCron", workflow.TriggerCron)
 	record.Set("enabled", workflow.Enabled)
-	record.Set("content", workflow.Content)
-	record.Set("draft", workflow.Draft)
+	record.Set("graphDraft", workflow.GraphDraft)
+	record.Set("graphContent", workflow.GraphContent)
 	record.Set("hasDraft", workflow.HasDraft)
+	record.Set("hasContent", workflow.HasContent)
 	record.Set("lastRunRef", workflow.LastRunId)
 	record.Set("lastRunStatus", string(workflow.LastRunStatus))
 	record.Set("lastRunTime", workflow.LastRunTime)
@@ -97,17 +98,17 @@ func (r *WorkflowRepository) Save(ctx context.Context, workflow *domain.Workflow
 
 func (r *WorkflowRepository) castRecordToModel(record *core.Record) (*domain.Workflow, error) {
 	if record == nil {
-		return nil, fmt.Errorf("record is nil")
+		return nil, fmt.Errorf("the record is nil")
 	}
 
-	content := &domain.WorkflowNode{}
-	if err := record.UnmarshalJSONField("content", content); err != nil {
-		return nil, err
+	graphDraft := &domain.WorkflowGraph{}
+	if err := record.UnmarshalJSONField("graphDraft", graphDraft); err != nil {
+		return nil, fmt.Errorf("field 'graphDraft' is malformed")
 	}
 
-	draft := &domain.WorkflowNode{}
-	if err := record.UnmarshalJSONField("draft", draft); err != nil {
-		return nil, err
+	graphContent := &domain.WorkflowGraph{}
+	if err := record.UnmarshalJSONField("graphContent", graphContent); err != nil {
+		return nil, fmt.Errorf("field 'graphContent' is malformed")
 	}
 
 	workflow := &domain.Workflow{
@@ -121,9 +122,10 @@ func (r *WorkflowRepository) castRecordToModel(record *core.Record) (*domain.Wor
 		Trigger:       domain.WorkflowTriggerType(record.GetString("trigger")),
 		TriggerCron:   record.GetString("triggerCron"),
 		Enabled:       record.GetBool("enabled"),
-		Content:       content,
-		Draft:         draft,
+		GraphDraft:    graphDraft,
+		GraphContent:  graphContent,
 		HasDraft:      record.GetBool("hasDraft"),
+		HasContent:    record.GetBool("hasContent"),
 		LastRunId:     record.GetString("lastRunRef"),
 		LastRunStatus: domain.WorkflowRunStatusType(record.GetString("lastRunStatus")),
 		LastRunTime:   record.GetDateTime("lastRunTime").Time(),

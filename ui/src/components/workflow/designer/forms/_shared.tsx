@@ -12,6 +12,7 @@ import { type NodeRegistry } from "../nodes/typings";
 
 export interface NodeConfigDrawerProps {
   children: React.ReactNode;
+  afterClose?: () => void;
   anchor?: Pick<Required<AnchorProps>, "items"> | false;
   footer?: boolean;
   form: FormInstance;
@@ -21,7 +22,7 @@ export interface NodeConfigDrawerProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-export const NodeConfigDrawer = ({ children, anchor, footer = true, form: formInst, loading, node, ...props }: NodeConfigDrawerProps) => {
+export const NodeConfigDrawer = ({ children, afterClose, anchor, footer = true, form: formInst, loading, node, ...props }: NodeConfigDrawerProps) => {
   const { t } = useTranslation();
 
   const { modal, notification } = App.useApp();
@@ -113,7 +114,6 @@ export const NodeConfigDrawer = ({ children, anchor, footer = true, form: formIn
 
     const { promise, resolve, reject } = Promise.withResolvers();
     if (changed) {
-      console.log(oldValues, newValues);
       modal.confirm({
         title: t("common.text.operation_confirm"),
         content: t("workflow.detail.design.unsaved_changes.confirm"),
@@ -134,7 +134,8 @@ export const NodeConfigDrawer = ({ children, anchor, footer = true, form: formIn
           paddingBottom: anchor ? 0 : void 0,
         },
       }}
-      afterOpenChange={setOpen}
+      afterOpenChange={(open) => !open && afterClose?.()}
+      autoFocus
       closeIcon={false}
       destroyOnHidden
       footer={
@@ -190,7 +191,7 @@ export const NodeConfigDrawer = ({ children, anchor, footer = true, form: formIn
       }
       onClose={handleClose}
     >
-      <div ref={containerRef} style={{ height: "100%", overflow: "auto" }}>
+      <div ref={containerRef} style={{ height: "100%", overflowX: "hidden", overflowY: "auto" }}>
         {children}
       </div>
     </Drawer>

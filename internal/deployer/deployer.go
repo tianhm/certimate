@@ -23,13 +23,13 @@ type DeployerWithWorkflowNodeConfig struct {
 
 func NewWithWorkflowNode(config DeployerWithWorkflowNodeConfig) (Deployer, error) {
 	if config.Node == nil {
-		return nil, fmt.Errorf("node is nil")
+		return nil, fmt.Errorf("the node is nil")
 	}
-	if config.Node.Type != domain.WorkflowNodeTypeDeploy {
-		return nil, fmt.Errorf("node type is not '%s'", string(domain.WorkflowNodeTypeDeploy))
+	if config.Node.Type != domain.WorkflowNodeTypeBizDeploy {
+		return nil, fmt.Errorf("the node type is '%s', expected '%s'", string(config.Node.Type), string(domain.WorkflowNodeTypeBizDeploy))
 	}
 
-	nodeCfg := config.Node.GetConfigForDeploy()
+	nodeCfg := config.Node.Data.Config.AsBizDeploy()
 	options := &deployerProviderOptions{
 		Provider:              domain.DeploymentProviderType(nodeCfg.Provider),
 		ProviderAccessConfig:  make(map[string]any),

@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { IconCircleArrowDown, IconCircleArrowUp, IconCircleMinus, IconCirclePlus } from "@tabler/icons-react";
-import { Button, Collapse, Form, type FormInstance, Input, InputNumber, Select } from "antd";
+import { Button, Collapse, Form, type FormInstance, Input, InputNumber, Radio } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
@@ -135,13 +135,12 @@ const AccessFormSSHConfig = ({ form: formInst, formName, disabled, initialValues
       </div>
 
       <Form.Item name="authMethod" label={t("access.form.ssh_auth_method.label")} rules={[formRule]}>
-        <Select
+        <Radio.Group
           options={[AUTH_METHOD_NONE, AUTH_METHOD_PASSWORD, AUTH_METHOD_KEY].map((s) => ({
             key: s,
             label: t(`access.form.ssh_auth_method.option.${s}.label`),
             value: s,
           }))}
-          placeholder={t("access.form.ssh_auth_method.placeholder")}
         />
       </Form.Item>
 
@@ -201,17 +200,13 @@ const AccessFormSSHConfig = ({ form: formInst, formName, disabled, initialValues
                           </div>
 
                           <Form.Item name={[field.name, "authMethod"]} label={t("access.form.ssh_auth_method.label")} rules={[formRule]}>
-                            <Select placeholder={t("access.form.ssh_auth_method.placeholder")}>
-                              <Select.Option key={AUTH_METHOD_NONE} value={AUTH_METHOD_NONE}>
-                                {t("access.form.ssh_auth_method.option.none.label")}
-                              </Select.Option>
-                              <Select.Option key={AUTH_METHOD_PASSWORD} value={AUTH_METHOD_PASSWORD}>
-                                {t("access.form.ssh_auth_method.option.password.label")}
-                              </Select.Option>
-                              <Select.Option key={AUTH_METHOD_KEY} value={AUTH_METHOD_KEY}>
-                                {t("access.form.ssh_auth_method.option.key.label")}
-                              </Select.Option>
-                            </Select>
+                            <Radio.Group
+                              options={[AUTH_METHOD_NONE, AUTH_METHOD_PASSWORD, AUTH_METHOD_KEY].map((s) => ({
+                                key: s,
+                                label: t(`access.form.ssh_auth_method.option.${s}.label`),
+                                value: s,
+                              }))}
+                            />
                           </Form.Item>
 
                           <Form.Item name={[field.name, "username"]} label={t("access.form.ssh_username.label")} rules={[formRule]}>

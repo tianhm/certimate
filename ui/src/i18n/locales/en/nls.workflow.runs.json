@@ -1,9 +1,9 @@
 {
   "workflow_run.action.view.menu": "View details",
-  "workflow_run.action.cancel.menu": "Cancel workflow run",
-  "workflow_run.action.cancel.modal.title": "Cancel run",
+  "workflow_run.action.cancel.menu": "Cancel run",
+  "workflow_run.action.cancel.modal.title": "Cancel workflow run",
   "workflow_run.action.cancel.modal.content": "Are you sure to cancel this run?",
-  "workflow_run.action.delete.menu": "Delete workflow run",
+  "workflow_run.action.delete.menu": "Delete run",
   "workflow_run.action.delete.modal.title": "Delete \"{{name}}\"",
   "workflow_run.action.delete.modal.content": "Are you sure want to delete this workflow run? <br>This action cannot be undone.",
   "workflow_run.action.batch_delete.modal.title": "Delete workflow runs",

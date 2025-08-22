@@ -28,9 +28,10 @@ func NewStatisticsHandler(router *router.RouterGroup[*core.RequestEvent], servic
 }
 
 func (handler *StatisticsHandler) get(e *core.RequestEvent) error {
-	if statistics, err := handler.service.Get(e.Request.Context()); err != nil {
+	res, err := handler.service.Get(e.Request.Context())
+	if err != nil {
 		return resp.Err(e, err)
-	} else {
-		return resp.Ok(e, statistics)
 	}
+
+	return resp.Ok(e, res)
 }

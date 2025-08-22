@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -193,7 +194,7 @@ func (s *CertificateService) ValidatePrivateKey(ctx context.Context, req *dtos.C
 func (s *CertificateService) cleanupExpiredCertificates(ctx context.Context) error {
 	settings, err := s.settingsRepo.GetByName(ctx, "persistence")
 	if err != nil {
-		app.GetLogger().Error("failed to get persistence settings", "err", err)
+		app.GetLogger().Error("failed to get persistence settings", slog.Any("error", err))
 		return err
 	}
 
@@ -204,7 +205,7 @@ func (s *CertificateService) cleanupExpiredCertificates(ctx context.Context) err
 			dbx.NewExp(fmt.Sprintf("validityNotAfter<DATETIME('now', '-%d days')", persistenceSettings.ExpiredCertificatesMaxDaysRetention)),
 		)
 		if err != nil {
-			app.GetLogger().Error("failed to delete expired certificates", "err", err)
+			app.GetLogger().Error("failed to delete expired certificates", slog.Any("error", err))
 			return err
 		}
 

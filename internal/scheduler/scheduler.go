@@ -1,6 +1,8 @@
 package scheduler
 
 import (
+	"log/slog"
+
 	"github.com/certimate-go/certimate/internal/app"
 	"github.com/certimate-go/certimate/internal/certificate"
 	"github.com/certimate-go/certimate/internal/repository"
@@ -17,10 +19,10 @@ func Register() {
 	certificateSvc := certificate.NewCertificateService(certificateRepo, settingsRepo)
 
 	if err := InitWorkflowScheduler(workflowSvc); err != nil {
-		app.GetLogger().Error("failed to init workflow scheduler", "err", err)
+		app.GetLogger().Error("failed to init workflow scheduler", slog.Any("error", err))
 	}
 
 	if err := InitCertificateScheduler(certificateSvc); err != nil {
-		app.GetLogger().Error("failed to init certificate scheduler", "err", err)
+		app.GetLogger().Error("failed to init certificate scheduler", slog.Any("error", err))
 	}
 }

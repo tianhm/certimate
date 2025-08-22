@@ -61,6 +61,9 @@ func (r *WorkflowRunRepository) Save(ctx context.Context, workflowRun *domain.Wo
 		return workflowRun, err
 	}
 
+	workflowRun.Id = record.Id
+	workflowRun.CreatedAt = record.GetDateTime("created").Time()
+	workflowRun.UpdatedAt = record.GetDateTime("updated").Time()
 	return workflowRun, nil
 }
 

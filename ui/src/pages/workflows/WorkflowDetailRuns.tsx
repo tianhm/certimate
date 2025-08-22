@@ -120,10 +120,10 @@ const WorkflowDetailRuns = () => {
                 },
                 {
                   key: "cancel",
-                  label: t("workflow_run.action.cancel.menu"),
+                  label: <span style={{ color: cancelDisabled ? void 0 : "var(--color-warning)" }}>{t("workflow_run.action.cancel.menu")}</span>,
                   icon: (
                     <span className="anticon scale-125">
-                      <IconPlayerPause size="1em" />
+                      <IconPlayerPause size="1em" color={cancelDisabled ? void 0 : "var(--color-warning)"} />
                     </span>
                   ),
                   disabled: cancelDisabled,

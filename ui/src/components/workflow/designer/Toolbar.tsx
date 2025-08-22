@@ -29,9 +29,9 @@ const Toolbar = ({ className, style }: ToolbarProps) => {
     return () => d.dispose();
   }, [playground]);
 
-  const [isMinimapVisible, setIsMinimapVisible] = useState(window.screen.availWidth >= 1024);
+  const [isMinimapVisible, setIsMinimapVisible] = useState(() => window.screen.availWidth >= 1024);
 
-  const [isMouseFriendly, setIsMouseFriendly] = useState(playground.editorState.is(EditorState.STATE_MOUSE_FRIENDLY_SELECT.id));
+  const [isMouseFriendly, setIsMouseFriendly] = useState(() => playground.editorState.is(EditorState.STATE_MOUSE_FRIENDLY_SELECT.id));
 
   const handleToggleLayout = useCallback(() => {
     if (tools.isVertical) {

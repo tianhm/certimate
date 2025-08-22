@@ -2,6 +2,7 @@ import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from "rea
 import {
   ConstantKeys,
   EditorRenderer,
+  EditorState,
   FixedLayoutEditorProvider,
   type FixedLayoutPluginContext,
   type FixedLayoutProps,
@@ -118,6 +119,13 @@ const Designer = forwardRef<DesignerInstance, DesignerProps>(
             },
           }),
         ],
+
+        onInit: (ctx) => {
+          const maybeMobile = ["android", "ios", "iphone", "ipad", "micromessenger"].some((s) => navigator.userAgent.includes(s));
+          if (maybeMobile) {
+            ctx.playground.editorState.changeState(EditorState.STATE_MOUSE_FRIENDLY_SELECT.id);
+          }
+        },
 
         onAllLayersRendered: (ctx) => {
           rendered.current = true;

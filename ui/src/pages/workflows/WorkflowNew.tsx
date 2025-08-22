@@ -66,7 +66,6 @@ const WorkflowNew = () => {
             const tryCatchNode = newNode(WORKFLOW_NODE_TYPES.TRYCATCH, { i18n: i18n });
             const applyNode = newNode(WORKFLOW_NODE_TYPES.BIZ_APPLY, { i18n: i18n });
             const deployNode = newNode(WORKFLOW_NODE_TYPES.BIZ_DEPLOY, { i18n: i18n });
-            const notifyOnSuccessNode = newNode(WORKFLOW_NODE_TYPES.BIZ_NOTIFY, { i18n: i18n });
             const notifyOnFailureNode = newNode(WORKFLOW_NODE_TYPES.BIZ_NOTIFY, { i18n: i18n });
             const endNode = newNode(WORKFLOW_NODE_TYPES.END, { i18n: i18n });
 
@@ -75,13 +74,6 @@ const WorkflowNew = () => {
               certificateOutputNodeId: applyNode.id,
             } as WorkflowNodeConfigForBizDeploy;
 
-            notifyOnSuccessNode.data.config = {
-              ...notifyOnSuccessNode.data.config,
-              subject: "[Certimate] Workflow Complete",
-              message: "Your workflow run has completed successfully.",
-              skipOnAllPrevSkipped: true,
-            } as WorkflowNodeConfigForBizNotify;
-
             notifyOnFailureNode.data.config = {
               ...notifyOnFailureNode.data.config,
               subject: "[Certimate] Workflow Failure Alert!",
@@ -89,7 +81,7 @@ const WorkflowNew = () => {
             } as WorkflowNodeConfigForBizNotify;
 
             tryCatchNode.blocks!.at(0)!.blocks ??= [];
-            tryCatchNode.blocks!.at(0)!.blocks!.push(applyNode, deployNode, notifyOnSuccessNode);
+            tryCatchNode.blocks!.at(0)!.blocks!.push(applyNode, deployNode);
             tryCatchNode.blocks!.at(1)!.blocks ??= [];
             tryCatchNode.blocks!.at(1)!.blocks!.unshift(notifyOnFailureNode);
 

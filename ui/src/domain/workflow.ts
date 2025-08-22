@@ -37,6 +37,7 @@ export type WorkflowTriggerType = (typeof WORKFLOW_TRIGGERS)[keyof typeof WORKFL
 export const WORKFLOW_NODE_TYPES = Object.freeze({
   START: "start",
   END: "end",
+  DELAY: "delay",
   CONDITION: "condition",
   BRANCHBLOCK: "branchBlock",
   TRYCATCH: "tryCatch",
@@ -71,6 +72,14 @@ export const defaultNodeConfigForStart = (): Partial<WorkflowNodeConfigForStart>
   return {
     trigger: WORKFLOW_TRIGGERS.MANUAL,
   };
+};
+
+export type WorkflowNodeConfigForDelay = {
+  wait?: number;
+};
+
+export const defaultNodeConfigForDelay = (): Partial<WorkflowNodeConfigForDelay> => {
+  return {};
 };
 
 export type WorkflowNodeConfigForBranchBlock = {
@@ -186,6 +195,16 @@ export const newNode = (type: WorkflowNodeType, { i18n = getI18n() }: { i18n?: R
         type: type,
         data: {
           name: t("workflow_node.end.default_name"),
+        },
+      };
+
+    case WORKFLOW_NODE_TYPES.DELAY:
+      return {
+        id: newNodeId(),
+        type: type,
+        data: {
+          name: t("workflow_node.delay.default_name"),
+          config: defaultNodeConfigForDelay(),
         },
       };
 

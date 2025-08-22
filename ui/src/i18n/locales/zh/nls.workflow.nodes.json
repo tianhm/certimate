@@ -1023,6 +1023,14 @@
   "workflow_node.notify.form.skip_on_all_prev_skipped.switch.on": "跳过",
   "workflow_node.notify.form.skip_on_all_prev_skipped.switch.off": "不跳过",
 
+  "workflow_node.delay.label": "延迟等待",
+  "workflow_node.delay.help": "暂停执行工作流并等待一段时间。这在某些需要降低调用执行频率的场景很有用。",
+  "workflow_node.delay.default_name": "延迟",
+  "workflow_node.delay.form_anchor.parameters.tab": "参数设置",
+  "workflow_node.delay.form.wait.label": "等待时间",
+  "workflow_node.delay.form.wait.placeholder": "请输入等待时间",
+  "workflow_node.delay.form.wait.unit": "秒",
+
   "workflow_node.condition.label": "并行/条件分支",
   "workflow_node.condition.help": "当满足指定的条件时，进入相应分支。某一分支中的节点执行失败不影响平行分支继续执行。",
   "workflow_node.condition.default_name": "并行",

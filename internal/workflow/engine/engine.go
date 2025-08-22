@@ -282,6 +282,7 @@ func NewWorkflowEngine() WorkflowEngine {
 	}
 	engine.executors[NodeTypeStart] = newStartNodeExecutor()
 	engine.executors[NodeTypeEnd] = newEndNodeExecutor()
+	engine.executors[NodeTypeDelay] = newDelayNodeExecutor()
 	engine.executors[NodeTypeCondition] = newConditionNodeExecutor()
 	engine.executors[NodeTypeBranchBlock] = newBranchBlockNodeExecutor()
 	engine.executors[NodeTypeTryCatch] = newTryCatchNodeExecutor()

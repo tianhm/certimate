@@ -24,6 +24,7 @@ export const BizNotifyNodeRegistry: NodeRegistry = {
     iconBgColor: "#0693d4",
 
     clickable: true,
+    expandable: false,
   },
 
   formMeta: {

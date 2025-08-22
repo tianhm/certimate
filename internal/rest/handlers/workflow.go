@@ -2,10 +2,12 @@ package handlers
 
 import (
 	"context"
+	"errors"
 
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/router"
 
+	"github.com/certimate-go/certimate/internal/domain"
 	"github.com/certimate-go/certimate/internal/domain/dtos"
 	"github.com/certimate-go/certimate/internal/rest/resp"
 )
@@ -35,6 +37,9 @@ func (handler *WorkflowHandler) run(e *core.RequestEvent) error {
 	req.WorkflowId = e.Request.PathValue("workflowId")
 	if err := e.BindBody(req); err != nil {
 		return resp.Err(e, err)
+	}
+	if req.RunTrigger != domain.WorkflowTriggerTypeManual {
+		return resp.Err(e, errors.New("invalid parameters: the value of 'trigger' must be 'manual'"))
 	}
 
 	res, err := handler.service.StartRun(e.Request.Context(), req)

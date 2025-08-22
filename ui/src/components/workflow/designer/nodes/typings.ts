@@ -13,6 +13,7 @@ import { WORKFLOW_NODE_TYPES, type WorkflowNode } from "@/domain/workflow";
 export enum NodeType {
   Start = "start",
   End = "end",
+  Delay = "delay",
   Condition = "condition",
   BranchBlock = "branchBlock",
   TryCatch = "tryCatch",
@@ -28,6 +29,7 @@ export enum NodeType {
 /* TYPE GUARD, PLEASE DO NOT REMOVE THESE! */
 console.assert(NodeType.Start === WORKFLOW_NODE_TYPES.START);
 console.assert(NodeType.End === WORKFLOW_NODE_TYPES.END);
+console.assert(NodeType.Delay === WORKFLOW_NODE_TYPES.DELAY);
 console.assert(NodeType.Condition === WORKFLOW_NODE_TYPES.CONDITION);
 console.assert(NodeType.BranchBlock === WORKFLOW_NODE_TYPES.BRANCHBLOCK);
 console.assert(NodeType.TryCatch === WORKFLOW_NODE_TYPES.TRYCATCH);

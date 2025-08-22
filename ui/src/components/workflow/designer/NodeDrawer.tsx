@@ -10,6 +10,7 @@ import BizMonitorNodeConfigDrawer from "./forms/BizMonitorNodeConfigDrawer";
 import BizNotifyNodeConfigDrawer from "./forms/BizNotifyNodeConfigDrawer";
 import BizUploadNodeConfigDrawer from "./forms/BizUploadNodeConfigDrawer";
 import BranchBlockNodeConfigDrawer from "./forms/BranchBlockNodeConfigDrawer";
+import DelayNodeConfigDrawer from "./forms/DelayNodeConfigDrawer";
 import StartNodeConfigDrawer from "./forms/StartNodeConfigDrawer";
 import { NodeType } from "./nodes/typings";
 
@@ -50,6 +51,10 @@ const NodeDrawer = ({ node, trigger, ...props }: NodeDrawerProps) => {
 
       {node?.flowNodeType === NodeType.Start ? (
         <StartNodeConfigDrawer {...drawerProps} />
+      ) : node?.flowNodeType === NodeType.Delay ? (
+        <DelayNodeConfigDrawer {...drawerProps} />
+      ) : node?.flowNodeType === NodeType.BranchBlock ? (
+        <BranchBlockNodeConfigDrawer {...drawerProps} />
       ) : node?.flowNodeType === NodeType.BizApply ? (
         <BizApplyNodeConfigDrawer {...drawerProps} />
       ) : node?.flowNodeType === NodeType.BizUpload ? (
@@ -60,8 +65,6 @@ const NodeDrawer = ({ node, trigger, ...props }: NodeDrawerProps) => {
         <BizDeployNodeConfigDrawer {...drawerProps} />
       ) : node?.flowNodeType === NodeType.BizNotify ? (
         <BizNotifyNodeConfigDrawer {...drawerProps} />
-      ) : node?.flowNodeType === NodeType.BranchBlock ? (
-        <BranchBlockNodeConfigDrawer {...drawerProps} />
       ) : (
         <></>
       )}

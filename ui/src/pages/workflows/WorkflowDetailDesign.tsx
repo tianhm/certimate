@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { IconArrowBackUp, IconDots } from "@tabler/icons-react";
 import { useDeepCompareEffect } from "ahooks";
@@ -7,7 +7,6 @@ import { debounce } from "radash";
 
 import Show from "@/components/Show";
 import { WorkflowDesigner, type WorkflowDesignerInstance, WorkflowNodeDrawer, WorkflowToolbar } from "@/components/workflow/designer";
-import { WORKFLOW_RUN_STATUSES } from "@/domain/workflowRun";
 import { useZustandShallowSelector } from "@/hooks";
 import { useWorkflowStore } from "@/stores/workflow";
 import { getErrMsg } from "@/utils/error";
@@ -20,16 +19,8 @@ const WorkflowDetailDesign = () => {
 
   const { workflow, ...workflowStore } = useWorkflowStore(useZustandShallowSelector(["workflow", "orchestrate", "publish", "rollback"]));
 
-  const [workflowRunDisabled, setWorkflowRunDisabled] = useState(false);
-  const workflowRollbackDisabled = useMemo(
-    () => workflowRunDisabled || !workflow.hasDraft || !workflow.hasContent,
-    [workflowRunDisabled, workflow.hasDraft, workflow.hasContent]
-  );
-  const workflowPublishDisabled = useMemo(() => workflowRunDisabled || !workflow.hasDraft, [workflowRunDisabled, workflow.hasDraft]);
-  useEffect(() => {
-    const running = workflow.lastRunStatus === WORKFLOW_RUN_STATUSES.PENDING || workflow.lastRunStatus === WORKFLOW_RUN_STATUSES.PROCESSING;
-    setWorkflowRunDisabled(running);
-  }, [workflow.lastRunStatus]);
+  const workflowRollbackDisabled = useMemo(() => !workflow.hasDraft || !workflow.hasContent, [workflow.hasDraft, workflow.hasContent]);
+  const workflowPublishDisabled = useMemo(() => !workflow.hasDraft, [workflow.hasDraft]);
 
   const designerRef = useRef<WorkflowDesignerInstance>(null);
   const designerPending = useRef(false); // 保存中时阻止刷新画布

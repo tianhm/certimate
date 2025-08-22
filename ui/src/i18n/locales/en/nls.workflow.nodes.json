@@ -1025,6 +1025,14 @@
   "workflow_node.notify.form.skip_on_all_prev_skipped.switch.on": "skip",
   "workflow_node.notify.form.skip_on_all_prev_skipped.switch.off": "not skip",
 
+  "workflow_node.delay.label": "Delay",
+  "workflow_node.delay.help": "Pause the execution, and wait for a certain amount of time.",
+  "workflow_node.delay.default_name": "Delay",
+  "workflow_node.delay.form_anchor.parameters.tab": "Parameters",
+  "workflow_node.delay.form.wait.label": "Waiting time",
+  "workflow_node.delay.form.wait.placeholder": "Please enter waiting time",
+  "workflow_node.delay.form.wait.unit": "seconds",
+
   "workflow_node.condition.label": "Parallel/Conditional branch",
   "workflow_node.condition.help": "When the specified conditions are met, enter the corresponding branch. The failure of a node in a certain branch does not affect the continuation of parallel branch execution.",
   "workflow_node.condition.default_name": "Parallel",

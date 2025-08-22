@@ -63,6 +63,12 @@ func (g *WorkflowGraph) Verify() error {
 	return nil
 }
 
+func (g *WorkflowGraph) Clone() *WorkflowGraph {
+	return &WorkflowGraph{
+		Nodes: g.Nodes,
+	}
+}
+
 type WorkflowTriggerType string
 
 const (

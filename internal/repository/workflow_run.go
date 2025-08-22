@@ -162,7 +162,7 @@ func (r *WorkflowRunRepository) castRecordToModel(record *core.Record) (*domain.
 		return nil, fmt.Errorf("the record is nil")
 	}
 
-	graph := &domain.WorkflowGraphWithResult{}
+	graph := &domain.WorkflowGraph{}
 	if err := record.UnmarshalJSONField("graph", &graph); err != nil {
 		return nil, fmt.Errorf("field 'graph' is malformed")
 	}

@@ -86,7 +86,7 @@ func (s *WorkflowService) StartRun(ctx context.Context, req *dtos.WorkflowStartR
 	} else if workflow.GraphContent == nil {
 		return nil, errors.New("workflow graph content is empty")
 	} else if err := workflow.GraphContent.Verify(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("workflow graph content is invalid: %w", err)
 	}
 
 	workflowRun := &domain.WorkflowRun{
@@ -94,7 +94,7 @@ func (s *WorkflowService) StartRun(ctx context.Context, req *dtos.WorkflowStartR
 		Status:     domain.WorkflowRunStatusTypePending,
 		Trigger:    req.RunTrigger,
 		StartedAt:  time.Now(),
-		Graph:      &domain.WorkflowGraphWithResult{WorkflowGraph: *workflow.GraphContent},
+		Graph:      workflow.GraphContent.Clone(),
 	}
 	if resp, err := s.workflowRunRepo.Save(ctx, workflowRun); err != nil {
 		return nil, err

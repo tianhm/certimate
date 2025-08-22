@@ -241,11 +241,12 @@ func (wd *workflowDispatcher) tryExecuteAsync(task *taskInfo) {
 		log.Level = int32(slog.LevelError)
 		log.Message = err.Error()
 		log.CreatedAt = time.Now()
+		logsBuf = append(logsBuf, log)
+
 		if _, err := wd.workflowLogRepo.Save(ctx, &log); err != nil {
 			app.GetLogger().Error(err.Error())
 		}
 
-		logsBuf = append(logsBuf, log)
 		return nil
 	})
 	we.OnNodeLogging(func(ctx context.Context, node *engine.Node, record logging.Record) error {
@@ -258,18 +259,19 @@ func (wd *workflowDispatcher) tryExecuteAsync(task *taskInfo) {
 		log.Level = int32(record.Level)
 		log.Message = record.Message
 		log.Data = record.Data
-		log.CreatedAt = record.Time
+		log.CreatedAt = time.Now()
+		logsBuf = append(logsBuf, log)
+
 		if _, err := wd.workflowLogRepo.Save(ctx, &log); err != nil {
 			app.GetLogger().Error(err.Error())
 		}
 
-		logsBuf = append(logsBuf, log)
 		return nil
 	})
 
 	// 执行工作流
 	app.GetLogger().Info(fmt.Sprintf("start to invoke workflow run #%s", task.RunId))
-	we.Invoke(task.ctx, workflowRun.WorkflowId, workflowRun.Id, &workflowRun.Graph.WorkflowGraph)
+	we.Invoke(task.ctx, workflowRun.WorkflowId, workflowRun.Id, workflowRun.Graph)
 }
 
 func (wd *workflowDispatcher) tryNextAsync() {

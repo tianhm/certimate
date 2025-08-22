@@ -195,6 +195,11 @@ func (we *workflowEngine) executeBlocks(wfCtx *WorkflowContext, blocks []*Node) 
 		default:
 		}
 
+		// 节点已禁用，直接跳过执行
+		if node.Data.Disabled {
+			continue
+		}
+
 		err := we.executeNode(wfCtx, node)
 		if err != nil {
 			return err

@@ -8,8 +8,10 @@ type startNodeExecutor struct {
 	nodeExecutor
 }
 
-func (e *startNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExecutionResult, error) {
+func (ne *startNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExecutionResult, error) {
 	execRes := newNodeExecutionResult(execCtx.Node)
+
+	ne.logger.Info("")
 
 	return execRes, nil
 }

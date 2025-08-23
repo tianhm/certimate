@@ -73,11 +73,11 @@ const InternalNodeCard = ({
 
   const isActivated = useMemo(() => nodeRenderData.activated || nodeRenderData.lineActivated, [nodeRenderData.activated, nodeRenderData.lineActivated]);
   const [isHovering, setIsHovering] = useState(false);
-  const [isInvalid, setIsInvalid] = useState(false);
+  const [isNodeInvalid, setIsNodeInvalid] = useState(false);
   const isNodeDisabled = useWatchFormValueIn(nodeRender.node, "disabled");
 
   const formState = useWatchFormState(nodeRender.node);
-  useEffect(() => setIsInvalid(!!formState?.invalid), [formState?.invalid]);
+  useEffect(() => setIsNodeInvalid(!!formState?.invalid), [formState?.invalid]);
 
   return (
     <Card
@@ -110,7 +110,7 @@ const InternalNodeCard = ({
           right: "-1px",
           bottom: "-1px",
           borderWidth: "2px",
-          borderColor: isHovering ? "var(--color-primary)" : isInvalid ? "var(--color-error)" : void 0,
+          borderColor: isHovering ? "var(--color-primary)" : isNodeInvalid ? "var(--color-error)" : void 0,
           borderStyle: isNodeDisabled ? "dashed" : "solid",
         }}
       />

@@ -62,7 +62,7 @@ func (we *workflowEngine) Invoke(ctx context.Context, workflowId string, runId s
 		SetInputsManager(newInOutManager()).
 		SetContext(ctx)
 	if err := we.executeBlocks(wfCtx, runGraph.Nodes); err != nil {
-		if !errors.Is(err, errInterrupted) {
+		if !errors.Is(err, ErrTerminated) {
 			we.fireOnErrorHooks(ctx, err)
 			return err
 		}
@@ -135,7 +135,7 @@ func (we *workflowEngine) executeNode(wfCtx *WorkflowContext, node *Node) error 
 
 	execCtx := newNodeExecutionContext(wfCtx, node)
 	execRes, err := executor.Execute(execCtx)
-	if err != nil {
+	if err != nil && !errors.Is(err, ErrTerminated) {
 		we.fireOnNodeErrorHooks(wfCtx.ctx, node, err)
 		return err
 	}
@@ -179,9 +179,13 @@ func (we *workflowEngine) executeNode(wfCtx *WorkflowContext, node *Node) error 
 			}
 		}
 
-		if execRes.Interrupted {
-			return errInterrupted
+		if execRes.Terminated {
+			return ErrTerminated
 		}
+	}
+
+	if err != nil && errors.Is(err, ErrTerminated) {
+		return err
 	}
 
 	return nil

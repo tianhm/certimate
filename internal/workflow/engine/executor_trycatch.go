@@ -33,7 +33,7 @@ func (ne *tryCatchNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 
 		err := engine.executeNode(execCtx.Clone(), node)
 		if err != nil {
-			if errors.Is(err, errInterrupted) {
+			if errors.Is(err, ErrTerminated) {
 				return execRes, err
 			}
 			tryErrs = append(tryErrs, err)
@@ -52,18 +52,17 @@ func (ne *tryCatchNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 
 			err := engine.executeNode(execCtx.Clone(), node)
 			if err != nil {
-				if errors.Is(err, errInterrupted) {
+				if errors.Is(err, ErrTerminated) {
 					return execRes, err
 				}
 				catchErrs = append(catchErrs, err)
 			}
 		}
 
-		if len(catchErrs) > 0 {
-			return execRes, fmt.Errorf("error occurred when executing child nodes: %w", errors.Join(append(tryErrs, catchErrs...)...))
-		}
-
-		return execRes, fmt.Errorf("error occurred when executing child nodes: %w", errors.Join(tryErrs...))
+		errs := make([]error, 0)
+		errs = append(errs, tryErrs...)
+		errs = append(errs, catchErrs...)
+		return execRes, fmt.Errorf("%w: %w", ErrBlocksException, errors.Join(errs...))
 	}
 
 	return execRes, nil
@@ -90,7 +89,7 @@ func (ne *tryBlockNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 	execRes := newNodeExecutionResult(execCtx.Node)
 
 	if err := engine.executeBlocks(execCtx.Clone(), execCtx.Node.Blocks); err != nil {
-		return execRes, err
+		return execRes, fmt.Errorf("%w: %w", ErrBlocksException, err)
 	}
 
 	return execRes, nil
@@ -117,7 +116,7 @@ func (ne *catchBlockNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeE
 	}
 
 	if err := engine.executeBlocks(execCtx.Clone(), execCtx.Node.Blocks); err != nil {
-		return execRes, err
+		return execRes, fmt.Errorf("%w: %w", ErrBlocksException, err)
 	}
 
 	return execRes, nil

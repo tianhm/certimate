@@ -21,7 +21,7 @@ import { useNodeFormContext } from "./_context";
 import { getAllPreviousNodes } from "../_util";
 import { NodeType } from "../nodes/typings";
 
-export interface BranchBlockNodeConfigFormExpressionEditorProps {
+export interface BranchBlockNodeConfigExprInputBoxProps {
   className?: string;
   style?: React.CSSProperties;
   defaultValue?: Expr;
@@ -29,8 +29,8 @@ export interface BranchBlockNodeConfigFormExpressionEditorProps {
   onChange?: (value: Expr) => void;
 }
 
-export interface BranchBlockNodeConfigFormExpressionEditorInstance {
-  validate: () => Promise<void>;
+export interface BranchBlockNodeConfigExprInputBoxInstance {
+  validate: () => Promise<Expr | undefined>;
 }
 
 // 表单内部使用的扁平结构
@@ -50,7 +50,7 @@ type ConditionFormValues = {
   logicalOperator: ExprLogicalOperator;
 };
 
-const exprToFormValues = (expr?: Expr): ConditionFormValues => {
+const exprToFormValues = (expr: Expr | undefined): ConditionFormValues => {
   if (!expr) return getInitialValues();
 
   const conditions: ConditionItem[] = [];
@@ -138,7 +138,7 @@ const formValuesToExpr = (values: ConditionFormValues): Expr | undefined => {
   return expr;
 };
 
-const BranchBlockNodeConfigFormExpressionEditor = forwardRef<BranchBlockNodeConfigFormExpressionEditorInstance, BranchBlockNodeConfigFormExpressionEditorProps>(
+const BranchBlockNodeConfigExprInputBox = forwardRef<BranchBlockNodeConfigExprInputBoxInstance, BranchBlockNodeConfigExprInputBoxProps>(
   ({ className, style, ...props }, ref) => {
     const { t } = useTranslation();
 
@@ -153,7 +153,7 @@ const BranchBlockNodeConfigFormExpressionEditor = forwardRef<BranchBlockNodeConf
     const { node } = useNodeFormContext();
 
     const [formInst] = Form.useForm<ConditionFormValues>();
-    const formName = useAntdFormName({ form: formInst, name: "workflowNodeBranchBlockConfigFormExpressionEditorForm" });
+    const formName = useAntdFormName({ form: formInst, name: "workflowNodeBranchBlockConfigExprInputBoxForm" });
     const [formModel, setFormModel] = useState<ConditionFormValues>(getInitialValues());
 
     useEffect(() => {
@@ -253,8 +253,9 @@ const BranchBlockNodeConfigFormExpressionEditor = forwardRef<BranchBlockNodeConf
       return {
         validate: async () => {
           await formInst.validateFields();
+          return formValuesToExpr(formInst.getFieldsValue());
         },
-      } as BranchBlockNodeConfigFormExpressionEditorInstance;
+      };
     });
 
     return (
@@ -383,4 +384,4 @@ const getInitialValues = (): ConditionFormValues => {
   };
 };
 
-export default BranchBlockNodeConfigFormExpressionEditor;
+export default BranchBlockNodeConfigExprInputBox;

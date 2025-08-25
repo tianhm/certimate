@@ -65,7 +65,7 @@ const CertificateDetailDrawer = ({ afterClose, data, loading, trigger, ...props 
 const useDrawer = () => {
   type DataType = CertificateDetailDrawerProps["data"];
   const [data, setData] = useState<DataType>();
-  const [open, setOpen] = useState<boolean>(false);
+  const [open, setOpen] = useState(false);
 
   const onOpenChange = useCallback((open: boolean) => {
     setOpen(open);

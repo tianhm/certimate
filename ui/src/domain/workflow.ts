@@ -59,6 +59,7 @@ export type WorkflowNode = {
     name?: string;
     disabled?: boolean;
     config?: Record<string, unknown>;
+    [key: string]: unknown;
   };
   blocks?: WorkflowNode[];
 };

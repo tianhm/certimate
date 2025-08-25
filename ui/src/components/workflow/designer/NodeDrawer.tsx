@@ -75,7 +75,7 @@ const NodeDrawer = ({ node, trigger, ...props }: NodeDrawerProps) => {
 const useDrawer = () => {
   type NodeDataType = NodeDrawerProps["node"];
   const [node, setNode] = useState<NodeDataType>();
-  const [open, setOpen] = useState<boolean>(false);
+  const [open, setOpen] = useState(false);
 
   const onOpenChange = useCallback((open: boolean) => {
     setOpen(open);

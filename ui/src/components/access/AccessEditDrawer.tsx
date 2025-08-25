@@ -146,7 +146,7 @@ const AccessEditDrawer = ({ afterClose, afterSubmit, mode, data, loading, trigge
 const useDrawer = () => {
   type DataType = AccessEditDrawerProps["data"];
   const [data, setData] = useState<DataType>();
-  const [open, setOpen] = useState<boolean>(false);
+  const [open, setOpen] = useState(false);
 
   const onOpenChange = useCallback((open: boolean) => {
     setOpen(open);

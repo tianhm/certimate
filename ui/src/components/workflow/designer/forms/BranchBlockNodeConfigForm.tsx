@@ -18,7 +18,7 @@ import {
 import { useAntdForm } from "@/hooks";
 
 import { NodeFormContextProvider } from "./_context";
-import BranchBlockNodeConfigFormExpressionEditor, { type BranchBlockNodeConfigFormExpressionEditorInstance } from "./BranchBlockNodeConfigFormExpressionEditor";
+import BranchBlockNodeConfigExprInputBox, { type BranchBlockNodeConfigExprInputBoxInstance } from "./BranchBlockNodeConfigExprInputBox";
 
 import { NodeType } from "../nodes/typings";
 
@@ -41,7 +41,7 @@ const BranchBlockNodeConfigForm = ({ node, ...props }: BranchBlockNodeConfigForm
   const formSchema = getSchema({ i18n }).superRefine(async (values, ctx) => {
     if (values.expression != null) {
       try {
-        await exprEditorRef.current!.validate();
+        await exprInputBoxRef.current!.validate();
       } catch {
         if (!ctx.issues.some((issue) => issue.path?.[0] === "expression")) {
           ctx.addIssue({
@@ -60,14 +60,14 @@ const BranchBlockNodeConfigForm = ({ node, ...props }: BranchBlockNodeConfigForm
     initialValues: initialValues ?? getInitialValues(),
   });
 
-  const exprEditorRef = useRef<BranchBlockNodeConfigFormExpressionEditorInstance>(null);
+  const exprInputBoxRef = useRef<BranchBlockNodeConfigExprInputBoxInstance>(null);
 
   return (
     <NodeFormContextProvider value={{ node }}>
       <Form {...formProps} clearOnDestroy={true} form={formInst} layout="vertical" preserve={false} scrollToFirstError>
         <div id="parameters" data-anchor="parameters">
           <Form.Item name="expression" label={t("workflow_node.branch_block.form.expression.label")} rules={[formRule]}>
-            <BranchBlockNodeConfigFormExpressionEditor ref={exprEditorRef} />
+            <BranchBlockNodeConfigExprInputBox ref={exprInputBoxRef} />
           </Form.Item>
         </div>
       </Form>

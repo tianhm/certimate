@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { type FlowNodeEntity, getNodeForm, useClientContext, useRefresh, useWatchFormValueIn } from "@flowgram.ai/fixed-layout-editor";
+import { type FlowNodeEntity, getNodeForm, useClientContext, useRefresh } from "@flowgram.ai/fixed-layout-editor";
 import { IconEye, IconEyeOff, IconX } from "@tabler/icons-react";
 import { useControllableValue } from "ahooks";
 import { Anchor, type AnchorProps, App, Button, Drawer, Flex, type FormInstance, Tooltip, Typography } from "antd";
@@ -41,7 +41,7 @@ export const NodeConfigDrawer = ({ children, afterClose, anchor, footer = true, 
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const [formPending, setFormPending] = useState<boolean>(false);
+  const [formPending, setFormPending] = useState(false);
 
   const nodeRegistry = node?.getNodeRegistry<NodeRegistry>();
   const NodeIcon = nodeRegistry?.meta?.icon;
@@ -134,13 +134,12 @@ export const NodeConfigDrawer = ({ children, afterClose, anchor, footer = true, 
     const newValues = picker(formInst.getFieldsValue(true));
     const changed = !isEqual(oldValues, {}) && !isEqual(oldValues, newValues);
 
-    const { promise, resolve, reject } = Promise.withResolvers();
+    const { promise, resolve } = Promise.withResolvers();
     if (changed) {
       modal.confirm({
         title: t("common.text.operation_confirm"),
         content: t("workflow.detail.design.unsaved_changes.confirm"),
         onOk: () => resolve(void 0),
-        onCancel: () => reject(),
       });
     } else {
       resolve(void 0);

@@ -26,13 +26,11 @@ import WorkflowStatus from "@/components/workflow/WorkflowStatus";
 import { type Statistics } from "@/domain/statistics";
 import { type WorkflowRunModel } from "@/domain/workflowRun";
 import { useBrowserTheme } from "@/hooks";
-import { list as listWorkflowRuns } from "@/repository/workflowRun";
+import { get as getWorkflowRun, list as listWorkflowRuns } from "@/repository/workflowRun";
 import { mergeCls } from "@/utils/css";
 import { getErrMsg } from "@/utils/error";
 
 const Dashboard = () => {
-  const navigate = useNavigate();
-
   const { t } = useTranslation();
 
   return (
@@ -48,17 +46,7 @@ const Dashboard = () => {
 
         <div className="mt-8">
           <h3>{t("dashboard.shortcut")}</h3>
-          <div className="flex items-center gap-4 not-md:flex-wrap">
-            <Button icon={<IconCirclePlus size="1em" />} shape="round" size="large" type="primary" onClick={() => navigate("/workflows/new")}>
-              <span className="text-sm">{t("dashboard.shortcut.create_workflow")}</span>
-            </Button>
-            <Button icon={<IconLock size="1em" />} shape="round" size="large" onClick={() => navigate("/settings/account")}>
-              <span className="text-sm">{t("dashboard.shortcut.change_account")}</span>
-            </Button>
-            <Button icon={<IconPlugConnected size="1em" />} shape="round" size="large" onClick={() => navigate("/settings/ssl-provider")}>
-              <span className="text-sm">{t("dashboard.shortcut.configure_ca")}</span>
-            </Button>
-          </div>
+          <Shortcuts />
         </div>
 
         <div className="mt-8">
@@ -185,8 +173,8 @@ const StatisticCards = ({ className, style }: { className?: string; style?: Reac
             icon={<IconAlertHexagon size={48} />}
             label={t("dashboard.statistics.expire_soon_certificates")}
             loading={loading}
-            value={statistics?.certificateExpireSoon ?? "-"}
-            onClick={() => navigate("/certificates?state=expireSoon")}
+            value={statistics?.certificateExpiringSoon ?? "-"}
+            onClick={() => navigate("/certificates?state=expiringSoon")}
           />
         </Col>
         <Col className="overflow-hidden" {...cardGridSpans}>
@@ -220,6 +208,46 @@ const StatisticCards = ({ className, style }: { className?: string; style?: Reac
           />
         </Col>
       </Row>
+    </div>
+  );
+};
+
+const Shortcuts = ({ className, style }: { className?: string; style?: React.CSSProperties }) => {
+  const navigate = useNavigate();
+
+  const { t } = useTranslation();
+
+  return (
+    <div className={className} style={style}>
+      <div className="flex items-center gap-4 not-md:flex-wrap">
+        <Button
+          className="shadow"
+          icon={<IconCirclePlus color="var(--color-primary)" size="1.25em" />}
+          shape="round"
+          size="large"
+          onClick={() => navigate("/workflows/new")}
+        >
+          <span className="text-sm">{t("dashboard.shortcut.create_workflow")}</span>
+        </Button>
+        <Button
+          className="shadow"
+          icon={<IconLock color="var(--color-warning)" size="1.25em" />}
+          shape="round"
+          size="large"
+          onClick={() => navigate("/settings/account")}
+        >
+          <span className="text-sm">{t("dashboard.shortcut.change_account")}</span>
+        </Button>
+        <Button
+          className="shadow"
+          icon={<IconPlugConnected color="var(--color-info)" size="1.25em" />}
+          shape="round"
+          size="large"
+          onClick={() => navigate("/settings/ssl-provider")}
+        >
+          <span className="text-sm">{t("dashboard.shortcut.configure_ca")}</span>
+        </Button>
+      </div>
     </div>
   );
 };
@@ -332,7 +360,10 @@ const WorkflowRunHistoryTable = ({ className, style }: { className?: string; sty
   const { drawerProps: detailDrawerProps, ...detailDrawer } = WorkflowRunDetailDrawer.useDrawer();
 
   const handleRecordDetailClick = (workflowRun: WorkflowRunModel) => {
-    detailDrawer.open(workflowRun);
+    const drawer = detailDrawer.open({ data: workflowRun, loading: true });
+    getWorkflowRun(workflowRun.id).then((data) => {
+      drawer.safeUpdate({ data, loading: false });
+    });
   };
 
   return (

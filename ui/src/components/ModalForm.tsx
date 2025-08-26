@@ -122,7 +122,7 @@ const ModalForm = <T extends NonNullable<unknown> = any>({
         onOk={handleOkClick}
         onCancel={handleCancelClick}
       >
-        <div className="pt-4 pb-2">
+        <div className="py-3">
           <Form className={className} style={style} {...mergedFormProps} form={formInst}>
             {children}
           </Form>

@@ -1,4 +1,4 @@
-import { type WorkflowModel } from "./workflow";
+import { type WorkflowGraph, type WorkflowModel } from "./workflow";
 
 export interface WorkflowRunModel extends BaseModel {
   workflowRef: string;
@@ -6,9 +6,10 @@ export interface WorkflowRunModel extends BaseModel {
   trigger: string;
   startedAt: ISO8601String;
   endedAt: ISO8601String;
+  graph?: WorkflowGraph;
   error?: string;
   expand?: {
-    workflowRef?: WorkflowModel;
+    workflowRef?: Pick<WorkflowModel, "id" | "name" | "description">;
   };
 }
 

@@ -93,6 +93,7 @@ const (
 	WorkflowNodeTypeTryCatch    = WorkflowNodeType("tryCatch")
 	WorkflowNodeTypeTryBlock    = WorkflowNodeType("tryBlock")
 	WorkflowNodeTypeCatchBlock  = WorkflowNodeType("catchBlock")
+	WorkflowNodeTypeDelay       = WorkflowNodeType("delay")
 	WorkflowNodeTypeBizApply    = WorkflowNodeType("bizApply")
 	WorkflowNodeTypeBizUpload   = WorkflowNodeType("bizUpload")
 	WorkflowNodeTypeBizMonitor  = WorkflowNodeType("bizMonitor")
@@ -101,11 +102,35 @@ const (
 )
 
 type WorkflowNodeData struct {
-	Name   string             `json:"name"`
-	Config WorkflowNodeConfig `json:"config"`
+	Name     string             `json:"name"`
+	Disabled bool               `json:"disabled,omitempty,omitzero"`
+	Config   WorkflowNodeConfig `json:"config,omitempty,omitzero"`
 }
 
 type WorkflowNodeConfig map[string]any
+
+func (c WorkflowNodeConfig) AsDelay() WorkflowNodeConfigForDelay {
+	return WorkflowNodeConfigForDelay{
+		Wait: xmaps.GetInt32(c, "wait"),
+	}
+}
+
+func (c WorkflowNodeConfig) AsBranchBlock() WorkflowNodeConfigForBranchBlock {
+	expression := c["expression"]
+	if expression == nil {
+		return WorkflowNodeConfigForBranchBlock{}
+	}
+
+	exprRaw, _ := json.Marshal(expression)
+	expr, err := expr.UnmarshalExpr([]byte(exprRaw))
+	if err != nil {
+		return WorkflowNodeConfigForBranchBlock{}
+	}
+
+	return WorkflowNodeConfigForBranchBlock{
+		Expression: expr,
+	}
+}
 
 func (c WorkflowNodeConfig) AsBizApply() WorkflowNodeConfigForBizApply {
 	return WorkflowNodeConfigForBizApply{
@@ -169,21 +194,12 @@ func (c WorkflowNodeConfig) AsBizNotify() WorkflowNodeConfigForBizNotify {
 	}
 }
 
-func (c WorkflowNodeConfig) AsBranchBlock() WorkflowNodeConfigForBranchBlock {
-	expression := c["expression"]
-	if expression == nil {
-		return WorkflowNodeConfigForBranchBlock{}
-	}
+type WorkflowNodeConfigForDelay struct {
+	Wait int32 `json:"wait"` // 等待时间
+}
 
-	exprRaw, _ := json.Marshal(expression)
-	expr, err := expr.UnmarshalExpr([]byte(exprRaw))
-	if err != nil {
-		return WorkflowNodeConfigForBranchBlock{}
-	}
-
-	return WorkflowNodeConfigForBranchBlock{
-		Expression: expr,
-	}
+type WorkflowNodeConfigForBranchBlock struct {
+	Expression expr.Expr `json:"expression"` // 条件表达式
 }
 
 type WorkflowNodeConfigForBizApply struct {
@@ -235,8 +251,4 @@ type WorkflowNodeConfigForBizNotify struct {
 	Subject              string         `json:"subject"`                  // 通知主题
 	Message              string         `json:"message"`                  // 通知内容
 	SkipOnAllPrevSkipped bool           `json:"skipOnAllPrevSkipped"`     // 前序节点均已跳过时是否跳过
-}
-
-type WorkflowNodeConfigForBranchBlock struct {
-	Expression expr.Expr `json:"expression"` // 条件表达式
 }

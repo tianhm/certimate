@@ -33,7 +33,7 @@ func (ne *conditionNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 
 		err := engine.executeNode(execCtx.Clone(), node)
 		if err != nil {
-			if errors.Is(err, errInterrupted) {
+			if errors.Is(err, ErrTerminated) {
 				return execRes, err
 			}
 			errs = append(errs, err)
@@ -41,7 +41,7 @@ func (ne *conditionNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 	}
 
 	if len(errs) > 0 {
-		return execRes, fmt.Errorf("error occurred when executing child nodes: %w", errors.Join(errs...))
+		return execRes, fmt.Errorf("%w: %w", ErrBlocksException, errors.Join(errs...))
 	}
 
 	return execRes, nil
@@ -92,7 +92,7 @@ func (ne *branchBlockNodeExecutor) Execute(execCtx *NodeExecutionContext) (*Node
 		panic("impossible!")
 	} else {
 		if err := engine.executeBlocks(execCtx.Clone(), execCtx.Node.Blocks); err != nil {
-			return execRes, err
+			return execRes, fmt.Errorf("%w: %w", ErrBlocksException, err)
 		}
 	}
 

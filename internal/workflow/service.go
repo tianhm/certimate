@@ -81,7 +81,7 @@ func (s *WorkflowService) StartRun(ctx context.Context, req *dtos.WorkflowStartR
 		return nil, err
 	}
 
-	if workflow.LastRunStatus == domain.WorkflowRunStatusTypePending || workflow.LastRunStatus == domain.WorkflowRunStatusTypeProcessing {
+	if req.RunTrigger == domain.WorkflowTriggerTypeManual && (workflow.LastRunStatus == domain.WorkflowRunStatusTypePending || workflow.LastRunStatus == domain.WorkflowRunStatusTypeProcessing) {
 		return nil, errors.New("workflow is already pending or processing")
 	} else if workflow.GraphContent == nil {
 		return nil, errors.New("workflow graph content is empty")

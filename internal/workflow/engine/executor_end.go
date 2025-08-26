@@ -8,9 +8,11 @@ type endNodeExecutor struct {
 	nodeExecutor
 }
 
-func (e *endNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExecutionResult, error) {
+func (ne *endNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExecutionResult, error) {
 	execRes := newNodeExecutionResult(execCtx.Node)
-	execRes.Interrupted = true
+	execRes.Terminated = true
+
+	ne.logger.Info("the is ending")
 
 	return execRes, nil
 }

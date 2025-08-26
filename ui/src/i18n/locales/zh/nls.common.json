@@ -1,9 +1,10 @@
 ﻿{
   "common.button.add": "新增",
   "common.button.cancel": "取消",
+  "common.button.close": "关闭",
   "common.button.confirm": "确定",
-  "common.button.create": "新建",
   "common.button.copy": "复制",
+  "common.button.create": "新建",
   "common.button.delete": "刪除",
   "common.button.download": "下载",
   "common.button.edit": "编辑",
@@ -23,6 +24,7 @@
   "common.text.operation_succeeded": "操作成功",
   "common.text.operation_failed": "操作失败",
   "common.text.request_error": "请求错误",
+  "common.text.saving": "保存中 ……",
   "common.text.search": "搜索 ……",
 
   "common.menu.document": "文档",

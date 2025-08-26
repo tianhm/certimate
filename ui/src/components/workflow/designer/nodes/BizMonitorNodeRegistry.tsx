@@ -22,6 +22,7 @@ export const BizMonitorNodeRegistry: NodeRegistry = {
     iconBgColor: "#5b65f5",
 
     clickable: true,
+    expandable: false,
   },
 
   formMeta: {

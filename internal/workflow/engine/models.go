@@ -16,6 +16,7 @@ const (
 	NodeTypeTryCatch    = domain.WorkflowNodeTypeTryCatch
 	NodeTypeTryBlock    = domain.WorkflowNodeTypeTryBlock
 	NodeTypeCatchBlock  = domain.WorkflowNodeTypeCatchBlock
+	NodeTypeDelay       = domain.WorkflowNodeTypeDelay
 	NodeTypeBizApply    = domain.WorkflowNodeTypeBizApply
 	NodeTypeBizUpload   = domain.WorkflowNodeTypeBizUpload
 	NodeTypeBizMonitor  = domain.WorkflowNodeTypeBizMonitor

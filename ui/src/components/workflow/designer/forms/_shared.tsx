@@ -1,11 +1,12 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { type FlowNodeEntity, getNodeForm } from "@flowgram.ai/fixed-layout-editor";
-import { IconX } from "@tabler/icons-react";
+import { type FlowNodeEntity, getNodeForm, useClientContext, useRefresh } from "@flowgram.ai/fixed-layout-editor";
+import { IconEye, IconEyeOff, IconX } from "@tabler/icons-react";
 import { useControllableValue } from "ahooks";
-import { Anchor, type AnchorProps, App, Button, Drawer, Flex, type FormInstance, Typography } from "antd";
+import { Anchor, type AnchorProps, App, Button, Drawer, Flex, type FormInstance, Tooltip, Typography } from "antd";
 import { isEqual } from "radash";
 
+import Show from "@/components/Show";
 import { getErrMsg } from "@/utils/error";
 
 import { type NodeRegistry } from "../nodes/typings";
@@ -25,6 +26,11 @@ export interface NodeConfigDrawerProps {
 export const NodeConfigDrawer = ({ children, afterClose, anchor, footer = true, form: formInst, loading, node, ...props }: NodeConfigDrawerProps) => {
   const { t } = useTranslation();
 
+  const ctx = useClientContext();
+  const { playground } = ctx;
+
+  const refresh = useRefresh();
+
   const { modal, notification } = App.useApp();
 
   const [open, setOpen] = useControllableValue<boolean>(props, {
@@ -35,7 +41,7 @@ export const NodeConfigDrawer = ({ children, afterClose, anchor, footer = true, 
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const [formPending, setFormPending] = useState<boolean>(false);
+  const [formPending, setFormPending] = useState(false);
 
   const nodeRegistry = node?.getNodeRegistry<NodeRegistry>();
   const NodeIcon = nodeRegistry?.meta?.icon;
@@ -51,6 +57,22 @@ export const NodeConfigDrawer = ({ children, afterClose, anchor, footer = true, 
         <NodeIcon size="1em" color={nodeRegistry?.meta?.iconColor} stroke="1.25" />
       </div>
     );
+
+  const [isNodeDisabled, setIsNodeDisabled] = useState(() => {
+    if (node) {
+      return getNodeForm(node)?.getValueIn<boolean>("disabled");
+    }
+    return false;
+  });
+  useEffect(() => {
+    const d1 = playground.config.onDataChange(() => refresh());
+    const d2 = node?.onDataChange(() => setIsNodeDisabled(getNodeForm(node)?.getValueIn<boolean>("disabled")));
+
+    return () => {
+      d1.dispose();
+      d2.dispose();
+    };
+  });
 
   const handleOkClick = async () => {
     if (node == null) {
@@ -93,8 +115,7 @@ export const NodeConfigDrawer = ({ children, afterClose, anchor, footer = true, 
       return Object.entries(obj).reduce(
         (acc, [key, value]) => {
           const isEmpty =
-            value === null ||
-            value === undefined ||
+            value == null ||
             (typeof value === "string" && value === "") ||
             (Array.isArray(value) && value.length === 0) ||
             (typeof value === "object" && !Array.isArray(value) && Object.keys(value).length === 0);
@@ -112,19 +133,22 @@ export const NodeConfigDrawer = ({ children, afterClose, anchor, footer = true, 
     const newValues = picker(formInst.getFieldsValue(true));
     const changed = !isEqual(oldValues, {}) && !isEqual(oldValues, newValues);
 
-    const { promise, resolve, reject } = Promise.withResolvers();
+    const { promise, resolve } = Promise.withResolvers();
     if (changed) {
       modal.confirm({
         title: t("common.text.operation_confirm"),
         content: t("workflow.detail.design.unsaved_changes.confirm"),
         onOk: () => resolve(void 0),
-        onCancel: () => reject(),
       });
     } else {
       resolve(void 0);
     }
 
     promise.then(() => setOpen(false));
+  };
+
+  const handleDisableNodeClick = () => {
+    getNodeForm(node)!.setValueIn("disabled", !isNodeDisabled);
   };
 
   return (
@@ -160,21 +184,38 @@ export const NodeConfigDrawer = ({ children, afterClose, anchor, footer = true, 
           <Flex align="center" justify="space-between" gap="small">
             <div>{renderNodeIcon()}</div>
             <div className="flex-1 truncate">{node?.toJSON()?.data?.name}</div>
+            <Show when={!!node && !nodeRegistry?.meta?.isStart && !nodeRegistry?.meta?.isNodeEnd}>
+              <Tooltip
+                title={isNodeDisabled ? t("workflow.detail.design.drawer.disabled.on.tooltip") : t("workflow.detail.design.drawer.disabled.off.tooltip")}
+              >
+                <Button
+                  className="ant-drawer-close"
+                  style={{ marginInline: 0 }}
+                  disabled={playground.config.readonlyOrDisabled}
+                  icon={isNodeDisabled ? <IconEyeOff size="1.25em" /> : <IconEye size="1.25em" />}
+                  size="small"
+                  type="text"
+                  onClick={handleDisableNodeClick}
+                />
+              </Tooltip>
+            </Show>
             <Button className="ant-drawer-close" style={{ marginInline: 0 }} icon={<IconX size="1.25em" />} size="small" type="text" onClick={handleClose} />
           </Flex>
-          <div className="mt-3 text-sm font-normal">
+
+          <div className="mt-3 truncate text-sm font-normal">
             <Typography.Text className="text-xs" type="secondary">
               <span>{t("workflow.detail.design.drawer.node_id.label")}</span>
               <span>{node?.id}</span>
             </Typography.Text>
           </div>
-          {anchor && (
+
+          <Show when={!!anchor}>
             <div className="-mx-[2px] mt-3 text-sm font-normal">
               <Anchor
                 affix={false}
                 getContainer={() => containerRef.current!}
                 direction="horizontal"
-                items={anchor.items}
+                items={(anchor as AnchorProps).items}
                 onClick={(e, link) => {
                   // https://github.com/ant-design/ant-design/issues/10577
                   // https://github.com/ant-design/ant-design/issues/15326
@@ -186,7 +227,7 @@ export const NodeConfigDrawer = ({ children, afterClose, anchor, footer = true, 
                 }}
               />
             </div>
-          )}
+          </Show>
         </>
       }
       onClose={handleClose}

@@ -62,7 +62,7 @@ func (we *workflowEngine) Invoke(ctx context.Context, workflowId string, runId s
 		SetInputsManager(newInOutManager()).
 		SetContext(ctx)
 	if err := we.executeBlocks(wfCtx, runGraph.Nodes); err != nil {
-		if !errors.Is(err, errInterrupted) {
+		if !errors.Is(err, ErrTerminated) {
 			we.fireOnErrorHooks(ctx, err)
 			return err
 		}
@@ -135,7 +135,7 @@ func (we *workflowEngine) executeNode(wfCtx *WorkflowContext, node *Node) error 
 
 	execCtx := newNodeExecutionContext(wfCtx, node)
 	execRes, err := executor.Execute(execCtx)
-	if err != nil {
+	if err != nil && !errors.Is(err, ErrTerminated) {
 		we.fireOnNodeErrorHooks(wfCtx.ctx, node, err)
 		return err
 	}
@@ -179,9 +179,13 @@ func (we *workflowEngine) executeNode(wfCtx *WorkflowContext, node *Node) error 
 			}
 		}
 
-		if execRes.Interrupted {
-			return errInterrupted
+		if execRes.Terminated {
+			return ErrTerminated
 		}
+	}
+
+	if err != nil && errors.Is(err, ErrTerminated) {
+		return err
 	}
 
 	return nil
@@ -193,6 +197,11 @@ func (we *workflowEngine) executeBlocks(wfCtx *WorkflowContext, blocks []*Node) 
 		case <-wfCtx.ctx.Done():
 			return wfCtx.ctx.Err()
 		default:
+		}
+
+		// 节点已禁用，直接跳过执行
+		if node.Data.Disabled {
+			continue
 		}
 
 		err := we.executeNode(wfCtx, node)
@@ -282,6 +291,7 @@ func NewWorkflowEngine() WorkflowEngine {
 	}
 	engine.executors[NodeTypeStart] = newStartNodeExecutor()
 	engine.executors[NodeTypeEnd] = newEndNodeExecutor()
+	engine.executors[NodeTypeDelay] = newDelayNodeExecutor()
 	engine.executors[NodeTypeCondition] = newConditionNodeExecutor()
 	engine.executors[NodeTypeBranchBlock] = newBranchBlockNodeExecutor()
 	engine.executors[NodeTypeTryCatch] = newTryCatchNodeExecutor()

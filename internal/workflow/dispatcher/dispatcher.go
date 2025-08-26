@@ -232,6 +232,10 @@ func (wd *workflowDispatcher) tryExecuteAsync(task *taskInfo) {
 		return nil
 	})
 	we.OnNodeError(func(ctx context.Context, node *engine.Node, err error) error {
+		if errors.Is(err, engine.ErrTerminated) || errors.Is(err, engine.ErrBlocksException) {
+			return nil
+		}
+
 		log := domain.WorkflowLog{}
 		log.WorkflowId = task.WorkflowId
 		log.RunId = task.RunId

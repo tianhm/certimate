@@ -1,13 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { IconArrowBackUp, IconDots } from "@tabler/icons-react";
+import { IconArrowBackUp, IconDots, IconTransferIn, IconTransferOut } from "@tabler/icons-react";
 import { useDeepCompareEffect } from "ahooks";
 import { Alert, App, Button, Card, Dropdown, Result, Space, theme } from "antd";
 import { debounce } from "radash";
 
 import Show from "@/components/Show";
 import { WorkflowDesigner, type WorkflowDesignerInstance, WorkflowNodeDrawer, WorkflowToolbar } from "@/components/workflow/designer";
-import { WORKFLOW_RUN_STATUSES } from "@/domain/workflowRun";
+import WorkflowGraphExportModal from "@/components/workflow/WorkflowGraphExportModal";
+import WorkflowGraphImportModal from "@/components/workflow/WorkflowGraphImportModal";
 import { useZustandShallowSelector } from "@/hooks";
 import { useWorkflowStore } from "@/stores/workflow";
 import { getErrMsg } from "@/utils/error";
@@ -20,16 +21,8 @@ const WorkflowDetailDesign = () => {
 
   const { workflow, ...workflowStore } = useWorkflowStore(useZustandShallowSelector(["workflow", "orchestrate", "publish", "rollback"]));
 
-  const [workflowRunDisabled, setWorkflowRunDisabled] = useState(false);
-  const workflowRollbackDisabled = useMemo(
-    () => workflowRunDisabled || !workflow.hasDraft || !workflow.hasContent,
-    [workflowRunDisabled, workflow.hasDraft, workflow.hasContent]
-  );
-  const workflowPublishDisabled = useMemo(() => workflowRunDisabled || !workflow.hasDraft, [workflowRunDisabled, workflow.hasDraft]);
-  useEffect(() => {
-    const running = workflow.lastRunStatus === WORKFLOW_RUN_STATUSES.PENDING || workflow.lastRunStatus === WORKFLOW_RUN_STATUSES.PROCESSING;
-    setWorkflowRunDisabled(running);
-  }, [workflow.lastRunStatus]);
+  const workflowRollbackDisabled = useMemo(() => !workflow.hasDraft || !workflow.hasContent, [workflow.hasDraft, workflow.hasContent]);
+  const workflowPublishDisabled = useMemo(() => !workflow.hasDraft, [workflow.hasDraft]);
 
   const designerRef = useRef<WorkflowDesignerInstance>(null);
   const designerPending = useRef(false); // 保存中时阻止刷新画布
@@ -47,6 +40,8 @@ const WorkflowDetailDesign = () => {
       setDesignerError(err);
     }
   }, [workflow.graphDraft]);
+
+  const { drawerProps: designerNodeDrawerProps, ...designerNodeDrawer } = WorkflowNodeDrawer.useDrawer();
 
   const handleDesignerDocumentChange = debounce({ delay: 300 }, async () => {
     if (designerRef.current == null || designerRef.current.document.disposed) return;
@@ -102,7 +97,30 @@ const WorkflowDetailDesign = () => {
     });
   };
 
-  const { drawerProps: designerNodeDrawerProps, ...designerNodeDrawer } = WorkflowNodeDrawer.useDrawer();
+  const { modalProps: graphImportModalProps, ...graphImportModal } = WorkflowGraphImportModal.useModal();
+  const { modalProps: graphExportModalProps, ...graphExportModal } = WorkflowGraphExportModal.useModal();
+
+  const handleImportClick = async () => {
+    graphImportModal.open().then(async (graph) => {
+      const loadingKey = Math.random().toString(36).substring(0, 8);
+      message.loading({ key: loadingKey, content: t("common.text.saving"), duration: 0 });
+
+      try {
+        await workflowStore.orchestrate(graph);
+
+        message.destroy(loadingKey);
+        message.success(t("common.text.operation_succeeded"));
+      } catch (err) {
+        console.error(err);
+        message.destroy(loadingKey);
+        notification.error({ message: t("common.text.request_error"), description: getErrMsg(err) });
+      }
+    });
+  };
+
+  const handleExportClick = () => {
+    graphExportModal.open({ data: workflow.graphDraft! });
+  };
 
   return (
     <div className="size-full">
@@ -140,6 +158,21 @@ const WorkflowDetailDesign = () => {
                             icon: <IconArrowBackUp size="1.25em" />,
                             onClick: handleRollbackClick,
                           },
+                          {
+                            type: "divider",
+                          },
+                          {
+                            key: "import",
+                            label: t("workflow.detail.design.action.import.button"),
+                            icon: <IconTransferIn size="1.25em" />,
+                            onClick: handleImportClick,
+                          },
+                          {
+                            key: "export",
+                            label: t("workflow.detail.design.action.export.button"),
+                            icon: <IconTransferOut size="1.25em" />,
+                            onClick: handleExportClick,
+                          },
                         ],
                       }}
                       trigger={["click"]}
@@ -173,6 +206,9 @@ const WorkflowDetailDesign = () => {
 
           <WorkflowNodeDrawer {...designerNodeDrawerProps} />
         </WorkflowDesigner>
+
+        <WorkflowGraphImportModal {...graphImportModalProps} />
+        <WorkflowGraphExportModal {...graphExportModalProps} />
       </Card>
     </div>
   );

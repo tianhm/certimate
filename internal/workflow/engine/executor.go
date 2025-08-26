@@ -69,7 +69,7 @@ func newNodeExecutionContext(wfCtx *WorkflowContext, node *Node) *NodeExecutionC
 type NodeExecutionResult struct {
 	node *Node
 
-	Interrupted bool // 是否中断执行（通常由 End 节点主动触发）
+	Terminated bool // 是否终止执行（通常由 End 节点主动触发）
 
 	variablesMtx sync.Mutex
 	Variables    []VariableState

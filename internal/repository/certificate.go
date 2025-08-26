@@ -18,7 +18,7 @@ func NewCertificateRepository() *CertificateRepository {
 	return &CertificateRepository{}
 }
 
-func (r *CertificateRepository) ListExpireSoon(ctx context.Context) ([]*domain.Certificate, error) {
+func (r *CertificateRepository) ListExpiringSoon(ctx context.Context) ([]*domain.Certificate, error) {
 	records, err := app.GetApp().FindAllRecords(
 		domain.CollectionNameCertificate,
 		dbx.NewExp("validityNotAfter>DATETIME('now')"),

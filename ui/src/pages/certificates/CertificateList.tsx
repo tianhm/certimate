@@ -12,7 +12,12 @@ import Empty from "@/components/Empty";
 import Show from "@/components/Show";
 import { type CertificateModel } from "@/domain/certificate";
 import { useAppSettings } from "@/hooks";
-import { list as listCertificates, type ListRequest as listCertificatesRequest, remove as removeCertificate } from "@/repository/certificate";
+import {
+  get as getCertificate,
+  list as listCertificates,
+  type ListRequest as listCertificatesRequest,
+  remove as removeCertificate,
+} from "@/repository/certificate";
 import { getErrMsg } from "@/utils/error";
 
 const CertificateList = () => {
@@ -288,7 +293,10 @@ const CertificateList = () => {
   const { drawerProps: detailDrawerProps, ...detailDrawer } = CertificateDetailDrawer.useDrawer();
 
   const handleRecordDetailClick = (certificate: CertificateModel) => {
-    detailDrawer.open(certificate);
+    const drawer = detailDrawer.open({ data: certificate, loading: true });
+    getCertificate(certificate.id).then((data) => {
+      drawer.safeUpdate({ data, loading: false });
+    });
   };
 
   const handleRecordDeleteClick = (certificate: CertificateModel) => {
@@ -365,7 +373,7 @@ const CertificateList = () => {
               <Segmented
                 options={[
                   { label: <span className="text-sm">{t("certificate.props.validity.filter.all")}</span>, value: "" },
-                  { label: <span className="text-sm">{t("certificate.props.validity.filter.expire_soon")}</span>, value: "expireSoon" },
+                  { label: <span className="text-sm">{t("certificate.props.validity.filter.expire_soon")}</span>, value: "expiringSoon" },
                   { label: <span className="text-sm">{t("certificate.props.validity.filter.expired")}</span>, value: "expired" },
                 ]}
                 size="large"

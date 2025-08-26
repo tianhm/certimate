@@ -9,7 +9,7 @@ import (
 )
 
 type certificateRepository interface {
-	ListExpireSoon(ctx context.Context) ([]*domain.Certificate, error)
+	ListExpiringSoon(ctx context.Context) ([]*domain.Certificate, error)
 	GetById(ctx context.Context, id string) (*domain.Certificate, error)
 	DeleteWhere(ctx context.Context, exprs ...dbx.Expression) (int, error)
 }

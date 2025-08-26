@@ -7,6 +7,7 @@ import {
   type NodeRenderReturnType,
   useClientContext,
   useWatchFormState,
+  useWatchFormValueIn,
 } from "@flowgram.ai/fixed-layout-editor";
 import { IconCopy, IconDotsVertical, IconGripVertical, IconLabel, IconX } from "@tabler/icons-react";
 import { Button, type ButtonProps, Card, Dropdown, Input, type InputRef, Popover, Tooltip, theme } from "antd";
@@ -72,16 +73,18 @@ const InternalNodeCard = ({
 
   const isActivated = useMemo(() => nodeRenderData.activated || nodeRenderData.lineActivated, [nodeRenderData.activated, nodeRenderData.lineActivated]);
   const [isHovering, setIsHovering] = useState(false);
-  const [isInvalid, setIsInvalid] = useState(false);
+  const [isNodeInvalid, setIsNodeInvalid] = useState(false);
+  const isNodeDisabled = useWatchFormValueIn(nodeRender.node, "disabled");
 
   const formState = useWatchFormState(nodeRender.node);
-  useEffect(() => setIsInvalid(!!formState?.invalid), [formState?.invalid]);
+  useEffect(() => setIsNodeInvalid(!!formState?.invalid), [formState?.invalid]);
 
   return (
     <Card
       className={mergeCls(
         "relative rounded-xl shadow-sm",
         { "border-primary": isActivated },
+        { "border-dashed": isNodeDisabled },
         nodeRegistry.meta?.clickable ? "cursor-pointer" : "cursor-default",
         className
       )}
@@ -91,7 +94,14 @@ const InternalNodeCard = ({
       onMouseEnter={() => startTransition(() => setIsHovering(true))}
       onMouseLeave={() => startTransition(() => setIsHovering(false))}
     >
-      <div className="relative z-1">{children}</div>
+      <div
+        className="relative z-1 transition-opacity"
+        style={{
+          opacity: isHovering ? 1 : isNodeDisabled ? 0.3 : void 0,
+        }}
+      >
+        {children}
+      </div>
       <div
         className="absolute z-0 rounded-xl border-solid border-transparent transition-all duration-500"
         style={{
@@ -100,7 +110,8 @@ const InternalNodeCard = ({
           right: "-1px",
           bottom: "-1px",
           borderWidth: "2px",
-          borderColor: isHovering ? "var(--color-primary)" : isInvalid ? "var(--color-error)" : void 0,
+          borderColor: isHovering ? "var(--color-primary)" : isNodeInvalid ? "var(--color-error)" : void 0,
+          borderStyle: isNodeDisabled ? "dashed" : "solid",
         }}
       />
     </Card>
@@ -408,7 +419,7 @@ export const BranchNode = ({ className, style, children, description }: BranchNo
           />
         )
       }
-      placement="right"
+      placement="rightTop"
     >
       <div
         className="group/node relative"

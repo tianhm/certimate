@@ -273,7 +273,6 @@ func newInOutManager() InOutManager {
 
 const (
 	stateIOTypeRef = "ref"
-	stateIOType    = "recordRef"
 )
 
 const (

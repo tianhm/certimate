@@ -65,13 +65,12 @@ const WorkflowDetail = () => {
   }, [workflow.lastRunStatus]);
 
   const handleRunClick = () => {
-    const { promise, resolve, reject } = Promise.withResolvers();
+    const { promise, resolve } = Promise.withResolvers();
     if (workflow.hasDraft) {
       modal.confirm({
         title: t("workflow.action.run.modal.title"),
         content: t("workflow.action.run.modal.content"),
         onOk: () => resolve(void 0),
-        onCancel: () => reject(),
       });
     } else {
       resolve(void 0);

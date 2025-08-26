@@ -14,30 +14,15 @@ export const validDomainName = (value: string, { allowWildcard = false }: { allo
 };
 
 export const validEmailAddress = (value: string) => {
-  try {
-    z.email().parse(value);
-    return true;
-  } catch (_) {
-    return false;
-  }
+  return z.email().safeParse(value).success;
 };
 
 export const validIPv4Address = (value: string) => {
-  try {
-    z.ipv4().parse(value);
-    return true;
-  } catch (_) {
-    return false;
-  }
+  return z.ipv4().safeParse(value).success;
 };
 
 export const validIPv6Address = (value: string) => {
-  try {
-    z.ipv6().parse(value);
-    return true;
-  } catch (_) {
-    return false;
-  }
+  return z.ipv6().safeParse(value).success;
 };
 
 export const validHttpOrHttpsUrl = (value: string) => {

@@ -13,6 +13,7 @@ import { WORKFLOW_NODE_TYPES, type WorkflowNode } from "@/domain/workflow";
 export enum NodeType {
   Start = "start",
   End = "end",
+  Delay = "delay",
   Condition = "condition",
   BranchBlock = "branchBlock",
   TryCatch = "tryCatch",
@@ -28,6 +29,7 @@ export enum NodeType {
 /* TYPE GUARD, PLEASE DO NOT REMOVE THESE! */
 console.assert(NodeType.Start === WORKFLOW_NODE_TYPES.START);
 console.assert(NodeType.End === WORKFLOW_NODE_TYPES.END);
+console.assert(NodeType.Delay === WORKFLOW_NODE_TYPES.DELAY);
 console.assert(NodeType.Condition === WORKFLOW_NODE_TYPES.CONDITION);
 console.assert(NodeType.BranchBlock === WORKFLOW_NODE_TYPES.BRANCHBLOCK);
 console.assert(NodeType.TryCatch === WORKFLOW_NODE_TYPES.TRYCATCH);
@@ -56,21 +58,67 @@ export interface DocumentJSON {
 }
 
 export interface NodeMeta extends FlowNodeMeta {
+  /**
+   * 自定义样式。
+   */
   style?: React.CSSProperties;
+  /**
+   * 帮助文本。
+   */
   helpText?: React.ReactNode;
+  /**
+   * 标题文本。
+   */
   labelText?: React.ReactNode;
+  /**
+   * 图标组件。
+   */
   icon?: React.ExoticComponent<any> | React.ComponentType<any>;
+  /**
+   * 图标前景色。
+   */
   iconColor?: string;
+  /**
+   * 图标背景色。
+   */
   iconBgColor?: string;
+  /**
+   * 是否可点击。通常配合抽屉表单使用。
+   */
   clickable?: boolean;
 }
 
 export interface NodeRegistry<V extends NodeJSON["data"] = NodeJSON["data"]> extends FlowNodeRegistry<NodeMeta> {
+  /**
+   * 节点类型分类。
+   */
   kind?: NodeKindType;
+
   formMeta?: Omit<FormMeta<V>, "render"> & {
     render: (props: FormRenderProps<V>) => React.ReactElement;
   };
+
+  /**
+   * 判断是否可以添加一个该类型的节点。
+   * 如果不存在该方法，默认等同于返回值为 true。
+   * @param {FixedLayoutPluginContext} ctx
+   * @param {FlowNodeEntity} from
+   * @returns {Boolean}
+   */
   canAdd?: (ctx: FixedLayoutPluginContext, from: FlowNodeEntity) => boolean;
+  /**
+   * 判断是否可以删除一个该类型的节点。
+   * 如果不存在该方法，默认等同于返回值为 true。
+   * @param {FixedLayoutPluginContext} ctx
+   * @param {FlowNodeEntity} from
+   * @returns {Boolean}
+   */
   canDelete?: (ctx: FixedLayoutPluginContext, from: FlowNodeEntity) => boolean;
+  /**
+   * 返回一个新的表示该类型的节点结构。
+   * @param {FixedLayoutPluginContext} ctx
+   * @param {FlowNodeEntity} from
+   * @returns {FlowNodeJSON}
+   */
   onAdd?: (ctx: FixedLayoutPluginContext, from: FlowNodeEntity) => FlowNodeJSON;
 }

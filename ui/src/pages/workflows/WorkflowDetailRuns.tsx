@@ -16,6 +16,7 @@ import { WORKFLOW_TRIGGERS } from "@/domain/workflow";
 import { WORKFLOW_RUN_STATUSES, type WorkflowRunModel } from "@/domain/workflowRun";
 import { useAppSettings, useZustandShallowSelector } from "@/hooks";
 import {
+  get as getWorkflowRun,
   list as listWorkflowRuns,
   remove as removeWorkflowRun,
   subscribe as subscribeWorkflowRun,
@@ -260,7 +261,10 @@ const WorkflowDetailRuns = () => {
   const { drawerProps: detailDrawerProps, ...detailDrawer } = WorkflowRunDetailDrawer.useDrawer();
 
   const handleRecordDetailClick = (workflowRun: WorkflowRunModel) => {
-    detailDrawer.open(workflowRun);
+    const drawer = detailDrawer.open({ data: workflowRun, loading: true });
+    getWorkflowRun(workflowRun.id).then((data) => {
+      drawer.safeUpdate({ data, loading: false });
+    });
   };
 
   const handleRecordCancelClick = (workflowRun: WorkflowRunModel) => {

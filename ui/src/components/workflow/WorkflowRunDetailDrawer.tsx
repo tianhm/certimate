@@ -1,6 +1,6 @@
 import { startTransition, useCallback, useState } from "react";
 import { IconX } from "@tabler/icons-react";
-import { useControllableValue } from "ahooks";
+import { useControllableValue, useGetState } from "ahooks";
 import { Button, Drawer, Flex } from "antd";
 
 import Show from "@/components/Show";
@@ -64,7 +64,8 @@ const WorkflowRunDetailDrawer = ({ afterClose, data, loading, trigger, ...props 
 
 const useDrawer = () => {
   type DataType = WorkflowRunDetailDrawerProps["data"];
-  const [data, setData] = useState<DataType>();
+  const [data, setData, getData] = useGetState<DataType>();
+  const [loading, setLoading] = useState<boolean>();
   const [open, setOpen] = useState(false);
 
   const onOpenChange = useCallback((open: boolean) => {
@@ -77,17 +78,34 @@ const useDrawer = () => {
         startTransition(() => {
           if (!open) {
             setData(void 0);
+            setLoading(void 0);
           }
         });
       },
       data,
+      loading,
       open,
       onOpenChange,
     },
 
-    open: (data: NonNullable<DataType>) => {
+    open: ({ data, loading }: { data: NonNullable<DataType>; loading?: boolean }) => {
       setData(data);
+      setLoading(loading);
       setOpen(true);
+
+      return {
+        safeUpdate: ({ data, loading }: { data?: NonNullable<DataType>; loading?: boolean }) => {
+          if (data != null) {
+            if (data.id !== getData()?.id) return; // 确保数据不脏读
+
+            setData(data);
+          }
+
+          if (loading != null) {
+            setLoading(loading);
+          }
+        },
+      };
     },
     close: () => {
       setOpen(false);

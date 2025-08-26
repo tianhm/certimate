@@ -22,7 +22,7 @@ export const list = async (request: ListRequest) => {
   const page = request.page || 1;
   const perPage = request.perPage || 10;
   return await pb.collection(COLLECTION_NAME_WORKFLOW_RUN).getList<WorkflowRunModel>(page, perPage, {
-    expand: request.expand ? "workflowRef" : void 0,
+    expand: request.expand ? ["workflowRef"].join(",") : void 0,
     fields: [
       "id",
       "status",
@@ -41,6 +41,15 @@ export const list = async (request: ListRequest) => {
     sort: "-created",
     requestKey: null,
   });
+};
+
+export const get = async (id: string) => {
+  return await getPocketBase()
+    .collection(COLLECTION_NAME_WORKFLOW_RUN)
+    .getOne<WorkflowRunModel>(id, {
+      expand: ["workflowRef"].join(","),
+      requestKey: null,
+    });
 };
 
 export const remove = async (record: MaybeModelRecordWithId<WorkflowRunModel> | MaybeModelRecordWithId<WorkflowRunModel>[]) => {

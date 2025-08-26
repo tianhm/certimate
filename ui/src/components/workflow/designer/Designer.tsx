@@ -26,6 +26,8 @@ export interface DesignerProps {
   className?: string;
   style?: React.CSSProperties;
   children?: React.ReactNode;
+  defaultEditorState?: string;
+  defaultLayout?: string;
   initialData?: FlowDocumentJSON;
   readonly?: boolean;
   onDocumentChange?: (ctx: FixedLayoutPluginContext) => void;
@@ -39,7 +41,7 @@ export interface DesignerInstance extends FixedLayoutPluginContext {
 }
 
 const Designer = forwardRef<DesignerInstance, DesignerProps>(
-  ({ className, style, children, initialData, readonly, onDocumentChange, onNodeChange, onNodeClick }, ref) => {
+  ({ className, style, children, defaultEditorState, defaultLayout, initialData, readonly, onDocumentChange, onNodeChange, onNodeClick }, ref) => {
     const { token: themeToken } = theme.useToken();
 
     const rendered = useRef(false);
@@ -47,6 +49,8 @@ const Designer = forwardRef<DesignerInstance, DesignerProps>(
     const flowgramEditorRef = useRef<FixedLayoutPluginContext>(null);
     const flowgramEditorProps = useMemo<FixedLayoutProps>(
       () => ({
+        defaultLayout: defaultLayout,
+
         initialData: initialData,
 
         constants: {
@@ -121,9 +125,13 @@ const Designer = forwardRef<DesignerInstance, DesignerProps>(
         ],
 
         onInit: (ctx) => {
-          const maybeMobile = ["android", "ios", "iphone", "ipad", "micromessenger"].some((s) => navigator.userAgent.includes(s));
-          if (maybeMobile) {
-            ctx.playground.editorState.changeState(EditorState.STATE_MOUSE_FRIENDLY_SELECT.id);
+          if (defaultEditorState != null) {
+            ctx.playground.editorState.changeState(defaultEditorState);
+          } else {
+            const maybeMobile = ["android", "ios", "iphone", "ipad", "micromessenger"].some((s) => navigator.userAgent.includes(s));
+            if (maybeMobile) {
+              ctx.playground.editorState.changeState(EditorState.STATE_MOUSE_FRIENDLY_SELECT.id);
+            }
           }
         },
 
@@ -136,7 +144,7 @@ const Designer = forwardRef<DesignerInstance, DesignerProps>(
           }, 1);
         },
       }),
-      [themeToken, initialData, readonly, onDocumentChange]
+      [defaultEditorState, defaultLayout, initialData, readonly, onDocumentChange, themeToken]
     );
 
     useEffect(() => {

@@ -26,6 +26,14 @@
   "workflow_run.props.started_at": "Started at",
   "workflow_run.props.ended_at": "Ended at",
 
+  "workflow_run.base.description": "Triggered {{trigger}} at {{startedAt}}",
+  "workflow_run.base.description_with_time_cost": "Triggered {{trigger}} at {{startedAt}}. Time cost: {{timeCost}}.",
+  "workflow_run.base.trigger.scheduled": "scheduledly",
+  "workflow_run.base.trigger.manual": "manually",
+
+  "workflow_run.process": "Process",
+  "workflow_run.process.menu.export": "Export",
+
   "workflow_run.logs": "Logs",
   "workflow_run.logs.menu.show_timestamps": "Show timestamps",
   "workflow_run.logs.menu.show_whitespaces": "Show whitespaces",

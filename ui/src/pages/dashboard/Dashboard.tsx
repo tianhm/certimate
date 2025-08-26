@@ -185,8 +185,8 @@ const StatisticCards = ({ className, style }: { className?: string; style?: Reac
             icon={<IconAlertHexagon size={48} />}
             label={t("dashboard.statistics.expire_soon_certificates")}
             loading={loading}
-            value={statistics?.certificateExpireSoon ?? "-"}
-            onClick={() => navigate("/certificates?state=expireSoon")}
+            value={statistics?.certificateExpiringSoon ?? "-"}
+            onClick={() => navigate("/certificates?state=expiringSoon")}
           />
         </Col>
         <Col className="overflow-hidden" {...cardGridSpans}>

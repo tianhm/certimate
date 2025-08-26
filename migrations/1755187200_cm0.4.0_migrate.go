@@ -37,12 +37,17 @@ func init() {
 
 		// update collection `access`
 		//   - modify field `config` schema: rename property `defaultReceiver` to `receiver`
+		//   - modify field `reserve` candidates
 		//   - delete records: 'local'
 		{
 			collection, err := app.FindCollectionByNameOrId("4yzbv8urny5ja1e")
 			if err != nil {
 				return err
 			} else if collection != nil {
+				if _, err := app.DB().NewQuery("UPDATE access SET reserve = 'notif' WHERE reserve = 'notification'").Execute(); err != nil {
+					return err
+				}
+
 				if _, err := app.DB().NewQuery("DELETE FROM access WHERE provider = 'local'").Execute(); err != nil {
 					return err
 				}

@@ -30,6 +30,28 @@ export const list = async (request: ListRequest) => {
 
   return await pb.collection(COLLECTION_NAME_WORKFLOW).getList<WorkflowModel>(page, perPage, {
     expand: request.expand ? "lastRunRef" : void 0,
+    fields: [
+      "id",
+      "name",
+      "description",
+      "trigger",
+      "triggerCron",
+      "enabled",
+      "hasDraft",
+      "hasContent",
+      "lastRunRef",
+      "lastRunStatus",
+      "lastRunTime",
+      "created",
+      "updated",
+      "deleted",
+      "expand.lastRunRef.id",
+      "expand.lastRunRef.status",
+      "expand.lastRunRef.trigger",
+      "expand.lastRunRef.startedAt",
+      "expand.lastRunRef.endedAt",
+      "expand.lastRunRef.error",
+    ].join(","),
     filter: filters.join(" && "),
     sort: sort,
     requestKey: null,
@@ -37,10 +59,12 @@ export const list = async (request: ListRequest) => {
 };
 
 export const get = async (id: string) => {
-  return await getPocketBase().collection(COLLECTION_NAME_WORKFLOW).getOne<WorkflowModel>(id, {
-    expand: "lastRunRef",
-    requestKey: null,
-  });
+  return await getPocketBase()
+    .collection(COLLECTION_NAME_WORKFLOW)
+    .getOne<WorkflowModel>(id, {
+      expand: ["lastRunRef"].join(","),
+      requestKey: null,
+    });
 };
 
 export const save = async (record: MaybeModelRecord<WorkflowModel>) => {

@@ -115,8 +115,7 @@ export const NodeConfigDrawer = ({ children, afterClose, anchor, footer = true, 
       return Object.entries(obj).reduce(
         (acc, [key, value]) => {
           const isEmpty =
-            value === null ||
-            value === undefined ||
+            value == null ||
             (typeof value === "string" && value === "") ||
             (Array.isArray(value) && value.length === 0) ||
             (typeof value === "object" && !Array.isArray(value) && Object.keys(value).length === 0);

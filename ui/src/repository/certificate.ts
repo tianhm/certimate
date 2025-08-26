@@ -5,7 +5,7 @@ import { COLLECTION_NAME_CERTIFICATE, getPocketBase } from "./_pocketbase";
 
 export type ListRequest = {
   keyword?: string;
-  state?: "expireSoon" | "expired";
+  state?: "expiringSoon" | "expired";
   sort?: string;
   page?: number;
   perPage?: number;
@@ -18,7 +18,7 @@ export const list = async (request: ListRequest) => {
   if (request.keyword) {
     filters.push(pb.filter("(id={:keyword} || serialNumber={:keyword} || subjectAltNames~{:keyword})", { keyword: request.keyword }));
   }
-  if (request.state === "expireSoon") {
+  if (request.state === "expiringSoon") {
     filters.push(pb.filter("validityNotAfter<{:expiredAt} && validityNotAfter>@now", { expiredAt: dayjs().add(20, "d").toDate() }));
   } else if (request.state === "expired") {
     filters.push(pb.filter("validityNotAfter<={:expiredAt}", { expiredAt: new Date() }));
@@ -30,7 +30,23 @@ export const list = async (request: ListRequest) => {
   const perPage = request.perPage || 10;
 
   return pb.collection(COLLECTION_NAME_CERTIFICATE).getList<CertificateModel>(page, perPage, {
-    expand: "workflowRef",
+    expand: ["workflowRef"].join(","),
+    fields: [
+      "id",
+      "source",
+      "subjectAltNames",
+      "serialNumber",
+      "issuerOrg",
+      "keyAlgorithm",
+      "validityNotBefore",
+      "validityNotAfter",
+      "created",
+      "updated",
+      "deleted",
+      "expand.workflowRef.id",
+      "expand.workflowRef.name",
+      "expand.workflowRef.description",
+    ].join(","),
     filter: filters.join(" && "),
     sort: sort,
     requestKey: null,
@@ -51,6 +67,15 @@ export const listByWorkflowRunId = async (workflowRunId: string) => {
     totalItems: list.length,
     items: list,
   };
+};
+
+export const get = async (id: string) => {
+  return await getPocketBase()
+    .collection(COLLECTION_NAME_CERTIFICATE)
+    .getOne<CertificateModel>(id, {
+      expand: ["workflowRef"].join(","),
+      requestKey: null,
+    });
 };
 
 export const remove = async (record: MaybeModelRecordWithId<CertificateModel> | MaybeModelRecordWithId<CertificateModel>[]) => {

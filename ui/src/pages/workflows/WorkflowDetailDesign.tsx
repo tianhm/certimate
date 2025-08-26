@@ -41,6 +41,8 @@ const WorkflowDetailDesign = () => {
     }
   }, [workflow.graphDraft]);
 
+  const { drawerProps: designerNodeDrawerProps, ...designerNodeDrawer } = WorkflowNodeDrawer.useDrawer();
+
   const handleDesignerDocumentChange = debounce({ delay: 300 }, async () => {
     if (designerRef.current == null || designerRef.current.document.disposed) return;
 
@@ -95,6 +97,9 @@ const WorkflowDetailDesign = () => {
     });
   };
 
+  const { modalProps: graphImportModalProps, ...graphImportModal } = WorkflowGraphImportModal.useModal();
+  const { modalProps: graphExportModalProps, ...graphExportModal } = WorkflowGraphExportModal.useModal();
+
   const handleImportClick = async () => {
     graphImportModal.open().then(async (graph) => {
       const loadingKey = Math.random().toString(36).substring(0, 8);
@@ -114,13 +119,8 @@ const WorkflowDetailDesign = () => {
   };
 
   const handleExportClick = () => {
-    graphExportModal.open(workflow.graphDraft!);
+    graphExportModal.open({ data: workflow.graphDraft! });
   };
-
-  const { drawerProps: designerNodeDrawerProps, ...designerNodeDrawer } = WorkflowNodeDrawer.useDrawer();
-
-  const { modalProps: graphImportModalProps, ...graphImportModal } = WorkflowGraphImportModal.useModal();
-  const { modalProps: graphExportModalProps, ...graphExportModal } = WorkflowGraphExportModal.useModal();
 
   return (
     <div className="size-full">

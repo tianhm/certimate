@@ -18,7 +18,7 @@ export interface WorkflowModel extends BaseModel {
   lastRunStatus?: string;
   lastRunTime?: string;
   expand?: {
-    lastRunRef?: WorkflowRunModel;
+    lastRunRef?: Pick<WorkflowRunModel, "id" | "status" | "trigger" | "startedAt" | "endedAt" | "error">;
   };
 }
 

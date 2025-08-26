@@ -22,7 +22,7 @@
   "certificate.props.validity.expired": "Expired",
   "certificate.props.validity.expiration": "Expire on {{date}}",
   "certificate.props.validity.filter.all": "All",
-  "certificate.props.validity.filter.expire_soon": "Expire soon",
+  "certificate.props.validity.filter.expiring_soon": "Expiring soon",
   "certificate.props.validity.filter.expired": "Expired",
   "certificate.props.brand": "Brand",
   "certificate.props.source": "Source",

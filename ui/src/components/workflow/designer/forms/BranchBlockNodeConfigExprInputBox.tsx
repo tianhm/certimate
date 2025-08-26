@@ -60,9 +60,9 @@ const exprToFormValues = (expr: Expr | undefined): ConditionFormValues => {
     if (expr.type === ExprType.Comparison) {
       if (expr.left.type == ExprType.Variant && expr.right.type == ExprType.Constant) {
         conditions.push({
-          leftSelector: expr.left.selector?.id != null ? `${expr.left.selector.id}#${expr.left.selector.name}#${expr.left.selector.type}` : undefined,
-          operator: expr.operator != null ? expr.operator : undefined,
-          rightValue: expr.right?.value != null ? String(expr.right.value) : undefined,
+          leftSelector: expr.left.selector?.id != null ? `${expr.left.selector.id}#${expr.left.selector.name}#${expr.left.selector.type}` : void 0,
+          operator: expr.operator != null ? expr.operator : void 0,
+          rightValue: expr.right?.value != null ? String(expr.right.value) : void 0,
         });
       } else {
         console.warn("[certimate] invalid comparison expression: left must be a variant and right must be a constant", expr);
@@ -113,14 +113,14 @@ const formValuesToExpr = (values: ConditionFormValues): Expr | undefined => {
   };
 
   if (values.conditions.length === 0) {
-    return undefined;
+    return;
   }
 
   // 只有一个条件时，直接返回比较表达式
   if (values.conditions.length === 1) {
     const { leftSelector, operator, rightValue } = values.conditions[0];
     if (!leftSelector || !operator || !rightValue) {
-      return undefined;
+      return;
     }
     return wrapExpr(values.conditions[0]);
   }
@@ -316,7 +316,7 @@ const BranchBlockNodeConfigExprInputBox = forwardRef<BranchBlockNodeConfigExprIn
                           {...rest}
                         >
                           <Select
-                            open={operators.length === 0 ? false : undefined}
+                            open={operators.length === 0 ? false : void 0}
                             options={operators}
                             placeholder={t("workflow_node.branch_block.form.expression.operator.placeholder")}
                           />

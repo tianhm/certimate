@@ -1,7 +1,7 @@
 import { startTransition, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { IconX } from "@tabler/icons-react";
-import { useControllableValue } from "ahooks";
+import { useControllableValue, useGetState } from "ahooks";
 import { App, Button, Drawer, Flex } from "antd";
 
 import { type AccessModel } from "@/domain/access";
@@ -145,7 +145,8 @@ const AccessEditDrawer = ({ afterClose, afterSubmit, mode, data, loading, trigge
 
 const useDrawer = () => {
   type DataType = AccessEditDrawerProps["data"];
-  const [data, setData] = useState<DataType>();
+  const [data, setData, getData] = useGetState<DataType>();
+  const [loading, setLoading] = useState<boolean>();
   const [open, setOpen] = useState(false);
 
   const onOpenChange = useCallback((open: boolean) => {
@@ -158,17 +159,34 @@ const useDrawer = () => {
         startTransition(() => {
           if (!open) {
             setData(void 0);
+            setLoading(void 0);
           }
         });
       },
       data,
+      loading,
       open,
       onOpenChange,
     },
 
-    open: (data: NonNullable<DataType>) => {
+    open: ({ data, loading }: { data: NonNullable<DataType>; loading?: boolean }) => {
       setData(data);
+      setLoading(loading);
       setOpen(true);
+
+      return {
+        safeUpdate: ({ data, loading }: { data?: NonNullable<DataType>; loading?: boolean }) => {
+          if (data != null) {
+            if (data.id !== getData()?.id) return; // 确保数据不脏读
+
+            setData(data);
+          }
+
+          if (loading != null) {
+            setLoading(loading);
+          }
+        },
+      };
     },
     close: () => {
       setOpen(false);

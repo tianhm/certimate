@@ -334,7 +334,7 @@ const AccessForm = forwardRef<AccessFormInstance, AccessFormProps>(({ className,
       getFieldsValue: () => {
         const values = formInst.getFieldsValue(true);
         values.config = nestedFormInst.getFieldsValue();
-        values.reserve = usage === "ca" ? "ca" : usage === "notification" ? "notification" : void 0;
+        values.reserve = usage === "ca" ? "ca" : usage === "notification" ? "notif" : void 0;
         return values;
       },
       resetFields: (fields) => {

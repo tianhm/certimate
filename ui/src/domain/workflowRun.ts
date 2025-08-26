@@ -8,7 +8,7 @@ export interface WorkflowRunModel extends BaseModel {
   endedAt: ISO8601String;
   error?: string;
   expand?: {
-    workflowRef?: WorkflowModel;
+    workflowRef?: Pick<WorkflowModel, "id" | "name" | "description">;
   };
 }
 

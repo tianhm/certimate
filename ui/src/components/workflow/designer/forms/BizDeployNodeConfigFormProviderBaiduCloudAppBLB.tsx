@@ -107,7 +107,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
       region: z.string().nonempty(t("workflow_node.deploy.form.baiducloud_appblb_region.placeholder")),
       resourceType: z.literal([RESOURCE_TYPE_LOADBALANCER, RESOURCE_TYPE_LISTENER], t("workflow_node.deploy.form.baiducloud_appblb_resource_type.placeholder")),
       loadbalancerId: z.string().nonempty(t("workflow_node.deploy.form.baiducloud_appblb_loadbalancer_id.placeholder")),
-      listenerPort: z.preprocess((v) => (v == null || v === "" ? undefined : Number(v)), z.number().nullish()),
+      listenerPort: z.preprocess((v) => (v == null || v === "" ? void 0 : Number(v)), z.number().nullish()),
       domain: z
         .string()
         .nullish()

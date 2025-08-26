@@ -28,15 +28,15 @@ func (r *StatisticsRepository) Get(ctx context.Context) (*domain.Statistics, err
 	rs.CertificateTotal = certTotal.Total
 
 	// 即将过期证书
-	certExpireSoonTotal := struct {
+	certExpiringSoonTotal := struct {
 		Total int `db:"total"`
 	}{}
 	if err := app.GetDB().
 		NewQuery("SELECT COUNT(*) AS total FROM certificate WHERE validityNotAfter > DATETIME('now') and validityNotAfter < DATETIME('now', '+20 days') AND deleted = ''").
-		One(&certExpireSoonTotal); err != nil {
+		One(&certExpiringSoonTotal); err != nil {
 		return nil, err
 	}
-	rs.CertificateExpireSoon = certExpireSoonTotal.Total
+	rs.CertificateExpiringSoon = certExpiringSoonTotal.Total
 
 	// 已过期证书
 	certExpiredTotal := struct {

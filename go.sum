@@ -789,6 +789,8 @@ github.com/pocketbase/pocketbase v0.29.0 h1:oL6qvkU2QSybClVtQdaq9Z1F3Wk59iKYCfIa
 github.com/pocketbase/pocketbase v0.29.0/go.mod h1:SqyH7o/3e+/uLySATlJqxH4S8gyU6R0adG56ZSV1vuU=
 github.com/pocketbase/pocketbase v0.29.2 h1:MghVgLYy/xh9lBwHtteNSYjYOvHKYD+dS9pzUzOP79Q=
 github.com/pocketbase/pocketbase v0.29.2/go.mod h1:QZPKtMCWfiDJb0aLhwgj7ZOr6O8tusbui2EhTFAHThU=
+github.com/pocketbase/pocketbase v0.29.3 h1:Mj8o5awsbVJIdIoTuQNhfC2oL/c4aImQ3RyfFZlzFVg=
+github.com/pocketbase/pocketbase v0.29.3/go.mod h1:oGpT67LObxCFK4V2fSL7J9YnPbBnnshOpJ5v3zcneww=
 github.com/posener/complete v1.1.1/go.mod h1:em0nMJCgc9GFtwrmVmEMR/ZL6WyhyjMBndrE9hABlRI=
 github.com/posener/complete v1.2.3/go.mod h1:WZIdtGGp+qx0sLrYKtIRAruyNpv6hFCicSgv7Sy7s/s=
 github.com/povsister/scp v0.0.0-20250701154629-777cf82de5df h1:zEgSHrxo8f6hGG1xCaqunfBq8hlfDmFd1JM0QXiQi7o=

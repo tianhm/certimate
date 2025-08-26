@@ -14,6 +14,7 @@ import Show from "@/components/Show";
 import { type AccessModel } from "@/domain/access";
 import { ACCESS_USAGES, accessProvidersMap } from "@/domain/provider";
 import { useAppSettings, useZustandShallowSelector } from "@/hooks";
+import { get as getAccess } from "@/repository/access";
 import { useAccessesStore } from "@/stores/access";
 import { getErrMsg } from "@/utils/error";
 
@@ -222,7 +223,7 @@ const AccessList = () => {
             case "ca":
               return e.reserve === "ca" && provider?.usages?.includes(ACCESS_USAGES.CA);
             case "notification":
-              return e.reserve === "notification" && provider?.usages?.includes(ACCESS_USAGES.NOTIFICATION);
+              return e.reserve === "notif" && provider?.usages?.includes(ACCESS_USAGES.NOTIFICATION);
           }
         });
       return Promise.resolve({
@@ -281,17 +282,18 @@ const AccessList = () => {
     navigate(`/accesses/new?usage=${filters["usage"]}`);
   };
 
+  const { drawerProps: createDrawerProps, ...createDrawer } = AccessEditDrawer.useDrawer();
   const { drawerProps: detailDrawerProps, ...detailDrawer } = AccessEditDrawer.useDrawer();
-  const [detailMode, setDetailMode] = useState<AccessEditDrawerProps["mode"]>("create");
 
   const handleRecordDetailClick = (access: AccessModel) => {
-    setDetailMode("edit");
-    detailDrawer.open(access);
+    const drawer = detailDrawer.open({ data: access, loading: true });
+    getAccess(access.id).then((data) => {
+      drawer.safeUpdate({ data, loading: false });
+    });
   };
 
   const handleRecordDuplicateClick = (access: AccessModel) => {
-    setDetailMode("create");
-    detailDrawer.open({ ...access, id: void 0, name: `${access.name}-copy` });
+    createDrawer.open({ data: { ...access, id: void 0, name: `${access.name}-copy` } });
   };
 
   const handleRecordDeleteClick = async (access: AccessModel) => {
@@ -461,7 +463,8 @@ const AccessList = () => {
           </Show>
         </div>
 
-        <AccessEditDrawer mode={detailMode} usage={filters["usage"] as AccessUsages} {...detailDrawerProps} />
+        <AccessEditDrawer mode="create" usage={filters["usage"] as AccessUsages} {...createDrawerProps} />
+        <AccessEditDrawer mode="edit" usage={filters["usage"] as AccessUsages} {...detailDrawerProps} />
       </div>
     </div>
   );

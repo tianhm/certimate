@@ -78,7 +78,7 @@ const useModal = () => {
       onOpenChange,
     },
 
-    open: (data: DataType) => {
+    open: ({ data }: { data: DataType }) => {
       setData(data);
       setOpen(true);
     },

@@ -95,15 +95,15 @@ const WorkflowNew = () => {
             const tryCatchNode = newNode(WORKFLOW_NODE_TYPES.TRYCATCH, { i18n: i18n });
             const monitorNode = newNode(WORKFLOW_NODE_TYPES.BIZ_MONITOR, { i18n: i18n });
             const conditionNode = newNode(WORKFLOW_NODE_TYPES.CONDITION, { i18n: i18n });
-            const notifyOnExpireSoonNode = newNode(WORKFLOW_NODE_TYPES.BIZ_NOTIFY, { i18n: i18n });
+            const notifyOnExpiringSoonNode = newNode(WORKFLOW_NODE_TYPES.BIZ_NOTIFY, { i18n: i18n });
             const notifyOnExpiredNode = newNode(WORKFLOW_NODE_TYPES.BIZ_NOTIFY, { i18n: i18n });
             const notifyOnFailureNode = newNode(WORKFLOW_NODE_TYPES.BIZ_NOTIFY, { i18n: i18n });
             const endNode = newNode(WORKFLOW_NODE_TYPES.END, { i18n: i18n });
 
-            notifyOnExpireSoonNode.data.config = {
-              ...notifyOnExpireSoonNode.data.config,
+            notifyOnExpiringSoonNode.data.config = {
+              ...notifyOnExpiringSoonNode.data.config,
               subject: "[Certimate] Certificate Expiry Alert!",
-              message: "The certificate which you are monitoring will expire soon. Please pay attention to your website.",
+              message: "The certificate which you are monitoring will be expiring soon. Please pay attention to your website.",
             } as WorkflowNodeConfigForBizNotify;
 
             notifyOnExpiredNode.data.config = {
@@ -166,7 +166,7 @@ const WorkflowNew = () => {
               },
             } as WorkflowNodeConfigForBranchBlock;
             conditionNode.blocks!.at(0)!.blocks ??= [];
-            conditionNode.blocks!.at(0)!.blocks!.push(notifyOnExpireSoonNode);
+            conditionNode.blocks!.at(0)!.blocks!.push(notifyOnExpiringSoonNode);
             conditionNode.blocks!.at(1)!.data.name = t("workflow_node.condition.default_name.template_certtest_on_expired");
             conditionNode.blocks!.at(1)!.data.config = {
               ...conditionNode.blocks!.at(1)!.data.config,

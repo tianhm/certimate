@@ -47,7 +47,7 @@ require (
 	github.com/pavlo-v-chernykh/keystore-go/v4 v4.5.0
 	github.com/pkg/sftp v1.13.9
 	github.com/pocketbase/dbx v1.11.0
-	github.com/pocketbase/pocketbase v0.29.2
+	github.com/pocketbase/pocketbase v0.29.3
 	github.com/povsister/scp v0.0.0-20250701154629-777cf82de5df
 	github.com/qiniu/go-sdk/v7 v7.25.4
 	github.com/samber/lo v1.51.0

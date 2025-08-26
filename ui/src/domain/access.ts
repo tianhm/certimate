@@ -1,7 +1,7 @@
 export interface AccessModel extends BaseModel {
   name: string;
   provider: string;
-  config: /*
+  config?: /*
     注意：如果追加新的类型，请保持以 ASCII 排序。
     NOTICE: If you add new type, please keep ASCII order.
   */ Record<string, unknown> &
@@ -79,7 +79,7 @@ export interface AccessModel extends BaseModel {
       | AccessConfigForWestcn
       | AccessConfigForZeroSSL
     );
-  reserve?: "ca" | "notification";
+  reserve?: "ca" | "notif";
 }
 
 // #region AccessConfig

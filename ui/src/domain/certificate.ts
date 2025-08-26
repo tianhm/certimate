@@ -12,7 +12,7 @@ export interface CertificateModel extends BaseModel {
   validityNotAfter: ISO8601String;
   workflowRef: string;
   expand?: {
-    workflowRef?: WorkflowModel;
+    workflowRef?: Pick<WorkflowModel, "id" | "name" | "description">;
   };
 }
 

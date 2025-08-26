@@ -168,7 +168,7 @@ const BizNotifyNodeConfigForm = ({ node, ...props }: BizNotifyNodeConfigFormProp
                 showSearch
                 onChange={handleProviderAccessSelect}
                 onFilter={(_, option) => {
-                  if (option.reserve !== "notification") return false;
+                  if (option.reserve !== "notif") return false;
 
                   const provider = accessProvidersMap.get(option.provider);
                   return !!provider?.usages?.includes(ACCESS_USAGES.NOTIFICATION);

@@ -158,7 +158,7 @@ func createNotifierProvider(options *notifierProviderOptions) (core.Notifier, er
 
 			return pWebhook.NewNotifierProvider(&pWebhook.NotifierProviderConfig{
 				WebhookUrl:               access.Url,
-				WebhookData:              xmaps.GetOrDefaultString(options.ProviderServiceConfig, "webhookData", access.DataStringForNotification),
+				WebhookData:              xmaps.GetOrDefaultString(options.ProviderServiceConfig, "webhookData", access.DataString),
 				Method:                   access.Method,
 				Headers:                  mergedHeaders,
 				AllowInsecureConnections: access.AllowInsecureConnections,

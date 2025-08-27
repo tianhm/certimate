@@ -23,47 +23,49 @@ const AccessConfigFormFieldsProviderWebhook = ({ usage = "none" }: AccessConfigF
   });
   const formRule = createSchemaFieldRule(formSchema);
   const formInst = Form.useFormInstance();
-  const initialValues = getInitialValues();
+  const initialValues = getInitialValues({ usage });
 
   const handleWebhookHeadersBlur = () => {
-    let value = formInst.getFieldValue("headers");
+    let value = formInst.getFieldValue([parentNamePath, "headers"]);
     value = value.trim();
     value = value.replace(/(?<!\r)\n/g, "\r\n");
-    formInst.setFieldValue("headers", value);
+    formInst.setFieldValue([parentNamePath, "headers"], value);
   };
 
   const handleWebhookDataForDeploymentBlur = () => {
-    const value = formInst.getFieldValue("dataForDeployment");
+    const value = formInst.getFieldValue([parentNamePath, "data"]);
     try {
       const json = JSON.stringify(JSON.parse(value), null, 2);
-      formInst.setFieldValue("dataForDeployment", json);
+      formInst.setFieldValue([parentNamePath, "data"], json);
     } catch {
       return;
     }
   };
 
   const handleWebhookDataForNotificationBlur = () => {
-    const value = formInst.getFieldValue("dataForNotification");
+    const value = formInst.getFieldValue([parentNamePath, "data"]);
     try {
       const json = JSON.stringify(JSON.parse(value), null, 2);
-      formInst.setFieldValue("dataForNotification", json);
+      formInst.setFieldValue([parentNamePath, "data"], json);
     } catch {
       return;
     }
   };
 
   const handlePresetDataForDeploymentClick = () => {
-    formInst.setFieldValue("dataForDeployment", getInitialValues().dataForDeployment);
+    formInst.setFieldValue([parentNamePath, "method"], "POST");
+    formInst.setFieldValue([parentNamePath, "headers"], "Content-Type: application/json");
+    formInst.setFieldValue([parentNamePath, "data"], getInitialValues({ usage: "deployment" }).data);
   };
 
   const handlePresetDataForNotificationClick = (key: string) => {
     switch (key) {
       case "bark":
-        formInst.setFieldValue("url", "https://api.day.app/push");
-        formInst.setFieldValue("method", "POST");
-        formInst.setFieldValue("headers", "Content-Type: application/json\r\nAuthorization: Bearer <your-gotify-token>");
+        formInst.setFieldValue([parentNamePath, "url"], "https://api.day.app/push");
+        formInst.setFieldValue([parentNamePath, "method"], "POST");
+        formInst.setFieldValue([parentNamePath, "headers"], "Content-Type: application/json");
         formInst.setFieldValue(
-          "dataForNotification",
+          [parentNamePath, "data"],
           JSON.stringify(
             {
               title: "${SUBJECT}",
@@ -77,11 +79,11 @@ const AccessConfigFormFieldsProviderWebhook = ({ usage = "none" }: AccessConfigF
         break;
 
       case "gotify":
-        formInst.setFieldValue("url", "https://<your-gotify-server>/");
-        formInst.setFieldValue("method", "POST");
-        formInst.setFieldValue("headers", "Content-Type: application/json\r\nAuthorization: Bearer <your-gotify-token>");
+        formInst.setFieldValue([parentNamePath, "url"], "https://<your-gotify-server>/");
+        formInst.setFieldValue([parentNamePath, "method"], "POST");
+        formInst.setFieldValue([parentNamePath, "headers"], "Content-Type: application/json\r\nAuthorization: Bearer <your-gotify-token>");
         formInst.setFieldValue(
-          "dataForNotification",
+          [parentNamePath, "data"],
           JSON.stringify(
             {
               title: "${SUBJECT}",
@@ -95,11 +97,11 @@ const AccessConfigFormFieldsProviderWebhook = ({ usage = "none" }: AccessConfigF
         break;
 
       case "ntfy":
-        formInst.setFieldValue("url", "https://<your-ntfy-server>/");
-        formInst.setFieldValue("method", "POST");
-        formInst.setFieldValue("headers", "Content-Type: application/json");
+        formInst.setFieldValue([parentNamePath, "url"], "https://<your-ntfy-server>/");
+        formInst.setFieldValue([parentNamePath, "method"], "POST");
+        formInst.setFieldValue([parentNamePath, "headers"], "Content-Type: application/json");
         formInst.setFieldValue(
-          "dataForNotification",
+          [parentNamePath, "data"],
           JSON.stringify(
             {
               topic: "<your-ntfy-topic>",
@@ -114,11 +116,11 @@ const AccessConfigFormFieldsProviderWebhook = ({ usage = "none" }: AccessConfigF
         break;
 
       case "pushover":
-        formInst.setFieldValue("url", "https://api.pushover.net/1/messages.json");
-        formInst.setFieldValue("method", "POST");
-        formInst.setFieldValue("headers", "Content-Type: application/json");
+        formInst.setFieldValue([parentNamePath, "url"], "https://api.pushover.net/1/messages.json");
+        formInst.setFieldValue([parentNamePath, "method"], "POST");
+        formInst.setFieldValue([parentNamePath, "headers"], "Content-Type: application/json");
         formInst.setFieldValue(
-          "dataForNotification",
+          [parentNamePath, "data"],
           JSON.stringify(
             {
               token: "<your-pushover-token>",
@@ -133,11 +135,11 @@ const AccessConfigFormFieldsProviderWebhook = ({ usage = "none" }: AccessConfigF
         break;
 
       case "pushplus":
-        formInst.setFieldValue("url", "https://www.pushplus.plus/send");
-        formInst.setFieldValue("method", "POST");
-        formInst.setFieldValue("headers", "Content-Type: application/json");
+        formInst.setFieldValue([parentNamePath, "url"], "https://www.pushplus.plus/send");
+        formInst.setFieldValue([parentNamePath, "method"], "POST");
+        formInst.setFieldValue([parentNamePath, "headers"], "Content-Type: application/json");
         formInst.setFieldValue(
-          "dataForNotification",
+          [parentNamePath, "data"],
           JSON.stringify(
             {
               token: "<your-pushplus-token>",
@@ -151,11 +153,11 @@ const AccessConfigFormFieldsProviderWebhook = ({ usage = "none" }: AccessConfigF
         break;
 
       case "serverchan3":
-        formInst.setFieldValue("url", "https://<your-serverchan-uid>.push.ft07.com/send/<your-serverchan-sendkey>.send");
-        formInst.setFieldValue("method", "POST");
-        formInst.setFieldValue("headers", "Content-Type: application/json");
+        formInst.setFieldValue([parentNamePath, "url"], "https://<your-serverchan-uid>.push.ft07.com/send/<your-serverchan-sendkey>.send");
+        formInst.setFieldValue([parentNamePath, "method"], "POST");
+        formInst.setFieldValue([parentNamePath, "headers"], "Content-Type: application/json");
         formInst.setFieldValue(
-          "dataForNotification",
+          [parentNamePath, "data"],
           JSON.stringify(
             {
               title: "${SUBJECT}",
@@ -168,11 +170,11 @@ const AccessConfigFormFieldsProviderWebhook = ({ usage = "none" }: AccessConfigF
         break;
 
       case "serverchanturbo":
-        formInst.setFieldValue("url", "https://sctapi.ftqq.com/<your-serverchan-key>.send");
-        formInst.setFieldValue("method", "POST");
-        formInst.setFieldValue("headers", "Content-Type: application/json");
+        formInst.setFieldValue([parentNamePath, "url"], "https://sctapi.ftqq.com/<your-serverchan-key>.send");
+        formInst.setFieldValue([parentNamePath, "method"], "POST");
+        formInst.setFieldValue([parentNamePath, "headers"], "Content-Type: application/json");
         formInst.setFieldValue(
-          "dataForNotification",
+          [parentNamePath, "data"],
           JSON.stringify(
             {
               text: "${SUBJECT}",
@@ -185,9 +187,9 @@ const AccessConfigFormFieldsProviderWebhook = ({ usage = "none" }: AccessConfigF
         break;
 
       default:
-        formInst.setFieldValue("method", "POST");
-        formInst.setFieldValue("headers", "Content-Type: application/json");
-        formInst.setFieldValue("dataForNotification", getInitialValues().dataForNotification);
+        formInst.setFieldValue([parentNamePath, "method"], "POST");
+        formInst.setFieldValue([parentNamePath, "headers"], "Content-Type: application/json");
+        formInst.setFieldValue([parentNamePath, "data"], getInitialValues({ usage: "notification" }).data);
         break;
     }
   };
@@ -221,7 +223,7 @@ const AccessConfigFormFieldsProviderWebhook = ({ usage = "none" }: AccessConfigF
         />
       </Form.Item>
 
-      <Show when={!usage || usage === "deployment"}>
+      <Show when={usage === "deployment"}>
         <Form.Item className="relative" label={t("access.form.webhook_data.label")} extra={t("access.form.webhook_data.help")}>
           <div className="absolute -top-[6px] right-0 -translate-y-full">
             <Dropdown
@@ -242,7 +244,7 @@ const AccessConfigFormFieldsProviderWebhook = ({ usage = "none" }: AccessConfigF
               </Button>
             </Dropdown>
           </div>
-          <Form.Item name={[parentNamePath, "dataForDeployment"]} initialValue={initialValues.dataForDeployment} noStyle rules={[formRule]}>
+          <Form.Item name={[parentNamePath, "data"]} initialValue={initialValues.data} noStyle rules={[formRule]}>
             <CodeInput
               height="auto"
               minHeight="64px"
@@ -259,7 +261,7 @@ const AccessConfigFormFieldsProviderWebhook = ({ usage = "none" }: AccessConfigF
         </Form.Item>
       </Show>
 
-      <Show when={!usage || usage === "notification"}>
+      <Show when={usage === "notification"}>
         <Form.Item className="relative" label={t("access.form.webhook_data.label")} extra={t("access.form.webhook_data.help")}>
           <div className="absolute -top-[6px] right-0 -translate-y-full">
             <Dropdown
@@ -278,7 +280,7 @@ const AccessConfigFormFieldsProviderWebhook = ({ usage = "none" }: AccessConfigF
               </Button>
             </Dropdown>
           </div>
-          <Form.Item name={[parentNamePath, "dataForNotification"]} initialValue={initialValues.dataForNotification} noStyle rules={[formRule]}>
+          <Form.Item name={[parentNamePath, "data"]} initialValue={initialValues.data} noStyle rules={[formRule]}>
             <CodeInput
               height="auto"
               minHeight="64px"
@@ -310,26 +312,25 @@ const AccessConfigFormFieldsProviderWebhook = ({ usage = "none" }: AccessConfigF
   );
 };
 
-const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
+const getInitialValues = ({ usage = "none" }: { usage?: "deployment" | "notification" | "none" }): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   return {
     url: "",
     method: "POST",
     headers: "Content-Type: application/json",
     allowInsecureConnections: false,
-    dataForDeployment: JSON.stringify(
-      {
-        name: "${DOMAINS}",
-        cert: "${CERTIFICATE}",
-        privkey: "${PRIVATE_KEY}",
-      },
-      null,
-      2
-    ),
-    dataForNotification: JSON.stringify(
-      {
-        subject: "${SUBJECT}",
-        message: "${MESSAGE}",
-      },
+    data: JSON.stringify(
+      usage === "deployment"
+        ? {
+            name: "${DOMAINS}",
+            cert: "${CERTIFICATE}",
+            privkey: "${PRIVATE_KEY}",
+          }
+        : usage === "notification"
+          ? {
+              subject: "${SUBJECT}",
+              message: "${MESSAGE}",
+            }
+          : {},
       null,
       2
     ),
@@ -356,20 +357,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n: ReturnType<typeof getI18n> }) =
         }
         return true;
       }, t("access.form.webhook_headers.errmsg.invalid")),
-    dataForDeployment: z
-      .string()
-      .nullish()
-      .refine((v) => {
-        if (!v) return true;
-
-        try {
-          const obj = JSON.parse(v);
-          return typeof obj === "object" && !Array.isArray(obj);
-        } catch {
-          return false;
-        }
-      }, t("access.form.webhook_data.errmsg.json_invalid")),
-    dataForNotification: z
+    data: z
       .string()
       .nullish()
       .refine((v) => {

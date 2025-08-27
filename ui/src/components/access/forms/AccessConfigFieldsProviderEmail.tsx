@@ -19,10 +19,10 @@ const AccessConfigFormFieldsProviderEmail = () => {
   const initialValues = getInitialValues();
 
   const handleTlsSwitchChange = (checked: boolean) => {
-    const oldPort = formInst.getFieldValue("smtpPort");
+    const oldPort = formInst.getFieldValue([parentNamePath, "smtpPort"]);
     const newPort = checked && (oldPort == null || oldPort === 25) ? 465 : !checked && (oldPort == null || oldPort === 465) ? 25 : oldPort;
     if (newPort !== oldPort) {
-      formInst.setFieldValue("smtpPort", newPort);
+      formInst.setFieldValue([parentNamePath, "smtpPort"], newPort);
     }
   };
 

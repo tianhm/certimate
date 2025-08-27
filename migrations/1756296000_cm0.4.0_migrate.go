@@ -105,16 +105,36 @@ func init() {
 
 					case "webhook":
 						if _, ok := config["defaultDataForDeployment"]; ok {
-							config["dataForDeployment"] = config["defaultDataForDeployment"]
-							delete(config, "defaultDataForDeployment")
-							record.Set("config", config)
-							changed = true
+							if existsData, exists := config["data"]; !exists || existsData == "" {
+								config["data"] = config["defaultDataForDeployment"]
+								delete(config, "defaultDataForDeployment")
+								record.Set("config", config)
+								changed = true
+							}
 						}
 						if _, ok := config["defaultDataForNotification"]; ok {
-							config["dataForNotification"] = config["defaultDataForNotification"]
-							delete(config, "defaultDataForNotification")
-							record.Set("config", config)
-							changed = true
+							if existsData, exists := config["data"]; !exists || existsData == "" {
+								config["data"] = config["defaultDataForNotification"]
+								delete(config, "defaultDataForNotification")
+								record.Set("config", config)
+								changed = true
+							}
+						}
+						if _, ok := config["dataForDeployment"]; ok {
+							if existsData, exists := config["data"]; !exists || existsData == "" {
+								config["data"] = config["dataForDeployment"]
+								delete(config, "dataForDeployment")
+								record.Set("config", config)
+								changed = true
+							}
+						}
+						if _, ok := config["dataForNotification"]; ok {
+							if existsData, exists := config["data"]; !exists || existsData == "" {
+								config["data"] = config["dataForNotification"]
+								delete(config, "dataForNotification")
+								record.Set("config", config)
+								changed = true
+							}
 						}
 					}
 

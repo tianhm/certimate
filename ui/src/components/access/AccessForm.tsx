@@ -1,111 +1,104 @@
-import { forwardRef, useImperativeHandle, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Form, type FormInstance, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
-import AccessProviderPicker from "@/components/provider/AccessProviderPicker";
 import AccessProviderSelect from "@/components/provider/AccessProviderSelect";
-import Show from "@/components/Show";
 import { type AccessModel } from "@/domain/access";
-import { ACCESS_PROVIDERS, ACCESS_USAGES, type AccessProvider } from "@/domain/provider";
-import { useAntdForm, useAntdFormName } from "@/hooks";
+import { ACCESS_PROVIDERS, ACCESS_USAGES } from "@/domain/provider";
+import { useAntdForm } from "@/hooks";
 
-import AccessForm1PanelConfig from "./AccessForm1PanelConfig";
-import AccessFormACMECAConfig from "./AccessFormACMECAConfig";
-import AccessFormACMEHttpReqConfig from "./AccessFormACMEHttpReqConfig";
-import AccessFormAliyunConfig from "./AccessFormAliyunConfig";
-import AccessFormAPISIXConfig from "./AccessFormAPISIXConfig";
-import AccessFormAWSConfig from "./AccessFormAWSConfig";
-import AccessFormAzureConfig from "./AccessFormAzureConfig";
-import AccessFormBaiduCloudConfig from "./AccessFormBaiduCloudConfig";
-import AccessFormBaishanConfig from "./AccessFormBaishanConfig";
-import AccessFormBaotaPanelConfig from "./AccessFormBaotaPanelConfig";
-import AccessFormBaotaWAFConfig from "./AccessFormBaotaWAFConfig";
-import AccessFormBunnyConfig from "./AccessFormBunnyConfig";
-import AccessFormBytePlusConfig from "./AccessFormBytePlusConfig";
-import AccessFormCacheFlyConfig from "./AccessFormCacheFlyConfig";
-import AccessFormCdnflyConfig from "./AccessFormCdnflyConfig";
-import AccessFormCloudflareConfig from "./AccessFormCloudflareConfig";
-import AccessFormClouDNSConfig from "./AccessFormClouDNSConfig";
-import AccessFormCMCCCloudConfig from "./AccessFormCMCCCloudConfig";
-import AccessFormConstellixConfig from "./AccessFormConstellixConfig";
-import AccessFormCTCCCloudConfig from "./AccessFormCTCCCloudConfig";
-import AccessFormDeSECConfig from "./AccessFormDeSECConfig";
-import AccessFormDigitalOceanConfig from "./AccessFormDigitalOceanConfig";
-import AccessFormDingTalkBotConfig from "./AccessFormDingTalkBotConfig";
-import AccessFormDiscordBotConfig from "./AccessFormDiscordBotConfig";
-import AccessFormDNSLAConfig from "./AccessFormDNSLAConfig";
-import AccessFormDogeCloudConfig from "./AccessFormDogeCloudConfig";
-import AccessFormDuckDNSConfig from "./AccessFormDuckDNSConfig";
-import AccessFormDynv6Config from "./AccessFormDynv6Config";
-import AccessFormEdgioConfig from "./AccessFormEdgioConfig";
-import AccessFormEmailConfig from "./AccessFormEmailConfig";
-import AccessFormFlexCDNConfig from "./AccessFormFlexCDNConfig";
-import AccessFormGcoreConfig from "./AccessFormGcoreConfig";
-import AccessFormGnameConfig from "./AccessFormGnameConfig";
-import AccessFormGoDaddyConfig from "./AccessFormGoDaddyConfig";
-import AccessFormGoEdgeConfig from "./AccessFormGoEdgeConfig";
-import AccessFormGoogleTrustServicesConfig from "./AccessFormGoogleTrustServicesConfig";
-import AccessFormHetznerConfig from "./AccessFormHetznerConfig";
-import AccessFormHuaweiCloudConfig from "./AccessFormHuaweiCloudConfig";
-import AccessFormJDCloudConfig from "./AccessFormJDCloudConfig";
-import AccessFormKongConfig from "./AccessFormKongConfig";
-import AccessFormKubernetesConfig from "./AccessFormKubernetesConfig";
-import AccessFormLarkBotConfig from "./AccessFormLarkBotConfig";
-import AccessFormLeCDNConfig from "./AccessFormLeCDNConfig";
-import AccessFormMattermostConfig from "./AccessFormMattermostConfig";
-import AccessFormNamecheapConfig from "./AccessFormNamecheapConfig";
-import AccessFormNameDotComConfig from "./AccessFormNameDotComConfig";
-import AccessFormNameSiloConfig from "./AccessFormNameSiloConfig";
-import AccessFormNetcupConfig from "./AccessFormNetcupConfig";
-import AccessFormNetlifyConfig from "./AccessFormNetlifyConfig";
-import AccessFormNS1Config from "./AccessFormNS1Config";
-import AccessFormPorkbunConfig from "./AccessFormPorkbunConfig";
-import AccessFormPowerDNSConfig from "./AccessFormPowerDNSConfig";
-import AccessFormProxmoxVEConfig from "./AccessFormProxmoxVEConfig";
-import AccessFormQiniuConfig from "./AccessFormQiniuConfig";
-import AccessFormRainYunConfig from "./AccessFormRainYunConfig";
-import AccessFormRatPanelConfig from "./AccessFormRatPanelConfig";
-import AccessFormSafeLineConfig from "./AccessFormSafeLineConfig";
-import AccessFormSlackBotConfig from "./AccessFormSlackBotConfig";
-import AccessFormSpaceshipConfig from "./AccessFormSpaceshipConfig";
-import AccessFormSSHConfig from "./AccessFormSSHConfig";
-import AccessFormSSLComConfig from "./AccessFormSSLComConfig";
-import AccessFormTelegramBotConfig from "./AccessFormTelegramBotConfig";
-import AccessFormTencentCloudConfig from "./AccessFormTencentCloudConfig";
-import AccessFormUCloudConfig from "./AccessFormUCloudConfig";
-import AccessFormUniCloudConfig from "./AccessFormUniCloudConfig";
-import AccessFormUpyunConfig from "./AccessFormUpyunConfig";
-import AccessFormVercelConfig from "./AccessFormVercelConfig";
-import AccessFormVolcEngineConfig from "./AccessFormVolcEngineConfig";
-import AccessFormWangsuConfig from "./AccessFormWangsuConfig";
-import AccessFormWebhookConfig from "./AccessFormWebhookConfig";
-import AccessFormWeComBotConfig from "./AccessFormWeComBotConfig";
-import AccessFormWestcnConfig from "./AccessFormWestcnConfig";
-import AccessFormZeroSSLConfig from "./AccessFormZeroSSLConfig";
+import { FormNestedFieldsContextProvider } from "./forms/_context";
+import { useProviderFilterByUsage } from "./forms/_hooks";
+import AccessConfigFieldsProvider1Panel from "./forms/AccessConfigFieldsProvider1Panel";
+import AccessConfigFieldsProviderACMECA from "./forms/AccessConfigFieldsProviderACMECA";
+import AccessConfigFieldsProviderACMEHttpReq from "./forms/AccessConfigFieldsProviderACMEHttpReq";
+import AccessConfigFieldsProviderAliyun from "./forms/AccessConfigFieldsProviderAliyun";
+import AccessConfigFieldsProviderAPISIX from "./forms/AccessConfigFieldsProviderAPISIX";
+import AccessConfigFieldsProviderAWS from "./forms/AccessConfigFieldsProviderAWS";
+import AccessConfigFieldsProviderAzure from "./forms/AccessConfigFieldsProviderAzure";
+import AccessConfigFieldsProviderBaiduCloud from "./forms/AccessConfigFieldsProviderBaiduCloud";
+import AccessConfigFieldsProviderBaishan from "./forms/AccessConfigFieldsProviderBaishan";
+import AccessConfigFieldsProviderBaotaPanel from "./forms/AccessConfigFieldsProviderBaotaPanel";
+import AccessConfigFieldsProviderBaotaWAF from "./forms/AccessConfigFieldsProviderBaotaWAF";
+import AccessConfigFieldsProviderBunny from "./forms/AccessConfigFieldsProviderBunny";
+import AccessConfigFieldsProviderBytePlus from "./forms/AccessConfigFieldsProviderBytePlus";
+import AccessConfigFieldsProviderCacheFly from "./forms/AccessConfigFieldsProviderCacheFly";
+import AccessConfigFieldsProviderCdnfly from "./forms/AccessConfigFieldsProviderCdnfly";
+import AccessConfigFieldsProviderCloudflare from "./forms/AccessConfigFieldsProviderCloudflare";
+import AccessConfigFieldsProviderClouDNS from "./forms/AccessConfigFieldsProviderClouDNS";
+import AccessConfigFieldsProviderCMCCCloud from "./forms/AccessConfigFieldsProviderCMCCCloud";
+import AccessConfigFieldsProviderConstellix from "./forms/AccessConfigFieldsProviderConstellix";
+import AccessConfigFieldsProviderCTCCCloud from "./forms/AccessConfigFieldsProviderCTCCCloud";
+import AccessConfigFieldsProviderDeSEC from "./forms/AccessConfigFieldsProviderDeSEC";
+import AccessConfigFieldsProviderDigitalOcean from "./forms/AccessConfigFieldsProviderDigitalOcean";
+import AccessConfigFieldsProviderDingTalkBot from "./forms/AccessConfigFieldsProviderDingTalkBot";
+import AccessConfigFieldsProviderDiscordBot from "./forms/AccessConfigFieldsProviderDiscordBot";
+import AccessConfigFieldsProviderDNSLA from "./forms/AccessConfigFieldsProviderDNSLA";
+import AccessConfigFieldsProviderDogeCloud from "./forms/AccessConfigFieldsProviderDogeCloud";
+import AccessConfigFieldsProviderDuckDNS from "./forms/AccessConfigFieldsProviderDuckDNS";
+import AccessConfigFieldsProviderDynv6 from "./forms/AccessConfigFieldsProviderDynv6";
+import AccessConfigFieldsProviderEdgio from "./forms/AccessConfigFieldsProviderEdgio";
+import AccessConfigFieldsProviderEmail from "./forms/AccessConfigFieldsProviderEmail";
+import AccessConfigFieldsProviderFlexCDN from "./forms/AccessConfigFieldsProviderFlexCDN";
+import AccessConfigFieldsProviderGcore from "./forms/AccessConfigFieldsProviderGcore";
+import AccessConfigFieldsProviderGname from "./forms/AccessConfigFieldsProviderGname";
+import AccessConfigFieldsProviderGoDaddy from "./forms/AccessConfigFieldsProviderGoDaddy";
+import AccessConfigFieldsProviderGoEdge from "./forms/AccessConfigFieldsProviderGoEdge";
+import AccessConfigFieldsProviderGoogleTrustServices from "./forms/AccessConfigFieldsProviderGoogleTrustServices";
+import AccessConfigFieldsProviderHetzner from "./forms/AccessConfigFieldsProviderHetzner";
+import AccessConfigFieldsProviderHuaweiCloud from "./forms/AccessConfigFieldsProviderHuaweiCloud";
+import AccessConfigFieldsProviderJDCloud from "./forms/AccessConfigFieldsProviderJDCloud";
+import AccessConfigFieldsProviderKong from "./forms/AccessConfigFieldsProviderKong";
+import AccessConfigFieldsProviderKubernetes from "./forms/AccessConfigFieldsProviderKubernetes";
+import AccessConfigFieldsProviderLarkBot from "./forms/AccessConfigFieldsProviderLarkBot";
+import AccessConfigFieldsProviderLeCDN from "./forms/AccessConfigFieldsProviderLeCDN";
+import AccessConfigFieldsProviderMattermost from "./forms/AccessConfigFieldsProviderMattermost";
+import AccessConfigFieldsProviderNamecheap from "./forms/AccessConfigFieldsProviderNamecheap";
+import AccessConfigFieldsProviderNameDotCom from "./forms/AccessConfigFieldsProviderNameDotCom";
+import AccessConfigFieldsProviderNameSilo from "./forms/AccessConfigFieldsProviderNameSilo";
+import AccessConfigFieldsProviderNetcup from "./forms/AccessConfigFieldsProviderNetcup";
+import AccessConfigFieldsProviderNetlify from "./forms/AccessConfigFieldsProviderNetlify";
+import AccessConfigFieldsProviderNS1 from "./forms/AccessConfigFieldsProviderNS1";
+import AccessConfigFieldsProviderPorkbun from "./forms/AccessConfigFieldsProviderPorkbun";
+import AccessConfigFieldsProviderPowerDNS from "./forms/AccessConfigFieldsProviderPowerDNS";
+import AccessConfigFieldsProviderProxmoxVE from "./forms/AccessConfigFieldsProviderProxmoxVE";
+import AccessConfigFieldsProviderQiniu from "./forms/AccessConfigFieldsProviderQiniu";
+import AccessConfigFieldsProviderRainYun from "./forms/AccessConfigFieldsProviderRainYun";
+import AccessConfigFieldsProviderRatPanel from "./forms/AccessConfigFieldsProviderRatPanel";
+import AccessConfigFieldsProviderSafeLine from "./forms/AccessConfigFieldsProviderSafeLine";
+import AccessConfigFieldsProviderSlackBot from "./forms/AccessConfigFieldsProviderSlackBot";
+import AccessConfigFieldsProviderSpaceship from "./forms/AccessConfigFieldsProviderSpaceship";
+import AccessConfigFieldsProviderSSH from "./forms/AccessConfigFieldsProviderSSH";
+import AccessConfigFieldsProviderSSLCom from "./forms/AccessConfigFieldsProviderSSLCom";
+import AccessConfigFieldsProviderTelegramBot from "./forms/AccessConfigFieldsProviderTelegramBot";
+import AccessConfigFieldsProviderTencentCloud from "./forms/AccessConfigFieldsProviderTencentCloud";
+import AccessConfigFieldsProviderUCloud from "./forms/AccessConfigFieldsProviderUCloud";
+import AccessConfigFieldsProviderUniCloud from "./forms/AccessConfigFieldsProviderUniCloud";
+import AccessConfigFieldsProviderUpyun from "./forms/AccessConfigFieldsProviderUpyun";
+import AccessConfigFieldsProviderVercel from "./forms/AccessConfigFieldsProviderVercel";
+import AccessConfigFieldsProviderVolcEngine from "./forms/AccessConfigFieldsProviderVolcEngine";
+import AccessConfigFieldsProviderWangsu from "./forms/AccessConfigFieldsProviderWangsu";
+import AccessConfigFieldsProviderWebhook from "./forms/AccessConfigFieldsProviderWebhook";
+import AccessConfigFieldsProviderWeComBot from "./forms/AccessConfigFieldsProviderWeComBot";
+import AccessConfigFieldsProviderWestcn from "./forms/AccessConfigFieldsProviderWestcn";
+import AccessConfigFieldsProviderZeroSSL from "./forms/AccessConfigFieldsProviderZeroSSL";
 
-type AccessFormFieldValues = Partial<MaybeModelRecord<AccessModel>>;
-type AccessFormModes = "create" | "edit";
-type AccessFormUsages = "dns" | "hosting" | "dns-hosting" | "ca" | "notification";
+export type AccessFormModes = "create" | "edit";
+export type AccessFormUsages = "dns" | "hosting" | "dns-hosting" | "ca" | "notification";
 
 export interface AccessFormProps {
   className?: string;
   style?: React.CSSProperties;
-  mode: AccessFormModes;
   disabled?: boolean;
-  initialValues?: AccessFormFieldValues;
+  initialValues?: Nullish<MaybeModelRecord<AccessModel>>;
+  form: FormInstance;
+  mode: AccessFormModes;
   usage?: AccessFormUsages;
-  onValuesChange?: (values: AccessFormFieldValues) => void;
 }
 
-export interface AccessFormInstance {
-  getFieldsValue: () => ReturnType<FormInstance<AccessFormFieldValues>["getFieldsValue"]>;
-  resetFields: FormInstance<AccessFormFieldValues>["resetFields"];
-  validateFields: FormInstance<AccessFormFieldValues>["validateFields"];
-}
-
-const AccessForm = forwardRef<AccessFormInstance, AccessFormProps>(({ className, style, mode, disabled, initialValues, usage, onValuesChange }, ref) => {
+const AccessForm = ({ className, style, disabled, initialValues, mode, usage, ...props }: AccessFormProps) => {
   const { t } = useTranslation();
 
   const formSchema = z.object({
@@ -119,280 +112,282 @@ const AccessForm = forwardRef<AccessFormInstance, AccessFormProps>(({ className,
   });
   const formRule = createSchemaFieldRule(formSchema);
   const { form: formInst, formProps } = useAntdForm({
+    form: props.form,
     name: "accessForm",
     initialValues: initialValues,
   });
 
-  const providerFilter = useMemo(() => {
-    switch (usage) {
-      case "dns":
-        return (_: string, option: AccessProvider) => option.usages.includes(ACCESS_USAGES.DNS);
-      case "hosting":
-        return (_: string, option: AccessProvider) => option.usages.includes(ACCESS_USAGES.HOSTING);
-      case "dns-hosting":
-        return (_: string, option: AccessProvider) => option.usages.includes(ACCESS_USAGES.DNS) || option.usages.includes(ACCESS_USAGES.HOSTING);
-      case "ca":
-        return (_: string, option: AccessProvider) => option.usages.includes(ACCESS_USAGES.CA);
-      case "notification":
-        return (_: string, option: AccessProvider) => option.usages.includes(ACCESS_USAGES.NOTIFICATION);
-      default:
-        console.warn(`[certimate] unsupported provider usage: '${usage}'`);
-    }
-  }, [usage]);
+  const providerFilter = useProviderFilterByUsage(usage);
 
-  const fieldProvider = Form.useWatch<z.infer<typeof formSchema>["provider"]>("provider", formInst);
-  const [fieldProviderPicked, setFieldProviderPicked] = useState<string>(initialValues?.provider); // bugfix: Form.useWatch 在条件渲染下不生效，这里用单独的变量存放 Picker 组件选择的值
+  const fieldProvider = Form.useWatch<string>("provider", { form: formInst, preserve: true });
 
-  const [nestedFormInst] = Form.useForm();
-  const nestedFormName = useAntdFormName({ form: nestedFormInst, name: "accessConfigForm" });
-  const nestedFormEl = useMemo(() => {
-    const nestedFormProps = {
-      form: nestedFormInst,
-      formName: nestedFormName,
-      disabled: disabled,
-      initialValues: initialValues?.config,
-    };
-
+  const nestedProviderConfigFields = useMemo(() => {
     /*
-      注意：如果追加新的子组件，请保持以 ASCII 排序。
-      NOTICE: If you add new child component, please keep ASCII order.
-     */
+        注意：如果追加新的子组件，请保持以 ASCII 排序。
+        NOTICE: If you add new child component, please keep ASCII order.
+       */
     switch (fieldProvider) {
-      case ACCESS_PROVIDERS["1PANEL"]:
-        return <AccessForm1PanelConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.ACMECA:
-        return <AccessFormACMECAConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.ACMEHTTPREQ:
-        return <AccessFormACMEHttpReqConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.ALIYUN:
-        return <AccessFormAliyunConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.APISIX:
-        return <AccessFormAPISIXConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.AWS:
-        return <AccessFormAWSConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.AZURE:
-        return <AccessFormAzureConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.BAIDUCLOUD:
-        return <AccessFormBaiduCloudConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.BAISHAN:
-        return <AccessFormBaishanConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.BAOTAPANEL:
-        return <AccessFormBaotaPanelConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.BAOTAWAF:
-        return <AccessFormBaotaWAFConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.BUNNY:
-        return <AccessFormBunnyConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.BYTEPLUS:
-        return <AccessFormBytePlusConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.CACHEFLY:
-        return <AccessFormCacheFlyConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.CDNFLY:
-        return <AccessFormCdnflyConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.CLOUDFLARE:
-        return <AccessFormCloudflareConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.CLOUDNS:
-        return <AccessFormClouDNSConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.CMCCCLOUD:
-        return <AccessFormCMCCCloudConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.CONSTELLIX:
-        return <AccessFormConstellixConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.CTCCCLOUD:
-        return <AccessFormCTCCCloudConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.DESEC:
-        return <AccessFormDeSECConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.DIGITALOCEAN:
-        return <AccessFormDigitalOceanConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.DINGTALKBOT:
-        return <AccessFormDingTalkBotConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.DISCORDBOT:
-        return <AccessFormDiscordBotConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.DNSLA:
-        return <AccessFormDNSLAConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.DOGECLOUD:
-        return <AccessFormDogeCloudConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.DUCKDNS:
-        return <AccessFormDuckDNSConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.DYNV6:
-        return <AccessFormDynv6Config {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.EDGIO:
-        return <AccessFormEdgioConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.EMAIL:
-        return <AccessFormEmailConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.FLEXCDN:
-        return <AccessFormFlexCDNConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.GCORE:
-        return <AccessFormGcoreConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.GNAME:
-        return <AccessFormGnameConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.GODADDY:
-        return <AccessFormGoDaddyConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.GOEDGE:
-        return <AccessFormGoEdgeConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.GOOGLETRUSTSERVICES:
-        return <AccessFormGoogleTrustServicesConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.HETZNER:
-        return <AccessFormHetznerConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.HUAWEICLOUD:
-        return <AccessFormHuaweiCloudConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.JDCLOUD:
-        return <AccessFormJDCloudConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.KONG:
-        return <AccessFormKongConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.KUBERNETES:
-        return <AccessFormKubernetesConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.LARKBOT:
-        return <AccessFormLarkBotConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.LECDN:
-        return <AccessFormLeCDNConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.MATTERMOST:
-        return <AccessFormMattermostConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.NAMECHEAP:
-        return <AccessFormNamecheapConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.NAMEDOTCOM:
-        return <AccessFormNameDotComConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.NAMESILO:
-        return <AccessFormNameSiloConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.NETCUP:
-        return <AccessFormNetcupConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.NETLIFY:
-        return <AccessFormNetlifyConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.NS1:
-        return <AccessFormNS1Config {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.PORKBUN:
-        return <AccessFormPorkbunConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.POWERDNS:
-        return <AccessFormPowerDNSConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.PROXMOXVE:
-        return <AccessFormProxmoxVEConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.QINIU:
-        return <AccessFormQiniuConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.RAINYUN:
-        return <AccessFormRainYunConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.RATPANEL:
-        return <AccessFormRatPanelConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.SAFELINE:
-        return <AccessFormSafeLineConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.SLACKBOT:
-        return <AccessFormSlackBotConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.SPACESHIP:
-        return <AccessFormSpaceshipConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.SSH:
-        return <AccessFormSSHConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.TELEGRAMBOT:
-        return <AccessFormTelegramBotConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.SSLCOM:
-        return <AccessFormSSLComConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.TENCENTCLOUD:
-        return <AccessFormTencentCloudConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.UCLOUD:
-        return <AccessFormUCloudConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.UNICLOUD:
-        return <AccessFormUniCloudConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.UPYUN:
-        return <AccessFormUpyunConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.VERCEL:
-        return <AccessFormVercelConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.VOLCENGINE:
-        return <AccessFormVolcEngineConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.WANGSU:
-        return <AccessFormWangsuConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.WEBHOOK:
-        return (
-          <AccessFormWebhookConfig
-            usage={usage === "notification" ? "notification" : usage === "hosting" || usage === "dns-hosting" ? "deployment" : "none"}
-            {...nestedFormProps}
-          />
-        );
-      case ACCESS_PROVIDERS.WECOMBOT:
-        return <AccessFormWeComBotConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.WESTCN:
-        return <AccessFormWestcnConfig {...nestedFormProps} />;
-      case ACCESS_PROVIDERS.ZEROSSL:
-        return <AccessFormZeroSSLConfig {...nestedFormProps} />;
+      case ACCESS_PROVIDERS["1PANEL"]: {
+        return <AccessConfigFieldsProvider1Panel />;
+      }
+      case ACCESS_PROVIDERS.ACMECA: {
+        return <AccessConfigFieldsProviderACMECA />;
+      }
+      case ACCESS_PROVIDERS.ACMEHTTPREQ: {
+        return <AccessConfigFieldsProviderACMEHttpReq />;
+      }
+      case ACCESS_PROVIDERS.ALIYUN: {
+        return <AccessConfigFieldsProviderAliyun />;
+      }
+      case ACCESS_PROVIDERS.APISIX: {
+        return <AccessConfigFieldsProviderAPISIX />;
+      }
+      case ACCESS_PROVIDERS.AWS: {
+        return <AccessConfigFieldsProviderAWS />;
+      }
+      case ACCESS_PROVIDERS.AZURE: {
+        return <AccessConfigFieldsProviderAzure />;
+      }
+      case ACCESS_PROVIDERS.BAIDUCLOUD: {
+        return <AccessConfigFieldsProviderBaiduCloud />;
+      }
+      case ACCESS_PROVIDERS.BAISHAN: {
+        return <AccessConfigFieldsProviderBaishan />;
+      }
+      case ACCESS_PROVIDERS.BAOTAPANEL: {
+        return <AccessConfigFieldsProviderBaotaPanel />;
+      }
+      case ACCESS_PROVIDERS.BAOTAWAF: {
+        return <AccessConfigFieldsProviderBaotaWAF />;
+      }
+      case ACCESS_PROVIDERS.BUNNY: {
+        return <AccessConfigFieldsProviderBunny />;
+      }
+      case ACCESS_PROVIDERS.BYTEPLUS: {
+        return <AccessConfigFieldsProviderBytePlus />;
+      }
+      case ACCESS_PROVIDERS.CACHEFLY: {
+        return <AccessConfigFieldsProviderCacheFly />;
+      }
+      case ACCESS_PROVIDERS.CDNFLY: {
+        return <AccessConfigFieldsProviderCdnfly />;
+      }
+      case ACCESS_PROVIDERS.CLOUDFLARE: {
+        return <AccessConfigFieldsProviderCloudflare />;
+      }
+      case ACCESS_PROVIDERS.CLOUDNS: {
+        return <AccessConfigFieldsProviderClouDNS />;
+      }
+      case ACCESS_PROVIDERS.CMCCCLOUD: {
+        return <AccessConfigFieldsProviderCMCCCloud />;
+      }
+      case ACCESS_PROVIDERS.CONSTELLIX: {
+        return <AccessConfigFieldsProviderConstellix />;
+      }
+      case ACCESS_PROVIDERS.CTCCCLOUD: {
+        return <AccessConfigFieldsProviderCTCCCloud />;
+      }
+      case ACCESS_PROVIDERS.DESEC: {
+        return <AccessConfigFieldsProviderDeSEC />;
+      }
+      case ACCESS_PROVIDERS.DIGITALOCEAN: {
+        return <AccessConfigFieldsProviderDigitalOcean />;
+      }
+      case ACCESS_PROVIDERS.DINGTALKBOT: {
+        return <AccessConfigFieldsProviderDingTalkBot />;
+      }
+      case ACCESS_PROVIDERS.DISCORDBOT: {
+        return <AccessConfigFieldsProviderDiscordBot />;
+      }
+      case ACCESS_PROVIDERS.DNSLA: {
+        return <AccessConfigFieldsProviderDNSLA />;
+      }
+      case ACCESS_PROVIDERS.DOGECLOUD: {
+        return <AccessConfigFieldsProviderDogeCloud />;
+      }
+      case ACCESS_PROVIDERS.DUCKDNS: {
+        return <AccessConfigFieldsProviderDuckDNS />;
+      }
+      case ACCESS_PROVIDERS.DYNV6: {
+        return <AccessConfigFieldsProviderDynv6 />;
+      }
+      case ACCESS_PROVIDERS.EDGIO: {
+        return <AccessConfigFieldsProviderEdgio />;
+      }
+      case ACCESS_PROVIDERS.EMAIL: {
+        return <AccessConfigFieldsProviderEmail />;
+      }
+      case ACCESS_PROVIDERS.FLEXCDN: {
+        return <AccessConfigFieldsProviderFlexCDN />;
+      }
+      case ACCESS_PROVIDERS.GCORE: {
+        return <AccessConfigFieldsProviderGcore />;
+      }
+      case ACCESS_PROVIDERS.GNAME: {
+        return <AccessConfigFieldsProviderGname />;
+      }
+      case ACCESS_PROVIDERS.GODADDY: {
+        return <AccessConfigFieldsProviderGoDaddy />;
+      }
+      case ACCESS_PROVIDERS.GOEDGE: {
+        return <AccessConfigFieldsProviderGoEdge />;
+      }
+      case ACCESS_PROVIDERS.GOOGLETRUSTSERVICES: {
+        return <AccessConfigFieldsProviderGoogleTrustServices />;
+      }
+      case ACCESS_PROVIDERS.HETZNER: {
+        return <AccessConfigFieldsProviderHetzner />;
+      }
+      case ACCESS_PROVIDERS.HUAWEICLOUD: {
+        return <AccessConfigFieldsProviderHuaweiCloud />;
+      }
+      case ACCESS_PROVIDERS.JDCLOUD: {
+        return <AccessConfigFieldsProviderJDCloud />;
+      }
+      case ACCESS_PROVIDERS.KONG: {
+        return <AccessConfigFieldsProviderKong />;
+      }
+      case ACCESS_PROVIDERS.KUBERNETES: {
+        return <AccessConfigFieldsProviderKubernetes />;
+      }
+      case ACCESS_PROVIDERS.LARKBOT: {
+        return <AccessConfigFieldsProviderLarkBot />;
+      }
+      case ACCESS_PROVIDERS.LECDN: {
+        return <AccessConfigFieldsProviderLeCDN />;
+      }
+      case ACCESS_PROVIDERS.MATTERMOST: {
+        return <AccessConfigFieldsProviderMattermost />;
+      }
+      case ACCESS_PROVIDERS.NAMECHEAP: {
+        return <AccessConfigFieldsProviderNamecheap />;
+      }
+      case ACCESS_PROVIDERS.NAMEDOTCOM: {
+        return <AccessConfigFieldsProviderNameDotCom />;
+      }
+      case ACCESS_PROVIDERS.NAMESILO: {
+        return <AccessConfigFieldsProviderNameSilo />;
+      }
+      case ACCESS_PROVIDERS.NETCUP: {
+        return <AccessConfigFieldsProviderNetcup />;
+      }
+      case ACCESS_PROVIDERS.NETLIFY: {
+        return <AccessConfigFieldsProviderNetlify />;
+      }
+      case ACCESS_PROVIDERS.NS1: {
+        return <AccessConfigFieldsProviderNS1 />;
+      }
+      case ACCESS_PROVIDERS.PORKBUN: {
+        return <AccessConfigFieldsProviderPorkbun />;
+      }
+      case ACCESS_PROVIDERS.POWERDNS: {
+        return <AccessConfigFieldsProviderPowerDNS />;
+      }
+      case ACCESS_PROVIDERS.PROXMOXVE: {
+        return <AccessConfigFieldsProviderProxmoxVE />;
+      }
+      case ACCESS_PROVIDERS.QINIU: {
+        return <AccessConfigFieldsProviderQiniu />;
+      }
+      case ACCESS_PROVIDERS.RAINYUN: {
+        return <AccessConfigFieldsProviderRainYun />;
+      }
+      case ACCESS_PROVIDERS.RATPANEL: {
+        return <AccessConfigFieldsProviderRatPanel />;
+      }
+      case ACCESS_PROVIDERS.SAFELINE: {
+        return <AccessConfigFieldsProviderSafeLine />;
+      }
+      case ACCESS_PROVIDERS.SLACKBOT: {
+        return <AccessConfigFieldsProviderSlackBot />;
+      }
+      case ACCESS_PROVIDERS.SPACESHIP: {
+        return <AccessConfigFieldsProviderSpaceship />;
+      }
+      case ACCESS_PROVIDERS.SSH: {
+        return <AccessConfigFieldsProviderSSH disabled={disabled} />;
+      }
+      case ACCESS_PROVIDERS.TELEGRAMBOT: {
+        return <AccessConfigFieldsProviderTelegramBot />;
+      }
+      case ACCESS_PROVIDERS.SSLCOM: {
+        return <AccessConfigFieldsProviderSSLCom />;
+      }
+      case ACCESS_PROVIDERS.TENCENTCLOUD: {
+        return <AccessConfigFieldsProviderTencentCloud />;
+      }
+      case ACCESS_PROVIDERS.UCLOUD: {
+        return <AccessConfigFieldsProviderUCloud />;
+      }
+      case ACCESS_PROVIDERS.UNICLOUD: {
+        return <AccessConfigFieldsProviderUniCloud />;
+      }
+      case ACCESS_PROVIDERS.UPYUN: {
+        return <AccessConfigFieldsProviderUpyun />;
+      }
+      case ACCESS_PROVIDERS.VERCEL: {
+        return <AccessConfigFieldsProviderVercel />;
+      }
+      case ACCESS_PROVIDERS.VOLCENGINE: {
+        return <AccessConfigFieldsProviderVolcEngine />;
+      }
+      case ACCESS_PROVIDERS.WANGSU: {
+        return <AccessConfigFieldsProviderWangsu />;
+      }
+      case ACCESS_PROVIDERS.WEBHOOK: {
+        const webhookUsage = usage === "notification" ? "notification" : usage === "hosting" || usage === "dns-hosting" ? "deployment" : "none";
+        return <AccessConfigFieldsProviderWebhook usage={webhookUsage} />;
+      }
+      case ACCESS_PROVIDERS.WECOMBOT: {
+        return <AccessConfigFieldsProviderWeComBot />;
+      }
+      case ACCESS_PROVIDERS.WESTCN: {
+        return <AccessConfigFieldsProviderWestcn />;
+      }
+      case ACCESS_PROVIDERS.ZEROSSL: {
+        return <AccessConfigFieldsProviderZeroSSL />;
+      }
     }
-  }, [usage, disabled, initialValues?.config, fieldProvider, nestedFormInst, nestedFormName]);
-
-  const handleProviderPick = (value: string) => {
-    setFieldProviderPicked(value);
-    formInst.setFieldValue("provider", value);
-    onValuesChange?.(formInst.getFieldsValue(true));
-  };
-
-  const handleFormProviderChange = (name: string) => {
-    if (name === nestedFormName) {
-      formInst.setFieldValue("config", nestedFormInst.getFieldsValue());
-      onValuesChange?.(formInst.getFieldsValue(true));
-    }
-  };
-
-  const handleFormChange = (_: unknown, values: AccessFormFieldValues) => {
-    onValuesChange?.(values);
-  };
-
-  useImperativeHandle(ref, () => {
-    return {
-      getFieldsValue: () => {
-        const values = formInst.getFieldsValue(true);
-        values.config = nestedFormInst.getFieldsValue();
-        values.reserve = usage === "ca" ? "ca" : usage === "notification" ? "notif" : void 0;
-        return values;
-      },
-      resetFields: (fields) => {
-        formInst.resetFields(fields);
-
-        if (!!fields && fields.includes("config")) {
-          nestedFormInst.resetFields(fields);
-        }
-      },
-      validateFields: (nameList, config) => {
-        const t1 = formInst.validateFields(nameList, config);
-        const t2 = nestedFormInst.validateFields(void 0, config);
-        return Promise.all([t1, t2]).then(() => t1);
-      },
-    } as AccessFormInstance;
-  });
+  }, [disabled, usage, fieldProvider]);
 
   return (
-    <Form.Provider onFormChange={handleFormProviderChange}>
-      <div className={className} style={style}>
-        <Form {...formProps} disabled={disabled} layout="vertical" scrollToFirstError onValuesChange={handleFormChange}>
-          <Show
-            when={!!fieldProvider || !!fieldProviderPicked}
-            fallback={
-              <AccessProviderPicker
-                autoFocus
-                placeholder={t("access.form.provider.search.placeholder")}
-                showOptionTags={usage == null || (usage === "dns-hosting" ? { [ACCESS_USAGES.DNS]: true, [ACCESS_USAGES.HOSTING]: true } : false)}
-                onFilter={providerFilter}
-                onSelect={handleProviderPick}
-              />
-            }
-          >
-            <Form.Item name="name" label={t("access.form.name.label")} rules={[formRule]}>
-              <Input placeholder={t("access.form.name.placeholder")} />
-            </Form.Item>
+    <Form
+      className={className}
+      style={style}
+      {...formProps}
+      clearOnDestroy={true}
+      disabled={disabled}
+      form={formInst}
+      layout="vertical"
+      preserve={false}
+      scrollToFirstError
+    >
+      <Form.Item name="name" label={t("access.form.name.label")} rules={[formRule]}>
+        <Input placeholder={t("access.form.name.placeholder")} />
+      </Form.Item>
 
-            <Form.Item
-              name="provider"
-              label={t("access.form.provider.label")}
-              extra={usage === "dns-hosting" ? <span dangerouslySetInnerHTML={{ __html: t("access.form.provider.help") }}></span> : null}
-              rules={[formRule]}
-            >
-              <AccessProviderSelect
-                disabled={mode !== "create"}
-                placeholder={t("access.form.provider.placeholder")}
-                showOptionTags={usage == null || (usage === "dns-hosting" ? { [ACCESS_USAGES.DNS]: true, [ACCESS_USAGES.HOSTING]: true } : false)}
-                showSearch={!disabled}
-                onFilter={providerFilter}
-              />
-            </Form.Item>
-          </Show>
-        </Form>
+      <Form.Item
+        name="provider"
+        label={t("access.form.provider.label")}
+        extra={usage === "dns-hosting" ? <span dangerouslySetInnerHTML={{ __html: t("access.form.provider.help") }}></span> : null}
+        rules={[formRule]}
+      >
+        <AccessProviderSelect
+          disabled={mode !== "create"}
+          placeholder={t("access.form.provider.placeholder")}
+          showOptionTags={usage == null || (usage === "dns-hosting" ? { [ACCESS_USAGES.DNS]: true, [ACCESS_USAGES.HOSTING]: true } : false)}
+          showSearch={!disabled}
+          onFilter={providerFilter}
+        />
+      </Form.Item>
 
-        {nestedFormEl}
-      </div>
-    </Form.Provider>
+      <FormNestedFieldsContextProvider value={{ parentNamePath: "config" }}>{nestedProviderConfigFields}</FormNestedFieldsContextProvider>
+    </Form>
   );
+};
+
+const _default = Object.assign(AccessForm, {
+  useProviderFilterByUsage,
 });
 
-export default AccessForm;
+export default _default;

@@ -15,7 +15,7 @@ import { createMinimapPlugin } from "@flowgram.ai/minimap-plugin";
 import "@flowgram.ai/fixed-layout-editor/index.css";
 import { theme } from "antd";
 
-import { DegisnerContextProvider } from "./DesignerContext";
+import { DegisnerContextProvider } from "./_context";
 import { getAllElements } from "./elements";
 import NodeRender from "./NodeRender";
 import { getAllNodeRegistries } from "./nodes";

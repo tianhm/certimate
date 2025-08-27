@@ -1,6 +1,6 @@
-﻿import { useEffect, useMemo, useRef, useState } from "react";
+﻿import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useAsyncEffect, useSize } from "ahooks";
+import { useAsyncEffect, useMount, useSize } from "ahooks";
 import { Avatar, Card, Checkbox, Empty, Flex, Input, type InputRef, Tabs, Tooltip, Typography } from "antd";
 
 import Show from "@/components/Show";
@@ -34,11 +34,11 @@ const DeploymentProviderPicker = ({ className, style, autoFocus, gap = "middle",
 
   const [keyword, setKeyword] = useState<string>();
   const keywordInputRef = useRef<InputRef>(null);
-  useEffect(() => {
+  useMount(() => {
     if (autoFocus) {
       setTimeout(() => keywordInputRef.current?.focus(), 1);
     }
-  }, []);
+  });
 
   const providers = useMemo(() => {
     return Array.from(deploymentProvidersMap.values())

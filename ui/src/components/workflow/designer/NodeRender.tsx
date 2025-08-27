@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { type NodeRenderProps, useClientContext, useNodeRender, useRefresh } from "@flowgram.ai/fixed-layout-editor";
 
-import { useDesignerContext } from "./DesignerContext";
+import { useDesignerContext } from "./_context";
 import { NodeRenderContextProvider } from "./NodeRenderContext";
 import { type NodeRegistry } from "./nodes/typings";
 

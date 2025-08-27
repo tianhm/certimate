@@ -17,99 +17,99 @@ import { useAntdForm } from "@/hooks";
 
 import { getAllPreviousNodes } from "../_util";
 import { FormNestedFieldsContextProvider, NodeFormContextProvider } from "./_context";
-import BizDeployNodeConfigFormProvider1PanelConsole from "./BizDeployNodeConfigFormProvider1PanelConsole";
-import BizDeployNodeConfigFormProvider1PanelSite from "./BizDeployNodeConfigFormProvider1PanelSite";
-import BizDeployNodeConfigFormProviderAliyunALB from "./BizDeployNodeConfigFormProviderAliyunALB";
-import BizDeployNodeConfigFormProviderAliyunAPIGW from "./BizDeployNodeConfigFormProviderAliyunAPIGW";
-import BizDeployNodeConfigFormProviderAliyunCAS from "./BizDeployNodeConfigFormProviderAliyunCAS";
-import BizDeployNodeConfigFormProviderAliyunCASDeploy from "./BizDeployNodeConfigFormProviderAliyunCASDeploy";
-import BizDeployNodeConfigFormProviderAliyunCDN from "./BizDeployNodeConfigFormProviderAliyunCDN";
-import BizDeployNodeConfigFormProviderAliyunCLB from "./BizDeployNodeConfigFormProviderAliyunCLB";
-import BizDeployNodeConfigFormProviderAliyunDCDN from "./BizDeployNodeConfigFormProviderAliyunDCDN";
-import BizDeployNodeConfigFormProviderAliyunDDoS from "./BizDeployNodeConfigFormProviderAliyunDDoS";
-import BizDeployNodeConfigFormProviderAliyunESA from "./BizDeployNodeConfigFormProviderAliyunESA";
-import BizDeployNodeConfigFormProviderAliyunFC from "./BizDeployNodeConfigFormProviderAliyunFC";
-import BizDeployNodeConfigFormProviderAliyunGA from "./BizDeployNodeConfigFormProviderAliyunGA";
-import BizDeployNodeConfigFormProviderAliyunLive from "./BizDeployNodeConfigFormProviderAliyunLive";
-import BizDeployNodeConfigFormProviderAliyunNLB from "./BizDeployNodeConfigFormProviderAliyunNLB";
-import BizDeployNodeConfigFormProviderAliyunOSS from "./BizDeployNodeConfigFormProviderAliyunOSS";
-import BizDeployNodeConfigFormProviderAliyunVOD from "./BizDeployNodeConfigFormProviderAliyunVOD";
-import BizDeployNodeConfigFormProviderAliyunWAF from "./BizDeployNodeConfigFormProviderAliyunWAF";
-import BizDeployNodeConfigFormProviderAPISIX from "./BizDeployNodeConfigFormProviderAPISIX";
-import BizDeployNodeConfigFormProviderAWSACM from "./BizDeployNodeConfigFormProviderAWSACM";
-import BizDeployNodeConfigFormProviderAWSCloudFront from "./BizDeployNodeConfigFormProviderAWSCloudFront";
-import BizDeployNodeConfigFormProviderAWSIAM from "./BizDeployNodeConfigFormProviderAWSIAM";
-import BizDeployNodeConfigFormProviderAzureKeyVault from "./BizDeployNodeConfigFormProviderAzureKeyVault";
-import BizDeployNodeConfigFormProviderBaiduCloudAppBLB from "./BizDeployNodeConfigFormProviderBaiduCloudAppBLB";
-import BizDeployNodeConfigFormProviderBaiduCloudBLB from "./BizDeployNodeConfigFormProviderBaiduCloudBLB";
-import BizDeployNodeConfigFormProviderBaiduCloudCDN from "./BizDeployNodeConfigFormProviderBaiduCloudCDN";
-import BizDeployNodeConfigFormProviderBaishanCDN from "./BizDeployNodeConfigFormProviderBaishanCDN";
-import BizDeployNodeConfigFormProviderBaotaPanelConsole from "./BizDeployNodeConfigFormProviderBaotaPanelConsole";
-import BizDeployNodeConfigFormProviderBaotaPanelSite from "./BizDeployNodeConfigFormProviderBaotaPanelSite";
-import BizDeployNodeConfigFormProviderBaotaWAFSite from "./BizDeployNodeConfigFormProviderBaotaWAFSite";
-import BizDeployNodeConfigFormProviderBunnyCDN from "./BizDeployNodeConfigFormProviderBunnyCDN";
-import BizDeployNodeConfigFormProviderBytePlusCDN from "./BizDeployNodeConfigFormProviderBytePlusCDN";
-import BizDeployNodeConfigFormProviderCdnfly from "./BizDeployNodeConfigFormProviderCdnfly";
-import BizDeployNodeConfigFormProviderCTCCCloudAO from "./BizDeployNodeConfigFormProviderCTCCCloudAO";
-import BizDeployNodeConfigFormProviderCTCCCloudCDN from "./BizDeployNodeConfigFormProviderCTCCCloudCDN";
-import BizDeployNodeConfigFormProviderCTCCCloudELB from "./BizDeployNodeConfigFormProviderCTCCCloudELB";
-import BizDeployNodeConfigFormProviderCTCCCloudICDN from "./BizDeployNodeConfigFormProviderCTCCCloudICDN";
-import BizDeployNodeConfigFormProviderCTCCCloudLVDN from "./BizDeployNodeConfigFormProviderCTCCCloudLVDN";
-import BizDeployNodeConfigFormProviderDogeCloudCDN from "./BizDeployNodeConfigFormProviderDogeCloudCDN";
-import BizDeployNodeConfigFormProviderEdgioApplications from "./BizDeployNodeConfigFormProviderEdgioApplications";
-import BizDeployNodeConfigFormProviderFlexCDN from "./BizDeployNodeConfigFormProviderFlexCDN";
-import BizDeployNodeConfigFormProviderGcoreCDN from "./BizDeployNodeConfigFormProviderGcoreCDN";
-import BizDeployNodeConfigFormProviderGoEdge from "./BizDeployNodeConfigFormProviderGoEdge";
-import BizDeployNodeConfigFormProviderHuaweiCloudCDN from "./BizDeployNodeConfigFormProviderHuaweiCloudCDN";
-import BizDeployNodeConfigFormProviderHuaweiCloudELB from "./BizDeployNodeConfigFormProviderHuaweiCloudELB";
-import BizDeployNodeConfigFormProviderHuaweiCloudWAF from "./BizDeployNodeConfigFormProviderHuaweiCloudWAF";
-import BizDeployNodeConfigFormProviderJDCloudALB from "./BizDeployNodeConfigFormProviderJDCloudALB";
-import BizDeployNodeConfigFormProviderJDCloudCDN from "./BizDeployNodeConfigFormProviderJDCloudCDN";
-import BizDeployNodeConfigFormProviderJDCloudLive from "./BizDeployNodeConfigFormProviderJDCloudLive";
-import BizDeployNodeConfigFormProviderJDCloudVOD from "./BizDeployNodeConfigFormProviderJDCloudVOD";
-import BizDeployNodeConfigFormProviderKong from "./BizDeployNodeConfigFormProviderKong";
-import BizDeployNodeConfigFormProviderKubernetesSecret from "./BizDeployNodeConfigFormProviderKubernetesSecret";
-import BizDeployNodeConfigFormProviderLeCDN from "./BizDeployNodeConfigFormProviderLeCDN";
-import BizDeployNodeConfigFormProviderLocal from "./BizDeployNodeConfigFormProviderLocal";
-import BizDeployNodeConfigFormProviderNetlifySite from "./BizDeployNodeConfigFormProviderNetlifySite";
-import BizDeployNodeConfigFormProviderProxmoxVE from "./BizDeployNodeConfigFormProviderProxmoxVE";
-import BizDeployNodeConfigFormProviderQiniuCDN from "./BizDeployNodeConfigFormProviderQiniuCDN";
-import BizDeployNodeConfigFormProviderQiniuKodo from "./BizDeployNodeConfigFormProviderQiniuKodo";
-import BizDeployNodeConfigFormProviderQiniuPili from "./BizDeployNodeConfigFormProviderQiniuPili";
-import BizDeployNodeConfigFormProviderRainYunRCDN from "./BizDeployNodeConfigFormProviderRainYunRCDN";
-import BizDeployNodeConfigFormProviderRatPanelSite from "./BizDeployNodeConfigFormProviderRatPanelSite";
-import BizDeployNodeConfigFormProviderSafeLine from "./BizDeployNodeConfigFormProviderSafeLine";
-import BizDeployNodeConfigFormProviderSSH from "./BizDeployNodeConfigFormProviderSSH";
-import BizDeployNodeConfigFormProviderTencentCloudCDN from "./BizDeployNodeConfigFormProviderTencentCloudCDN";
-import BizDeployNodeConfigFormProviderTencentCloudCLB from "./BizDeployNodeConfigFormProviderTencentCloudCLB";
-import BizDeployNodeConfigFormProviderTencentCloudCOS from "./BizDeployNodeConfigFormProviderTencentCloudCOS";
-import BizDeployNodeConfigFormProviderTencentCloudCSS from "./BizDeployNodeConfigFormProviderTencentCloudCSS";
-import BizDeployNodeConfigFormProviderTencentCloudECDN from "./BizDeployNodeConfigFormProviderTencentCloudECDN";
-import BizDeployNodeConfigFormProviderTencentCloudEO from "./BizDeployNodeConfigFormProviderTencentCloudEO";
-import BizDeployNodeConfigFormProviderTencentCloudGAAP from "./BizDeployNodeConfigFormProviderTencentCloudGAAP";
-import BizDeployNodeConfigFormProviderTencentCloudSCF from "./BizDeployNodeConfigFormProviderTencentCloudSCF";
-import BizDeployNodeConfigFormProviderTencentCloudSSL from "./BizDeployNodeConfigFormProviderTencentCloudSSL";
-import BizDeployNodeConfigFormProviderTencentCloudSSLDeploy from "./BizDeployNodeConfigFormProviderTencentCloudSSLDeploy";
-import BizDeployNodeConfigFormProviderTencentCloudSSLUpdate from "./BizDeployNodeConfigFormProviderTencentCloudSSLUpdate";
-import BizDeployNodeConfigFormProviderTencentCloudVOD from "./BizDeployNodeConfigFormProviderTencentCloudVOD";
-import BizDeployNodeConfigFormProviderTencentCloudWAF from "./BizDeployNodeConfigFormProviderTencentCloudWAF";
-import BizDeployNodeConfigFormProviderUCloudUCDN from "./BizDeployNodeConfigFormProviderUCloudUCDN";
-import BizDeployNodeConfigFormProviderUCloudUS3 from "./BizDeployNodeConfigFormProviderUCloudUS3";
-import BizDeployNodeConfigFormProviderUniCloudWebHost from "./BizDeployNodeConfigFormProviderUniCloudWebHost";
-import BizDeployNodeConfigFormProviderUpyunCDN from "./BizDeployNodeConfigFormProviderUpyunCDN";
-import BizDeployNodeConfigFormProviderUpyunFile from "./BizDeployNodeConfigFormProviderUpyunFile";
-import BizDeployNodeConfigFormProviderVolcEngineALB from "./BizDeployNodeConfigFormProviderVolcEngineALB";
-import BizDeployNodeConfigFormProviderVolcEngineCDN from "./BizDeployNodeConfigFormProviderVolcEngineCDN";
-import BizDeployNodeConfigFormProviderVolcEngineCertCenter from "./BizDeployNodeConfigFormProviderVolcEngineCertCenter";
-import BizDeployNodeConfigFormProviderVolcEngineCLB from "./BizDeployNodeConfigFormProviderVolcEngineCLB";
-import BizDeployNodeConfigFormProviderVolcEngineDCDN from "./BizDeployNodeConfigFormProviderVolcEngineDCDN";
-import BizDeployNodeConfigFormProviderVolcEngineImageX from "./BizDeployNodeConfigFormProviderVolcEngineImageX";
-import BizDeployNodeConfigFormProviderVolcEngineLive from "./BizDeployNodeConfigFormProviderVolcEngineLive";
-import BizDeployNodeConfigFormProviderVolcEngineTOS from "./BizDeployNodeConfigFormProviderVolcEngineTOS";
-import BizDeployNodeConfigFormProviderWangsuCDN from "./BizDeployNodeConfigFormProviderWangsuCDN";
-import BizDeployNodeConfigFormProviderWangsuCDNPro from "./BizDeployNodeConfigFormProviderWangsuCDNPro";
-import BizDeployNodeConfigFormProviderWangsuCertificate from "./BizDeployNodeConfigFormProviderWangsuCertificate";
-import BizDeployNodeConfigFormProviderWebhook from "./BizDeployNodeConfigFormProviderWebhook";
+import BizDeployNodeConfigFieldsProvider1PanelConsole from "./BizDeployNodeConfigFieldsProvider1PanelConsole";
+import BizDeployNodeConfigFieldsProvider1PanelSite from "./BizDeployNodeConfigFieldsProvider1PanelSite";
+import BizDeployNodeConfigFieldsProviderAliyunALB from "./BizDeployNodeConfigFieldsProviderAliyunALB";
+import BizDeployNodeConfigFieldsProviderAliyunAPIGW from "./BizDeployNodeConfigFieldsProviderAliyunAPIGW";
+import BizDeployNodeConfigFieldsProviderAliyunCAS from "./BizDeployNodeConfigFieldsProviderAliyunCAS";
+import BizDeployNodeConfigFieldsProviderAliyunCASDeploy from "./BizDeployNodeConfigFieldsProviderAliyunCASDeploy";
+import BizDeployNodeConfigFieldsProviderAliyunCDN from "./BizDeployNodeConfigFieldsProviderAliyunCDN";
+import BizDeployNodeConfigFieldsProviderAliyunCLB from "./BizDeployNodeConfigFieldsProviderAliyunCLB";
+import BizDeployNodeConfigFieldsProviderAliyunDCDN from "./BizDeployNodeConfigFieldsProviderAliyunDCDN";
+import BizDeployNodeConfigFieldsProviderAliyunDDoS from "./BizDeployNodeConfigFieldsProviderAliyunDDoS";
+import BizDeployNodeConfigFieldsProviderAliyunESA from "./BizDeployNodeConfigFieldsProviderAliyunESA";
+import BizDeployNodeConfigFieldsProviderAliyunFC from "./BizDeployNodeConfigFieldsProviderAliyunFC";
+import BizDeployNodeConfigFieldsProviderAliyunGA from "./BizDeployNodeConfigFieldsProviderAliyunGA";
+import BizDeployNodeConfigFieldsProviderAliyunLive from "./BizDeployNodeConfigFieldsProviderAliyunLive";
+import BizDeployNodeConfigFieldsProviderAliyunNLB from "./BizDeployNodeConfigFieldsProviderAliyunNLB";
+import BizDeployNodeConfigFieldsProviderAliyunOSS from "./BizDeployNodeConfigFieldsProviderAliyunOSS";
+import BizDeployNodeConfigFieldsProviderAliyunVOD from "./BizDeployNodeConfigFieldsProviderAliyunVOD";
+import BizDeployNodeConfigFieldsProviderAliyunWAF from "./BizDeployNodeConfigFieldsProviderAliyunWAF";
+import BizDeployNodeConfigFieldsProviderAPISIX from "./BizDeployNodeConfigFieldsProviderAPISIX";
+import BizDeployNodeConfigFieldsProviderAWSACM from "./BizDeployNodeConfigFieldsProviderAWSACM";
+import BizDeployNodeConfigFieldsProviderAWSCloudFront from "./BizDeployNodeConfigFieldsProviderAWSCloudFront";
+import BizDeployNodeConfigFieldsProviderAWSIAM from "./BizDeployNodeConfigFieldsProviderAWSIAM";
+import BizDeployNodeConfigFieldsProviderAzureKeyVault from "./BizDeployNodeConfigFieldsProviderAzureKeyVault";
+import BizDeployNodeConfigFieldsProviderBaiduCloudAppBLB from "./BizDeployNodeConfigFieldsProviderBaiduCloudAppBLB";
+import BizDeployNodeConfigFieldsProviderBaiduCloudBLB from "./BizDeployNodeConfigFieldsProviderBaiduCloudBLB";
+import BizDeployNodeConfigFieldsProviderBaiduCloudCDN from "./BizDeployNodeConfigFieldsProviderBaiduCloudCDN";
+import BizDeployNodeConfigFieldsProviderBaishanCDN from "./BizDeployNodeConfigFieldsProviderBaishanCDN";
+import BizDeployNodeConfigFieldsProviderBaotaPanelConsole from "./BizDeployNodeConfigFieldsProviderBaotaPanelConsole";
+import BizDeployNodeConfigFieldsProviderBaotaPanelSite from "./BizDeployNodeConfigFieldsProviderBaotaPanelSite";
+import BizDeployNodeConfigFieldsProviderBaotaWAFSite from "./BizDeployNodeConfigFieldsProviderBaotaWAFSite";
+import BizDeployNodeConfigFieldsProviderBunnyCDN from "./BizDeployNodeConfigFieldsProviderBunnyCDN";
+import BizDeployNodeConfigFieldsProviderBytePlusCDN from "./BizDeployNodeConfigFieldsProviderBytePlusCDN";
+import BizDeployNodeConfigFieldsProviderCdnfly from "./BizDeployNodeConfigFieldsProviderCdnfly";
+import BizDeployNodeConfigFieldsProviderCTCCCloudAO from "./BizDeployNodeConfigFieldsProviderCTCCCloudAO";
+import BizDeployNodeConfigFieldsProviderCTCCCloudCDN from "./BizDeployNodeConfigFieldsProviderCTCCCloudCDN";
+import BizDeployNodeConfigFieldsProviderCTCCCloudELB from "./BizDeployNodeConfigFieldsProviderCTCCCloudELB";
+import BizDeployNodeConfigFieldsProviderCTCCCloudICDN from "./BizDeployNodeConfigFieldsProviderCTCCCloudICDN";
+import BizDeployNodeConfigFieldsProviderCTCCCloudLVDN from "./BizDeployNodeConfigFieldsProviderCTCCCloudLVDN";
+import BizDeployNodeConfigFieldsProviderDogeCloudCDN from "./BizDeployNodeConfigFieldsProviderDogeCloudCDN";
+import BizDeployNodeConfigFieldsProviderEdgioApplications from "./BizDeployNodeConfigFieldsProviderEdgioApplications";
+import BizDeployNodeConfigFieldsProviderFlexCDN from "./BizDeployNodeConfigFieldsProviderFlexCDN";
+import BizDeployNodeConfigFieldsProviderGcoreCDN from "./BizDeployNodeConfigFieldsProviderGcoreCDN";
+import BizDeployNodeConfigFieldsProviderGoEdge from "./BizDeployNodeConfigFieldsProviderGoEdge";
+import BizDeployNodeConfigFieldsProviderHuaweiCloudCDN from "./BizDeployNodeConfigFieldsProviderHuaweiCloudCDN";
+import BizDeployNodeConfigFieldsProviderHuaweiCloudELB from "./BizDeployNodeConfigFieldsProviderHuaweiCloudELB";
+import BizDeployNodeConfigFieldsProviderHuaweiCloudWAF from "./BizDeployNodeConfigFieldsProviderHuaweiCloudWAF";
+import BizDeployNodeConfigFieldsProviderJDCloudALB from "./BizDeployNodeConfigFieldsProviderJDCloudALB";
+import BizDeployNodeConfigFieldsProviderJDCloudCDN from "./BizDeployNodeConfigFieldsProviderJDCloudCDN";
+import BizDeployNodeConfigFieldsProviderJDCloudLive from "./BizDeployNodeConfigFieldsProviderJDCloudLive";
+import BizDeployNodeConfigFieldsProviderJDCloudVOD from "./BizDeployNodeConfigFieldsProviderJDCloudVOD";
+import BizDeployNodeConfigFieldsProviderKong from "./BizDeployNodeConfigFieldsProviderKong";
+import BizDeployNodeConfigFieldsProviderKubernetesSecret from "./BizDeployNodeConfigFieldsProviderKubernetesSecret";
+import BizDeployNodeConfigFieldsProviderLeCDN from "./BizDeployNodeConfigFieldsProviderLeCDN";
+import BizDeployNodeConfigFieldsProviderLocal from "./BizDeployNodeConfigFieldsProviderLocal";
+import BizDeployNodeConfigFieldsProviderNetlifySite from "./BizDeployNodeConfigFieldsProviderNetlifySite";
+import BizDeployNodeConfigFieldsProviderProxmoxVE from "./BizDeployNodeConfigFieldsProviderProxmoxVE";
+import BizDeployNodeConfigFieldsProviderQiniuCDN from "./BizDeployNodeConfigFieldsProviderQiniuCDN";
+import BizDeployNodeConfigFieldsProviderQiniuKodo from "./BizDeployNodeConfigFieldsProviderQiniuKodo";
+import BizDeployNodeConfigFieldsProviderQiniuPili from "./BizDeployNodeConfigFieldsProviderQiniuPili";
+import BizDeployNodeConfigFieldsProviderRainYunRCDN from "./BizDeployNodeConfigFieldsProviderRainYunRCDN";
+import BizDeployNodeConfigFieldsProviderRatPanelSite from "./BizDeployNodeConfigFieldsProviderRatPanelSite";
+import BizDeployNodeConfigFieldsProviderSafeLine from "./BizDeployNodeConfigFieldsProviderSafeLine";
+import BizDeployNodeConfigFieldsProviderSSH from "./BizDeployNodeConfigFieldsProviderSSH";
+import BizDeployNodeConfigFieldsProviderTencentCloudCDN from "./BizDeployNodeConfigFieldsProviderTencentCloudCDN";
+import BizDeployNodeConfigFieldsProviderTencentCloudCLB from "./BizDeployNodeConfigFieldsProviderTencentCloudCLB";
+import BizDeployNodeConfigFieldsProviderTencentCloudCOS from "./BizDeployNodeConfigFieldsProviderTencentCloudCOS";
+import BizDeployNodeConfigFieldsProviderTencentCloudCSS from "./BizDeployNodeConfigFieldsProviderTencentCloudCSS";
+import BizDeployNodeConfigFieldsProviderTencentCloudECDN from "./BizDeployNodeConfigFieldsProviderTencentCloudECDN";
+import BizDeployNodeConfigFieldsProviderTencentCloudEO from "./BizDeployNodeConfigFieldsProviderTencentCloudEO";
+import BizDeployNodeConfigFieldsProviderTencentCloudGAAP from "./BizDeployNodeConfigFieldsProviderTencentCloudGAAP";
+import BizDeployNodeConfigFieldsProviderTencentCloudSCF from "./BizDeployNodeConfigFieldsProviderTencentCloudSCF";
+import BizDeployNodeConfigFieldsProviderTencentCloudSSL from "./BizDeployNodeConfigFieldsProviderTencentCloudSSL";
+import BizDeployNodeConfigFieldsProviderTencentCloudSSLDeploy from "./BizDeployNodeConfigFieldsProviderTencentCloudSSLDeploy";
+import BizDeployNodeConfigFieldsProviderTencentCloudSSLUpdate from "./BizDeployNodeConfigFieldsProviderTencentCloudSSLUpdate";
+import BizDeployNodeConfigFieldsProviderTencentCloudVOD from "./BizDeployNodeConfigFieldsProviderTencentCloudVOD";
+import BizDeployNodeConfigFieldsProviderTencentCloudWAF from "./BizDeployNodeConfigFieldsProviderTencentCloudWAF";
+import BizDeployNodeConfigFieldsProviderUCloudUCDN from "./BizDeployNodeConfigFieldsProviderUCloudUCDN";
+import BizDeployNodeConfigFieldsProviderUCloudUS3 from "./BizDeployNodeConfigFieldsProviderUCloudUS3";
+import BizDeployNodeConfigFieldsProviderUniCloudWebHost from "./BizDeployNodeConfigFieldsProviderUniCloudWebHost";
+import BizDeployNodeConfigFieldsProviderUpyunCDN from "./BizDeployNodeConfigFieldsProviderUpyunCDN";
+import BizDeployNodeConfigFieldsProviderUpyunFile from "./BizDeployNodeConfigFieldsProviderUpyunFile";
+import BizDeployNodeConfigFieldsProviderVolcEngineALB from "./BizDeployNodeConfigFieldsProviderVolcEngineALB";
+import BizDeployNodeConfigFieldsProviderVolcEngineCDN from "./BizDeployNodeConfigFieldsProviderVolcEngineCDN";
+import BizDeployNodeConfigFieldsProviderVolcEngineCertCenter from "./BizDeployNodeConfigFieldsProviderVolcEngineCertCenter";
+import BizDeployNodeConfigFieldsProviderVolcEngineCLB from "./BizDeployNodeConfigFieldsProviderVolcEngineCLB";
+import BizDeployNodeConfigFieldsProviderVolcEngineDCDN from "./BizDeployNodeConfigFieldsProviderVolcEngineDCDN";
+import BizDeployNodeConfigFieldsProviderVolcEngineImageX from "./BizDeployNodeConfigFieldsProviderVolcEngineImageX";
+import BizDeployNodeConfigFieldsProviderVolcEngineLive from "./BizDeployNodeConfigFieldsProviderVolcEngineLive";
+import BizDeployNodeConfigFieldsProviderVolcEngineTOS from "./BizDeployNodeConfigFieldsProviderVolcEngineTOS";
+import BizDeployNodeConfigFieldsProviderWangsuCDN from "./BizDeployNodeConfigFieldsProviderWangsuCDN";
+import BizDeployNodeConfigFieldsProviderWangsuCDNPro from "./BizDeployNodeConfigFieldsProviderWangsuCDNPro";
+import BizDeployNodeConfigFieldsProviderWangsuCertificate from "./BizDeployNodeConfigFieldsProviderWangsuCertificate";
+import BizDeployNodeConfigFieldsProviderWebhook from "./BizDeployNodeConfigFieldsProviderWebhook";
 import { NodeType } from "../nodes/typings";
 
 export interface BizDeployNodeConfigFormProps {
@@ -174,196 +174,289 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
 
   const NestedProviderConfigFields = useMemo(() => {
     /*
-        注意：如果追加新的子组件，请保持以 ASCII 排序。
-        NOTICE: If you add new child component, please keep ASCII order.
-       */
+      注意：如果追加新的子组件，请保持以 ASCII 排序。
+      NOTICE: If you add new child component, please keep ASCII order.
+     */
     switch (fieldProvider) {
-      case DEPLOYMENT_PROVIDERS["1PANEL_CONSOLE"]:
-        return BizDeployNodeConfigFormProvider1PanelConsole;
-      case DEPLOYMENT_PROVIDERS["1PANEL_SITE"]:
-        return BizDeployNodeConfigFormProvider1PanelSite;
-      case DEPLOYMENT_PROVIDERS.ALIYUN_ALB:
-        return BizDeployNodeConfigFormProviderAliyunALB;
-      case DEPLOYMENT_PROVIDERS.ALIYUN_APIGW:
-        return BizDeployNodeConfigFormProviderAliyunAPIGW;
-      case DEPLOYMENT_PROVIDERS.ALIYUN_CAS:
-        return BizDeployNodeConfigFormProviderAliyunCAS;
-      case DEPLOYMENT_PROVIDERS.ALIYUN_CAS_DEPLOY:
-        return BizDeployNodeConfigFormProviderAliyunCASDeploy;
-      case DEPLOYMENT_PROVIDERS.ALIYUN_CLB:
-        return BizDeployNodeConfigFormProviderAliyunCLB;
-      case DEPLOYMENT_PROVIDERS.ALIYUN_CDN:
-        return BizDeployNodeConfigFormProviderAliyunCDN;
-      case DEPLOYMENT_PROVIDERS.ALIYUN_DCDN:
-        return BizDeployNodeConfigFormProviderAliyunDCDN;
-      case DEPLOYMENT_PROVIDERS.ALIYUN_DDOS:
-        return BizDeployNodeConfigFormProviderAliyunDDoS;
-      case DEPLOYMENT_PROVIDERS.ALIYUN_ESA:
-        return BizDeployNodeConfigFormProviderAliyunESA;
-      case DEPLOYMENT_PROVIDERS.ALIYUN_FC:
-        return BizDeployNodeConfigFormProviderAliyunFC;
-      case DEPLOYMENT_PROVIDERS.ALIYUN_GA:
-        return BizDeployNodeConfigFormProviderAliyunGA;
-      case DEPLOYMENT_PROVIDERS.ALIYUN_LIVE:
-        return BizDeployNodeConfigFormProviderAliyunLive;
-      case DEPLOYMENT_PROVIDERS.ALIYUN_NLB:
-        return BizDeployNodeConfigFormProviderAliyunNLB;
-      case DEPLOYMENT_PROVIDERS.ALIYUN_OSS:
-        return BizDeployNodeConfigFormProviderAliyunOSS;
-      case DEPLOYMENT_PROVIDERS.ALIYUN_VOD:
-        return BizDeployNodeConfigFormProviderAliyunVOD;
-      case DEPLOYMENT_PROVIDERS.ALIYUN_WAF:
-        return BizDeployNodeConfigFormProviderAliyunWAF;
-      case DEPLOYMENT_PROVIDERS.APISIX:
-        return BizDeployNodeConfigFormProviderAPISIX;
-      case DEPLOYMENT_PROVIDERS.AWS_ACM:
-        return BizDeployNodeConfigFormProviderAWSACM;
-      case DEPLOYMENT_PROVIDERS.AWS_CLOUDFRONT:
-        return BizDeployNodeConfigFormProviderAWSCloudFront;
-      case DEPLOYMENT_PROVIDERS.AWS_IAM:
-        return BizDeployNodeConfigFormProviderAWSIAM;
-      case DEPLOYMENT_PROVIDERS.AZURE_KEYVAULT:
-        return BizDeployNodeConfigFormProviderAzureKeyVault;
-      case DEPLOYMENT_PROVIDERS.BAIDUCLOUD_APPBLB:
-        return BizDeployNodeConfigFormProviderBaiduCloudAppBLB;
-      case DEPLOYMENT_PROVIDERS.BAIDUCLOUD_BLB:
-        return BizDeployNodeConfigFormProviderBaiduCloudBLB;
-      case DEPLOYMENT_PROVIDERS.BAIDUCLOUD_CDN:
-        return BizDeployNodeConfigFormProviderBaiduCloudCDN;
-      case DEPLOYMENT_PROVIDERS.BAISHAN_CDN:
-        return BizDeployNodeConfigFormProviderBaishanCDN;
-      case DEPLOYMENT_PROVIDERS.BAOTAPANEL_CONSOLE:
-        return BizDeployNodeConfigFormProviderBaotaPanelConsole;
-      case DEPLOYMENT_PROVIDERS.BAOTAPANEL_SITE:
-        return BizDeployNodeConfigFormProviderBaotaPanelSite;
-      case DEPLOYMENT_PROVIDERS.BAOTAWAF_SITE:
-        return BizDeployNodeConfigFormProviderBaotaWAFSite;
-      case DEPLOYMENT_PROVIDERS.BUNNY_CDN:
-        return BizDeployNodeConfigFormProviderBunnyCDN;
-      case DEPLOYMENT_PROVIDERS.BYTEPLUS_CDN:
-        return BizDeployNodeConfigFormProviderBytePlusCDN;
-      case DEPLOYMENT_PROVIDERS.CDNFLY:
-        return BizDeployNodeConfigFormProviderCdnfly;
-      case DEPLOYMENT_PROVIDERS.CTCCCLOUD_AO:
-        return BizDeployNodeConfigFormProviderCTCCCloudAO;
-      case DEPLOYMENT_PROVIDERS.CTCCCLOUD_CDN:
-        return BizDeployNodeConfigFormProviderCTCCCloudCDN;
-      case DEPLOYMENT_PROVIDERS.CTCCCLOUD_ELB:
-        return BizDeployNodeConfigFormProviderCTCCCloudELB;
-      case DEPLOYMENT_PROVIDERS.CTCCCLOUD_ICDN:
-        return BizDeployNodeConfigFormProviderCTCCCloudICDN;
-      case DEPLOYMENT_PROVIDERS.CTCCCLOUD_LVDN:
-        return BizDeployNodeConfigFormProviderCTCCCloudLVDN;
-      case DEPLOYMENT_PROVIDERS.DOGECLOUD_CDN:
-        return BizDeployNodeConfigFormProviderDogeCloudCDN;
-      case DEPLOYMENT_PROVIDERS.EDGIO_APPLICATIONS:
-        return BizDeployNodeConfigFormProviderEdgioApplications;
-      case DEPLOYMENT_PROVIDERS.FLEXCDN:
-        return BizDeployNodeConfigFormProviderFlexCDN;
-      case DEPLOYMENT_PROVIDERS.GCORE_CDN:
-        return BizDeployNodeConfigFormProviderGcoreCDN;
-      case DEPLOYMENT_PROVIDERS.GOEDGE:
-        return BizDeployNodeConfigFormProviderGoEdge;
-      case DEPLOYMENT_PROVIDERS.HUAWEICLOUD_CDN:
-        return BizDeployNodeConfigFormProviderHuaweiCloudCDN;
-      case DEPLOYMENT_PROVIDERS.HUAWEICLOUD_ELB:
-        return BizDeployNodeConfigFormProviderHuaweiCloudELB;
-      case DEPLOYMENT_PROVIDERS.HUAWEICLOUD_WAF:
-        return BizDeployNodeConfigFormProviderHuaweiCloudWAF;
-      case DEPLOYMENT_PROVIDERS.JDCLOUD_ALB:
-        return BizDeployNodeConfigFormProviderJDCloudALB;
-      case DEPLOYMENT_PROVIDERS.JDCLOUD_CDN:
-        return BizDeployNodeConfigFormProviderJDCloudCDN;
-      case DEPLOYMENT_PROVIDERS.JDCLOUD_LIVE:
-        return BizDeployNodeConfigFormProviderJDCloudLive;
-      case DEPLOYMENT_PROVIDERS.JDCLOUD_VOD:
-        return BizDeployNodeConfigFormProviderJDCloudVOD;
-      case DEPLOYMENT_PROVIDERS.KONG:
-        return BizDeployNodeConfigFormProviderKong;
-      case DEPLOYMENT_PROVIDERS.KUBERNETES_SECRET:
-        return BizDeployNodeConfigFormProviderKubernetesSecret;
-      case DEPLOYMENT_PROVIDERS.LECDN:
-        return BizDeployNodeConfigFormProviderLeCDN;
-      case DEPLOYMENT_PROVIDERS.LOCAL:
-        return BizDeployNodeConfigFormProviderLocal;
-      case DEPLOYMENT_PROVIDERS.NETLIFY_SITE:
-        return BizDeployNodeConfigFormProviderNetlifySite;
-      case DEPLOYMENT_PROVIDERS.PROXMOXVE:
-        return BizDeployNodeConfigFormProviderProxmoxVE;
-      case DEPLOYMENT_PROVIDERS.QINIU_CDN:
-        return BizDeployNodeConfigFormProviderQiniuCDN;
-      case DEPLOYMENT_PROVIDERS.QINIU_KODO:
-        return BizDeployNodeConfigFormProviderQiniuKodo;
-      case DEPLOYMENT_PROVIDERS.QINIU_PILI:
-        return BizDeployNodeConfigFormProviderQiniuPili;
-      case DEPLOYMENT_PROVIDERS.RAINYUN_RCDN:
-        return BizDeployNodeConfigFormProviderRainYunRCDN;
-      case DEPLOYMENT_PROVIDERS.RATPANEL_SITE:
-        return BizDeployNodeConfigFormProviderRatPanelSite;
-      case DEPLOYMENT_PROVIDERS.SAFELINE:
-        return BizDeployNodeConfigFormProviderSafeLine;
-      case DEPLOYMENT_PROVIDERS.SSH:
-        return BizDeployNodeConfigFormProviderSSH;
-      case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_CDN:
-        return BizDeployNodeConfigFormProviderTencentCloudCDN;
-      case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_CLB:
-        return BizDeployNodeConfigFormProviderTencentCloudCLB;
-      case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_COS:
-        return BizDeployNodeConfigFormProviderTencentCloudCOS;
-      case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_CSS:
-        return BizDeployNodeConfigFormProviderTencentCloudCSS;
-      case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_ECDN:
-        return BizDeployNodeConfigFormProviderTencentCloudECDN;
-      case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_EO:
-        return BizDeployNodeConfigFormProviderTencentCloudEO;
-      case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_GAAP:
-        return BizDeployNodeConfigFormProviderTencentCloudGAAP;
-      case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_SCF:
-        return BizDeployNodeConfigFormProviderTencentCloudSCF;
-      case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_SSL:
-        return BizDeployNodeConfigFormProviderTencentCloudSSL;
-      case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_SSL_DEPLOY:
-        return BizDeployNodeConfigFormProviderTencentCloudSSLDeploy;
-      case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_SSL_UPDATE:
-        return BizDeployNodeConfigFormProviderTencentCloudSSLUpdate;
-      case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_VOD:
-        return BizDeployNodeConfigFormProviderTencentCloudVOD;
-      case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_WAF:
-        return BizDeployNodeConfigFormProviderTencentCloudWAF;
-      case DEPLOYMENT_PROVIDERS.UCLOUD_UCDN:
-        return BizDeployNodeConfigFormProviderUCloudUCDN;
-      case DEPLOYMENT_PROVIDERS.UCLOUD_US3:
-        return BizDeployNodeConfigFormProviderUCloudUS3;
-      case DEPLOYMENT_PROVIDERS.UNICLOUD_WEBHOST:
-        return BizDeployNodeConfigFormProviderUniCloudWebHost;
-      case DEPLOYMENT_PROVIDERS.UPYUN_CDN:
-        return BizDeployNodeConfigFormProviderUpyunCDN;
-      case DEPLOYMENT_PROVIDERS.UPYUN_FILE:
-        return BizDeployNodeConfigFormProviderUpyunFile;
-      case DEPLOYMENT_PROVIDERS.VOLCENGINE_ALB:
-        return BizDeployNodeConfigFormProviderVolcEngineALB;
-      case DEPLOYMENT_PROVIDERS.VOLCENGINE_CDN:
-        return BizDeployNodeConfigFormProviderVolcEngineCDN;
-      case DEPLOYMENT_PROVIDERS.VOLCENGINE_CERTCENTER:
-        return BizDeployNodeConfigFormProviderVolcEngineCertCenter;
-      case DEPLOYMENT_PROVIDERS.VOLCENGINE_CLB:
-        return BizDeployNodeConfigFormProviderVolcEngineCLB;
-      case DEPLOYMENT_PROVIDERS.VOLCENGINE_DCDN:
-        return BizDeployNodeConfigFormProviderVolcEngineDCDN;
-      case DEPLOYMENT_PROVIDERS.VOLCENGINE_IMAGEX:
-        return BizDeployNodeConfigFormProviderVolcEngineImageX;
-      case DEPLOYMENT_PROVIDERS.VOLCENGINE_LIVE:
-        return BizDeployNodeConfigFormProviderVolcEngineLive;
-      case DEPLOYMENT_PROVIDERS.VOLCENGINE_TOS:
-        return BizDeployNodeConfigFormProviderVolcEngineTOS;
-      case DEPLOYMENT_PROVIDERS.WANGSU_CDN:
-        return BizDeployNodeConfigFormProviderWangsuCDN;
-      case DEPLOYMENT_PROVIDERS.WANGSU_CDNPRO:
-        return BizDeployNodeConfigFormProviderWangsuCDNPro;
-      case DEPLOYMENT_PROVIDERS.WANGSU_CERTIFICATE:
-        return BizDeployNodeConfigFormProviderWangsuCertificate;
-      case DEPLOYMENT_PROVIDERS.WEBHOOK:
-        return BizDeployNodeConfigFormProviderWebhook;
+      case DEPLOYMENT_PROVIDERS["1PANEL_CONSOLE"]: {
+        return BizDeployNodeConfigFieldsProvider1PanelConsole;
+      }
+      case DEPLOYMENT_PROVIDERS["1PANEL_SITE"]: {
+        return BizDeployNodeConfigFieldsProvider1PanelSite;
+      }
+      case DEPLOYMENT_PROVIDERS.ALIYUN_ALB: {
+        return BizDeployNodeConfigFieldsProviderAliyunALB;
+      }
+      case DEPLOYMENT_PROVIDERS.ALIYUN_APIGW: {
+        return BizDeployNodeConfigFieldsProviderAliyunAPIGW;
+      }
+      case DEPLOYMENT_PROVIDERS.ALIYUN_CAS: {
+        return BizDeployNodeConfigFieldsProviderAliyunCAS;
+      }
+      case DEPLOYMENT_PROVIDERS.ALIYUN_CAS_DEPLOY: {
+        return BizDeployNodeConfigFieldsProviderAliyunCASDeploy;
+      }
+      case DEPLOYMENT_PROVIDERS.ALIYUN_CLB: {
+        return BizDeployNodeConfigFieldsProviderAliyunCLB;
+      }
+      case DEPLOYMENT_PROVIDERS.ALIYUN_CDN: {
+        return BizDeployNodeConfigFieldsProviderAliyunCDN;
+      }
+      case DEPLOYMENT_PROVIDERS.ALIYUN_DCDN: {
+        return BizDeployNodeConfigFieldsProviderAliyunDCDN;
+      }
+      case DEPLOYMENT_PROVIDERS.ALIYUN_DDOS: {
+        return BizDeployNodeConfigFieldsProviderAliyunDDoS;
+      }
+      case DEPLOYMENT_PROVIDERS.ALIYUN_ESA: {
+        return BizDeployNodeConfigFieldsProviderAliyunESA;
+      }
+      case DEPLOYMENT_PROVIDERS.ALIYUN_FC: {
+        return BizDeployNodeConfigFieldsProviderAliyunFC;
+      }
+      case DEPLOYMENT_PROVIDERS.ALIYUN_GA: {
+        return BizDeployNodeConfigFieldsProviderAliyunGA;
+      }
+      case DEPLOYMENT_PROVIDERS.ALIYUN_LIVE: {
+        return BizDeployNodeConfigFieldsProviderAliyunLive;
+      }
+      case DEPLOYMENT_PROVIDERS.ALIYUN_NLB: {
+        return BizDeployNodeConfigFieldsProviderAliyunNLB;
+      }
+      case DEPLOYMENT_PROVIDERS.ALIYUN_OSS: {
+        return BizDeployNodeConfigFieldsProviderAliyunOSS;
+      }
+      case DEPLOYMENT_PROVIDERS.ALIYUN_VOD: {
+        return BizDeployNodeConfigFieldsProviderAliyunVOD;
+      }
+      case DEPLOYMENT_PROVIDERS.ALIYUN_WAF: {
+        return BizDeployNodeConfigFieldsProviderAliyunWAF;
+      }
+      case DEPLOYMENT_PROVIDERS.APISIX: {
+        return BizDeployNodeConfigFieldsProviderAPISIX;
+      }
+      case DEPLOYMENT_PROVIDERS.AWS_ACM: {
+        return BizDeployNodeConfigFieldsProviderAWSACM;
+      }
+      case DEPLOYMENT_PROVIDERS.AWS_CLOUDFRONT: {
+        return BizDeployNodeConfigFieldsProviderAWSCloudFront;
+      }
+      case DEPLOYMENT_PROVIDERS.AWS_IAM: {
+        return BizDeployNodeConfigFieldsProviderAWSIAM;
+      }
+      case DEPLOYMENT_PROVIDERS.AZURE_KEYVAULT: {
+        return BizDeployNodeConfigFieldsProviderAzureKeyVault;
+      }
+      case DEPLOYMENT_PROVIDERS.BAIDUCLOUD_APPBLB: {
+        return BizDeployNodeConfigFieldsProviderBaiduCloudAppBLB;
+      }
+      case DEPLOYMENT_PROVIDERS.BAIDUCLOUD_BLB: {
+        return BizDeployNodeConfigFieldsProviderBaiduCloudBLB;
+      }
+      case DEPLOYMENT_PROVIDERS.BAIDUCLOUD_CDN: {
+        return BizDeployNodeConfigFieldsProviderBaiduCloudCDN;
+      }
+      case DEPLOYMENT_PROVIDERS.BAISHAN_CDN: {
+        return BizDeployNodeConfigFieldsProviderBaishanCDN;
+      }
+      case DEPLOYMENT_PROVIDERS.BAOTAPANEL_CONSOLE: {
+        return BizDeployNodeConfigFieldsProviderBaotaPanelConsole;
+      }
+      case DEPLOYMENT_PROVIDERS.BAOTAPANEL_SITE: {
+        return BizDeployNodeConfigFieldsProviderBaotaPanelSite;
+      }
+      case DEPLOYMENT_PROVIDERS.BAOTAWAF_SITE: {
+        return BizDeployNodeConfigFieldsProviderBaotaWAFSite;
+      }
+      case DEPLOYMENT_PROVIDERS.BUNNY_CDN: {
+        return BizDeployNodeConfigFieldsProviderBunnyCDN;
+      }
+      case DEPLOYMENT_PROVIDERS.BYTEPLUS_CDN: {
+        return BizDeployNodeConfigFieldsProviderBytePlusCDN;
+      }
+      case DEPLOYMENT_PROVIDERS.CDNFLY: {
+        return BizDeployNodeConfigFieldsProviderCdnfly;
+      }
+      case DEPLOYMENT_PROVIDERS.CTCCCLOUD_AO: {
+        return BizDeployNodeConfigFieldsProviderCTCCCloudAO;
+      }
+      case DEPLOYMENT_PROVIDERS.CTCCCLOUD_CDN: {
+        return BizDeployNodeConfigFieldsProviderCTCCCloudCDN;
+      }
+      case DEPLOYMENT_PROVIDERS.CTCCCLOUD_ELB: {
+        return BizDeployNodeConfigFieldsProviderCTCCCloudELB;
+      }
+      case DEPLOYMENT_PROVIDERS.CTCCCLOUD_ICDN: {
+        return BizDeployNodeConfigFieldsProviderCTCCCloudICDN;
+      }
+      case DEPLOYMENT_PROVIDERS.CTCCCLOUD_LVDN: {
+        return BizDeployNodeConfigFieldsProviderCTCCCloudLVDN;
+      }
+      case DEPLOYMENT_PROVIDERS.DOGECLOUD_CDN: {
+        return BizDeployNodeConfigFieldsProviderDogeCloudCDN;
+      }
+      case DEPLOYMENT_PROVIDERS.EDGIO_APPLICATIONS: {
+        return BizDeployNodeConfigFieldsProviderEdgioApplications;
+      }
+      case DEPLOYMENT_PROVIDERS.FLEXCDN: {
+        return BizDeployNodeConfigFieldsProviderFlexCDN;
+      }
+      case DEPLOYMENT_PROVIDERS.GCORE_CDN: {
+        return BizDeployNodeConfigFieldsProviderGcoreCDN;
+      }
+      case DEPLOYMENT_PROVIDERS.GOEDGE: {
+        return BizDeployNodeConfigFieldsProviderGoEdge;
+      }
+      case DEPLOYMENT_PROVIDERS.HUAWEICLOUD_CDN: {
+        return BizDeployNodeConfigFieldsProviderHuaweiCloudCDN;
+      }
+      case DEPLOYMENT_PROVIDERS.HUAWEICLOUD_ELB: {
+        return BizDeployNodeConfigFieldsProviderHuaweiCloudELB;
+      }
+      case DEPLOYMENT_PROVIDERS.HUAWEICLOUD_WAF: {
+        return BizDeployNodeConfigFieldsProviderHuaweiCloudWAF;
+      }
+      case DEPLOYMENT_PROVIDERS.JDCLOUD_ALB: {
+        return BizDeployNodeConfigFieldsProviderJDCloudALB;
+      }
+      case DEPLOYMENT_PROVIDERS.JDCLOUD_CDN: {
+        return BizDeployNodeConfigFieldsProviderJDCloudCDN;
+      }
+      case DEPLOYMENT_PROVIDERS.JDCLOUD_LIVE: {
+        return BizDeployNodeConfigFieldsProviderJDCloudLive;
+      }
+      case DEPLOYMENT_PROVIDERS.JDCLOUD_VOD: {
+        return BizDeployNodeConfigFieldsProviderJDCloudVOD;
+      }
+      case DEPLOYMENT_PROVIDERS.KONG: {
+        return BizDeployNodeConfigFieldsProviderKong;
+      }
+      case DEPLOYMENT_PROVIDERS.KUBERNETES_SECRET: {
+        return BizDeployNodeConfigFieldsProviderKubernetesSecret;
+      }
+      case DEPLOYMENT_PROVIDERS.LECDN: {
+        return BizDeployNodeConfigFieldsProviderLeCDN;
+      }
+      case DEPLOYMENT_PROVIDERS.LOCAL: {
+        return BizDeployNodeConfigFieldsProviderLocal;
+      }
+      case DEPLOYMENT_PROVIDERS.NETLIFY_SITE: {
+        return BizDeployNodeConfigFieldsProviderNetlifySite;
+      }
+      case DEPLOYMENT_PROVIDERS.PROXMOXVE: {
+        return BizDeployNodeConfigFieldsProviderProxmoxVE;
+      }
+      case DEPLOYMENT_PROVIDERS.QINIU_CDN: {
+        return BizDeployNodeConfigFieldsProviderQiniuCDN;
+      }
+      case DEPLOYMENT_PROVIDERS.QINIU_KODO: {
+        return BizDeployNodeConfigFieldsProviderQiniuKodo;
+      }
+      case DEPLOYMENT_PROVIDERS.QINIU_PILI: {
+        return BizDeployNodeConfigFieldsProviderQiniuPili;
+      }
+      case DEPLOYMENT_PROVIDERS.RAINYUN_RCDN: {
+        return BizDeployNodeConfigFieldsProviderRainYunRCDN;
+      }
+      case DEPLOYMENT_PROVIDERS.RATPANEL_SITE: {
+        return BizDeployNodeConfigFieldsProviderRatPanelSite;
+      }
+      case DEPLOYMENT_PROVIDERS.SAFELINE: {
+        return BizDeployNodeConfigFieldsProviderSafeLine;
+      }
+      case DEPLOYMENT_PROVIDERS.SSH: {
+        return BizDeployNodeConfigFieldsProviderSSH;
+      }
+      case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_CDN: {
+        return BizDeployNodeConfigFieldsProviderTencentCloudCDN;
+      }
+      case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_CLB: {
+        return BizDeployNodeConfigFieldsProviderTencentCloudCLB;
+      }
+      case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_COS: {
+        return BizDeployNodeConfigFieldsProviderTencentCloudCOS;
+      }
+      case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_CSS: {
+        return BizDeployNodeConfigFieldsProviderTencentCloudCSS;
+      }
+      case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_ECDN: {
+        return BizDeployNodeConfigFieldsProviderTencentCloudECDN;
+      }
+      case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_EO: {
+        return BizDeployNodeConfigFieldsProviderTencentCloudEO;
+      }
+      case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_GAAP: {
+        return BizDeployNodeConfigFieldsProviderTencentCloudGAAP;
+      }
+      case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_SCF: {
+        return BizDeployNodeConfigFieldsProviderTencentCloudSCF;
+      }
+      case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_SSL: {
+        return BizDeployNodeConfigFieldsProviderTencentCloudSSL;
+      }
+      case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_SSL_DEPLOY: {
+        return BizDeployNodeConfigFieldsProviderTencentCloudSSLDeploy;
+      }
+      case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_SSL_UPDATE: {
+        return BizDeployNodeConfigFieldsProviderTencentCloudSSLUpdate;
+      }
+      case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_VOD: {
+        return BizDeployNodeConfigFieldsProviderTencentCloudVOD;
+      }
+      case DEPLOYMENT_PROVIDERS.TENCENTCLOUD_WAF: {
+        return BizDeployNodeConfigFieldsProviderTencentCloudWAF;
+      }
+      case DEPLOYMENT_PROVIDERS.UCLOUD_UCDN: {
+        return BizDeployNodeConfigFieldsProviderUCloudUCDN;
+      }
+      case DEPLOYMENT_PROVIDERS.UCLOUD_US3: {
+        return BizDeployNodeConfigFieldsProviderUCloudUS3;
+      }
+      case DEPLOYMENT_PROVIDERS.UNICLOUD_WEBHOST: {
+        return BizDeployNodeConfigFieldsProviderUniCloudWebHost;
+      }
+      case DEPLOYMENT_PROVIDERS.UPYUN_CDN: {
+        return BizDeployNodeConfigFieldsProviderUpyunCDN;
+      }
+      case DEPLOYMENT_PROVIDERS.UPYUN_FILE: {
+        return BizDeployNodeConfigFieldsProviderUpyunFile;
+      }
+      case DEPLOYMENT_PROVIDERS.VOLCENGINE_ALB: {
+        return BizDeployNodeConfigFieldsProviderVolcEngineALB;
+      }
+      case DEPLOYMENT_PROVIDERS.VOLCENGINE_CDN: {
+        return BizDeployNodeConfigFieldsProviderVolcEngineCDN;
+      }
+      case DEPLOYMENT_PROVIDERS.VOLCENGINE_CERTCENTER: {
+        return BizDeployNodeConfigFieldsProviderVolcEngineCertCenter;
+      }
+      case DEPLOYMENT_PROVIDERS.VOLCENGINE_CLB: {
+        return BizDeployNodeConfigFieldsProviderVolcEngineCLB;
+      }
+      case DEPLOYMENT_PROVIDERS.VOLCENGINE_DCDN: {
+        return BizDeployNodeConfigFieldsProviderVolcEngineDCDN;
+      }
+      case DEPLOYMENT_PROVIDERS.VOLCENGINE_IMAGEX: {
+        return BizDeployNodeConfigFieldsProviderVolcEngineImageX;
+      }
+      case DEPLOYMENT_PROVIDERS.VOLCENGINE_LIVE: {
+        return BizDeployNodeConfigFieldsProviderVolcEngineLive;
+      }
+      case DEPLOYMENT_PROVIDERS.VOLCENGINE_TOS: {
+        return BizDeployNodeConfigFieldsProviderVolcEngineTOS;
+      }
+      case DEPLOYMENT_PROVIDERS.WANGSU_CDN: {
+        return BizDeployNodeConfigFieldsProviderWangsuCDN;
+      }
+      case DEPLOYMENT_PROVIDERS.WANGSU_CDNPRO: {
+        return BizDeployNodeConfigFieldsProviderWangsuCDNPro;
+      }
+      case DEPLOYMENT_PROVIDERS.WANGSU_CERTIFICATE: {
+        return BizDeployNodeConfigFieldsProviderWangsuCertificate;
+      }
+      case DEPLOYMENT_PROVIDERS.WEBHOOK: {
+        return BizDeployNodeConfigFieldsProviderWebhook;
+      }
     }
   }, [fieldProvider]);
 

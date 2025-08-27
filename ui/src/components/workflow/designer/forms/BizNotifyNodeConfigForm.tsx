@@ -15,12 +15,12 @@ import { useAntdForm, useZustandShallowSelector } from "@/hooks";
 import { useAccessesStore } from "@/stores/access";
 
 import { FormNestedFieldsContextProvider, NodeFormContextProvider } from "./_context";
-import BizNotifyNodeConfigFormProviderDiscordBot from "./BizNotifyNodeConfigFormProviderDiscordBot";
-import BizNotifyNodeConfigFormProviderEmail from "./BizNotifyNodeConfigFormProviderEmail";
-import BizNotifyNodeConfigFormProviderMattermost from "./BizNotifyNodeConfigFormProviderMattermost";
-import BizNotifyNodeConfigFormProviderSlackBot from "./BizNotifyNodeConfigFormProviderSlackBot";
-import BizNotifyNodeConfigFormProviderTelegramBot from "./BizNotifyNodeConfigFormProviderTelegramBot";
-import BizNotifyNodeConfigFormProviderWebhook from "./BizNotifyNodeConfigFormProviderWebhook";
+import BizNotifyNodeConfigFieldsProviderDiscordBot from "./BizNotifyNodeConfigFieldsProviderDiscordBot";
+import BizNotifyNodeConfigFieldsProviderEmail from "./BizNotifyNodeConfigFieldsProviderEmail";
+import BizNotifyNodeConfigFieldsProviderMattermost from "./BizNotifyNodeConfigFieldsProviderMattermost";
+import BizNotifyNodeConfigFieldsProviderSlackBot from "./BizNotifyNodeConfigFieldsProviderSlackBot";
+import BizNotifyNodeConfigFieldsProviderTelegramBot from "./BizNotifyNodeConfigFieldsProviderTelegramBot";
+import BizNotifyNodeConfigFieldsProviderWebhook from "./BizNotifyNodeConfigFieldsProviderWebhook";
 import { NodeType } from "../nodes/typings";
 
 export interface BizNotifyNodeConfigFormProps {
@@ -58,18 +58,24 @@ const BizNotifyNodeConfigForm = ({ node, ...props }: BizNotifyNodeConfigFormProp
       NOTICE: If you add new child component, please keep ASCII order.
       */
     switch (fieldProvider) {
-      case NOTIFICATION_PROVIDERS.DISCORDBOT:
-        return BizNotifyNodeConfigFormProviderDiscordBot;
-      case NOTIFICATION_PROVIDERS.EMAIL:
-        return BizNotifyNodeConfigFormProviderEmail;
-      case NOTIFICATION_PROVIDERS.MATTERMOST:
-        return BizNotifyNodeConfigFormProviderMattermost;
-      case NOTIFICATION_PROVIDERS.SLACKBOT:
-        return BizNotifyNodeConfigFormProviderSlackBot;
-      case NOTIFICATION_PROVIDERS.TELEGRAMBOT:
-        return BizNotifyNodeConfigFormProviderTelegramBot;
-      case NOTIFICATION_PROVIDERS.WEBHOOK:
-        return BizNotifyNodeConfigFormProviderWebhook;
+      case NOTIFICATION_PROVIDERS.DISCORDBOT: {
+        return BizNotifyNodeConfigFieldsProviderDiscordBot;
+      }
+      case NOTIFICATION_PROVIDERS.EMAIL: {
+        return BizNotifyNodeConfigFieldsProviderEmail;
+      }
+      case NOTIFICATION_PROVIDERS.MATTERMOST: {
+        return BizNotifyNodeConfigFieldsProviderMattermost;
+      }
+      case NOTIFICATION_PROVIDERS.SLACKBOT: {
+        return BizNotifyNodeConfigFieldsProviderSlackBot;
+      }
+      case NOTIFICATION_PROVIDERS.TELEGRAMBOT: {
+        return BizNotifyNodeConfigFieldsProviderTelegramBot;
+      }
+      case NOTIFICATION_PROVIDERS.WEBHOOK: {
+        return BizNotifyNodeConfigFieldsProviderWebhook;
+      }
     }
   }, [fieldProvider]);
 

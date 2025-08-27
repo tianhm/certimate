@@ -11,7 +11,6 @@ import { useFormNestedFieldsContext } from "./_context";
 const RESOURCE_TYPE_LOADBALANCER = "loadbalancer" as const;
 const RESOURCE_TYPE_LISTENER = "listener" as const;
 const RESOURCE_TYPE_RULEDOMAIN = "ruledomain" as const;
-const RESOURCE_TYPE_VIA_SSLDEPLOY = "ssl-deploy" as const;
 
 const BizDeployNodeConfigFieldsProviderTencentCloudCLB = () => {
   const { i18n, t } = useTranslation();
@@ -64,9 +63,6 @@ const BizDeployNodeConfigFieldsProviderTencentCloudCLB = () => {
           <Select.Option key={RESOURCE_TYPE_RULEDOMAIN} value={RESOURCE_TYPE_RULEDOMAIN}>
             {t("workflow_node.deploy.form.tencentcloud_clb_resource_type.option.ruledomain.label")}
           </Select.Option>
-          <Select.Option key={RESOURCE_TYPE_VIA_SSLDEPLOY} value={RESOURCE_TYPE_VIA_SSLDEPLOY}>
-            {t("workflow_node.deploy.form.tencentcloud_clb_resource_type.option.ssl_deploy.label")}
-          </Select.Option>
         </Select>
       </Form.Item>
 
@@ -80,11 +76,7 @@ const BizDeployNodeConfigFieldsProviderTencentCloudCLB = () => {
         <Input placeholder={t("workflow_node.deploy.form.tencentcloud_clb_loadbalancer_id.placeholder")} />
       </Form.Item>
 
-      <Show
-        when={
-          fieldResourceType === RESOURCE_TYPE_VIA_SSLDEPLOY || fieldResourceType === RESOURCE_TYPE_LISTENER || fieldResourceType === RESOURCE_TYPE_RULEDOMAIN
-        }
-      >
+      <Show when={fieldResourceType === RESOURCE_TYPE_LISTENER || fieldResourceType === RESOURCE_TYPE_RULEDOMAIN}>
         <Form.Item
           name={[parentNamePath, "listenerId"]}
           initialValue={initialValues.listenerId}
@@ -93,19 +85,6 @@ const BizDeployNodeConfigFieldsProviderTencentCloudCLB = () => {
           tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_clb_listener_id.tooltip") }}></span>}
         >
           <Input placeholder={t("workflow_node.deploy.form.tencentcloud_clb_listener_id.placeholder")} />
-        </Form.Item>
-      </Show>
-
-      <Show when={fieldResourceType === RESOURCE_TYPE_VIA_SSLDEPLOY}>
-        <Form.Item
-          name={[parentNamePath, "domain"]}
-          initialValue={initialValues.domain}
-          label={t("workflow_node.deploy.form.tencentcloud_clb_snidomain.label")}
-          extra={t("workflow_node.deploy.form.tencentcloud_clb_snidomain.help")}
-          rules={[formRule]}
-          tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.tencentcloud_clb_snidomain.tooltip") }}></span>}
-        >
-          <Input allowClear placeholder={t("workflow_node.deploy.form.tencentcloud_clb_snidomain.placeholder")} />
         </Form.Item>
       </Show>
 
@@ -139,7 +118,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
     .object({
       endpoint: z.string().nullish(),
       resourceType: z.literal(
-        [RESOURCE_TYPE_LOADBALANCER, RESOURCE_TYPE_LISTENER, RESOURCE_TYPE_RULEDOMAIN, RESOURCE_TYPE_VIA_SSLDEPLOY],
+        [RESOURCE_TYPE_LOADBALANCER, RESOURCE_TYPE_LISTENER, RESOURCE_TYPE_RULEDOMAIN],
         t("workflow_node.deploy.form.tencentcloud_clb_resource_type.placeholder")
       ),
       region: z.string().nonempty(t("workflow_node.deploy.form.tencentcloud_clb_region.placeholder")),
@@ -176,18 +155,6 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
                 code: "custom",
                 message: t("common.errmsg.domain_invalid"),
                 path: ["domain"],
-              });
-            }
-          }
-          break;
-
-        case RESOURCE_TYPE_VIA_SSLDEPLOY:
-          {
-            if (!values.listenerId?.trim()) {
-              ctx.addIssue({
-                code: "custom",
-                message: t("workflow_node.deploy.form.tencentcloud_clb_listener_id.placeholder"),
-                path: ["listenerId"],
               });
             }
           }

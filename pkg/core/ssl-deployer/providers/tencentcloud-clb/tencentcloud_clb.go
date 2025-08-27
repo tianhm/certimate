@@ -12,7 +12,6 @@ import (
 	tcclb "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/clb/v20180317"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile"
-	tcssl "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/ssl/v20191205"
 
 	"github.com/certimate-go/certimate/pkg/core"
 	sslmgrsp "github.com/certimate-go/certimate/pkg/core/ssl-manager/providers/tencentcloud-ssl"
@@ -43,23 +42,18 @@ type SSLDeployerProviderConfig struct {
 type SSLDeployerProvider struct {
 	config     *SSLDeployerProviderConfig
 	logger     *slog.Logger
-	sdkClients *wSDKClients
+	sdkClient  *tcclb.Client
 	sslManager core.SSLManager
 }
 
 var _ core.SSLDeployer = (*SSLDeployerProvider)(nil)
-
-type wSDKClients struct {
-	SSL *tcssl.Client
-	CLB *tcclb.Client
-}
 
 func NewSSLDeployerProvider(config *SSLDeployerProviderConfig) (*SSLDeployerProvider, error) {
 	if config == nil {
 		return nil, errors.New("the configuration of the ssl deployer provider is nil")
 	}
 
-	clients, err := createSDKClients(config.SecretId, config.SecretKey, config.Endpoint, config.Region)
+	client, err := createSDKClient(config.SecretId, config.SecretKey, config.Endpoint, config.Region)
 	if err != nil {
 		return nil, fmt.Errorf("could not create sdk client: %w", err)
 	}
@@ -78,7 +72,7 @@ func NewSSLDeployerProvider(config *SSLDeployerProviderConfig) (*SSLDeployerProv
 	return &SSLDeployerProvider{
 		config:     config,
 		logger:     slog.Default(),
-		sdkClients: clients,
+		sdkClient:  client,
 		sslManager: sslmgr,
 	}, nil
 }
@@ -104,11 +98,6 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 
 	// 根据部署资源类型决定部署方式
 	switch d.config.ResourceType {
-	case RESOURCE_TYPE_VIA_SSLDEPLOY:
-		if err := d.deployViaSslService(ctx, upres.CertId); err != nil {
-			return nil, err
-		}
-
 	case RESOURCE_TYPE_LOADBALANCER:
 		if err := d.deployToLoadbalancer(ctx, upres.CertId); err != nil {
 			return nil, err
@@ -131,85 +120,6 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	return &core.SSLDeployResult{}, nil
 }
 
-func (d *SSLDeployerProvider) deployViaSslService(ctx context.Context, cloudCertId string) error {
-	if d.config.LoadbalancerId == "" {
-		return errors.New("config `loadbalancerId` is required")
-	}
-	if d.config.ListenerId == "" {
-		return errors.New("config `listenerId` is required")
-	}
-
-	// 证书部署到 CLB 实例
-	// REF: https://cloud.tencent.com/document/api/400/91667
-	deployCertificateInstanceReq := tcssl.NewDeployCertificateInstanceRequest()
-	deployCertificateInstanceReq.CertificateId = common.StringPtr(cloudCertId)
-	deployCertificateInstanceReq.ResourceType = common.StringPtr("clb")
-	deployCertificateInstanceReq.Status = common.Int64Ptr(1)
-	if d.config.Domain == "" {
-		// 未指定 SNI，只需部署到监听器
-		deployCertificateInstanceReq.InstanceIdList = common.StringPtrs([]string{fmt.Sprintf("%s|%s", d.config.LoadbalancerId, d.config.ListenerId)})
-	} else {
-		// 指定 SNI，需部署到域名
-		deployCertificateInstanceReq.InstanceIdList = common.StringPtrs([]string{fmt.Sprintf("%s|%s|%s", d.config.LoadbalancerId, d.config.ListenerId, d.config.Domain)})
-	}
-	deployCertificateInstanceResp, err := d.sdkClients.SSL.DeployCertificateInstance(deployCertificateInstanceReq)
-	d.logger.Debug("sdk request 'ssl.DeployCertificateInstance'", slog.Any("request", deployCertificateInstanceReq), slog.Any("response", deployCertificateInstanceResp))
-	if err != nil {
-		return fmt.Errorf("failed to execute sdk request 'ssl.DeployCertificateInstance': %w", err)
-	}
-
-	// 循环获取部署任务详情，等待任务状态变更
-	// REF: https://cloud.tencent.com/document/api/400/91658
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
-		}
-
-		describeHostDeployRecordDetailReq := tcssl.NewDescribeHostDeployRecordDetailRequest()
-		describeHostDeployRecordDetailReq.DeployRecordId = common.StringPtr(fmt.Sprintf("%d", *deployCertificateInstanceResp.Response.DeployRecordId))
-		describeHostDeployRecordDetailResp, err := d.sdkClients.SSL.DescribeHostDeployRecordDetail(describeHostDeployRecordDetailReq)
-		d.logger.Debug("sdk request 'ssl.DescribeHostDeployRecordDetail'", slog.Any("request", describeHostDeployRecordDetailReq), slog.Any("response", describeHostDeployRecordDetailResp))
-		if err != nil {
-			return fmt.Errorf("failed to execute sdk request 'ssl.DescribeHostDeployRecordDetail': %w", err)
-		}
-
-		var pendingCount, runningCount, succeededCount, failedCount, totalCount int64
-		if describeHostDeployRecordDetailResp.Response.TotalCount == nil {
-			return errors.New("unexpected tencentcloud deployment job status")
-		} else {
-			if describeHostDeployRecordDetailResp.Response.PendingTotalCount != nil {
-				pendingCount = *describeHostDeployRecordDetailResp.Response.PendingTotalCount
-			}
-			if describeHostDeployRecordDetailResp.Response.RunningTotalCount != nil {
-				runningCount = *describeHostDeployRecordDetailResp.Response.RunningTotalCount
-			}
-			if describeHostDeployRecordDetailResp.Response.SuccessTotalCount != nil {
-				succeededCount = *describeHostDeployRecordDetailResp.Response.SuccessTotalCount
-			}
-			if describeHostDeployRecordDetailResp.Response.FailedTotalCount != nil {
-				failedCount = *describeHostDeployRecordDetailResp.Response.FailedTotalCount
-			}
-			if describeHostDeployRecordDetailResp.Response.TotalCount != nil {
-				totalCount = *describeHostDeployRecordDetailResp.Response.TotalCount
-			}
-
-			if succeededCount+failedCount == totalCount {
-				if failedCount > 0 {
-					return fmt.Errorf("tencentcloud deployment job failed (succeeded: %d, failed: %d, total: %d)", succeededCount, failedCount, totalCount)
-				}
-				break
-			}
-		}
-
-		d.logger.Info(fmt.Sprintf("waiting for tencentcloud deployment job completion (pending: %d, running: %d, succeeded: %d, failed: %d, total: %d) ...", pendingCount, runningCount, succeededCount, failedCount, totalCount))
-		time.Sleep(time.Second * 5)
-	}
-
-	return nil
-}
-
 func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCertId string) error {
 	if d.config.LoadbalancerId == "" {
 		return errors.New("config `loadbalancerId` is required")
@@ -220,7 +130,7 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCer
 	listenerIds := make([]string, 0)
 	describeListenersReq := tcclb.NewDescribeListenersRequest()
 	describeListenersReq.LoadBalancerId = common.StringPtr(d.config.LoadbalancerId)
-	describeListenersResp, err := d.sdkClients.CLB.DescribeListeners(describeListenersReq)
+	describeListenersResp, err := d.sdkClient.DescribeListeners(describeListenersReq)
 	d.logger.Debug("sdk request 'clb.DescribeListeners'", slog.Any("request", describeListenersReq), slog.Any("response", describeListenersResp))
 	if err != nil {
 		return fmt.Errorf("failed to execute sdk request 'clb.DescribeListeners': %w", err)
@@ -299,7 +209,7 @@ func (d *SSLDeployerProvider) deployToRuleDomain(ctx context.Context, cloudCertI
 		SSLMode: common.StringPtr("UNIDIRECTIONAL"),
 		CertId:  common.StringPtr(cloudCertId),
 	}
-	modifyDomainAttributesResp, err := d.sdkClients.CLB.ModifyDomainAttributes(modifyDomainAttributesReq)
+	modifyDomainAttributesResp, err := d.sdkClient.ModifyDomainAttributes(modifyDomainAttributesReq)
 	d.logger.Debug("sdk request 'clb.ModifyDomainAttributes'", slog.Any("request", modifyDomainAttributesReq), slog.Any("response", modifyDomainAttributesResp))
 	if err != nil {
 		return fmt.Errorf("failed to execute sdk request 'clb.ModifyDomainAttributes': %w", err)
@@ -316,7 +226,7 @@ func (d *SSLDeployerProvider) deployToRuleDomain(ctx context.Context, cloudCertI
 
 		describeTaskStatusReq := tcclb.NewDescribeTaskStatusRequest()
 		describeTaskStatusReq.TaskId = modifyDomainAttributesResp.Response.RequestId
-		describeTaskStatusResp, err := d.sdkClients.CLB.DescribeTaskStatus(describeTaskStatusReq)
+		describeTaskStatusResp, err := d.sdkClient.DescribeTaskStatus(describeTaskStatusReq)
 		d.logger.Debug("sdk request 'clb.DescribeTaskStatus'", slog.Any("request", describeTaskStatusReq), slog.Any("response", describeTaskStatusResp))
 		if err != nil {
 			return fmt.Errorf("failed to execute sdk request 'clb.DescribeTaskStatus': %w", err)
@@ -341,7 +251,7 @@ func (d *SSLDeployerProvider) modifyListenerCertificate(ctx context.Context, clo
 	describeListenersReq := tcclb.NewDescribeListenersRequest()
 	describeListenersReq.LoadBalancerId = common.StringPtr(cloudLoadbalancerId)
 	describeListenersReq.ListenerIds = common.StringPtrs([]string{cloudListenerId})
-	describeListenersResp, err := d.sdkClients.CLB.DescribeListeners(describeListenersReq)
+	describeListenersResp, err := d.sdkClient.DescribeListeners(describeListenersReq)
 	d.logger.Debug("sdk request 'clb.DescribeListeners'", slog.Any("request", describeListenersReq), slog.Any("response", describeListenersResp))
 	if err != nil {
 		return fmt.Errorf("failed to execute sdk request 'clb.DescribeListeners': %w", err)
@@ -361,7 +271,7 @@ func (d *SSLDeployerProvider) modifyListenerCertificate(ctx context.Context, clo
 	} else {
 		modifyListenerReq.Certificate.SSLMode = common.StringPtr("UNIDIRECTIONAL")
 	}
-	modifyListenerResp, err := d.sdkClients.CLB.ModifyListener(modifyListenerReq)
+	modifyListenerResp, err := d.sdkClient.ModifyListener(modifyListenerReq)
 	d.logger.Debug("sdk request 'clb.ModifyListener'", slog.Any("request", modifyListenerReq), slog.Any("response", modifyListenerResp))
 	if err != nil {
 		return fmt.Errorf("failed to execute sdk request 'clb.ModifyListener': %w", err)
@@ -378,7 +288,7 @@ func (d *SSLDeployerProvider) modifyListenerCertificate(ctx context.Context, clo
 
 		describeTaskStatusReq := tcclb.NewDescribeTaskStatusRequest()
 		describeTaskStatusReq.TaskId = modifyListenerResp.Response.RequestId
-		describeTaskStatusResp, err := d.sdkClients.CLB.DescribeTaskStatus(describeTaskStatusReq)
+		describeTaskStatusResp, err := d.sdkClient.DescribeTaskStatus(describeTaskStatusReq)
 		d.logger.Debug("sdk request 'clb.DescribeTaskStatus'", slog.Any("request", describeTaskStatusReq), slog.Any("response", describeTaskStatusResp))
 		if err != nil {
 			return fmt.Errorf("failed to execute sdk request 'clb.DescribeTaskStatus': %w", err)
@@ -397,34 +307,18 @@ func (d *SSLDeployerProvider) modifyListenerCertificate(ctx context.Context, clo
 	return nil
 }
 
-func createSDKClients(secretId, secretKey, endpoint, region string) (*wSDKClients, error) {
+func createSDKClient(secretId, secretKey, endpoint, region string) (*tcclb.Client, error) {
 	credential := common.NewCredential(secretId, secretKey)
 
-	sslCpf := profile.NewClientProfile()
+	cpf := profile.NewClientProfile()
 	if endpoint != "" {
-		if strings.HasSuffix(endpoint, "intl.tencentcloudapi.com") {
-			sslCpf.HttpProfile.Endpoint = "ssl.intl.tencentcloudapi.com"
-		}
+		cpf.HttpProfile.Endpoint = endpoint
 	}
 
-	// 注意虽然官方文档中地域无需指定，但实际需要部署到 CLB 时必传
-	sslClient, err := tcssl.NewClient(credential, region, sslCpf)
+	client, err := tcclb.NewClient(credential, region, cpf)
 	if err != nil {
 		return nil, err
 	}
 
-	clbCpf := profile.NewClientProfile()
-	if endpoint != "" {
-		clbCpf.HttpProfile.Endpoint = endpoint
-	}
-
-	clbClient, err := tcclb.NewClient(credential, region, clbCpf)
-	if err != nil {
-		return nil, err
-	}
-
-	return &wSDKClients{
-		SSL: sslClient,
-		CLB: clbClient,
-	}, nil
+	return client, nil
 }

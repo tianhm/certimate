@@ -46,5 +46,11 @@
   "settings.persistence.form.expired_certificates_max_days.label": "Max days retention of expired certificates",
   "settings.persistence.form.expired_certificates_max_days.placeholder": "Please enter the maximum retention days of expired certificates",
   "settings.persistence.form.expired_certificates_max_days.unit": "days",
-  "settings.persistence.form.expired_certificates_max_days.help": "Set to <b>0</emb> to disable cleanup expired certificates."
+  "settings.persistence.form.expired_certificates_max_days.help": "Set to <b>0</emb> to disable cleanup expired certificates.",
+
+  "settings.diagnostics.tab": "Diagnostics",
+  "settings.diagnostics.logs.title": "System logs",
+  "settings.diagnostics.crons.title": "CRON jobs",
+  "settings.diagnostics.crons.job.next_trigger_time": "Expected next execution time: ",
+  "settings.diagnostics.workflow_dispatcher.title": "Workflow dispatcher"
 }

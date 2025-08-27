@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { EditorState, FlowLayoutDefault } from "@flowgram.ai/fixed-layout-editor";
 import { IconBrowserShare, IconCheck, IconDots, IconDownload, IconSettings2, IconTransferOut } from "@tabler/icons-react";
 import { useRequest } from "ahooks";
-import { Alert, App, Button, Card, Divider, Dropdown, Empty, Skeleton, Spin, Table, type TableProps, Tooltip, Typography, theme } from "antd";
+import { Alert, App, Button, Card, Divider, Dropdown, Empty, Skeleton, Table, type TableProps, Tooltip, Typography, theme } from "antd";
 import dayjs from "dayjs";
 import { ClientResponseError } from "pocketbase";
 
@@ -197,7 +197,7 @@ const WorkflowRunLogs = ({ runId, runStatus }: { runId: string; runStatus: strin
   const [showTimestamp, setShowTimestamp] = useState(true);
   const [showWhitespace, setShowWhitespace] = useState(true);
 
-  const renderRecord = (record: Log) => {
+  const renderLogRecord = (record: Log) => {
     let message = <>{record.message}</>;
     if (record.data != null && Object.keys(record.data).length > 0) {
       message = (
@@ -215,18 +215,19 @@ const WorkflowRunLogs = ({ runId, runStatus }: { runId: string; runStatus: strin
 
     return (
       <div className="flex space-x-2" style={{ wordBreak: "break-word" }}>
-        {showTimestamp ? <div className="whitespace-nowrap text-stone-400">[{dayjs(record.timestamp).format("YYYY-MM-DD HH:mm:ss")}]</div> : <></>}
+        {showTimestamp ? <div className="font-mono text-stone-400">[{dayjs(record.timestamp).format("YYYY-MM-DD HH:mm:ss")}]</div> : <></>}
         <div
           className={mergeCls(
+            "flex-1",
             "font-mono",
+            { ["whitespace-pre-line"]: !showWhitespace },
             record.level < WorkflowLogLevel.Info
               ? "text-stone-400"
               : record.level < WorkflowLogLevel.Warn
                 ? ""
                 : record.level < WorkflowLogLevel.Error
                   ? "text-warning"
-                  : "text-error",
-            { ["whitespace-pre-line"]: !showWhitespace }
+                  : "text-error"
           )}
         >
           {message}
@@ -308,22 +309,15 @@ const WorkflowRunLogs = ({ runId, runStatus }: { runId: string; runStatus: strin
       <Divider className="my-0 bg-stone-800" />
 
       <div className="min-h-8 px-4 py-2">
-        <Show
-          when={!loading || listData.length > 0}
-          fallback={
-            <Spin spinning>
-              <Skeleton />
-            </Spin>
-          }
-        >
+        <Show when={!loading || listData.length > 0} fallback={<Skeleton />}>
           {listData.map((group) => {
             return (
-              <div className="mb-3 text-stone-200">
+              <div className="mb-3">
                 <div className="truncate text-xs leading-loose">
                   <span className="font-mono text-stone-400">{`#${group.id}\u00A0`}</span>
                   <span>{group.name}</span>
                 </div>
-                <div className="flex flex-col space-y-1 text-xs">{group.records.map((record) => renderRecord(record))}</div>
+                <div className="flex flex-col text-xs leading-relaxed">{group.records.map((record) => renderLogRecord(record))}</div>
               </div>
             );
           })}

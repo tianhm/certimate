@@ -3,7 +3,7 @@ import { getI18n, useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { type FlowNodeEntity, getNodeForm } from "@flowgram.ai/fixed-layout-editor";
 import { IconChevronRight, IconCircleMinus, IconPlus } from "@tabler/icons-react";
-import { useAsyncEffect, useControllableValue } from "ahooks";
+import { useControllableValue, useMount } from "ahooks";
 import { type AnchorProps, AutoComplete, Button, Divider, Flex, Form, type FormInstance, Input, InputNumber, Select, Switch, Typography } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
@@ -456,7 +456,7 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
 const InternalEmailInput = memo(
   ({ disabled, placeholder, ...props }: { disabled?: boolean; placeholder?: string; value?: string; onChange?: (value: string) => void }) => {
     const { emails, fetchEmails, removeEmail } = useContactEmailsStore();
-    useAsyncEffect(() => fetchEmails(false), []);
+    useMount(() => fetchEmails(false));
 
     const [value, setValue] = useControllableValue<string>(props, {
       valuePropName: "value",

@@ -217,7 +217,7 @@ const CertificateList = () => {
 
   const {
     loading,
-    error: loadedError,
+    error: loadError,
     run: refreshData,
   } = useRequest(
     () => {
@@ -413,10 +413,10 @@ const CertificateList = () => {
                 <Empty
                   className="py-24"
                   title={t("certificate.nodata.title")}
-                  description={loadedError ? getErrMsg(loadedError) : t("certificate.nodata.description")}
+                  description={loadError ? getErrMsg(loadError) : t("certificate.nodata.description")}
                   icon={<IconCertificate size={24} />}
                   extra={
-                    loadedError ? (
+                    loadError ? (
                       <Button icon={<IconReload size="1.25em" />} type="primary" onClick={handleReloadClick}>
                         {t("common.button.reload")}
                       </Button>

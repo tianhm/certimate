@@ -194,7 +194,7 @@ const WorkflowDetailRuns = () => {
 
   const {
     loading,
-    error: loadedError,
+    error: loadError,
     run: refreshData,
   } = useRequest(
     () => {
@@ -363,7 +363,7 @@ const WorkflowDetailRuns = () => {
                 <Empty
                   className="py-24"
                   title={t("common.text.nodata")}
-                  description={loadedError ? getErrMsg(loadedError) : t("workflow_run.nodata.description")}
+                  description={loadError ? getErrMsg(loadError) : t("workflow_run.nodata.description")}
                   icon={<IconHistory size={24} />}
                 />
               ),

@@ -65,13 +65,13 @@ const AccessConfigFormFieldsProviderSSH = ({ disabled }: { disabled?: boolean })
 
       <Show when={fieldAuthMethod === AUTH_METHOD_PASSWORD}>
         <Form.Item name={[parentNamePath, "password"]} initialValue={initialValues.password} label={t("access.form.ssh_password.label")} rules={[formRule]}>
-          <Input.Password allowClear autoComplete="new-password" placeholder={t("access.form.ssh_password.placeholder")} />
+          <Input.Password autoComplete="new-password" placeholder={t("access.form.ssh_password.placeholder")} />
         </Form.Item>
       </Show>
 
       <Show when={fieldAuthMethod === AUTH_METHOD_KEY}>
         <Form.Item name={[parentNamePath, "key"]} initialValue={initialValues.key} label={t("access.form.ssh_key.label")} rules={[formRule]}>
-          <TextFileInput allowClear autoSize={{ minRows: 1, maxRows: 5 }} placeholder={t("access.form.ssh_key.placeholder")} />
+          <TextFileInput autoSize={{ minRows: 1, maxRows: 5 }} placeholder={t("access.form.ssh_key.placeholder")} />
         </Form.Item>
 
         <Form.Item

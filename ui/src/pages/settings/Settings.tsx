@@ -15,6 +15,7 @@ const Settings = () => {
     ["appearance", "settings.appearance.tab", <IconPalette size="1em" />],
     ["ssl-provider", "settings.sslprovider.tab", <IconPlugConnected size="1em" />],
     ["persistence", "settings.persistence.tab", <IconDatabaseCog size="1em" />],
+    ["diagnostics", "settings.diagnostics.tab", <IconDatabaseCog size="1em" />],
   ] satisfies [string, string, React.ReactElement][];
   const [menuKey, setMenuKey] = useState<string>(() => location.pathname.split("/")[2]);
   useEffect(() => {

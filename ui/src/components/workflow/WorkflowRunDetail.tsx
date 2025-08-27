@@ -214,7 +214,7 @@ const WorkflowRunLogs = ({ runId, runStatus }: { runId: string; runStatus: strin
     }
 
     return (
-      <div className="flex space-x-2 text-xs" style={{ wordBreak: "break-word" }}>
+      <div className="flex space-x-2" style={{ wordBreak: "break-word" }}>
         {showTimestamp ? <div className="whitespace-nowrap text-stone-400">[{dayjs(record.timestamp).format("YYYY-MM-DD HH:mm:ss")}]</div> : <></>}
         <div
           className={mergeCls(
@@ -323,7 +323,7 @@ const WorkflowRunLogs = ({ runId, runStatus }: { runId: string; runStatus: strin
                   <span className="font-mono text-stone-400">{`#${group.id}\u00A0`}</span>
                   <span>{group.name}</span>
                 </div>
-                <div className="flex flex-col space-y-1">{group.records.map((record) => renderRecord(record))}</div>
+                <div className="flex flex-col space-y-1 text-xs">{group.records.map((record) => renderRecord(record))}</div>
               </div>
             );
           })}

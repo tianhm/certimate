@@ -63,6 +63,15 @@ export const get = async (id: string) => {
     .collection(COLLECTION_NAME_WORKFLOW)
     .getOne<WorkflowModel>(id, {
       expand: ["lastRunRef"].join(","),
+      fields: [
+        "*",
+        "expand.lastRunRef.id",
+        "expand.lastRunRef.status",
+        "expand.lastRunRef.trigger",
+        "expand.lastRunRef.startedAt",
+        "expand.lastRunRef.endedAt",
+        "expand.lastRunRef.error",
+      ].join(","),
       requestKey: null,
     });
 };

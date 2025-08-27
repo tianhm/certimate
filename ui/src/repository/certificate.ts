@@ -74,6 +74,7 @@ export const get = async (id: string) => {
     .collection(COLLECTION_NAME_CERTIFICATE)
     .getOne<CertificateModel>(id, {
       expand: ["workflowRef"].join(","),
+      fields: ["*", "expand.workflowRef.id", "expand.workflowRef.name", "expand.workflowRef.description"].join(","),
       requestKey: null,
     });
 };

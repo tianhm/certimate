@@ -62,7 +62,7 @@ func (s *WorkflowService) InitSchedule(ctx context.Context) error {
 				})
 			})
 			if err != nil {
-				app.GetLogger().Error(fmt.Sprintf("failed to add workflow #%s to scheduler: %w", workflow.Id), slog.Any("error", err))
+				app.GetLogger().Error(fmt.Sprintf("failed to register cron job for workflow #%s", workflow.Id), slog.Any("error", err))
 				errs = append(errs, err)
 			}
 

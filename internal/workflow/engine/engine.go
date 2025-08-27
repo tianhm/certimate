@@ -28,8 +28,6 @@ type WorkflowEngine interface {
 }
 
 type workflowEngine struct {
-	logger *slog.Logger
-
 	executors map[NodeType]NodeExecutor
 
 	hooksMtx           sync.RWMutex
@@ -42,6 +40,8 @@ type workflowEngine struct {
 	onNodeLoggingHooks [](func(ctx context.Context, node *Node, log logging.Record) error)
 
 	wfoutputRepo workflowOutputRepository
+
+	logger *slog.Logger
 }
 
 var _ WorkflowEngine = (*workflowEngine)(nil)
@@ -285,9 +285,9 @@ func (we *workflowEngine) fireOnNodeLoggingHooks(ctx context.Context, node *Node
 
 func NewWorkflowEngine() WorkflowEngine {
 	engine := &workflowEngine{
-		logger:       app.GetLogger(),
 		executors:    make(map[NodeType]NodeExecutor),
 		wfoutputRepo: repository.NewWorkflowOutputRepository(),
+		logger:       app.GetLogger(),
 	}
 	engine.executors[NodeTypeStart] = newStartNodeExecutor()
 	engine.executors[NodeTypeEnd] = newEndNodeExecutor()

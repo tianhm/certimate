@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { IconCirclePlus, IconCopy, IconDots, IconEdit, IconFingerprint, IconPlus, IconReload, IconTrash } from "@tabler/icons-react";
-import { useRequest } from "ahooks";
+import { useMount, useRequest } from "ahooks";
 import { App, Avatar, Button, Dropdown, Input, Skeleton, Table, type TableProps, Tabs, Typography, theme } from "antd";
 import dayjs from "dayjs";
 import { ClientResponseError } from "pocketbase";
@@ -35,6 +35,16 @@ const AccessList = () => {
   const { accesses, loadedAtOnce, fetchAccesses, deleteAccess } = useAccessesStore(
     useZustandShallowSelector(["accesses", "loadedAtOnce", "fetchAccesses", "deleteAccess"])
   );
+  useMount(() => {
+    fetchAccesses().catch((err) => {
+      if (err instanceof ClientResponseError && err.isAbort) {
+        return;
+      }
+
+      console.error(err);
+      notification.error({ message: t("common.text.request_error"), description: getErrMsg(err) });
+    });
+  });
 
   const [filters, setFilters] = useState<Record<string, unknown>>(() => {
     return {
@@ -186,17 +196,6 @@ const AccessList = () => {
       setTableSelectedRowKeys(keys as string[]);
     },
   };
-
-  useEffect(() => {
-    fetchAccesses().catch((err) => {
-      if (err instanceof ClientResponseError && err.isAbort) {
-        return;
-      }
-
-      console.error(err);
-      notification.error({ message: t("common.text.request_error"), description: getErrMsg(err) });
-    });
-  }, []);
 
   const { loading, run: refreshData } = useRequest(
     () => {

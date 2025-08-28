@@ -35,10 +35,18 @@ func init() {
 }
 
 type WorkflowDispatcher interface {
+	GetStatistics() Statistics
+
 	Bootup(ctx context.Context) error
 	Shutdown(ctx context.Context) error
 	Start(ctx context.Context, runId string) error
 	Cancel(ctx context.Context, runId string) error
+}
+
+type Statistics struct {
+	Concurrency      int
+	PendingRunIds    []string
+	ProcessingRunIds []string
 }
 
 type workflowDispatcher struct {
@@ -52,9 +60,30 @@ type workflowDispatcher struct {
 	workflowRepo    workflowRepository
 	workflowRunRepo workflowRunRepository
 	workflowLogRepo workflowLogRepository
+
+	logger *slog.Logger
 }
 
 var _ WorkflowDispatcher = (*workflowDispatcher)(nil)
+
+func (wd *workflowDispatcher) GetStatistics() Statistics {
+	wd.taskMtx.RLock()
+	defer wd.taskMtx.RUnlock()
+
+	stats := Statistics{
+		Concurrency:      wd.concurrency,
+		PendingRunIds:    make([]string, 0),
+		ProcessingRunIds: make([]string, 0),
+	}
+	for _, pendingRunId := range wd.pendingRunQueue {
+		stats.PendingRunIds = append(stats.PendingRunIds, pendingRunId)
+	}
+	for _, processingRunId := range wd.processingTasks {
+		stats.ProcessingRunIds = append(stats.ProcessingRunIds, processingRunId.RunId)
+	}
+
+	return stats
+}
 
 func (wd *workflowDispatcher) Bootup(ctx context.Context) error {
 	if wd.booted {
@@ -99,12 +128,12 @@ func (wd *workflowDispatcher) Start(ctx context.Context, runId string) error {
 	defer wd.taskMtx.Unlock()
 
 	if _, exists := wd.processingTasks[runId]; exists {
-		return errors.New("workflow run is already processing")
+		return fmt.Errorf("workflow run %s is already processing", runId)
 	}
 
 	for _, pendingRunId := range wd.pendingRunQueue {
 		if pendingRunId == runId {
-			return errors.New("workflow run is already in the queue")
+			return fmt.Errorf("workflow run %s is already in the queue", runId)
 		}
 	}
 
@@ -122,7 +151,7 @@ func (wd *workflowDispatcher) Cancel(ctx context.Context, runId string) error {
 	if err != nil {
 		return err
 	} else if workflowRun.Status != domain.WorkflowRunStatusTypePending && workflowRun.Status != domain.WorkflowRunStatusTypeProcessing {
-		return errors.New("workflow run is already completed")
+		return fmt.Errorf("workflow run #%s is already completed", workflowRun.Id)
 	}
 
 	workflow, err := wd.workflowRepo.GetById(ctx, workflowRun.WorkflowId)
@@ -146,6 +175,8 @@ func (wd *workflowDispatcher) Cancel(ctx context.Context, runId string) error {
 	if task, exists := wd.processingTasks[runId]; exists {
 		task.cancel()
 		delete(wd.processingTasks, runId)
+
+		wd.logger.Info(fmt.Sprintf("workflow run #%s was canceled", task.RunId))
 	}
 
 	for i, pendingRunId := range wd.pendingRunQueue {
@@ -167,7 +198,7 @@ func (wd *workflowDispatcher) tryExecuteAsync(task *taskInfo) {
 	defer func() {
 		if r := recover(); r != nil {
 			slog.Default().Warn(fmt.Sprintf("workflow dispatcher panic: %v, stack trace: %s", r, string(debug.Stack())), slog.Any("workflowId", task.WorkflowId), slog.Any("runId", task.RunId))
-			app.GetLogger().Error(fmt.Sprintf("workflow dispatcher panic: %v", r), slog.Any("workflowId", task.WorkflowId), slog.Any("runId", task.RunId))
+			wd.logger.Error(fmt.Sprintf("workflow dispatcher panic: %v", r), slog.Any("workflowId", task.WorkflowId), slog.Any("runId", task.RunId))
 
 			if workflowRun != nil {
 				workflowRun.Status = domain.WorkflowRunStatusTypeFailed
@@ -189,7 +220,7 @@ func (wd *workflowDispatcher) tryExecuteAsync(task *taskInfo) {
 	// 查询运行实体，并级联更新状态
 	if run, err := wd.workflowRunRepo.GetById(task.ctx, task.RunId); err != nil {
 		if !(errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded)) {
-			app.GetLogger().Error(fmt.Sprintf("failed to get workflow run #%s record", task.RunId), slog.Any("error", err))
+			wd.logger.Error(fmt.Sprintf("failed to get workflow run #%s record", task.RunId), slog.Any("error", err))
 		}
 		return
 	} else {
@@ -248,7 +279,7 @@ func (wd *workflowDispatcher) tryExecuteAsync(task *taskInfo) {
 		logsBuf = append(logsBuf, log)
 
 		if _, err := wd.workflowLogRepo.Save(ctx, &log); err != nil {
-			app.GetLogger().Error(err.Error())
+			wd.logger.Error(err.Error())
 		}
 
 		return nil
@@ -267,15 +298,16 @@ func (wd *workflowDispatcher) tryExecuteAsync(task *taskInfo) {
 		logsBuf = append(logsBuf, log)
 
 		if _, err := wd.workflowLogRepo.Save(ctx, &log); err != nil {
-			app.GetLogger().Error(err.Error())
+			wd.logger.Error(err.Error())
 		}
 
 		return nil
 	})
 
 	// 执行工作流
-	app.GetLogger().Info(fmt.Sprintf("start to invoke workflow run #%s", task.RunId))
+	wd.logger.Info(fmt.Sprintf("workflow run #%s was started", task.RunId))
 	we.Invoke(task.ctx, workflowRun.WorkflowId, workflowRun.Id, workflowRun.Graph)
+	wd.logger.Info(fmt.Sprintf("workflow run #%s was stopped", task.RunId))
 }
 
 func (wd *workflowDispatcher) tryNextAsync() {
@@ -284,7 +316,7 @@ func (wd *workflowDispatcher) tryNextAsync() {
 	for i, pendingRunId := range wd.pendingRunQueue {
 		workflowRun, err := wd.workflowRunRepo.GetById(context.Background(), pendingRunId)
 		if err != nil {
-			app.GetLogger().Error(fmt.Sprintf("failed to get workflow run #%s record", pendingRunId), slog.Any("error", err))
+			wd.logger.Error(fmt.Sprintf("failed to get workflow run #%s record", pendingRunId), slog.Any("error", err))
 			continue
 		}
 
@@ -296,7 +328,11 @@ func (wd *workflowDispatcher) tryNextAsync() {
 			}
 		}
 
-		if !hasSameWorkflowTask && len(wd.processingTasks) < wd.concurrency {
+		if hasSameWorkflowTask {
+			wd.logger.Warn(fmt.Sprintf("workflow run #%s is pending, because tasks that belonging to the same workflow already exists", pendingRunId))
+		} else if len(wd.processingTasks) >= wd.concurrency {
+			wd.logger.Warn(fmt.Sprintf("workflow run #%s is pending, because the maximum concurrency limit has been reached", pendingRunId))
+		} else {
 			wd.taskMtx.RUnlock()
 			wd.taskMtx.Lock()
 			defer wd.taskMtx.Unlock()
@@ -323,5 +359,7 @@ func newWorkflowDispatcher() WorkflowDispatcher {
 		workflowRepo:    repository.NewWorkflowRepository(),
 		workflowRunRepo: repository.NewWorkflowRunRepository(),
 		workflowLogRepo: repository.NewWorkflowLogRepository(),
+
+		logger: app.GetLogger(),
 	}
 }

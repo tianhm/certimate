@@ -3,6 +3,7 @@ package workflow
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/pocketbase/pocketbase/core"
 
@@ -75,7 +76,8 @@ func onWorkflowRecordCreateOrUpdate(ctx context.Context, record *core.Record) er
 		})
 	})
 	if err != nil {
-		return fmt.Errorf("add cron job failed: %w", err)
+		app.GetLogger().Error(fmt.Sprintf("failed to register cron job for workflow #%s", record.Id), slog.Any("error", err))
+		return fmt.Errorf("failed to add cron job: %w", err)
 	}
 
 	return nil

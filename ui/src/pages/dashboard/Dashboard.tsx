@@ -324,7 +324,7 @@ const WorkflowRunHistoryTable = ({ className, style }: { className?: string; sty
 
   const {
     loading,
-    error: loadedError,
+    error: loadError,
     run: refreshData,
   } = useRequest(
     () => {
@@ -379,10 +379,10 @@ const WorkflowRunHistoryTable = ({ className, style }: { className?: string; sty
             <Empty
               className="py-24"
               title={t("common.text.nodata")}
-              description={loadedError ? getErrMsg(loadedError) : t("dashboard.latest_workflow_runs.nodata.description")}
+              description={loadError ? getErrMsg(loadError) : t("dashboard.latest_workflow_runs.nodata.description")}
               icon={<IconHistory size={24} />}
               extra={
-                loadedError ? (
+                loadError ? (
                   <Button icon={<IconReload size="1.25em" />} type="primary" onClick={handleReloadClick}>
                     {t("common.button.reload")}
                   </Button>

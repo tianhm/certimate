@@ -402,12 +402,11 @@ type AccessConfigForWangsu struct {
 }
 
 type AccessConfigForWebhook struct {
-	Url                       string `json:"url"`
-	Method                    string `json:"method,omitempty"`
-	HeadersString             string `json:"headers,omitempty"`
-	DataStringForDeployment   string `json:"dataForDeployment,omitempty"`
-	DataStringForNotification string `json:"dataForNotification,omitempty"`
-	AllowInsecureConnections  bool   `json:"allowInsecureConnections,omitempty"`
+	Url                      string `json:"url"`
+	Method                   string `json:"method,omitempty"`
+	HeadersString            string `json:"headers,omitempty"`
+	DataString               string `json:"data,omitempty"`
+	AllowInsecureConnections bool   `json:"allowInsecureConnections,omitempty"`
 }
 
 type AccessConfigForWeComBot struct {

@@ -46,5 +46,16 @@
   "settings.persistence.form.expired_certificates_max_days.label": "证书过期后保留天数",
   "settings.persistence.form.expired_certificates_max_days.placeholder": "请输入过期证书保留天数",
   "settings.persistence.form.expired_certificates_max_days.unit": "天",
-  "settings.persistence.form.expired_certificates_max_days.help": "设置为 <b>0</b> 表示永久保留，不会自动清理。"
+  "settings.persistence.form.expired_certificates_max_days.help": "设置为 <b>0</b> 表示永久保留，不会自动清理。",
+
+  "settings.diagnostics.tab": "系统诊断",
+  "settings.diagnostics.logs.title": "系统日志",
+  "settings.diagnostics.logs.button.refresh.label": "刷新日志",
+  "settings.diagnostics.logs.button.load_more.label": "加载更多",
+  "settings.diagnostics.crons.title": "后台任务",
+  "settings.diagnostics.crons.props.next_trigger_time": "预计下次运行时间：",
+  "settings.diagnostics.workflow_dispatcher.title": "工作流调度器",
+  "settings.diagnostics.workflow_dispatcher.statistics.concurrency": "最大并发",
+  "settings.diagnostics.workflow_dispatcher.statistics.pending": "等待运行",
+  "settings.diagnostics.workflow_dispatcher.statistics.processing": "运行中"
 }

@@ -1,6 +1,6 @@
-﻿import { useEffect, useMemo, useRef, useState } from "react";
+﻿import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useSize } from "ahooks";
+import { useMount, useSize } from "ahooks";
 import { Avatar, Card, Empty, Input, type InputRef, Tag, Tooltip, Typography } from "antd";
 
 import Show from "@/components/Show";
@@ -26,11 +26,11 @@ const AccessProviderPicker = ({ className, style, autoFocus, gap = "middle", pla
 
   const [keyword, setKeyword] = useState<string>();
   const keywordInputRef = useRef<InputRef>(null);
-  useEffect(() => {
+  useMount(() => {
     if (autoFocus) {
       setTimeout(() => keywordInputRef.current?.focus(), 1);
     }
-  }, []);
+  });
 
   const showOptionTagForDNS = useMemo(() => {
     return typeof showOptionTags === "object" ? !!showOptionTags?.[ACCESS_USAGES.DNS] : !!showOptionTags;

@@ -23,7 +23,7 @@ const SettingsAppearance = () => {
       <Divider />
 
       <h2>{t("settings.appearance.pagination.title")}</h2>
-      <SettingsPaginationLanguage className="md:max-w-160" />
+      <SettingsAppearancePagination className="md:max-w-160" />
     </>
   );
 };
@@ -100,7 +100,7 @@ const SettingsAppearanceLanguage = ({ className, style }: { className?: string; 
   );
 };
 
-const SettingsPaginationLanguage = ({ className, style }: { className?: string; style?: React.CSSProperties }) => {
+const SettingsAppearancePagination = ({ className, style }: { className?: string; style?: React.CSSProperties }) => {
   const { t } = useTranslation();
 
   const { appSettings: globalAppSettings, setAppSettings: setGlobalAppSettings } = useAppSettings();

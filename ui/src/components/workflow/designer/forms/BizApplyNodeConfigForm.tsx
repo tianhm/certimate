@@ -3,7 +3,7 @@ import { getI18n, useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { type FlowNodeEntity, getNodeForm } from "@flowgram.ai/fixed-layout-editor";
 import { IconChevronRight, IconCircleMinus, IconPlus } from "@tabler/icons-react";
-import { useAsyncEffect, useControllableValue } from "ahooks";
+import { useControllableValue, useMount } from "ahooks";
 import { type AnchorProps, AutoComplete, Button, Divider, Flex, Form, type FormInstance, Input, InputNumber, Select, Switch, Typography } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
@@ -22,11 +22,11 @@ import { useContactEmailsStore } from "@/stores/contact";
 import { validDomainName, validIPv4Address, validIPv6Address } from "@/utils/validators";
 
 import { FormNestedFieldsContextProvider, NodeFormContextProvider } from "./_context";
-import BizApplyNodeConfigFormProviderAliyunESA from "./BizApplyNodeConfigFormProviderAliyunESA";
-import BizApplyNodeConfigFormProviderAWSRoute53 from "./BizApplyNodeConfigFormProviderAWSRoute53";
-import BizApplyNodeConfigFormProviderHuaweiCloudDNS from "./BizApplyNodeConfigFormProviderHuaweiCloudDNS";
-import BizApplyNodeConfigFormProviderJDCloudDNS from "./BizApplyNodeConfigFormProviderJDCloudDNS";
-import BizApplyNodeConfigFormProviderTencentCloudEO from "./BizApplyNodeConfigFormProviderTencentCloudEO";
+import BizApplyNodeConfigFieldsProviderAliyunESA from "./BizApplyNodeConfigFieldsProviderAliyunESA";
+import BizApplyNodeConfigFieldsProviderAWSRoute53 from "./BizApplyNodeConfigFieldsProviderAWSRoute53";
+import BizApplyNodeConfigFieldsProviderHuaweiCloudDNS from "./BizApplyNodeConfigFieldsProviderHuaweiCloudDNS";
+import BizApplyNodeConfigFieldsProviderJDCloudDNS from "./BizApplyNodeConfigFieldsProviderJDCloudDNS";
+import BizApplyNodeConfigFieldsProviderTencentCloudEO from "./BizApplyNodeConfigFieldsProviderTencentCloudEO";
 import { NodeType } from "../nodes/typings";
 
 const MULTIPLE_INPUT_SEPARATOR = ";";
@@ -67,19 +67,24 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
       NOTICE: If you add new child component, please keep ASCII order.
       */
     switch (fieldProvider) {
-      case ACME_DNS01_PROVIDERS.ALIYUN_ESA:
-        return BizApplyNodeConfigFormProviderAliyunESA;
+      case ACME_DNS01_PROVIDERS.ALIYUN_ESA: {
+        return BizApplyNodeConfigFieldsProviderAliyunESA;
+      }
       case ACME_DNS01_PROVIDERS.AWS:
-      case ACME_DNS01_PROVIDERS.AWS_ROUTE53:
-        return BizApplyNodeConfigFormProviderAWSRoute53;
+      case ACME_DNS01_PROVIDERS.AWS_ROUTE53: {
+        return BizApplyNodeConfigFieldsProviderAWSRoute53;
+      }
       case ACME_DNS01_PROVIDERS.HUAWEICLOUD:
-      case ACME_DNS01_PROVIDERS.HUAWEICLOUD_DNS:
-        return BizApplyNodeConfigFormProviderHuaweiCloudDNS;
+      case ACME_DNS01_PROVIDERS.HUAWEICLOUD_DNS: {
+        return BizApplyNodeConfigFieldsProviderHuaweiCloudDNS;
+      }
       case ACME_DNS01_PROVIDERS.JDCLOUD:
-      case ACME_DNS01_PROVIDERS.JDCLOUD_DNS:
-        return BizApplyNodeConfigFormProviderJDCloudDNS;
-      case ACME_DNS01_PROVIDERS.TENCENTCLOUD_EO:
-        return BizApplyNodeConfigFormProviderTencentCloudEO;
+      case ACME_DNS01_PROVIDERS.JDCLOUD_DNS: {
+        return BizApplyNodeConfigFieldsProviderJDCloudDNS;
+      }
+      case ACME_DNS01_PROVIDERS.TENCENTCLOUD_EO: {
+        return BizApplyNodeConfigFieldsProviderTencentCloudEO;
+      }
     }
   }, [fieldProvider]);
 
@@ -135,7 +140,7 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
       setTimeout(() => {
         formInst.setFieldValue("caProvider", void 0);
         formInst.setFieldValue("caProviderAccessId", void 0);
-      }, 1);
+      }, 0);
     } else if (initialValues?.caProvider === value) {
       formInst.setFieldValue("caProviderAccessId", initialValues?.caProviderAccessId);
     } else {
@@ -451,7 +456,7 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
 const InternalEmailInput = memo(
   ({ disabled, placeholder, ...props }: { disabled?: boolean; placeholder?: string; value?: string; onChange?: (value: string) => void }) => {
     const { emails, fetchEmails, removeEmail } = useContactEmailsStore();
-    useAsyncEffect(() => fetchEmails(false), []);
+    useMount(() => fetchEmails(false));
 
     const [value, setValue] = useControllableValue<string>(props, {
       valuePropName: "value",

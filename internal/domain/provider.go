@@ -5,8 +5,8 @@ type AccessProviderType string
 /*
 授权提供商类型常量值。
 
-	注意：如果追加新的常量值，请保持以 ASCII 排序。
-	NOTICE: If you add new constant, please keep ASCII order.
+注意：如果追加新的常量值，请保持以 ASCII 排序。
+NOTICE: If you add new constant, please keep ASCII order.
 */
 const (
 	AccessProviderType1Panel              = AccessProviderType("1panel")
@@ -98,8 +98,8 @@ type CAProviderType string
 证书颁发机构提供商常量值。
 短横线前的部分始终等于授权提供商类型。
 
-	注意：如果追加新的常量值，请保持以 ASCII 排序。
-	NOTICE: If you add new constant, please keep ASCII order.
+注意：如果追加新的常量值，请保持以 ASCII 排序。
+NOTICE: If you add new constant, please keep ASCII order.
 */
 const (
 	CAProviderTypeACMECA              = CAProviderType(AccessProviderTypeACMECA)
@@ -117,8 +117,8 @@ type ACMEDns01ProviderType string
 ACME DNS-01 提供商常量值。
 短横线前的部分始终等于授权提供商类型。
 
-	注意：如果追加新的常量值，请保持以 ASCII 排序。
-	NOTICE: If you add new constant, please keep ASCII order.
+注意：如果追加新的常量值，请保持以 ASCII 排序。
+NOTICE: If you add new constant, please keep ASCII order.
 */
 const (
 	ACMEDns01ProviderTypeACMEHttpReq       = ACMEDns01ProviderType(AccessProviderTypeACMEHttpReq)
@@ -172,14 +172,27 @@ const (
 	ACMEDns01ProviderTypeWestcn            = ACMEDns01ProviderType(AccessProviderTypeWestcn)
 )
 
+type ACMEHttp01ProviderType string
+
+/*
+ACME HTTP-01 提供商常量值。
+短横线前的部分始终等于授权提供商类型。
+
+注意：如果追加新的常量值，请保持以 ASCII 排序。
+NOTICE: If you add new constant, please keep ASCII order.
+*/
+const (
+	ACMEHttp01ProviderTypeLocal = ACMEHttp01ProviderType(AccessProviderTypeLocal)
+)
+
 type DeploymentProviderType string
 
 /*
 部署证书主机提供商常量值。
 短横线前的部分始终等于授权提供商类型。
 
-	注意：如果追加新的常量值，请保持以 ASCII 排序。
-	NOTICE: If you add new constant, please keep ASCII order.
+注意：如果追加新的常量值，请保持以 ASCII 排序。
+NOTICE: If you add new constant, please keep ASCII order.
 */
 const (
 	DeploymentProviderType1PanelConsole         = DeploymentProviderType(AccessProviderType1Panel + "-console")
@@ -289,8 +302,8 @@ type NotificationProviderType string
 消息通知提供商常量值。
 短横线前的部分始终等于授权提供商类型。
 
-	注意：如果追加新的常量值，请保持以 ASCII 排序。
-	NOTICE: If you add new constant, please keep ASCII order.
+注意：如果追加新的常量值，请保持以 ASCII 排序。
+NOTICE: If you add new constant, please keep ASCII order.
 */
 const (
 	NotificationProviderTypeDingTalkBot = NotificationProviderType(AccessProviderTypeDingTalkBot)

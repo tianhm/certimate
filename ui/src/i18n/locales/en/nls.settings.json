@@ -50,7 +50,12 @@
 
   "settings.diagnostics.tab": "Diagnostics",
   "settings.diagnostics.logs.title": "System logs",
+  "settings.diagnostics.logs.button.refresh.label": "Refresh",
+  "settings.diagnostics.logs.button.load_more.label": "Load more",
   "settings.diagnostics.crons.title": "CRON jobs",
-  "settings.diagnostics.crons.job.next_trigger_time": "Expected next execution time: ",
-  "settings.diagnostics.workflow_dispatcher.title": "Workflow dispatcher"
+  "settings.diagnostics.crons.props.next_trigger_time": "Expected next execution time: ",
+  "settings.diagnostics.workflow_dispatcher.title": "Workflow dispatcher",
+  "settings.diagnostics.workflow_dispatcher.statistics.concurrency": "Concurrency",
+  "settings.diagnostics.workflow_dispatcher.statistics.pending": "Pending",
+  "settings.diagnostics.workflow_dispatcher.statistics.processing": "Processing"
 }

@@ -75,6 +75,15 @@ func (s *WorkflowService) InitSchedule(ctx context.Context) error {
 	return nil
 }
 
+func (s *WorkflowService) GetStatistics(ctx context.Context) (*dtos.WorkflowStatisticsResp, error) {
+	stats := s.dispatcher.GetStatistics()
+	return &dtos.WorkflowStatisticsResp{
+		Concurrency:      stats.Concurrency,
+		PendingRunIds:    stats.PendingRunIds,
+		ProcessingRunIds: stats.ProcessingRunIds,
+	}, nil
+}
+
 func (s *WorkflowService) StartRun(ctx context.Context, req *dtos.WorkflowStartRunReq) (*dtos.WorkflowStartRunResp, error) {
 	workflow, err := s.workflowRepo.GetById(ctx, req.WorkflowId)
 	if err != nil {

@@ -35,10 +35,18 @@ func init() {
 }
 
 type WorkflowDispatcher interface {
+	GetStatistics() Statistics
+
 	Bootup(ctx context.Context) error
 	Shutdown(ctx context.Context) error
 	Start(ctx context.Context, runId string) error
 	Cancel(ctx context.Context, runId string) error
+}
+
+type Statistics struct {
+	Concurrency      int
+	PendingRunIds    []string
+	ProcessingRunIds []string
 }
 
 type workflowDispatcher struct {
@@ -57,6 +65,25 @@ type workflowDispatcher struct {
 }
 
 var _ WorkflowDispatcher = (*workflowDispatcher)(nil)
+
+func (wd *workflowDispatcher) GetStatistics() Statistics {
+	wd.taskMtx.RLock()
+	defer wd.taskMtx.RUnlock()
+
+	stats := Statistics{
+		Concurrency:      wd.concurrency,
+		PendingRunIds:    make([]string, 0),
+		ProcessingRunIds: make([]string, 0),
+	}
+	for _, pendingRunId := range wd.pendingRunQueue {
+		stats.PendingRunIds = append(stats.PendingRunIds, pendingRunId)
+	}
+	for _, processingRunId := range wd.processingTasks {
+		stats.ProcessingRunIds = append(stats.ProcessingRunIds, processingRunId.RunId)
+	}
+
+	return stats
+}
 
 func (wd *workflowDispatcher) Bootup(ctx context.Context) error {
 	if wd.booted {

@@ -50,7 +50,12 @@
 
   "settings.diagnostics.tab": "系统诊断",
   "settings.diagnostics.logs.title": "系统日志",
+  "settings.diagnostics.logs.button.refresh.label": "刷新日志",
+  "settings.diagnostics.logs.button.load_more.label": "加载更多",
   "settings.diagnostics.crons.title": "后台任务",
-  "settings.diagnostics.crons.job.next_trigger_time": "预计下次运行时间：",
-  "settings.diagnostics.workflow_dispatcher.title": "工作流调度器"
+  "settings.diagnostics.crons.props.next_trigger_time": "预计下次运行时间：",
+  "settings.diagnostics.workflow_dispatcher.title": "工作流调度器",
+  "settings.diagnostics.workflow_dispatcher.statistics.concurrency": "最大并发",
+  "settings.diagnostics.workflow_dispatcher.statistics.pending": "等待运行",
+  "settings.diagnostics.workflow_dispatcher.statistics.processing": "运行中"
 }

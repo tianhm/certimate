@@ -17,3 +17,9 @@ type WorkflowCancelRunReq struct {
 }
 
 type WorkflowCancelRunResp struct{}
+
+type WorkflowStatisticsResp struct {
+	Concurrency      int      `json:"concurrency"`
+	PendingRunIds    []string `json:"pendingRunIds"`
+	ProcessingRunIds []string `json:"processingRunIds"`
+}

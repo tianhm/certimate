@@ -2,9 +2,10 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { IconReload } from "@tabler/icons-react";
 import { useRequest } from "ahooks";
-import { Button, Divider, Empty, List, Pagination, Tooltip, Typography } from "antd";
+import { Button, Card, Divider, Empty, List, Pagination, Statistic, Tag, Tooltip, Typography } from "antd";
 import dayjs from "dayjs";
 
+import { getStats as getWorkflowStats } from "@/api/workflows";
 import Show from "@/components/Show";
 import { listCronJobs, listLogs } from "@/repository/system";
 import { getNextCronExecutions } from "@/utils/cron";
@@ -27,7 +28,7 @@ const SettingsDiagnostics = () => {
       <Divider />
 
       <h2>{t("settings.diagnostics.workflow_dispatcher.title")}</h2>
-      <SettingsDiagnosticsWorkflowDispatcher className="md:max-w-160" />
+      <SettingsDiagnosticsWorkflowDispatcher />
     </>
   );
 };
@@ -53,6 +54,8 @@ const SettingsDiagnosticsLogs = ({ className, style }: { className?: string; sty
     },
     {
       refreshDeps: [page, pageSize],
+      debounceWait: 300,
+      debounceLeading: true,
       onSuccess: (res) => {
         if (page === 1) {
           setListData([]);
@@ -112,6 +115,11 @@ const SettingsDiagnosticsLogs = ({ className, style }: { className?: string; sty
     refreshData();
   };
 
+  const handleRefreshClick = () => {
+    setPage(1);
+    refreshData();
+  };
+
   const handleLoadMoreClick = () => {
     setPage((prev) => prev + 1);
   };
@@ -127,13 +135,11 @@ const SettingsDiagnosticsLogs = ({ className, style }: { className?: string; sty
               </Button>
             </div>
           </Show>
-          <Show when={listData.length === 0}>
+          <Show when={listData.length === 0 && !loading}>
             <Empty description={loadError ? getErrMsg(loadError) : t("common.text.nodata")} image={Empty.PRESENTED_IMAGE_SIMPLE}>
-              {loadError && (
-                <Button icon={<IconReload size="1.25em" />} type="primary" onClick={handleReloadClick}>
-                  {t("common.button.reload")}
-                </Button>
-              )}
+              <Button icon={<IconReload size="1.25em" />} type="primary" onClick={handleReloadClick}>
+                {t("common.button.reload")}
+              </Button>
             </Empty>
           </Show>
           <Show when={listData.length > 0}>
@@ -147,11 +153,19 @@ const SettingsDiagnosticsLogs = ({ className, style }: { className?: string; sty
                   );
                 })}
               </div>
-              {hasMore && (
-                <a onClick={handleLoadMoreClick}>
-                  <span className="text-xs">Load more</span>
+              <div className="flex w-full items-center">
+                <a onClick={handleRefreshClick}>
+                  <span className="text-xs">{t("settings.diagnostics.logs.button.refresh.label")}</span>
                 </a>
-              )}
+                {hasMore && (
+                  <>
+                    <Divider type="vertical" />
+                    <a onClick={handleLoadMoreClick}>
+                      <span className="text-xs">{t("settings.diagnostics.logs.button.load_more.label")}</span>
+                    </a>
+                  </>
+                )}
+              </div>
             </div>
           </Show>
         </div>
@@ -166,7 +180,9 @@ const SettingsDiagnosticsCrons = ({ className, style }: { className?: string; st
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  type CronJob = Awaited<ReturnType<typeof listCronJobs>>["items"][number];
+  type CronJob = Awaited<ReturnType<typeof listCronJobs>>["items"][number] & {
+    nextTriggerTime: string;
+  };
   const [listData, setListData] = useState<CronJob[]>([]);
   const [listTotal, setListTotal] = useState(0);
 
@@ -180,7 +196,13 @@ const SettingsDiagnosticsCrons = ({ className, style }: { className?: string; st
         const startIndex = (page - 1) * pageSize;
         const endIndex = startIndex + pageSize;
         return {
-          items: res.items.slice(startIndex, endIndex),
+          items: res.items
+            .slice(startIndex, endIndex)
+            .map((item) => ({
+              ...item,
+              nextTriggerTime: dayjs(getNextCronExecutions(item.cron)[0]).format("YYYY-MM-DD HH:mm:ss"),
+            }))
+            .sort((a, b) => a.nextTriggerTime.localeCompare(b.nextTriggerTime)),
           totalItems: res.items.length,
         };
       });
@@ -224,11 +246,12 @@ const SettingsDiagnosticsCrons = ({ className, style }: { className?: string; st
         renderItem={(record) => (
           <List.Item>
             <Tooltip
+              className="block xl:hidden"
               title={
                 <>
-                  {t("settings.diagnostics.crons.job.next_trigger_time")}
+                  {t("settings.diagnostics.crons.props.next_trigger_time")}
                   <br />
-                  {dayjs(getNextCronExecutions(record.cron)[0]).format("YYYY-MM-DD HH:mm:ss")}
+                  {record.nextTriggerTime}
                 </>
               }
               mouseEnterDelay={1}
@@ -243,6 +266,20 @@ const SettingsDiagnosticsCrons = ({ className, style }: { className?: string; st
                 </div>
               </div>
             </Tooltip>
+
+            <div className="hidden w-full items-center justify-between gap-4 overflow-hidden xl:flex">
+              <div className="flex-1 truncate">
+                <Typography.Text>{record.id}</Typography.Text>
+              </div>
+              <div className="flex items-center justify-end">
+                <Typography.Text type="secondary">{record.cron}</Typography.Text>
+                <Divider type="vertical" />
+                <Typography.Text type="secondary">
+                  {t("settings.diagnostics.crons.props.next_trigger_time")}
+                  {record.nextTriggerTime}
+                </Typography.Text>
+              </div>
+            </div>
           </List.Item>
         )}
       />
@@ -258,9 +295,67 @@ const SettingsDiagnosticsCrons = ({ className, style }: { className?: string; st
 const SettingsDiagnosticsWorkflowDispatcher = ({ className, style }: { className?: string; style?: React.CSSProperties }) => {
   const { t } = useTranslation();
 
+  type Statistics = Awaited<ReturnType<typeof getWorkflowStats>>["data"];
+  const [statistics, setStatistics] = useState<Statistics>();
+
+  const { loading } = useRequest(
+    () => {
+      return getWorkflowStats();
+    },
+    {
+      throttleWait: 1000,
+      throttleLeading: true,
+      pollingInterval: 3000,
+      pollingWhenHidden: true,
+      onSuccess: (res) => {
+        setStatistics(res.data);
+      },
+    }
+  );
+
   return (
     <div className={className} style={style}>
-      <div>TODO ...</div>
+      <div className="flex w-full flex-wrap items-stretch justify-center gap-4 sm:flex-nowrap">
+        <Card className="w-full sm:flex-1 md:w-1/3" loading={loading && !statistics}>
+          <Statistic title={t("settings.diagnostics.workflow_dispatcher.statistics.concurrency")} value={statistics?.concurrency ?? "-"} />
+        </Card>
+
+        <Tooltip
+          mouseEnterDelay={1}
+          placement="topLeft"
+          title={
+            statistics?.pendingRunIds?.length
+              ? statistics?.pendingRunIds?.map((id) => (
+                  <div key={id}>
+                    <Tag>#{id}</Tag>
+                  </div>
+                ))
+              : null
+          }
+        >
+          <Card className="w-full sm:flex-1 md:w-1/3" loading={loading && !statistics}>
+            <Statistic title={t("settings.diagnostics.workflow_dispatcher.statistics.pending")} value={statistics?.pendingRunIds?.length ?? "-"} />
+          </Card>
+        </Tooltip>
+
+        <Tooltip
+          mouseEnterDelay={1}
+          placement="topLeft"
+          title={
+            statistics?.processingRunIds?.length
+              ? statistics?.processingRunIds?.map((id) => (
+                  <div key={id}>
+                    <Tag>#{id}</Tag>
+                  </div>
+                ))
+              : null
+          }
+        >
+          <Card className="w-full sm:flex-1 md:w-1/3" loading={loading && !statistics}>
+            <Statistic title={t("settings.diagnostics.workflow_dispatcher.statistics.processing")} value={statistics?.processingRunIds?.length ?? "-"} />
+          </Card>
+        </Tooltip>
+      </div>
     </div>
   );
 };

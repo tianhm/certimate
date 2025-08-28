@@ -11,7 +11,7 @@ type startNodeExecutor struct {
 func (ne *startNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExecutionResult, error) {
 	execRes := newNodeExecutionResult(execCtx.Node)
 
-	ne.logger.Info("")
+	ne.logger.Info("the workflow is starting")
 
 	return execRes, nil
 }

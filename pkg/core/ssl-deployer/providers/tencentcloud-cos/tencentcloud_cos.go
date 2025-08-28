@@ -93,6 +93,12 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
 	}
 
+	// 避免多次部署，否则会报错 https://github.com/certimate-go/certimate/issues/897#issuecomment-3182904098
+	if bind, _ := d.checkIsBind(ctx, upres.CertId); bind {
+		d.logger.Info("ssl certificate already deployed")
+		return &core.SSLDeployResult{}, nil
+	}
+
 	// 证书部署到 COS 实例
 	// REF: https://cloud.tencent.com/document/api/400/91667
 	deployCertificateInstanceReq := tcssl.NewDeployCertificateInstanceRequest()
@@ -156,6 +162,64 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	}
 
 	return &core.SSLDeployResult{}, nil
+}
+
+func (d *SSLDeployerProvider) checkIsBind(ctx context.Context, cloudCertId string) (bool, error) {
+	// 创建证书关联云资源异步任务
+	// REF: https://cloud.tencent.com/document/api/400/97759
+	createCertificateBindResourceSyncTaskReq := tcssl.NewCreateCertificateBindResourceSyncTaskRequest()
+	createCertificateBindResourceSyncTaskReq.CertificateIds = []*string{common.StringPtr(cloudCertId)}
+	createCertificateBindResourceSyncTaskReq.IsCache = common.Uint64Ptr(0)
+	createCertificateBindResourceSyncTaskResp, err := d.sdkClient.SSL.CreateCertificateBindResourceSyncTask(createCertificateBindResourceSyncTaskReq)
+	d.logger.Debug("sdk request 'ssl.CreateCertificateBindResourceSyncTask'", slog.Any("request", createCertificateBindResourceSyncTaskReq), slog.Any("response", createCertificateBindResourceSyncTaskResp))
+	if err != nil {
+		return false, fmt.Errorf("failed to execute sdk request 'ssl.CreateCertificateBindResourceSyncTask': %w", err)
+	}
+
+	// 查询证书关联云资源任务结果
+	// REF: https://cloud.tencent.com/document/api/400/97758
+	for {
+		select {
+		case <-ctx.Done():
+			return false, ctx.Err()
+		default:
+		}
+
+		describeCertificateBindResourceTaskDetailReq := tcssl.NewDescribeCertificateBindResourceTaskDetailRequest()
+		describeCertificateBindResourceTaskDetailReq.TaskId = createCertificateBindResourceSyncTaskResp.Response.CertTaskIds[0].TaskId
+		describeCertificateBindResourceTaskDetailReq.ResourceTypes = []*string{common.StringPtr("cos")}
+		describeCertificateBindResourceTaskDetailReq.Regions = []*string{common.StringPtr(d.config.Region)}
+		describeCertificateBindResourceTaskDetailReq.Offset = common.StringPtr("0")
+		describeCertificateBindResourceTaskDetailReq.Limit = common.StringPtr("100")
+		describeCertificateBindResourceTaskDetailResp, err := d.sdkClient.SSL.DescribeCertificateBindResourceTaskDetail(describeCertificateBindResourceTaskDetailReq)
+		d.logger.Debug("sdk request 'ssl.DescribeCertificateBindResourceTaskDetail'", slog.Any("request", describeCertificateBindResourceTaskDetailReq), slog.Any("response", describeCertificateBindResourceTaskDetailResp))
+		if err != nil {
+			return false, fmt.Errorf("failed to execute sdk request 'ssl.DescribeCertificateBindResourceTaskDetail': %w", err)
+		}
+
+		if describeCertificateBindResourceTaskDetailResp.Response.Status == nil || *describeCertificateBindResourceTaskDetailResp.Response.Status == 2 {
+			return false, errors.New("unexpected tencentcloud query task status")
+		} else if *describeCertificateBindResourceTaskDetailResp.Response.Status == 1 {
+			for _, record := range describeCertificateBindResourceTaskDetailResp.Response.COS {
+				for _, instance := range record.InstanceList {
+					if instance.Bucket == nil || *instance.Bucket != d.config.Bucket {
+						continue
+					}
+					if instance.Domain == nil || *instance.Domain != d.config.Domain {
+						continue
+					}
+					if instance.Status == nil || *instance.Status != "ENABLED" {
+						continue
+					}
+					return true, nil
+				}
+			}
+			return false, nil
+		}
+
+		d.logger.Info("waiting for tencentcloud query task completion")
+		time.Sleep(time.Second * 5)
+	}
 }
 
 func createSDKClients(secretId, secretKey, region string) (*wSDKClients, error) {

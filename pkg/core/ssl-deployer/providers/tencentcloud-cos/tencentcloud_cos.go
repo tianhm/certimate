@@ -165,19 +165,10 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 }
 
 func (d *SSLDeployerProvider) checkIsBind(ctx context.Context, cloudCertId string) (bool, error) {
-	// 创建证书关联云资源异步任务
-	// REF: https://cloud.tencent.com/document/api/400/97759
-	createCertificateBindResourceSyncTaskReq := tcssl.NewCreateCertificateBindResourceSyncTaskRequest()
-	createCertificateBindResourceSyncTaskReq.CertificateIds = []*string{common.StringPtr(cloudCertId)}
-	createCertificateBindResourceSyncTaskReq.IsCache = common.Uint64Ptr(0)
-	createCertificateBindResourceSyncTaskResp, err := d.sdkClient.SSL.CreateCertificateBindResourceSyncTask(createCertificateBindResourceSyncTaskReq)
-	d.logger.Debug("sdk request 'ssl.CreateCertificateBindResourceSyncTask'", slog.Any("request", createCertificateBindResourceSyncTaskReq), slog.Any("response", createCertificateBindResourceSyncTaskResp))
-	if err != nil {
-		return false, fmt.Errorf("failed to execute sdk request 'ssl.CreateCertificateBindResourceSyncTask': %w", err)
-	}
-
-	// 查询证书关联云资源任务结果
-	// REF: https://cloud.tencent.com/document/api/400/97758
+	// 查询证书 COS 云资源部署实例列表
+	// REF: https://cloud.tencent.com/document/api/400/91661
+	describeHostCosInstanceListLimit := int64(100)
+	describeHostCosInstanceListOffset := int64(0)
 	for {
 		select {
 		case <-ctx.Done():
@@ -185,40 +176,36 @@ func (d *SSLDeployerProvider) checkIsBind(ctx context.Context, cloudCertId strin
 		default:
 		}
 
-		describeCertificateBindResourceTaskDetailReq := tcssl.NewDescribeCertificateBindResourceTaskDetailRequest()
-		describeCertificateBindResourceTaskDetailReq.TaskId = createCertificateBindResourceSyncTaskResp.Response.CertTaskIds[0].TaskId
-		describeCertificateBindResourceTaskDetailReq.ResourceTypes = []*string{common.StringPtr("cos")}
-		describeCertificateBindResourceTaskDetailReq.Regions = []*string{common.StringPtr(d.config.Region)}
-		describeCertificateBindResourceTaskDetailReq.Offset = common.StringPtr("0")
-		describeCertificateBindResourceTaskDetailReq.Limit = common.StringPtr("100")
-		describeCertificateBindResourceTaskDetailResp, err := d.sdkClient.SSL.DescribeCertificateBindResourceTaskDetail(describeCertificateBindResourceTaskDetailReq)
-		d.logger.Debug("sdk request 'ssl.DescribeCertificateBindResourceTaskDetail'", slog.Any("request", describeCertificateBindResourceTaskDetailReq), slog.Any("response", describeCertificateBindResourceTaskDetailResp))
+		describeHostCosInstanceListReq := tcssl.NewDescribeHostCosInstanceListRequest()
+		describeHostCosInstanceListReq.OldCertificateId = common.StringPtr(cloudCertId)
+		describeHostCosInstanceListReq.ResourceType = common.StringPtr("cos")
+		describeHostCosInstanceListReq.IsCache = common.Uint64Ptr(0)
+		describeHostCosInstanceListReq.Offset = common.Int64Ptr(describeHostCosInstanceListOffset)
+		describeHostCosInstanceListReq.Limit = common.Int64Ptr(describeHostCosInstanceListLimit)
+		describeHostCosInstanceListResp, err := d.sdkClient.SSL.DescribeHostCosInstanceList(describeHostCosInstanceListReq)
+		d.logger.Debug("sdk request 'ssl.DescribeHostCosInstanceList'", slog.Any("request", describeHostCosInstanceListReq), slog.Any("response", describeHostCosInstanceListResp))
 		if err != nil {
-			return false, fmt.Errorf("failed to execute sdk request 'ssl.DescribeCertificateBindResourceTaskDetail': %w", err)
+			return false, fmt.Errorf("failed to execute sdk request 'ssl.DescribeHostCosInstanceList': %w", err)
 		}
 
-		if describeCertificateBindResourceTaskDetailResp.Response.Status == nil || *describeCertificateBindResourceTaskDetailResp.Response.Status == 2 {
-			return false, errors.New("unexpected tencentcloud query task status")
-		} else if *describeCertificateBindResourceTaskDetailResp.Response.Status == 1 {
-			for _, record := range describeCertificateBindResourceTaskDetailResp.Response.COS {
-				for _, instance := range record.InstanceList {
-					if instance.Bucket == nil || *instance.Bucket != d.config.Bucket {
-						continue
-					}
-					if instance.Domain == nil || *instance.Domain != d.config.Domain {
-						continue
-					}
-					if instance.Status == nil || *instance.Status != "ENABLED" {
-						continue
-					}
-					return true, nil
-				}
+		for _, instance := range describeHostCosInstanceListResp.Response.InstanceList {
+			if instance.Bucket == nil || *instance.Bucket != d.config.Bucket {
+				continue
 			}
-			return false, nil
+			if instance.Domain == nil || *instance.Domain != d.config.Domain {
+				continue
+			}
+			if instance.Status == nil || *instance.Status != "ENABLED" {
+				continue
+			}
+			return true, nil
 		}
 
-		d.logger.Info("waiting for tencentcloud query task completion")
-		time.Sleep(time.Second * 5)
+		if len(describeHostCosInstanceListResp.Response.InstanceList) < int(describeHostCosInstanceListLimit) {
+			return false, nil
+		} else {
+			describeHostCosInstanceListOffset += describeHostCosInstanceListLimit
+		}
 	}
 }
 

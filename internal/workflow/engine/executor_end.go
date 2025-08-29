@@ -12,7 +12,7 @@ func (ne *endNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExecutio
 	execRes := newNodeExecutionResult(execCtx.Node)
 	execRes.Terminated = true
 
-	ne.logger.Info("the is ending")
+	ne.logger.Info("the workflow is ending")
 
 	return execRes, nil
 }

@@ -93,6 +93,12 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
 	}
 
+	// 避免多次部署，否则会报错 https://github.com/certimate-go/certimate/issues/897#issuecomment-3182904098
+	if bind, _ := d.checkIsBind(ctx, upres.CertId); bind {
+		d.logger.Info("ssl certificate already deployed")
+		return &core.SSLDeployResult{}, nil
+	}
+
 	// 证书部署到 COS 实例
 	// REF: https://cloud.tencent.com/document/api/400/91667
 	deployCertificateInstanceReq := tcssl.NewDeployCertificateInstanceRequest()
@@ -156,6 +162,51 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	}
 
 	return &core.SSLDeployResult{}, nil
+}
+
+func (d *SSLDeployerProvider) checkIsBind(ctx context.Context, cloudCertId string) (bool, error) {
+	// 查询证书 COS 云资源部署实例列表
+	// REF: https://cloud.tencent.com/document/api/400/91661
+	describeHostCosInstanceListLimit := int64(100)
+	describeHostCosInstanceListOffset := int64(0)
+	for {
+		select {
+		case <-ctx.Done():
+			return false, ctx.Err()
+		default:
+		}
+
+		describeHostCosInstanceListReq := tcssl.NewDescribeHostCosInstanceListRequest()
+		describeHostCosInstanceListReq.OldCertificateId = common.StringPtr(cloudCertId)
+		describeHostCosInstanceListReq.ResourceType = common.StringPtr("cos")
+		describeHostCosInstanceListReq.IsCache = common.Uint64Ptr(0)
+		describeHostCosInstanceListReq.Offset = common.Int64Ptr(describeHostCosInstanceListOffset)
+		describeHostCosInstanceListReq.Limit = common.Int64Ptr(describeHostCosInstanceListLimit)
+		describeHostCosInstanceListResp, err := d.sdkClient.SSL.DescribeHostCosInstanceList(describeHostCosInstanceListReq)
+		d.logger.Debug("sdk request 'ssl.DescribeHostCosInstanceList'", slog.Any("request", describeHostCosInstanceListReq), slog.Any("response", describeHostCosInstanceListResp))
+		if err != nil {
+			return false, fmt.Errorf("failed to execute sdk request 'ssl.DescribeHostCosInstanceList': %w", err)
+		}
+
+		for _, instance := range describeHostCosInstanceListResp.Response.InstanceList {
+			if instance.Bucket == nil || *instance.Bucket != d.config.Bucket {
+				continue
+			}
+			if instance.Domain == nil || *instance.Domain != d.config.Domain {
+				continue
+			}
+			if instance.Status == nil || *instance.Status != "ENABLED" {
+				continue
+			}
+			return true, nil
+		}
+
+		if len(describeHostCosInstanceListResp.Response.InstanceList) < int(describeHostCosInstanceListLimit) {
+			return false, nil
+		} else {
+			describeHostCosInstanceListOffset += describeHostCosInstanceListLimit
+		}
+	}
 }
 
 func createSDKClients(secretId, secretKey, region string) (*wSDKClients, error) {

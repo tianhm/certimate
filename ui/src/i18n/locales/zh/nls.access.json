@@ -292,7 +292,7 @@
   "access.form.jdcloud_access_key_secret.label": "京东云 AccessKeySecret",
   "access.form.jdcloud_access_key_secret.placeholder": "请输入京东云 AccessKeySecret",
   "access.form.jdcloud_access_key_secret.tooltip": "这是什么？请参阅 <a href=\"https://docs.jdcloud.com/cn/account-management/accesskey-management\" target=\"_blank\">https://docs.jdcloud.com/cn/account-management/accesskey-management</a>",
-  "access.form.k8s_kubeconfig.label": "KubeConfig",
+  "access.form.k8s_kubeconfig.label": "KubeConfig（可选）",
   "access.form.k8s_kubeconfig.placeholder": "请输入 KubeConfig 文件内容",
   "access.form.k8s_kubeconfig.help": "提示：不填写时，将使用 Pod 的 ServiceAccount 作为凭证。",
   "access.form.k8s_kubeconfig.tooltip": "这是什么？请参阅 <a href=\"https://kubernetes.io/zh-cn/docs/concepts/configuration/organize-cluster-access-kubeconfig/\" target=\"_blank\">https://kubernetes.io/zh-cn/docs/concepts/configuration/organize-cluster-access-kubeconfig/</a>",

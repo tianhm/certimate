@@ -293,7 +293,7 @@
   "access.form.jdcloud_access_key_secret.label": "JD Cloud AccessKeySecret",
   "access.form.jdcloud_access_key_secret.placeholder": "Please enter JD Cloud AccessKeySecret",
   "access.form.jdcloud_access_key_secret.tooltip": "For more information, see <a href=\"https://docs.jdcloud.com/en/account-management/accesskey-management\" target=\"_blank\">https://docs.jdcloud.com/en/account-management/accesskey-management</a>",
-  "access.form.k8s_kubeconfig.label": "KubeConfig",
+  "access.form.k8s_kubeconfig.label": "KubeConfig (Optional)",
   "access.form.k8s_kubeconfig.placeholder": "Please enter KubeConfig file",
   "access.form.k8s_kubeconfig.help": "Notes: Leave it blank to use the Pod's ServiceAccount.",
   "access.form.k8s_kubeconfig.tooltip": "For more information, see <a href=\"https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/\" target=\"_blank\">https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/</a>",

@@ -40,6 +40,7 @@ export const list = async (request: ListRequest) => {
       "keyAlgorithm",
       "validityNotBefore",
       "validityNotAfter",
+      "workflowRef",
       "created",
       "updated",
       "deleted",

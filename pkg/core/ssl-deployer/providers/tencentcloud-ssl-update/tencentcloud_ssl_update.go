@@ -151,6 +151,7 @@ func (d *SSLDeployerProvider) executeUpdateCertificateInstance(ctx context.Conte
 
 		describeHostUpdateRecordDetailReq := tcssl.NewDescribeHostUpdateRecordDetailRequest()
 		describeHostUpdateRecordDetailReq.DeployRecordId = common.StringPtr(deployRecordId)
+		describeHostUpdateRecordDetailReq.Limit = common.StringPtr("200")
 		describeHostUpdateRecordDetailResp, err := d.sdkClient.DescribeHostUpdateRecordDetail(describeHostUpdateRecordDetailReq)
 		d.logger.Debug("sdk request 'ssl.DescribeHostUpdateRecordDetail'", slog.Any("request", describeHostUpdateRecordDetailReq), slog.Any("response", describeHostUpdateRecordDetailResp))
 		if err != nil {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { IconDatabaseCog, IconPalette, IconPlugConnected, IconUserShield } from "@tabler/icons-react";
+import { IconBracketsAngle, IconDatabaseCog, IconPalette, IconPlugConnected, IconUserShield } from "@tabler/icons-react";
 import { Menu } from "antd";
 
 const Settings = () => {
@@ -15,7 +15,7 @@ const Settings = () => {
     ["appearance", "settings.appearance.tab", <IconPalette size="1em" />],
     ["ssl-provider", "settings.sslprovider.tab", <IconPlugConnected size="1em" />],
     ["persistence", "settings.persistence.tab", <IconDatabaseCog size="1em" />],
-    ["diagnostics", "settings.diagnostics.tab", <IconDatabaseCog size="1em" />],
+    ["diagnostics", "settings.diagnostics.tab", <IconBracketsAngle size="1em" />],
   ] satisfies [string, string, React.ReactElement][];
   const [menuKey, setMenuKey] = useState<string>(() => location.pathname.split("/")[2]);
   useEffect(() => {
@@ -59,7 +59,7 @@ const Settings = () => {
         </div>
 
         <div className="flex h-full justify-stretch gap-x-4 overflow-hidden">
-          <div className="my-[6px] w-[256px] select-none max-lg:hidden">
+          <div className="w-[256px] select-none max-lg:hidden">
             <Menu
               style={{ background: "transparent", borderInlineEnd: "none" }}
               mode="vertical"

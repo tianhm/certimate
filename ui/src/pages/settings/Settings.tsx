@@ -59,7 +59,7 @@ const Settings = () => {
         </div>
 
         <div className="flex h-full justify-stretch gap-x-4 overflow-hidden">
-          <div className="my-[6px] w-[256px] select-none max-lg:hidden">
+          <div className="w-[256px] select-none max-lg:hidden">
             <Menu
               style={{ background: "transparent", borderInlineEnd: "none" }}
               mode="vertical"

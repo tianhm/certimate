@@ -1,7 +1,7 @@
 package deployer
 
 import (
-	"github.com/certimate-go/certimate/internal/certdeploy/providers"
+	"github.com/certimate-go/certimate/internal/certdeploy/deployers"
 	"github.com/certimate-go/certimate/internal/domain"
 	"github.com/certimate-go/certimate/pkg/core"
 )
@@ -13,12 +13,12 @@ type deployerProviderOptions struct {
 }
 
 func createSSLDeployerProvider(options *deployerProviderOptions) (core.SSLDeployer, error) {
-	provider, err := providers.Registries.Get(options.Provider)
+	provider, err := deployers.Registries.Get(options.Provider)
 	if err != nil {
 		return nil, err
 	}
 
-	return provider(&providers.ProviderFactoryOptions{
+	return provider(&deployers.ProviderFactoryOptions{
 		AccessConfig:   options.ProviderAccessConfig,
 		ProviderConfig: options.ProviderServiceConfig,
 	})

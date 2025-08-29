@@ -3,7 +3,7 @@ package applicant
 import (
 	"github.com/go-acme/lego/v4/challenge"
 
-	"github.com/certimate-go/certimate/internal/certapply/providers"
+	"github.com/certimate-go/certimate/internal/certapply/applicators"
 	"github.com/certimate-go/certimate/internal/domain"
 )
 
@@ -29,12 +29,12 @@ type applicantProviderOptions struct {
 }
 
 func createApplicantProvider(options *applicantProviderOptions) (challenge.Provider, error) {
-	provider, err := providers.ACMEDns01Registries.Get(options.Provider)
+	provider, err := applicators.ACMEDns01Registries.Get(options.Provider)
 	if err != nil {
 		return nil, err
 	}
 
-	return provider(&providers.ProviderFactoryOptions{
+	return provider(&applicators.ProviderFactoryOptions{
 		AccessConfig:          options.ProviderAccessConfig,
 		ProviderConfig:        options.ProviderServiceConfig,
 		DnsPropagationWait:    options.DnsPropagationWait,

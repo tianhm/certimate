@@ -2,7 +2,7 @@ package notify
 
 import (
 	"github.com/certimate-go/certimate/internal/domain"
-	"github.com/certimate-go/certimate/internal/notify/providers"
+	"github.com/certimate-go/certimate/internal/notify/notifiers"
 	"github.com/certimate-go/certimate/pkg/core"
 )
 
@@ -13,12 +13,12 @@ type notifierProviderOptions struct {
 }
 
 func createNotifierProvider(options *notifierProviderOptions) (core.Notifier, error) {
-	provider, err := providers.Registries.Get(options.Provider)
+	provider, err := notifiers.Registries.Get(options.Provider)
 	if err != nil {
 		return nil, err
 	}
 
-	return provider(&providers.ProviderFactoryOptions{
+	return provider(&notifiers.ProviderFactoryOptions{
 		AccessConfig:   options.ProviderAccessConfig,
 		ProviderConfig: options.ProviderServiceConfig,
 	})

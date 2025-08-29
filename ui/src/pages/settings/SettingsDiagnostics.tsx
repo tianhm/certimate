@@ -136,14 +136,19 @@ const SettingsDiagnosticsLogs = ({ className, style }: { className?: string; sty
             </div>
           </Show>
           <Show when={listData.length === 0 && !loading}>
-            <Empty description={loadError ? getErrMsg(loadError) : t("common.text.nodata")} image={Empty.PRESENTED_IMAGE_SIMPLE}>
-              <Button icon={<IconReload size="1.25em" />} type="primary" onClick={handleReloadClick}>
-                {t("common.button.reload")}
-              </Button>
-            </Empty>
+            <div className="px-4 py-2">
+              <div className="w-full overflow-hidden">
+                <div className="text-xs leading-relaxed text-stone-400">{loadError ? `> ${getErrMsg(loadError)}` : "> no logs avaiable"}</div>
+              </div>
+              <div className="flex w-full items-center">
+                <a onClick={handleReloadClick}>
+                  <span className="text-xs">{t("common.button.reload")}</span>
+                </a>
+              </div>
+            </div>
           </Show>
           <Show when={listData.length > 0}>
-            <div className="min-h-16 px-4 py-2">
+            <div className="px-4 py-2">
               <div className="flex w-full flex-col overflow-hidden">
                 {listData.map((record) => {
                   return (
@@ -235,7 +240,7 @@ const SettingsDiagnosticsCrons = ({ className, style }: { className?: string; st
           emptyText: (
             <Empty description={loadError ? getErrMsg(loadError) : t("common.text.nodata")} image={Empty.PRESENTED_IMAGE_SIMPLE}>
               {loadError && (
-                <Button icon={<IconReload size="1.25em" />} type="primary" onClick={handleReloadClick}>
+                <Button ghost icon={<IconReload size="1.25em" />} type="primary" onClick={handleReloadClick}>
                   {t("common.button.reload")}
                 </Button>
               )}

@@ -11,19 +11,19 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeAliyunNLB, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
-		access := domain.AccessConfigForAliyun{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForAliyun{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := aliyunnlb.NewSSLDeployerProvider(&aliyunnlb.SSLDeployerProviderConfig{
-			AccessKeyId:     access.AccessKeyId,
-			AccessKeySecret: access.AccessKeySecret,
-			ResourceGroupId: access.ResourceGroupId,
-			Region:          xmaps.GetString(options.ProviderConfig, "region"),
-			ResourceType:    aliyunnlb.ResourceType(xmaps.GetString(options.ProviderConfig, "resourceType")),
-			LoadbalancerId:  xmaps.GetString(options.ProviderConfig, "loadbalancerId"),
-			ListenerId:      xmaps.GetString(options.ProviderConfig, "listenerId"),
+			AccessKeyId:     credentials.AccessKeyId,
+			AccessKeySecret: credentials.AccessKeySecret,
+			ResourceGroupId: credentials.ResourceGroupId,
+			Region:          xmaps.GetString(options.ProviderExtendedConfig, "region"),
+			ResourceType:    aliyunnlb.ResourceType(xmaps.GetString(options.ProviderExtendedConfig, "resourceType")),
+			LoadbalancerId:  xmaps.GetString(options.ProviderExtendedConfig, "loadbalancerId"),
+			ListenerId:      xmaps.GetString(options.ProviderExtendedConfig, "listenerId"),
 		})
 		return provider, err
 	}); err != nil {

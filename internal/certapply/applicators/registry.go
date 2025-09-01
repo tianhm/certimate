@@ -10,11 +10,11 @@ import (
 type ProviderFactoryFunc func(options *ProviderFactoryOptions) (core.ACMEChallenger, error)
 
 type ProviderFactoryOptions struct {
-	AccessConfig          map[string]any
-	ProviderConfig        map[string]any
-	DnsPropagationWait    int32
-	DnsPropagationTimeout int32
-	DnsTTL                int32
+	ProviderAccessConfig   map[string]any
+	ProviderExtendedConfig map[string]any
+	DnsPropagationWait     int32
+	DnsPropagationTimeout  int32
+	DnsTTL                 int32
 }
 
 type Registry[T comparable] interface {

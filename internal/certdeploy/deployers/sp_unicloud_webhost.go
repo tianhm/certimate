@@ -11,17 +11,17 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeUniCloudWebHost, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
-		access := domain.AccessConfigForUniCloud{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForUniCloud{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := unicloudwebhost.NewSSLDeployerProvider(&unicloudwebhost.SSLDeployerProviderConfig{
-			Username:      access.Username,
-			Password:      access.Password,
-			SpaceProvider: xmaps.GetString(options.ProviderConfig, "spaceProvider"),
-			SpaceId:       xmaps.GetString(options.ProviderConfig, "spaceId"),
-			Domain:        xmaps.GetString(options.ProviderConfig, "domain"),
+			Username:      credentials.Username,
+			Password:      credentials.Password,
+			SpaceProvider: xmaps.GetString(options.ProviderExtendedConfig, "spaceProvider"),
+			SpaceId:       xmaps.GetString(options.ProviderExtendedConfig, "spaceId"),
+			Domain:        xmaps.GetString(options.ProviderExtendedConfig, "domain"),
 		})
 		return provider, err
 	}); err != nil {

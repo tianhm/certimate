@@ -11,15 +11,15 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeCTCCCloudCDN, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
-		access := domain.AccessConfigForCTCCCloud{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForCTCCCloud{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := ctcccloudcdn.NewSSLDeployerProvider(&ctcccloudcdn.SSLDeployerProviderConfig{
-			AccessKeyId:     access.AccessKeyId,
-			SecretAccessKey: access.SecretAccessKey,
-			Domain:          xmaps.GetString(options.ProviderConfig, "domain"),
+			AccessKeyId:     credentials.AccessKeyId,
+			SecretAccessKey: credentials.SecretAccessKey,
+			Domain:          xmaps.GetString(options.ProviderExtendedConfig, "domain"),
 		})
 		return provider, err
 	}); err != nil {

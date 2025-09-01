@@ -11,17 +11,17 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeTencentCloudVOD, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
-		access := domain.AccessConfigForTencentCloud{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForTencentCloud{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := tencentcloudvod.NewSSLDeployerProvider(&tencentcloudvod.SSLDeployerProviderConfig{
-			SecretId:  access.SecretId,
-			SecretKey: access.SecretKey,
-			Endpoint:  xmaps.GetString(options.ProviderConfig, "endpoint"),
-			SubAppId:  xmaps.GetInt64(options.ProviderConfig, "subAppId"),
-			Domain:    xmaps.GetString(options.ProviderConfig, "domain"),
+			SecretId:  credentials.SecretId,
+			SecretKey: credentials.SecretKey,
+			Endpoint:  xmaps.GetString(options.ProviderExtendedConfig, "endpoint"),
+			SubAppId:  xmaps.GetInt64(options.ProviderExtendedConfig, "subAppId"),
+			Domain:    xmaps.GetString(options.ProviderExtendedConfig, "domain"),
 		})
 		return provider, err
 	}); err != nil {

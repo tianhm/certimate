@@ -11,18 +11,18 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeTencentCloudWAF, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
-		access := domain.AccessConfigForTencentCloud{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForTencentCloud{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := tencentcloudwaf.NewSSLDeployerProvider(&tencentcloudwaf.SSLDeployerProviderConfig{
-			SecretId:   access.SecretId,
-			SecretKey:  access.SecretKey,
-			Endpoint:   xmaps.GetString(options.ProviderConfig, "endpoint"),
-			Domain:     xmaps.GetString(options.ProviderConfig, "domain"),
-			DomainId:   xmaps.GetString(options.ProviderConfig, "domainId"),
-			InstanceId: xmaps.GetString(options.ProviderConfig, "instanceId"),
+			SecretId:   credentials.SecretId,
+			SecretKey:  credentials.SecretKey,
+			Endpoint:   xmaps.GetString(options.ProviderExtendedConfig, "endpoint"),
+			Domain:     xmaps.GetString(options.ProviderExtendedConfig, "domain"),
+			DomainId:   xmaps.GetString(options.ProviderExtendedConfig, "domainId"),
+			InstanceId: xmaps.GetString(options.ProviderExtendedConfig, "instanceId"),
 		})
 		return provider, err
 	}); err != nil {

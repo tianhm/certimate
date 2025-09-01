@@ -12,14 +12,14 @@ import (
 
 func init() {
 	if err := ACMEDns01Registries.Register(domain.ACMEDns01ProviderTypeVercel, func(options *ProviderFactoryOptions) (challenge.Provider, error) {
-		access := domain.AccessConfigForVercel{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForVercel{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := vercel.NewChallengeProvider(&vercel.ChallengeProviderConfig{
-			ApiAccessToken:        access.ApiAccessToken,
-			TeamId:                access.TeamId,
+			ApiAccessToken:        credentials.ApiAccessToken,
+			TeamId:                credentials.TeamId,
 			DnsPropagationTimeout: options.DnsPropagationTimeout,
 			DnsTTL:                options.DnsTTL,
 		})

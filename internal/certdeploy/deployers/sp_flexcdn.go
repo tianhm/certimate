@@ -11,19 +11,19 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeFlexCDN, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
-		access := domain.AccessConfigForFlexCDN{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForFlexCDN{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := flexcdn.NewSSLDeployerProvider(&flexcdn.SSLDeployerProviderConfig{
-			ServerUrl:                access.ServerUrl,
-			ApiRole:                  access.ApiRole,
-			AccessKeyId:              access.AccessKeyId,
-			AccessKey:                access.AccessKey,
-			AllowInsecureConnections: access.AllowInsecureConnections,
-			ResourceType:             flexcdn.ResourceType(xmaps.GetString(options.ProviderConfig, "resourceType")),
-			CertificateId:            xmaps.GetInt64(options.ProviderConfig, "certificateId"),
+			ServerUrl:                credentials.ServerUrl,
+			ApiRole:                  credentials.ApiRole,
+			AccessKeyId:              credentials.AccessKeyId,
+			AccessKey:                credentials.AccessKey,
+			AllowInsecureConnections: credentials.AllowInsecureConnections,
+			ResourceType:             flexcdn.ResourceType(xmaps.GetString(options.ProviderExtendedConfig, "resourceType")),
+			CertificateId:            xmaps.GetInt64(options.ProviderExtendedConfig, "certificateId"),
 		})
 		return provider, err
 	}); err != nil {

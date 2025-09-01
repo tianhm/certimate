@@ -12,13 +12,13 @@ import (
 
 func init() {
 	if err := ACMEDns01Registries.Register(domain.ACMEDns01ProviderTypeBunny, func(options *ProviderFactoryOptions) (challenge.Provider, error) {
-		access := domain.AccessConfigForBunny{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForBunny{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := bunny.NewChallengeProvider(&bunny.ChallengeProviderConfig{
-			ApiKey:                access.ApiKey,
+			ApiKey:                credentials.ApiKey,
 			DnsPropagationTimeout: options.DnsPropagationTimeout,
 			DnsTTL:                options.DnsTTL,
 		})

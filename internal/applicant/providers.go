@@ -35,10 +35,10 @@ func createApplicantProvider(options *applicantProviderOptions) (challenge.Provi
 	}
 
 	return provider(&applicators.ProviderFactoryOptions{
-		AccessConfig:          options.ProviderAccessConfig,
-		ProviderConfig:        options.ProviderServiceConfig,
-		DnsPropagationWait:    options.DnsPropagationWait,
-		DnsPropagationTimeout: options.DnsPropagationTimeout,
-		DnsTTL:                options.DnsTTL,
+		ProviderAccessConfig:   options.ProviderAccessConfig,
+		ProviderExtendedConfig: options.ProviderServiceConfig,
+		DnsPropagationWait:     options.DnsPropagationWait,
+		DnsPropagationTimeout:  options.DnsPropagationTimeout,
+		DnsTTL:                 options.DnsTTL,
 	})
 }

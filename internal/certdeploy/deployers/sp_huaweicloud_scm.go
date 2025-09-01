@@ -11,15 +11,15 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeHuaweiCloudSCM, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
-		access := domain.AccessConfigForHuaweiCloud{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForHuaweiCloud{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := huaweicloudscm.NewSSLDeployerProvider(&huaweicloudscm.SSLDeployerProviderConfig{
-			AccessKeyId:         access.AccessKeyId,
-			SecretAccessKey:     access.SecretAccessKey,
-			EnterpriseProjectId: access.EnterpriseProjectId,
+			AccessKeyId:         credentials.AccessKeyId,
+			SecretAccessKey:     credentials.SecretAccessKey,
+			EnterpriseProjectId: credentials.EnterpriseProjectId,
 		})
 		return provider, err
 	}); err != nil {

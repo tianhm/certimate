@@ -12,15 +12,15 @@ import (
 
 func init() {
 	if err := ACMEDns01Registries.Register(domain.ACMEDns01ProviderTypePowerDNS, func(options *ProviderFactoryOptions) (challenge.Provider, error) {
-		access := domain.AccessConfigForPowerDNS{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForPowerDNS{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := powerdns.NewChallengeProvider(&powerdns.ChallengeProviderConfig{
-			ServerUrl:                access.ServerUrl,
-			ApiKey:                   access.ApiKey,
-			AllowInsecureConnections: access.AllowInsecureConnections,
+			ServerUrl:                credentials.ServerUrl,
+			ApiKey:                   credentials.ApiKey,
+			AllowInsecureConnections: credentials.AllowInsecureConnections,
 			DnsPropagationTimeout:    options.DnsPropagationTimeout,
 			DnsTTL:                   options.DnsTTL,
 		})

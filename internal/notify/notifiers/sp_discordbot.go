@@ -11,14 +11,14 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.NotificationProviderTypeDiscordBot, func(options *ProviderFactoryOptions) (core.Notifier, error) {
-		access := domain.AccessConfigForDiscordBot{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForDiscordBot{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := discordbot.NewNotifierProvider(&discordbot.NotifierProviderConfig{
-			BotToken:  access.BotToken,
-			ChannelId: xmaps.GetOrDefaultString(options.ProviderConfig, "channelId", access.ChannelId),
+			BotToken:  credentials.BotToken,
+			ChannelId: xmaps.GetOrDefaultString(options.ProviderExtendedConfig, "channelId", credentials.ChannelId),
 		})
 		return provider, err
 	}); err != nil {

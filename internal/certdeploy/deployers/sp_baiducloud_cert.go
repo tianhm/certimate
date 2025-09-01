@@ -11,14 +11,14 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeBaiduCloudCert, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
-		access := domain.AccessConfigForBaiduCloud{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForBaiduCloud{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := baiducloudcert.NewSSLDeployerProvider(&baiducloudcert.SSLDeployerProviderConfig{
-			AccessKeyId:     access.AccessKeyId,
-			SecretAccessKey: access.SecretAccessKey,
+			AccessKeyId:     credentials.AccessKeyId,
+			SecretAccessKey: credentials.SecretAccessKey,
 		})
 		return provider, err
 	}); err != nil {

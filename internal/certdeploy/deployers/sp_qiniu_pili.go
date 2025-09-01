@@ -11,16 +11,16 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeQiniuPili, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
-		access := domain.AccessConfigForQiniu{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForQiniu{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := qiniupili.NewSSLDeployerProvider(&qiniupili.SSLDeployerProviderConfig{
-			AccessKey: access.AccessKey,
-			SecretKey: access.SecretKey,
-			Hub:       xmaps.GetString(options.ProviderConfig, "hub"),
-			Domain:    xmaps.GetString(options.ProviderConfig, "domain"),
+			AccessKey: credentials.AccessKey,
+			SecretKey: credentials.SecretKey,
+			Hub:       xmaps.GetString(options.ProviderExtendedConfig, "hub"),
+			Domain:    xmaps.GetString(options.ProviderExtendedConfig, "domain"),
 		})
 		return provider, err
 	}); err != nil {

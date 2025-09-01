@@ -11,15 +11,15 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeWangsuCertificate, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
-		access := domain.AccessConfigForWangsu{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForWangsu{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := wangsucertificate.NewSSLDeployerProvider(&wangsucertificate.SSLDeployerProviderConfig{
-			AccessKeyId:     access.AccessKeyId,
-			AccessKeySecret: access.AccessKeySecret,
-			CertificateId:   xmaps.GetString(options.ProviderConfig, "certificateId"),
+			AccessKeyId:     credentials.AccessKeyId,
+			AccessKeySecret: credentials.AccessKeySecret,
+			CertificateId:   xmaps.GetString(options.ProviderExtendedConfig, "certificateId"),
 		})
 		return provider, err
 	}); err != nil {

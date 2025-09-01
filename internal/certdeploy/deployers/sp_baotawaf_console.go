@@ -11,15 +11,15 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeBaotaWAFConsole, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
-		access := domain.AccessConfigForBaotaWAF{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForBaotaWAF{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := baotawafconsole.NewSSLDeployerProvider(&baotawafconsole.SSLDeployerProviderConfig{
-			ServerUrl:                access.ServerUrl,
-			ApiKey:                   access.ApiKey,
-			AllowInsecureConnections: access.AllowInsecureConnections,
+			ServerUrl:                credentials.ServerUrl,
+			ApiKey:                   credentials.ApiKey,
+			AllowInsecureConnections: credentials.AllowInsecureConnections,
 		})
 		return provider, err
 	}); err != nil {

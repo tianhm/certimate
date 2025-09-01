@@ -11,18 +11,18 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeUCloudUS3, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
-		access := domain.AccessConfigForUCloud{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForUCloud{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := ucloudus3.NewSSLDeployerProvider(&ucloudus3.SSLDeployerProviderConfig{
-			PrivateKey: access.PrivateKey,
-			PublicKey:  access.PublicKey,
-			ProjectId:  access.ProjectId,
-			Region:     xmaps.GetString(options.ProviderConfig, "region"),
-			Bucket:     xmaps.GetString(options.ProviderConfig, "bucket"),
-			Domain:     xmaps.GetString(options.ProviderConfig, "domain"),
+			PrivateKey: credentials.PrivateKey,
+			PublicKey:  credentials.PublicKey,
+			ProjectId:  credentials.ProjectId,
+			Region:     xmaps.GetString(options.ProviderExtendedConfig, "region"),
+			Bucket:     xmaps.GetString(options.ProviderExtendedConfig, "bucket"),
+			Domain:     xmaps.GetString(options.ProviderExtendedConfig, "domain"),
 		})
 		return provider, err
 	}); err != nil {

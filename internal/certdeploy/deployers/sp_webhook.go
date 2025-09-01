@@ -13,13 +13,13 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeWebhook, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
-		access := domain.AccessConfigForWebhook{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForWebhook{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		mergedHeaders := make(map[string]string)
-		if defaultHeadersString := access.HeadersString; defaultHeadersString != "" {
+		if defaultHeadersString := credentials.HeadersString; defaultHeadersString != "" {
 			h, err := xhttp.ParseHeaders(defaultHeadersString)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse webhook headers: %w", err)
@@ -28,7 +28,7 @@ func init() {
 				mergedHeaders[http.CanonicalHeaderKey(key)] = h.Get(key)
 			}
 		}
-		if extendedHeadersString := xmaps.GetString(options.ProviderConfig, "headers"); extendedHeadersString != "" {
+		if extendedHeadersString := xmaps.GetString(options.ProviderExtendedConfig, "headers"); extendedHeadersString != "" {
 			h, err := xhttp.ParseHeaders(extendedHeadersString)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse webhook headers: %w", err)
@@ -39,11 +39,11 @@ func init() {
 		}
 
 		provider, err := webhook.NewSSLDeployerProvider(&webhook.SSLDeployerProviderConfig{
-			WebhookUrl:               access.Url,
-			WebhookData:              xmaps.GetOrDefaultString(options.ProviderConfig, "webhookData", access.DataString),
-			Method:                   access.Method,
+			WebhookUrl:               credentials.Url,
+			WebhookData:              xmaps.GetOrDefaultString(options.ProviderExtendedConfig, "webhookData", credentials.DataString),
+			Method:                   credentials.Method,
 			Headers:                  mergedHeaders,
-			AllowInsecureConnections: access.AllowInsecureConnections,
+			AllowInsecureConnections: credentials.AllowInsecureConnections,
 		})
 		return provider, err
 	}); err != nil {

@@ -11,15 +11,15 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeGcoreCDN, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
-		access := domain.AccessConfigForGcore{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForGcore{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := gcorecdn.NewSSLDeployerProvider(&gcorecdn.SSLDeployerProviderConfig{
-			ApiToken:      access.ApiToken,
-			ResourceId:    xmaps.GetInt64(options.ProviderConfig, "resourceId"),
-			CertificateId: xmaps.GetInt64(options.ProviderConfig, "certificateId"),
+			ApiToken:      credentials.ApiToken,
+			ResourceId:    xmaps.GetInt64(options.ProviderExtendedConfig, "resourceId"),
+			CertificateId: xmaps.GetInt64(options.ProviderExtendedConfig, "certificateId"),
 		})
 		return provider, err
 	}); err != nil {

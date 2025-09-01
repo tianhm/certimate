@@ -11,17 +11,17 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeAPISIX, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
-		access := domain.AccessConfigForAPISIX{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForAPISIX{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := apisix.NewSSLDeployerProvider(&apisix.SSLDeployerProviderConfig{
-			ServerUrl:                access.ServerUrl,
-			ApiKey:                   access.ApiKey,
-			AllowInsecureConnections: access.AllowInsecureConnections,
-			ResourceType:             apisix.ResourceType(xmaps.GetString(options.ProviderConfig, "resourceType")),
-			CertificateId:            xmaps.GetString(options.ProviderConfig, "certificateId"),
+			ServerUrl:                credentials.ServerUrl,
+			ApiKey:                   credentials.ApiKey,
+			AllowInsecureConnections: credentials.AllowInsecureConnections,
+			ResourceType:             apisix.ResourceType(xmaps.GetString(options.ProviderExtendedConfig, "resourceType")),
+			CertificateId:            xmaps.GetString(options.ProviderExtendedConfig, "certificateId"),
 		})
 		return provider, err
 	}); err != nil {

@@ -10,8 +10,8 @@ import (
 type ProviderFactoryFunc func(options *ProviderFactoryOptions) (core.Notifier, error)
 
 type ProviderFactoryOptions struct {
-	AccessConfig   map[string]any
-	ProviderConfig map[string]any
+	ProviderAccessConfig   map[string]any
+	ProviderExtendedConfig map[string]any
 }
 
 type Registry[T comparable] interface {

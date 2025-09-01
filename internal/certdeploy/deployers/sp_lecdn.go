@@ -11,21 +11,21 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeLeCDN, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
-		access := domain.AccessConfigForLeCDN{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForLeCDN{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := lecdn.NewSSLDeployerProvider(&lecdn.SSLDeployerProviderConfig{
-			ServerUrl:                access.ServerUrl,
-			ApiVersion:               access.ApiVersion,
-			ApiRole:                  access.ApiRole,
-			Username:                 access.Username,
-			Password:                 access.Password,
-			AllowInsecureConnections: access.AllowInsecureConnections,
-			ResourceType:             lecdn.ResourceType(xmaps.GetString(options.ProviderConfig, "resourceType")),
-			CertificateId:            xmaps.GetInt64(options.ProviderConfig, "certificateId"),
-			ClientId:                 xmaps.GetInt64(options.ProviderConfig, "clientId"),
+			ServerUrl:                credentials.ServerUrl,
+			ApiVersion:               credentials.ApiVersion,
+			ApiRole:                  credentials.ApiRole,
+			Username:                 credentials.Username,
+			Password:                 credentials.Password,
+			AllowInsecureConnections: credentials.AllowInsecureConnections,
+			ResourceType:             lecdn.ResourceType(xmaps.GetString(options.ProviderExtendedConfig, "resourceType")),
+			CertificateId:            xmaps.GetInt64(options.ProviderExtendedConfig, "certificateId"),
+			ClientId:                 xmaps.GetInt64(options.ProviderExtendedConfig, "clientId"),
 		})
 		return provider, err
 	}); err != nil {

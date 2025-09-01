@@ -25,7 +25,7 @@ type Certificate struct {
 	KeyAlgorithm      CertificateKeyAlgorithmType `json:"keyAlgorithm" db:"keyAlgorithm"`
 	ValidityNotBefore time.Time                   `json:"validityNotBefore" db:"validityNotBefore"`
 	ValidityNotAfter  time.Time                   `json:"validityNotAfter" db:"validityNotAfter"`
-	ACMEAccountUrl    string                      `json:"acmeAccountUrl" db:"acmeAccountUrl"`
+	ACMEAcctUrl       string                      `json:"acmeAcctUrl" db:"acmeAcctUrl"`
 	ACMECertUrl       string                      `json:"acmeCertUrl" db:"acmeCertUrl"`
 	ACMECertStableUrl string                      `json:"acmeCertStableUrl" db:"acmeCertStableUrl"`
 	ACMERenewed       bool                        `json:"acmeRenewed" db:"acmeRenewed"`

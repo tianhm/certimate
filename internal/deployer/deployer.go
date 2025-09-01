@@ -21,6 +21,7 @@ type DeployerWithWorkflowNodeConfig struct {
 	PrivateKeyPEM  string
 }
 
+// TODO: refactor
 func NewWithWorkflowNode(config DeployerWithWorkflowNodeConfig) (Deployer, error) {
 	if config.Node == nil {
 		return nil, fmt.Errorf("the node is nil")

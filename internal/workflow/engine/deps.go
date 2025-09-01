@@ -6,6 +6,10 @@ import (
 	"github.com/certimate-go/certimate/internal/domain"
 )
 
+type accessRepository interface {
+	GetById(ctx context.Context, id string) (*domain.Access, error)
+}
+
 type certificateRepository interface {
 	GetById(ctx context.Context, id string) (*domain.Certificate, error)
 	GetByWorkflowRunIdAndNodeId(ctx context.Context, workflowRunId string, workflowNodeId string) (*domain.Certificate, error)

@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 
 	"github.com/certimate-go/certimate/internal/app"
 	"github.com/certimate-go/certimate/internal/domain"
@@ -127,7 +126,7 @@ func (r *CertificateRepository) Save(ctx context.Context, certificate *domain.Ce
 	record.Set("keyAlgorithm", string(certificate.KeyAlgorithm))
 	record.Set("validityNotBefore", certificate.ValidityNotBefore)
 	record.Set("validityNotAfter", certificate.ValidityNotAfter)
-	record.Set("acmeAccountUrl", certificate.ACMEAccountUrl)
+	record.Set("acmeAcctUrl", certificate.ACMEAcctUrl)
 	record.Set("acmeCertUrl", certificate.ACMECertUrl)
 	record.Set("acmeCertStableUrl", certificate.ACMECertStableUrl)
 	record.Set("acmeRenewed", certificate.ACMERenewed)
@@ -169,7 +168,7 @@ func (r *CertificateRepository) DeleteWhere(ctx context.Context, exprs ...dbx.Ex
 
 func (r *CertificateRepository) castRecordToModel(record *core.Record) (*domain.Certificate, error) {
 	if record == nil {
-		return nil, fmt.Errorf("the record is nil")
+		return nil, errors.New("the record is nil")
 	}
 
 	certificate := &domain.Certificate{
@@ -188,7 +187,7 @@ func (r *CertificateRepository) castRecordToModel(record *core.Record) (*domain.
 		KeyAlgorithm:      domain.CertificateKeyAlgorithmType(record.GetString("keyAlgorithm")),
 		ValidityNotBefore: record.GetDateTime("validityNotBefore").Time(),
 		ValidityNotAfter:  record.GetDateTime("validityNotAfter").Time(),
-		ACMEAccountUrl:    record.GetString("acmeAccountUrl"),
+		ACMEAcctUrl:       record.GetString("acmeAcctUrl"),
 		ACMECertUrl:       record.GetString("acmeCertUrl"),
 		ACMECertStableUrl: record.GetString("acmeCertStableUrl"),
 		ACMERenewed:       record.GetBool("acmeRenewed"),

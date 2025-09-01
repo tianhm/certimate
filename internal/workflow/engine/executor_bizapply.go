@@ -5,9 +5,18 @@ import (
 	"log/slog"
 	"maps"
 	"math"
+	"slices"
+	"strings"
+	"sync"
 	"time"
 
-	"github.com/certimate-go/certimate/internal/applicant"
+	"github.com/go-acme/lego/v4/certcrypto"
+	certifier "github.com/go-acme/lego/v4/certificate"
+	"github.com/go-acme/lego/v4/lego"
+	"github.com/samber/lo"
+	"golang.org/x/time/rate"
+
+	"github.com/certimate-go/certimate/internal/certapply"
 	"github.com/certimate-go/certimate/internal/domain"
 	"github.com/certimate-go/certimate/internal/repository"
 	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
@@ -25,8 +34,11 @@ import (
 type bizApplyNodeExecutor struct {
 	nodeExecutor
 
+	accessRepo      accessRepository
 	certificateRepo certificateRepository
 	wfoutputRepo    workflowOutputRepository
+
+	limiters sync.Map
 }
 
 func (ne *bizApplyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExecutionResult, error) {
@@ -57,27 +69,126 @@ func (ne *bizApplyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 		ne.logger.Info("no found last issued certificate, begin to apply")
 	}
 
-	// 初始化申请器
-	// TODO: 解耦
-	applicant, err := applicant.NewWithWorkflowNode(applicant.ApplicantWithWorkflowNodeConfig{
-		WorkflowId: execCtx.WorkflowId,
-		Node:       execCtx.Node,
-		Logger:     ne.logger,
+	// 读取证书算法
+	legoKeyType, err := ne.parseKeyType(domain.CertificateKeyAlgorithmType(nodeCfg.KeyAlgorithm))
+	if err != nil {
+		return execRes, err
+	}
+
+	// 读取质询提供商授权
+	providerAccessConfig := make(map[string]any)
+	if nodeCfg.ProviderAccessId != "" {
+		if access, err := ne.accessRepo.GetById(execCtx.ctx, nodeCfg.ProviderAccessId); err != nil {
+			return execRes, fmt.Errorf("failed to get access #%s record: %w", nodeCfg.ProviderAccessId, err)
+		} else {
+			providerAccessConfig = access.Config
+		}
+	}
+
+	// 读取证书颁发机构授权
+	caAccessConfig := make(map[string]any)
+	if nodeCfg.CAProviderAccessId != "" {
+		if access, err := ne.accessRepo.GetById(execCtx.ctx, nodeCfg.CAProviderAccessId); err != nil {
+			return execRes, fmt.Errorf("failed to get access #%s record: %w", nodeCfg.CAProviderAccessId, err)
+		} else {
+			caAccessConfig = access.Config
+		}
+	}
+
+	// 限制 ACME 速率
+	limiter := ne.limit(fmt.Sprintf("%s|%s", nodeCfg.CAProvider, nodeCfg.ContactEmail))
+	if err := limiter.Wait(execCtx.ctx); err != nil {
+		return execRes, err
+	}
+
+	// 初始化 ACME 配置项
+	legoOptions := &certapply.ACMEConfigOptions{
+		CAProvider:       nodeCfg.CAProvider,
+		CAAccessConfig:   caAccessConfig,
+		CAProviderConfig: nodeCfg.CAProviderConfig,
+		CertifierKeyType: legoKeyType,
+	}
+	legoConfig, err := certapply.NewACMEConfig(legoOptions)
+	if err != nil {
+		ne.logger.Warn("failed to initialize acme config")
+		return execRes, err
+	} else {
+		ne.logger.Info("acme config initialized", slog.String("acmeDirUrl", legoConfig.CADirUrl))
+	}
+
+	// 初始化 ACME 账户
+	legoUser, err := certapply.NewACMEAccountWithSingleFlight(legoConfig, nodeCfg.ContactEmail)
+	if err != nil {
+		ne.logger.Warn("failed to initialize acme account")
+		return execRes, err
+	} else {
+		ne.logger.Info("acme account initialized", slog.String("acmeAcctUrl", legoUser.ACMEAcctUrl))
+	}
+
+	// 初始化 ACME 客户端
+	legoClient, err := certapply.NewACMEClientWithAccount(legoUser, func(c *lego.Config) error {
+		c.UserAgent = "certimate"
+		c.Certificate.KeyType = legoKeyType
+		return nil
 	})
 	if err != nil {
-		ne.logger.Warn("failed to create applicant provider")
+		ne.logger.Warn("failed to initialize acme client")
 		return execRes, err
 	}
 
 	// 申请证书
-	applyResult, err := applicant.Apply(execCtx.ctx)
+	obtainReq := &certapply.ObtainCertificateRequest{
+		Domains:                nodeCfg.Domains,
+		ChallengeType:          nodeCfg.ChallengeType,
+		Provider:               nodeCfg.Provider,
+		ProviderAccessConfig:   providerAccessConfig,
+		ProviderExtendedConfig: nodeCfg.ProviderConfig,
+		DisableFollowCNAME:     nodeCfg.DisableFollowCNAME,
+		Nameservers:            nodeCfg.Nameservers,
+		DnsPropagationWait:     nodeCfg.DnsPropagationWait,
+		DnsPropagationTimeout:  nodeCfg.DnsPropagationTimeout,
+		DnsTTL:                 nodeCfg.DnsTTL,
+		HttpDelayWait:          nodeCfg.HttpDelayWait,
+		ACMEProfile:            nodeCfg.ACMEProfile,
+		ARIReplacesAcctUrl: lo.If(lastCertificate == nil, "").
+			ElseF(func() string {
+				if lastCertificate.ACMERenewed {
+					return ""
+				}
+
+				return lastCertificate.ACMEAcctUrl
+			}),
+		ARIReplacesCertId: lo.If(lastCertificate == nil, "").
+			ElseF(func() string {
+				if lastCertificate.ACMERenewed {
+					return ""
+				}
+
+				newCertSan := slices.Clone(nodeCfg.Domains)
+				oldCertSan := strings.Split(lastCertificate.SubjectAltNames, ";")
+				slices.Sort(newCertSan)
+				slices.Sort(oldCertSan)
+				if !slices.Equal(newCertSan, oldCertSan) {
+					return ""
+				}
+
+				oldCertX509, err := certcrypto.ParsePEMCertificate([]byte(lastCertificate.Certificate))
+				if err != nil {
+					return ""
+				}
+
+				oldARICertId, _ := certifier.MakeARICertID(oldCertX509)
+				return oldARICertId
+			}),
+	}
+	obtainResp, err := legoClient.ObtainCertificate(execCtx.ctx, obtainReq)
 	if err != nil {
 		ne.logger.Warn("failed to obtain certificate")
 		return execRes, err
 	}
 
 	// 解析证书
-	certX509, err := xcert.ParseCertificateFromPEM(applyResult.FullChainCertificate)
+	certX509, err := xcert.ParseCertificateFromPEM(obtainResp.FullChainCertificate)
 	if err != nil {
 		ne.logger.Warn("failed to parse certificate, may be the CA responded error")
 		return execRes, err
@@ -86,12 +197,12 @@ func (ne *bizApplyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 	// 保存证书实体
 	certificate := &domain.Certificate{
 		Source:            domain.CertificateSourceTypeRequest,
-		Certificate:       applyResult.FullChainCertificate,
-		PrivateKey:        applyResult.PrivateKey,
-		IssuerCertificate: applyResult.IssuerCertificate,
-		ACMEAccountUrl:    applyResult.ACMEAccountUrl,
-		ACMECertUrl:       applyResult.ACMECertUrl,
-		ACMECertStableUrl: applyResult.ACMECertStableUrl,
+		Certificate:       obtainResp.FullChainCertificate,
+		PrivateKey:        obtainResp.PrivateKey,
+		IssuerCertificate: obtainResp.IssuerCertificate,
+		ACMEAcctUrl:       obtainResp.ACMEAcctUrl,
+		ACMECertUrl:       obtainResp.ACMECertUrl,
+		ACMECertStableUrl: obtainResp.ACMECertStableUrl,
 		WorkflowId:        execCtx.WorkflowId,
 		WorkflowRunId:     execCtx.RunId,
 		WorkflowNodeId:    execCtx.Node.Id,
@@ -105,7 +216,7 @@ func (ne *bizApplyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 	}
 
 	// 保存 ARI 记录
-	if lastCertificate != nil && applyResult.ARIReplaced {
+	if lastCertificate != nil && obtainResp.ARIReplaced {
 		lastCertificate.ACMERenewed = true
 		ne.certificateRepo.Save(execCtx.ctx, lastCertificate)
 	}
@@ -145,7 +256,7 @@ func (ne *bizApplyNodeExecutor) checkCanSkip(execCtx *NodeExecutionContext, last
 		// 比较和上次申请时的关键配置（即影响证书签发的）参数是否一致
 		lastNodeCfg := lastOutput.NodeConfig.AsBizApply()
 
-		if thisNodeCfg.Domains != lastNodeCfg.Domains {
+		if !slices.Equal(thisNodeCfg.Domains, lastNodeCfg.Domains) {
 			return false, "the configuration item 'Domains' changed"
 		}
 		if thisNodeCfg.ContactEmail != lastNodeCfg.ContactEmail {
@@ -188,9 +299,38 @@ func (ne *bizApplyNodeExecutor) checkCanSkip(execCtx *NodeExecutionContext, last
 	return false, ""
 }
 
+func (ne *bizApplyNodeExecutor) parseKeyType(algo domain.CertificateKeyAlgorithmType) (certcrypto.KeyType, error) {
+	alogMap := map[domain.CertificateKeyAlgorithmType]certcrypto.KeyType{
+		domain.CertificateKeyAlgorithmTypeRSA2048: certcrypto.RSA2048,
+		domain.CertificateKeyAlgorithmTypeRSA3072: certcrypto.RSA3072,
+		domain.CertificateKeyAlgorithmTypeRSA4096: certcrypto.RSA4096,
+		domain.CertificateKeyAlgorithmTypeRSA8192: certcrypto.RSA8192,
+		domain.CertificateKeyAlgorithmTypeEC256:   certcrypto.EC256,
+		domain.CertificateKeyAlgorithmTypeEC384:   certcrypto.EC384,
+		domain.CertificateKeyAlgorithmTypeEC512:   certcrypto.KeyType("P512"),
+	}
+
+	if keyType, ok := alogMap[algo]; ok {
+		return keyType, nil
+	}
+
+	return certcrypto.RSA2048, fmt.Errorf("unsupported key algorithm type: '%s'", algo)
+}
+
+func (ne *bizApplyNodeExecutor) limit(key string) *rate.Limiter {
+	const (
+		limitBurst         = 300
+		limitRate  float64 = float64(1) / float64(36)
+	)
+
+	limiter, _ := ne.limiters.LoadOrStore(key, rate.NewLimiter(rate.Limit(limitRate), limitBurst))
+	return limiter.(*rate.Limiter)
+}
+
 func newBizApplyNodeExecutor() NodeExecutor {
 	return &bizApplyNodeExecutor{
 		nodeExecutor:    nodeExecutor{logger: slog.Default()},
+		accessRepo:      repository.NewAccessRepository(),
 		certificateRepo: repository.NewCertificateRepository(),
 		wfoutputRepo:    repository.NewWorkflowOutputRepository(),
 	}

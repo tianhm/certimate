@@ -21,6 +21,7 @@ type NotifierWithWorkflowNodeConfig struct {
 	Message string
 }
 
+// TODO: refactor
 func NewWithWorkflowNode(config NotifierWithWorkflowNodeConfig) (Notifier, error) {
 	if config.Node == nil {
 		return nil, fmt.Errorf("the node is nil")

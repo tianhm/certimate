@@ -91,11 +91,10 @@ const SettingsDiagnosticsLogs = ({ className, style }: { className?: string; sty
 
     return (
       <div className="flex space-x-2">
-        <div className="font-mono text-stone-400">[{dayjs(record.created).format("YYYY-MM-DD HH:mm:ss")}]</div>
+        <div className="font-mono whitespace-nowrap text-stone-400">[{dayjs(record.created).format("YYYY-MM-DD HH:mm:ss")}]</div>
         <div
           className={mergeCls(
-            "flex-1",
-            "font-mono",
+            "flex-1 font-mono",
             +record.level < LogLevel.Info
               ? "text-stone-400"
               : +record.level < LogLevel.Warn

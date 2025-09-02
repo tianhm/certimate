@@ -215,11 +215,10 @@ const WorkflowRunLogs = ({ runId, runStatus }: { runId: string; runStatus: strin
 
     return (
       <div className="flex space-x-2" style={{ wordBreak: "break-word" }}>
-        {showTimestamp ? <div className="font-mono text-stone-400">[{dayjs(record.timestamp).format("YYYY-MM-DD HH:mm:ss")}]</div> : <></>}
+        {showTimestamp ? <div className="font-mono whitespace-nowrap text-stone-400">[{dayjs(record.timestamp).format("YYYY-MM-DD HH:mm:ss")}]</div> : <></>}
         <div
           className={mergeCls(
-            "flex-1",
-            "font-mono",
+            "flex-1 font-mono",
             { ["whitespace-pre-line"]: !showWhitespace },
             record.level < WorkflowLogLevel.Info
               ? "text-stone-400"

@@ -77,7 +77,7 @@ const Settings = () => {
             />
           </div>
 
-          <div className="flex-1">
+          <div className="w-full flex-1">
             <div className="px-4 max-lg:px-0 max-lg:py-6">
               <Outlet />
             </div>

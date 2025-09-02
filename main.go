@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"log/slog"
 	"os"
 	"strings"
@@ -12,6 +11,7 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
 	"github.com/pocketbase/pocketbase/tools/hook"
+	"github.com/spf13/pflag"
 
 	"github.com/certimate-go/certimate/internal/app"
 	"github.com/certimate-go/certimate/internal/rest/routes"
@@ -23,16 +23,18 @@ import (
 )
 
 func main() {
-	app := app.GetApp().(*pocketbase.PocketBase)
-
 	var flagHttp string
-	flag.StringVar(&flagHttp, "http", "127.0.0.1:8090", "HTTP server address")
+	pflag.CommandLine = pflag.NewFlagSet(os.Args[0], pflag.ContinueOnError)
+	pflag.CommandLine.Parse(os.Args[2:]) // skip the first two arguments: "main.go serve"
+	pflag.StringVar(&flagHttp, "http", "127.0.0.1:8090", "HTTP server address")
+	pflag.Parse()
+
+	app := app.GetApp().(*pocketbase.PocketBase)
 	if len(os.Args) < 2 {
 		slog.Error("[CERTIMATE] missing exec args")
 		os.Exit(1)
 		return
 	}
-	_ = flag.CommandLine.Parse(os.Args[2:]) // skip the first two arguments: "main.go serve"
 
 	migratecmd.MustRegister(app, app.RootCmd, migratecmd.Config{
 		// enable auto creation of migration files when making collection changes in the Admin UI

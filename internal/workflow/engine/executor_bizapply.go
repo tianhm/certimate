@@ -11,11 +11,13 @@ import (
 	"time"
 
 	"github.com/go-acme/lego/v4/certcrypto"
-	certifier "github.com/go-acme/lego/v4/certificate"
+	legocertifier "github.com/go-acme/lego/v4/certificate"
 	"github.com/go-acme/lego/v4/lego"
+	legolog "github.com/go-acme/lego/v4/log"
 	"github.com/samber/lo"
 	"golang.org/x/time/rate"
 
+	"github.com/certimate-go/certimate/internal/app"
 	"github.com/certimate-go/certimate/internal/certapply"
 	"github.com/certimate-go/certimate/internal/domain"
 	"github.com/certimate-go/certimate/internal/repository"
@@ -126,6 +128,7 @@ func (ne *bizApplyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 	}
 
 	// 初始化 ACME 客户端
+	legolog.Logger = certapply.NewLegoLogger(app.GetLogger())
 	legoClient, err := certapply.NewACMEClientWithAccount(legoUser, func(c *lego.Config) error {
 		c.UserAgent = "certimate"
 		c.Certificate.KeyType = legoKeyType
@@ -177,7 +180,7 @@ func (ne *bizApplyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 					return ""
 				}
 
-				oldARICertId, _ := certifier.MakeARICertID(oldCertX509)
+				oldARICertId, _ := legocertifier.MakeARICertID(oldCertX509)
 				return oldARICertId
 			}),
 	}

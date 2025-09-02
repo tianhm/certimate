@@ -41,7 +41,7 @@ type workflowEngine struct {
 
 	wfoutputRepo workflowOutputRepository
 
-	logger *slog.Logger
+	syslog *slog.Logger
 }
 
 var _ WorkflowEngine = (*workflowEngine)(nil)
@@ -123,8 +123,8 @@ func (we *workflowEngine) executeNode(wfCtx *WorkflowContext, node *Node) error 
 	} else {
 		logger := slog.New(logging.NewHookHandler(&logging.HookHandlerOptions{
 			Level: slog.LevelDebug,
-			WriteFunc: func(ctx context.Context, record *logging.Record) error {
-				we.fireOnNodeLoggingHooks(ctx, node, *record)
+			WriteFunc: func(ctx context.Context, record logging.Record) error {
+				we.fireOnNodeLoggingHooks(ctx, node, record)
 				return nil
 			},
 		}))
@@ -175,7 +175,7 @@ func (we *workflowEngine) executeNode(wfCtx *WorkflowContext, node *Node) error 
 				})
 			}
 			if _, err := we.wfoutputRepo.Save(execCtx.ctx, output); err != nil {
-				we.logger.Warn("failed to save node output")
+				we.syslog.Warn("failed to save node output")
 			}
 		}
 
@@ -218,7 +218,7 @@ func (we *workflowEngine) fireOnStartHooks(ctx context.Context) {
 	defer we.hooksMtx.RUnlock()
 	for _, cb := range we.onStartHooks {
 		if cbErr := cb(ctx); cbErr != nil {
-			we.logger.Error("workflow engine: error in onStart hook", slog.Any("error", cbErr))
+			we.syslog.Error("workflow engine: error in onStart hook", slog.Any("error", cbErr))
 		}
 	}
 }
@@ -228,7 +228,7 @@ func (we *workflowEngine) fireOnEndHooks(ctx context.Context) {
 	defer we.hooksMtx.RUnlock()
 	for _, cb := range we.onEndHooks {
 		if cbErr := cb(ctx); cbErr != nil {
-			we.logger.Error("workflow engine: error in onEnd hook", slog.Any("error", cbErr))
+			we.syslog.Error("workflow engine: error in onEnd hook", slog.Any("error", cbErr))
 		}
 	}
 }
@@ -238,7 +238,7 @@ func (we *workflowEngine) fireOnErrorHooks(ctx context.Context, err error) {
 	defer we.hooksMtx.RUnlock()
 	for _, cb := range we.onErrorHooks {
 		if cbErr := cb(ctx, err); cbErr != nil {
-			we.logger.Error("workflow engine: error in onError hook", slog.Any("error", cbErr))
+			we.syslog.Error("workflow engine: error in onError hook", slog.Any("error", cbErr))
 		}
 	}
 }
@@ -248,7 +248,7 @@ func (we *workflowEngine) fireOnNodeStartHooks(ctx context.Context, node *Node) 
 	defer we.hooksMtx.RUnlock()
 	for _, cb := range we.onNodeStartHooks {
 		if cbErr := cb(ctx, node); cbErr != nil {
-			we.logger.Error("workflow engine: error in onNodeStart hook", slog.Any("error", cbErr))
+			we.syslog.Error("workflow engine: error in onNodeStart hook", slog.Any("error", cbErr))
 		}
 	}
 }
@@ -258,7 +258,7 @@ func (we *workflowEngine) fireOnNodeEndHooks(ctx context.Context, node *Node, re
 	defer we.hooksMtx.RUnlock()
 	for _, cb := range we.onNodeEndHooks {
 		if cbErr := cb(ctx, node, result); cbErr != nil {
-			we.logger.Error("workflow engine: error in onNodeEnd hook", slog.Any("error", cbErr))
+			we.syslog.Error("workflow engine: error in onNodeEnd hook", slog.Any("error", cbErr))
 		}
 	}
 }
@@ -268,7 +268,7 @@ func (we *workflowEngine) fireOnNodeErrorHooks(ctx context.Context, node *Node, 
 	defer we.hooksMtx.RUnlock()
 	for _, cb := range we.onNodeErrorHooks {
 		if cbErr := cb(ctx, node, err); cbErr != nil {
-			we.logger.Error("workflow engine: error in onNodeError hook", slog.Any("error", cbErr))
+			we.syslog.Error("workflow engine: error in onNodeError hook", slog.Any("error", cbErr))
 		}
 	}
 }
@@ -278,7 +278,7 @@ func (we *workflowEngine) fireOnNodeLoggingHooks(ctx context.Context, node *Node
 	defer we.hooksMtx.RUnlock()
 	for _, cb := range we.onNodeLoggingHooks {
 		if cbErr := cb(ctx, node, log); cbErr != nil {
-			we.logger.Error("workflow engine: error in onNodeLogging hook", slog.Any("error", cbErr))
+			we.syslog.Error("workflow engine: error in onNodeLogging hook", slog.Any("error", cbErr))
 		}
 	}
 }
@@ -287,7 +287,7 @@ func NewWorkflowEngine() WorkflowEngine {
 	engine := &workflowEngine{
 		executors:    make(map[NodeType]NodeExecutor),
 		wfoutputRepo: repository.NewWorkflowOutputRepository(),
-		logger:       app.GetLogger(),
+		syslog:       app.GetLogger(),
 	}
 	engine.executors[NodeTypeStart] = newStartNodeExecutor()
 	engine.executors[NodeTypeEnd] = newEndNodeExecutor()

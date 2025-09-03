@@ -238,6 +238,7 @@ func (ne *bizApplyNodeExecutor) executeObtain(execCtx *NodeExecutionContext, nod
 	}
 
 	// 初始化 ACME 账户
+	// 注意此步骤仍需在主进程中进行，以保证并发安全
 	legoUser, err := certapply.NewACMEAccountWithSingleFlight(legoConfig, nodeCfg.ContactEmail)
 	if err != nil {
 		ne.logger.Warn("failed to initialize acme account")

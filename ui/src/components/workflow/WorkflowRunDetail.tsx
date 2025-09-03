@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { EditorState, FlowLayoutDefault } from "@flowgram.ai/fixed-layout-editor";
 import { IconBrowserShare, IconCheck, IconDots, IconDownload, IconSettings2, IconTransferOut } from "@tabler/icons-react";
@@ -15,6 +15,7 @@ import { WORKFLOW_RUN_STATUSES, type WorkflowRunModel } from "@/domain/workflowR
 import { useBrowserTheme } from "@/hooks";
 import { listByWorkflowRunId as listCertificatesByWorkflowRunId } from "@/repository/certificate";
 import { listByWorkflowRunId as listLogsByWorkflowRunId } from "@/repository/workflowLog";
+import { subscribe as subscribeWorkflowRun } from "@/repository/workflowRun";
 import { mergeCls } from "@/utils/css";
 import { getErrMsg } from "@/utils/error";
 
@@ -29,23 +30,47 @@ export interface WorkflowRunDetailProps {
   data: WorkflowRunModel;
 }
 
-const WorkflowRunDetail = ({ className, style, data }: WorkflowRunDetailProps) => {
+const WorkflowRunDetail = ({ className, style, ...props }: WorkflowRunDetailProps) => {
   const { t } = useTranslation();
+
+  const [innerData, setInnerData] = useState(props.data);
+  const mergedData = useMemo(() => ({ ...props.data, ...innerData }), [innerData, props.data]);
+
+  const unsubscriberRef = useRef<() => void>();
+  useEffect(() => {
+    if (props.data.status === WORKFLOW_RUN_STATUSES.PENDING || props.data.status === WORKFLOW_RUN_STATUSES.PROCESSING) {
+      subscribeWorkflowRun(props.data.id, (cb) => {
+        setInnerData(cb.record);
+
+        if (cb.record.status !== WORKFLOW_RUN_STATUSES.PENDING && cb.record.status !== WORKFLOW_RUN_STATUSES.PROCESSING) {
+          unsubscriberRef.current?.();
+          unsubscriberRef.current = undefined;
+        }
+      }).then((unsubscriber) => {
+        unsubscriberRef.current = unsubscriber;
+      });
+    }
+
+    return () => {
+      unsubscriberRef.current?.();
+      unsubscriberRef.current = undefined;
+    };
+  }, [props.data.id, props.data.status]);
 
   return (
     <div className={className} style={style}>
       <Alert
         message={
           <div className="text-xs">
-            {data.endedAt
+            {mergedData.endedAt
               ? t("workflow_run.base.description_with_time_cost", {
-                  trigger: t(`workflow_run.base.trigger.${data.trigger}`),
-                  startedAt: dayjs(data.startedAt).format("YYYY-MM-DD HH:mm:ss"),
-                  timeCost: dayjs(data.endedAt).diff(dayjs(data.startedAt), "second") + "s",
+                  trigger: t(`workflow_run.base.trigger.${mergedData.trigger}`),
+                  startedAt: dayjs(mergedData.startedAt).format("YYYY-MM-DD HH:mm:ss"),
+                  timeCost: dayjs(mergedData.endedAt).diff(dayjs(mergedData.startedAt), "second") + "s",
                 })
               : t("workflow_run.base.description", {
-                  trigger: t(`workflow_run.base.trigger.${data.trigger}`),
-                  startedAt: dayjs(data.startedAt).format("YYYY-MM-DD HH:mm:ss"),
+                  trigger: t(`workflow_run.base.trigger.${mergedData.trigger}`),
+                  startedAt: dayjs(mergedData.startedAt).format("YYYY-MM-DD HH:mm:ss"),
                 })}
           </div>
         }
@@ -55,24 +80,24 @@ const WorkflowRunDetail = ({ className, style, data }: WorkflowRunDetailProps) =
             [WORKFLOW_RUN_STATUSES.SUCCEEDED]: "success" as const,
             [WORKFLOW_RUN_STATUSES.FAILED]: "error" as const,
             [WORKFLOW_RUN_STATUSES.CANCELED]: "warning" as const,
-          }[data.status] ?? ("info" as const)
+          }[mergedData.status] ?? ("info" as const)
         }
       />
 
       <div className="mt-8">
         <Typography.Title level={5}>{t("workflow_run.process")}</Typography.Title>
-        <WorkflowRunProcess runData={data} />
+        <WorkflowRunProcess runData={mergedData} />
       </div>
 
       <div className="mt-8">
         <Typography.Title level={5}>{t("workflow_run.logs")}</Typography.Title>
-        <WorkflowRunLogs runId={data.id} runStatus={data.status} />
+        <WorkflowRunLogs runId={mergedData.id} runStatus={mergedData.status} />
       </div>
 
-      <Show when={data.status === WORKFLOW_RUN_STATUSES.SUCCEEDED}>
+      <Show when={mergedData.status === WORKFLOW_RUN_STATUSES.SUCCEEDED}>
         <div className="mt-8">
           <Typography.Title level={5}>{t("workflow_run.artifacts")}</Typography.Title>
-          <WorkflowRunArtifacts runId={data.id} />
+          <WorkflowRunArtifacts runId={mergedData.id} />
         </div>
       </Show>
     </div>
@@ -158,13 +183,13 @@ const WorkflowRunLogs = ({ runId, runStatus }: { runId: string; runStatus: strin
   type Log = Pick<WorkflowLogModel, "timestamp" | "level" | "message" | "data">;
   type LogGroup = { id: string; name: string; records: Log[] };
   const [listData, setListData] = useState<LogGroup[]>([]);
-  const { loading } = useRequest(
+  const { loading, ...req } = useRequest(
     () => {
       return listLogsByWorkflowRunId(runId);
     },
     {
       refreshDeps: [runId, runStatus],
-      pollingInterval: runStatus === WORKFLOW_RUN_STATUSES.PENDING || runStatus === WORKFLOW_RUN_STATUSES.PROCESSING ? 3000 : 0,
+      pollingInterval: 1500,
       pollingWhenHidden: false,
       throttleWait: 500,
       onSuccess: (res) => {
@@ -181,6 +206,11 @@ const WorkflowRunLogs = ({ runId, runStatus }: { runId: string; runStatus: strin
             return acc;
           }, [] as LogGroup[])
         );
+      },
+      onFinally: () => {
+        if (runStatus === WORKFLOW_RUN_STATUSES.PENDING || runStatus === WORKFLOW_RUN_STATUSES.PROCESSING) {
+          req.cancel();
+        }
       },
       onError: (err) => {
         if (err instanceof ClientResponseError && err.isAbort) {

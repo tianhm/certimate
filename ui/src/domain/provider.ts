@@ -174,7 +174,7 @@ export const accessProvidersMap: Map<AccessProvider["type"] | string, AccessProv
       [ACCESS_PROVIDERS.CMCCCLOUD, "provider.cmcccloud", "/imgs/providers/cmcccloud.svg", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.WESTCN, "provider.westcn", "/imgs/providers/westcn.svg", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.POWERDNS, "provider.powerdns", "/imgs/providers/powerdns.svg", [ACCESS_USAGES.DNS]],
-      [ACCESS_PROVIDERS.ACMEDNS, "provider.acmedns", "/imgs/providers/acmedns.svg", [ACCESS_USAGES.DNS]],
+      [ACCESS_PROVIDERS.ACMEDNS, "provider.acmedns", "/imgs/providers/acmedns.png", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.ACMEHTTPREQ, "provider.acmehttpreq", "/imgs/providers/acmehttpreq.svg", [ACCESS_USAGES.DNS]],
 
       [ACCESS_PROVIDERS.LETSENCRYPT, "provider.letsencrypt", "/imgs/providers/letsencrypt.svg", [ACCESS_USAGES.CA], "builtin"],

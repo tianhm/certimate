@@ -3,6 +3,8 @@ import { Form, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod/v4";
 
+import TextFileInput from "@/components/TextFileInput";
+
 import { useFormNestedFieldsContext } from "./_context";
 
 const AccessConfigFieldsProviderACMEDNS = () => {
@@ -18,33 +20,22 @@ const AccessConfigFieldsProviderACMEDNS = () => {
   return (
     <>
       <Form.Item
-        name="apiBase"
-        initialValue={initialValues.apiBase}
-        label={t("access.form.acmedns_api_base.label")}
+        name={[parentNamePath, "serverUrl"]}
+        initialValue={initialValues.serverUrl}
+        label={t("access.form.acmedns_server_url.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.acmedns_api_base.tooltip") }}></span>}
       >
-        <Input placeholder={t("access.form.acmedns_api_base.placeholder")} />
+        <Input placeholder={t("access.form.acmedns_server_url.placeholder")} />
       </Form.Item>
 
       <Form.Item
-        name="storageBaseUrl"
-        initialValue={initialValues.storageBaseUrl}
-        label={t("access.form.acmedns_storage_base_url.label")}
+        name={[parentNamePath, "credentials"]}
+        initialValue={initialValues.credentials}
+        label={t("access.form.acmedns_credentials.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.acmedns_storage_base_url.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.acmedns_credentials.tooltip") }}></span>}
       >
-        <Input allowClear placeholder={t("access.form.acmedns_storage_base_url.placeholder")} />
-      </Form.Item>
-
-      <Form.Item
-        name="storagePath"
-        initialValue={initialValues.storagePath}
-        label={t("access.form.acmedns_storage_path.label")}
-        rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.acmedns_storage_path.tooltip") }}></span>}
-      >
-        <Input allowClear placeholder={t("access.form.acmedns_storage_path.placeholder")} />
+        <TextFileInput autoSize={{ minRows: 3, maxRows: 10 }} placeholder={t("access.form.acmedns_credentials.placeholder")} />
       </Form.Item>
     </>
   );
@@ -52,9 +43,8 @@ const AccessConfigFieldsProviderACMEDNS = () => {
 
 const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   return {
-    apiBase: "https://auth.acme-dns.io/",
-    storageBaseUrl: "",
-    storagePath: "",
+    serverUrl: "https://auth.acme-dns.io/",
+    credentials: "",
   };
 };
 
@@ -62,15 +52,20 @@ const getSchema = ({ i18n = getI18n() }: { i18n: ReturnType<typeof getI18n> }) =
   const { t } = i18n;
 
   return z.object({
-    apiBase: z.url(t("common.errmsg.url_invalid")),
-    storageBaseUrl: z
+    serverUrl: z.url(t("common.errmsg.url_invalid")),
+    credentials: z
       .string()
-      .max(256, t("common.errmsg.string_max", { max: 256 }))
-      .nullish(),
-    storagePath: z
-      .string()
-      .max(256, t("common.errmsg.string_max", { max: 256 }))
-      .nullish(),
+      .max(20480, t("common.errmsg.string_max", { max: 20480 }))
+      .refine((v) => {
+        if (!v) return false;
+
+        try {
+          const obj = JSON.parse(v);
+          return typeof obj === "object" && !Array.isArray(obj);
+        } catch {
+          return false;
+        }
+      }, t("access.form.acmedns_credentials.errmsg.json_invalid")),
   });
 };
 

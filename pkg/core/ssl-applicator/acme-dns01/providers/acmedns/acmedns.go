@@ -2,7 +2,8 @@ package acmedns
 
 import (
 	"errors"
-	"net/url"
+	"fmt"
+	"os"
 
 	"github.com/go-acme/lego/v4/providers/dns/acmedns"
 
@@ -10,9 +11,8 @@ import (
 )
 
 type ChallengeProviderConfig struct {
-	ApiBase        string `json:"apiBase,omitempty"`
-	StorageBaseUrl string `json:"storageBaseUrl,omitempty"`
-	StoragePath    string `json:"storagePath,omitempty"`
+	ServerUrl   string `json:"serverUrl"`
+	Credentials string `json:"credentials"`
 }
 
 func NewChallengeProvider(config *ChallengeProviderConfig) (core.ACMEChallenger, error) {
@@ -20,11 +20,20 @@ func NewChallengeProvider(config *ChallengeProviderConfig) (core.ACMEChallenger,
 		return nil, errors.New("the configuration of the acme challenge provider is nil")
 	}
 
-	ApiBase, _ := url.Parse(config.ApiBase)
+	tempfile, err := os.CreateTemp("", "certimate.acmedns_*.tmp")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create temp credentials file: %w", err)
+	} else {
+		if _, err := tempfile.Write([]byte(config.Credentials)); err != nil {
+			return nil, fmt.Errorf("failed to write temp credentials file: %w", err)
+		}
+
+		tempfile.Close()
+	}
+
 	providerConfig := acmedns.NewDefaultConfig()
-	providerConfig.APIBase = ApiBase.String()
-	providerConfig.StorageBaseURL = config.StorageBaseUrl
-	providerConfig.StoragePath = config.StoragePath
+	providerConfig.APIBase = config.ServerUrl
+	providerConfig.StoragePath = tempfile.Name()
 
 	provider, err := acmedns.NewDNSProviderConfig(providerConfig)
 	if err != nil {

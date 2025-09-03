@@ -18,9 +18,8 @@ func init() {
 		}
 
 		provider, err := acmedns.NewChallengeProvider(&acmedns.ChallengeProviderConfig{
-			ApiBase:        credentials.ApiBase,
-			StorageBaseUrl: credentials.StorageBaseUrl,
-			StoragePath:    credentials.StoragePath,
+			ServerUrl:   credentials.ServerUrl,
+			Credentials: credentials.Credentials,
 		})
 		return provider, err
 	}); err != nil {

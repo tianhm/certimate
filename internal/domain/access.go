@@ -33,9 +33,8 @@ type AccessConfigForACMECA struct {
 }
 
 type AccessConfigForACMEDNS struct {
-	ApiBase        string `json:"apiBase"`
-	StorageBaseUrl string `json:"storageBaseUrl,omitempty"`
-	StoragePath    string `json:"storagePath,omitempty"`
+	ServerUrl   string `json:"serverUrl"`
+	Credentials string `json:"credentials"`
 }
 
 type AccessConfigForACMEHttpReq struct {

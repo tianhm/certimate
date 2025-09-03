@@ -13,6 +13,7 @@ import { FormNestedFieldsContextProvider } from "./forms/_context";
 import { useProviderFilterByUsage } from "./forms/_hooks";
 import AccessConfigFieldsProvider1Panel from "./forms/AccessConfigFieldsProvider1Panel";
 import AccessConfigFieldsProviderACMECA from "./forms/AccessConfigFieldsProviderACMECA";
+import AccessConfigFieldsProviderACMEDNS from "./forms/AccessConfigFieldsProviderACMEDNS";
 import AccessConfigFieldsProviderACMEHttpReq from "./forms/AccessConfigFieldsProviderACMEHttpReq";
 import AccessConfigFieldsProviderAliyun from "./forms/AccessConfigFieldsProviderAliyun";
 import AccessConfigFieldsProviderAPISIX from "./forms/AccessConfigFieldsProviderAPISIX";
@@ -132,6 +133,9 @@ const AccessForm = ({ className, style, disabled, initialValues, mode, usage, ..
       }
       case ACCESS_PROVIDERS.ACMECA: {
         return <AccessConfigFieldsProviderACMECA />;
+      }
+      case ACCESS_PROVIDERS.ACMEDNS: {
+        return <AccessConfigFieldsProviderACMEDNS />;
       }
       case ACCESS_PROVIDERS.ACMEHTTPREQ: {
         return <AccessConfigFieldsProviderACMEHttpReq />;

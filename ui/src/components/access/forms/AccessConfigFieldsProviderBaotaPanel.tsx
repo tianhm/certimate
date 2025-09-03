@@ -21,6 +21,7 @@ const AccessConfigFormFieldsProviderBaotaPanel = () => {
         name={[parentNamePath, "serverUrl"]}
         initialValue={initialValues.serverUrl}
         label={t("access.form.baotapanel_server_url.label")}
+        extra={t("access.form.baotapanel_server_url.help")}
         rules={[formRule]}
       >
         <Input placeholder={t("access.form.baotapanel_server_url.placeholder")} />

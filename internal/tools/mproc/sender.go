@@ -41,7 +41,7 @@ func (s *sender[TIn, TOut]) SendWithContext(ctx context.Context, params *TIn) (*
 	aesCryptor := xcrypto.NewAESCryptor(aesKey)
 
 	// 准备临时输入文件
-	tempIn, err := os.CreateTemp("", "certimate_mprocin_*.tmp")
+	tempIn, err := os.CreateTemp("", "certimate.mprocin_*.tmp")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp input file: %w", err)
 	} else {
@@ -64,7 +64,7 @@ func (s *sender[TIn, TOut]) SendWithContext(ctx context.Context, params *TIn) (*
 	defer os.Remove(tempIn.Name())
 
 	// 准备临时输出文件
-	tempOut, err := os.CreateTemp("", "certimate_mprocout_*.tmp")
+	tempOut, err := os.CreateTemp("", "certimate.mprocout_*.tmp")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp output file: %w", err)
 	} else {
@@ -73,7 +73,7 @@ func (s *sender[TIn, TOut]) SendWithContext(ctx context.Context, params *TIn) (*
 	defer os.Remove(tempOut.Name())
 
 	// 准备临时错误文件
-	tempErr, err := os.CreateTemp("", "certimate_mprocerr_*.tmp")
+	tempErr, err := os.CreateTemp("", "certimate.mprocerr_*.tmp")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp error file: %w", err)
 	} else {

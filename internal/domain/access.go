@@ -32,6 +32,11 @@ type AccessConfigForACMECA struct {
 	Endpoint string `json:"endpoint"`
 }
 
+type AccessConfigForACMEDNS struct {
+	ServerUrl   string `json:"serverUrl"`
+	Credentials string `json:"credentials"`
+}
+
 type AccessConfigForACMEHttpReq struct {
 	Endpoint string `json:"endpoint"`
 	Mode     string `json:"mode,omitempty"`

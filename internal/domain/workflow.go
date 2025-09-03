@@ -150,6 +150,7 @@ func (c WorkflowNodeConfig) AsBizApply() WorkflowNodeConfigForBizApply {
 		CAProvider:            xmaps.GetString(c, "caProvider"),
 		CAProviderAccessId:    xmaps.GetString(c, "caProviderAccessId"),
 		CAProviderConfig:      xmaps.GetKVMapAny(c, "caProviderConfig"),
+		ValidityLifetime:      xmaps.GetString(c, "validityLifetime"),
 		ACMEProfile:           xmaps.GetString(c, "acmeProfile"),
 		Nameservers:           nameservers,
 		DnsPropagationWait:    xmaps.GetInt32(c, "dnsPropagationWait"),
@@ -216,10 +217,11 @@ type WorkflowNodeConfigForBizApply struct {
 	Provider              string         `json:"provider"`                        // 质询提供商
 	ProviderAccessId      string         `json:"providerAccessId"`                // 质询提供商授权记录 ID
 	ProviderConfig        map[string]any `json:"providerConfig,omitempty"`        // 质询提供商额外配置
-	KeyAlgorithm          string         `json:"keyAlgorithm,omitempty"`          // 证书算法
 	CAProvider            string         `json:"caProvider,omitempty"`            // CA 提供商（零值时使用全局配置）
 	CAProviderAccessId    string         `json:"caProviderAccessId,omitempty"`    // CA 提供商授权记录 ID
 	CAProviderConfig      map[string]any `json:"caProviderConfig,omitempty"`      // CA 提供商额外配置
+	KeyAlgorithm          string         `json:"keyAlgorithm,omitempty"`          // 证书算法
+	ValidityLifetime      string         `json:"validityLifetime,omitempty"`      // 证书有效期，形如 "30d"、"6h"
 	ACMEProfile           string         `json:"acmeProfile,omitempty"`           // ACME Profiles Extension
 	Nameservers           []string       `json:"nameservers,omitempty"`           // DNS 服务器列表，以半角分号分隔
 	DnsPropagationWait    int32          `json:"dnsPropagationWait,omitempty"`    // DNS 传播等待时间，等同于 lego 的 `--dns-propagation-wait` 参数

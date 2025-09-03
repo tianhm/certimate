@@ -4,7 +4,7 @@ import { Link } from "react-router";
 import { type FlowNodeEntity, getNodeForm } from "@flowgram.ai/fixed-layout-editor";
 import { IconChevronRight, IconCircleMinus, IconPlus } from "@tabler/icons-react";
 import { useControllableValue, useMount } from "ahooks";
-import { type AnchorProps, AutoComplete, Button, Divider, Flex, Form, type FormInstance, Input, InputNumber, Select, Switch, Typography } from "antd";
+import { type AnchorProps, AutoComplete, Button, Divider, Flex, Form, type FormInstance, Input, InputNumber, Select, Space, Switch, Typography } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
@@ -318,8 +318,19 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
           </Form.Item>
 
           <Form.Item
+            name="validityLifetime"
+            label={t("workflow_node.apply.form.validity_lifetime.label")}
+            extra={t("workflow_node.apply.form.validity_lifetime.help")}
+            rules={[formRule]}
+            tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.apply.form.validity_lifetime.tooltip") }}></span>}
+          >
+            <InternalValidityLifetimeInput placeholder={t("workflow_node.apply.form.validity_lifetime.placeholder")} />
+          </Form.Item>
+
+          <Form.Item
             name="acmeProfile"
             label={t("workflow_node.apply.form.acme_profile.label")}
+            extra={t("workflow_node.apply.form.acme_profile.help")}
             rules={[formRule]}
             tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.apply.form.acme_profile.tooltip") }}></span>}
           >
@@ -526,6 +537,82 @@ const InternalEmailInput = memo(
   }
 );
 
+const InternalValidityLifetimeInput = memo(
+  ({ disabled, placeholder, ...props }: { disabled?: boolean; placeholder?: string; value?: string; onChange?: (value: string) => void }) => {
+    const { t } = useTranslation();
+
+    const [value, setValue] = useControllableValue<string>(props, {
+      valuePropName: "value",
+      defaultValuePropName: "defaultValue",
+      trigger: "onChange",
+    });
+
+    const parseCombinedValue = (val: string): [string | undefined, string | undefined] => {
+      const match = String(val).match(/^(\d+)([a-zA-Z]+)$/);
+      if (match) {
+        return [match[1], match[2]];
+      }
+
+      return [undefined, undefined];
+    };
+
+    const [inputValue, setInputValue] = useState(parseCombinedValue(value)[0]);
+    const [selectValue, setSelectValue] = useState(parseCombinedValue(value)[1] || "d");
+    useEffect(() => {
+      const [v, u] = parseCombinedValue(value);
+      setInputValue(v);
+      setSelectValue(u || "d");
+    }, [value]);
+
+    const handleInputClear = () => {
+      setValue("");
+    };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setInputValue(e.currentTarget.value);
+
+      if (e.currentTarget.value) {
+        setValue(`${e.currentTarget.value}${selectValue}`);
+      } else {
+        setValue("");
+      }
+    };
+
+    const handleSelectChange = (value: string) => {
+      setSelectValue(value);
+
+      if (inputValue) {
+        setValue(`${inputValue}${value}`);
+      }
+    };
+
+    return (
+      <Space.Compact className="w-full">
+        <Input
+          allowClear
+          disabled={disabled}
+          placeholder={placeholder}
+          type="number"
+          value={inputValue}
+          onChange={handleInputChange}
+          onClear={handleInputClear}
+        />
+        <div className="w-24">
+          <Select
+            options={["h", "d"].map((s) => ({
+              key: s,
+              label: t(`workflow_node.apply.form.validity_lifetime.units.${s}`),
+              value: s,
+            }))}
+            value={selectValue}
+            onChange={handleSelectChange}
+          />
+        </div>
+      </Space.Compact>
+    );
+  }
+);
+
 const getAnchorItems = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }): Required<AnchorProps>["items"] => {
   const { t } = i18n;
 
@@ -595,6 +682,13 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
         (v) => (v == null || v === "" ? void 0 : Number(v)),
         z.number().int(t("workflow_node.apply.form.dns_ttl.placeholder")).gte(1, t("workflow_node.apply.form.dns_ttl.placeholder")).nullish()
       ),
+      validityLifetime: z
+        .string()
+        .nullish()
+        .refine((v) => {
+          if (!v) return true;
+          return /^\d+[d|h]$/.test(v) && parseInt(v) > 0;
+        }, t("workflow_node.apply.form.validity_lifetime.placeholder")),
       acmeProfile: z.string().nullish(),
       disableFollowCNAME: z.boolean().nullish(),
       disableARI: z.boolean().nullish(),

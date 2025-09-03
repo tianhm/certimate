@@ -102,6 +102,7 @@ export type WorkflowNodeConfigForBizApply = {
   caProviderAccessId?: string;
   caProviderConfig?: Record<string, unknown>;
   keyAlgorithm: string;
+  validityLifetime?: string;
   acmeProfile?: string;
   nameservers?: string;
   dnsPropagationTimeout?: number;

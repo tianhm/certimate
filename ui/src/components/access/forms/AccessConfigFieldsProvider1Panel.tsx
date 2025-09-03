@@ -21,6 +21,7 @@ const AccessConfigFormFieldsProvider1Panel = () => {
         name={[parentNamePath, "serverUrl"]}
         initialValue={initialValues.serverUrl}
         label={t("access.form.1panel_server_url.label")}
+        extra={t("access.form.1panel_server_url.help")}
         rules={[formRule]}
       >
         <Input placeholder={t("access.form.1panel_server_url.placeholder")} />

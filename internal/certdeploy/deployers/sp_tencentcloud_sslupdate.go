@@ -14,19 +14,19 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeTencentCloudSSLUpdate, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
-		access := domain.AccessConfigForTencentCloud{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForTencentCloud{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := tencentcloudsslupdate.NewSSLDeployerProvider(&tencentcloudsslupdate.SSLDeployerProviderConfig{
-			SecretId:        access.SecretId,
-			SecretKey:       access.SecretKey,
-			Endpoint:        xmaps.GetString(options.ProviderConfig, "endpoint"),
-			CertificateId:   xmaps.GetString(options.ProviderConfig, "certificateId"),
-			IsReplaced:      xmaps.GetBool(options.ProviderConfig, "isReplaced"),
-			ResourceTypes:   lo.Filter(strings.Split(xmaps.GetString(options.ProviderConfig, "resourceTypes"), ";"), func(s string, _ int) bool { return s != "" }),
-			ResourceRegions: lo.Filter(strings.Split(xmaps.GetString(options.ProviderConfig, "resourceRegions"), ";"), func(s string, _ int) bool { return s != "" }),
+			SecretId:        credentials.SecretId,
+			SecretKey:       credentials.SecretKey,
+			Endpoint:        xmaps.GetString(options.ProviderExtendedConfig, "endpoint"),
+			CertificateId:   xmaps.GetString(options.ProviderExtendedConfig, "certificateId"),
+			IsReplaced:      xmaps.GetBool(options.ProviderExtendedConfig, "isReplaced"),
+			ResourceTypes:   lo.Filter(strings.Split(xmaps.GetString(options.ProviderExtendedConfig, "resourceTypes"), ";"), func(s string, _ int) bool { return s != "" }),
+			ResourceRegions: lo.Filter(strings.Split(xmaps.GetString(options.ProviderExtendedConfig, "resourceRegions"), ";"), func(s string, _ int) bool { return s != "" }),
 		})
 		return provider, err
 	}); err != nil {

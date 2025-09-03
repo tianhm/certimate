@@ -11,20 +11,20 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.NotificationProviderTypeEmail, func(options *ProviderFactoryOptions) (core.Notifier, error) {
-		access := domain.AccessConfigForEmail{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForEmail{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := email.NewNotifierProvider(&email.NotifierProviderConfig{
-			SmtpHost:        access.SmtpHost,
-			SmtpPort:        access.SmtpPort,
-			SmtpTls:         access.SmtpTls,
-			Username:        access.Username,
-			Password:        access.Password,
-			SenderAddress:   access.SenderAddress,
-			SenderName:      access.SenderName,
-			ReceiverAddress: xmaps.GetOrDefaultString(options.ProviderConfig, "receiverAddress", access.ReceiverAddress),
+			SmtpHost:        credentials.SmtpHost,
+			SmtpPort:        credentials.SmtpPort,
+			SmtpTls:         credentials.SmtpTls,
+			Username:        credentials.Username,
+			Password:        credentials.Password,
+			SenderAddress:   credentials.SenderAddress,
+			SenderName:      credentials.SenderName,
+			ReceiverAddress: xmaps.GetOrDefaultString(options.ProviderExtendedConfig, "receiverAddress", credentials.ReceiverAddress),
 		})
 		return provider, err
 	}); err != nil {

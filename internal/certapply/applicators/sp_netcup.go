@@ -12,15 +12,15 @@ import (
 
 func init() {
 	if err := ACMEDns01Registries.Register(domain.ACMEDns01ProviderTypeNetcup, func(options *ProviderFactoryOptions) (challenge.Provider, error) {
-		access := domain.AccessConfigForNetcup{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForNetcup{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := netcup.NewChallengeProvider(&netcup.ChallengeProviderConfig{
-			CustomerNumber:        access.CustomerNumber,
-			ApiKey:                access.ApiKey,
-			ApiPassword:           access.ApiPassword,
+			CustomerNumber:        credentials.CustomerNumber,
+			ApiKey:                credentials.ApiKey,
+			ApiPassword:           credentials.ApiPassword,
 			DnsPropagationTimeout: options.DnsPropagationTimeout,
 			DnsTTL:                options.DnsTTL,
 		})

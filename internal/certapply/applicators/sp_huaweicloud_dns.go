@@ -12,15 +12,15 @@ import (
 
 func init() {
 	if err := ACMEDns01Registries.Register(domain.ACMEDns01ProviderTypeHuaweiCloudDNS, func(options *ProviderFactoryOptions) (challenge.Provider, error) {
-		access := domain.AccessConfigForHuaweiCloud{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForHuaweiCloud{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := huaweicloud.NewChallengeProvider(&huaweicloud.ChallengeProviderConfig{
-			AccessKeyId:           access.AccessKeyId,
-			SecretAccessKey:       access.SecretAccessKey,
-			Region:                xmaps.GetString(options.ProviderConfig, "region"),
+			AccessKeyId:           credentials.AccessKeyId,
+			SecretAccessKey:       credentials.SecretAccessKey,
+			Region:                xmaps.GetString(options.ProviderExtendedConfig, "region"),
 			DnsPropagationTimeout: options.DnsPropagationTimeout,
 			DnsTTL:                options.DnsTTL,
 		})

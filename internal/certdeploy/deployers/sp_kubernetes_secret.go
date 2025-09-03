@@ -11,18 +11,18 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeKubernetesSecret, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
-		access := domain.AccessConfigForKubernetes{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForKubernetes{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := k8ssecret.NewSSLDeployerProvider(&k8ssecret.SSLDeployerProviderConfig{
-			KubeConfig:          access.KubeConfig,
-			Namespace:           xmaps.GetOrDefaultString(options.ProviderConfig, "namespace", "default"),
-			SecretName:          xmaps.GetString(options.ProviderConfig, "secretName"),
-			SecretType:          xmaps.GetOrDefaultString(options.ProviderConfig, "secretType", "kubernetes.io/tls"),
-			SecretDataKeyForCrt: xmaps.GetOrDefaultString(options.ProviderConfig, "secretDataKeyForCrt", "tls.crt"),
-			SecretDataKeyForKey: xmaps.GetOrDefaultString(options.ProviderConfig, "secretDataKeyForKey", "tls.key"),
+			KubeConfig:          credentials.KubeConfig,
+			Namespace:           xmaps.GetOrDefaultString(options.ProviderExtendedConfig, "namespace", "default"),
+			SecretName:          xmaps.GetString(options.ProviderExtendedConfig, "secretName"),
+			SecretType:          xmaps.GetOrDefaultString(options.ProviderExtendedConfig, "secretType", "kubernetes.io/tls"),
+			SecretDataKeyForCrt: xmaps.GetOrDefaultString(options.ProviderExtendedConfig, "secretDataKeyForCrt", "tls.crt"),
+			SecretDataKeyForKey: xmaps.GetOrDefaultString(options.ProviderExtendedConfig, "secretDataKeyForKey", "tls.key"),
 		})
 		return provider, err
 	}); err != nil {

@@ -1,24 +1,37 @@
 package domain
 
-import "encoding/json"
+import (
+	xmaps "github.com/certimate-go/certimate/pkg/utils/maps"
+)
 
 const CollectionNameSettings = "settings"
 
 type Settings struct {
 	Meta
-	Name    string `json:"name" db:"name"`
-	Content string `json:"content" db:"content"`
+	Name    string          `json:"name" db:"name"`
+	Content SettingsContent `json:"content" db:"content"`
 }
 
-type SettingsContentAsPersistence struct {
+type SettingsContent map[string]any
+
+type SettingsContentForSSLProvider struct {
+	Provider CAProviderType                    `json:"provider"`
+	Config   map[CAProviderType]map[string]any `json:"config"`
+}
+
+type SettingsContentForPersistence struct {
 	WorkflowRunsMaxDaysRetention        int `json:"workflowRunsMaxDaysRetention"`
 	ExpiredCertificatesMaxDaysRetention int `json:"expiredCertificatesMaxDaysRetention"`
 }
 
-func (s *Settings) UnmarshalContentAsPersistence() (*SettingsContentAsPersistence, error) {
-	var content *SettingsContentAsPersistence
-	if err := json.Unmarshal([]byte(s.Content), &content); err != nil {
-		return nil, err
-	}
-	return content, nil
+func (c SettingsContent) AsSSLProvider() *SettingsContentForSSLProvider {
+	content := &SettingsContentForSSLProvider{}
+	xmaps.Populate(c, content)
+	return content
+}
+
+func (c SettingsContent) AsPersistence() *SettingsContentForPersistence {
+	content := &SettingsContentForPersistence{}
+	xmaps.Populate(c, content)
+	return content
 }

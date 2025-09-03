@@ -14,18 +14,18 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeBaotaPanelSite, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
-		access := domain.AccessConfigForBaotaPanel{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForBaotaPanel{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := baotapanelsite.NewSSLDeployerProvider(&baotapanelsite.SSLDeployerProviderConfig{
-			ServerUrl:                access.ServerUrl,
-			ApiKey:                   access.ApiKey,
-			AllowInsecureConnections: access.AllowInsecureConnections,
-			SiteType:                 xmaps.GetOrDefaultString(options.ProviderConfig, "siteType", "other"),
-			SiteName:                 xmaps.GetString(options.ProviderConfig, "siteName"),
-			SiteNames:                lo.Filter(strings.Split(xmaps.GetString(options.ProviderConfig, "siteNames"), ";"), func(s string, _ int) bool { return s != "" }),
+			ServerUrl:                credentials.ServerUrl,
+			ApiKey:                   credentials.ApiKey,
+			AllowInsecureConnections: credentials.AllowInsecureConnections,
+			SiteType:                 xmaps.GetOrDefaultString(options.ProviderExtendedConfig, "siteType", "other"),
+			SiteName:                 xmaps.GetString(options.ProviderExtendedConfig, "siteName"),
+			SiteNames:                lo.Filter(strings.Split(xmaps.GetString(options.ProviderExtendedConfig, "siteNames"), ";"), func(s string, _ int) bool { return s != "" }),
 		})
 		return provider, err
 	}); err != nil {

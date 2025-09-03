@@ -21,6 +21,7 @@ type DeployerWithWorkflowNodeConfig struct {
 	PrivateKeyPEM  string
 }
 
+// TODO: refactor
 func NewWithWorkflowNode(config DeployerWithWorkflowNodeConfig) (Deployer, error) {
 	if config.Node == nil {
 		return nil, fmt.Errorf("the node is nil")
@@ -31,9 +32,9 @@ func NewWithWorkflowNode(config DeployerWithWorkflowNodeConfig) (Deployer, error
 
 	nodeCfg := config.Node.Data.Config.AsBizDeploy()
 	options := &deployerProviderOptions{
-		Provider:              domain.DeploymentProviderType(nodeCfg.Provider),
-		ProviderAccessConfig:  make(map[string]any),
-		ProviderServiceConfig: nodeCfg.ProviderConfig,
+		Provider:               domain.DeploymentProviderType(nodeCfg.Provider),
+		ProviderAccessConfig:   make(map[string]any),
+		ProviderExtendedConfig: nodeCfg.ProviderConfig,
 	}
 
 	accessRepo := repository.NewAccessRepository()

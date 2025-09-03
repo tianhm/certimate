@@ -11,18 +11,18 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeProxmoxVE, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
-		access := domain.AccessConfigForProxmoxVE{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForProxmoxVE{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := proxmoxve.NewSSLDeployerProvider(&proxmoxve.SSLDeployerProviderConfig{
-			ServerUrl:                access.ServerUrl,
-			ApiToken:                 access.ApiToken,
-			ApiTokenSecret:           access.ApiTokenSecret,
-			AllowInsecureConnections: access.AllowInsecureConnections,
-			NodeName:                 xmaps.GetString(options.ProviderConfig, "nodeName"),
-			AutoRestart:              xmaps.GetBool(options.ProviderConfig, "autoRestart"),
+			ServerUrl:                credentials.ServerUrl,
+			ApiToken:                 credentials.ApiToken,
+			ApiTokenSecret:           credentials.ApiTokenSecret,
+			AllowInsecureConnections: credentials.AllowInsecureConnections,
+			NodeName:                 xmaps.GetString(options.ProviderExtendedConfig, "nodeName"),
+			AutoRestart:              xmaps.GetBool(options.ProviderExtendedConfig, "autoRestart"),
 		})
 		return provider, err
 	}); err != nil {

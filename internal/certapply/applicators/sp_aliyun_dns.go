@@ -12,14 +12,14 @@ import (
 
 func init() {
 	if err := ACMEDns01Registries.Register(domain.ACMEDns01ProviderTypeAliyunDNS, func(options *ProviderFactoryOptions) (challenge.Provider, error) {
-		access := domain.AccessConfigForAliyun{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForAliyun{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := aliyun.NewChallengeProvider(&aliyun.ChallengeProviderConfig{
-			AccessKeyId:           access.AccessKeyId,
-			AccessKeySecret:       access.AccessKeySecret,
+			AccessKeyId:           credentials.AccessKeyId,
+			AccessKeySecret:       credentials.AccessKeySecret,
 			DnsPropagationTimeout: options.DnsPropagationTimeout,
 			DnsTTL:                options.DnsTTL,
 		})

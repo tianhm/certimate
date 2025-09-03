@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 
 	"github.com/certimate-go/certimate/internal/app"
 	"github.com/certimate-go/certimate/internal/domain"
@@ -85,12 +84,12 @@ func (r *WorkflowLogRepository) Save(ctx context.Context, workflowLog *domain.Wo
 
 func (r *WorkflowLogRepository) castRecordToModel(record *core.Record) (*domain.WorkflowLog, error) {
 	if record == nil {
-		return nil, fmt.Errorf("the record is nil")
+		return nil, errors.New("the record is nil")
 	}
 
 	logdata := make(map[string]any)
 	if err := record.UnmarshalJSONField("data", &logdata); err != nil {
-		return nil, fmt.Errorf("field 'data' is malformed")
+		return nil, errors.New("field 'data' is malformed")
 	}
 
 	workflowLog := &domain.WorkflowLog{

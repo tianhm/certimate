@@ -198,8 +198,8 @@ func (s *CertificateService) cleanupExpiredCertificates(ctx context.Context) err
 		return err
 	}
 
-	persistenceSettings, _ := settings.UnmarshalContentAsPersistence()
-	if persistenceSettings != nil && persistenceSettings.ExpiredCertificatesMaxDaysRetention != 0 {
+	persistenceSettings := settings.Content.AsPersistence()
+	if persistenceSettings.ExpiredCertificatesMaxDaysRetention != 0 {
 		ret, err := s.certificateRepo.DeleteWhere(
 			context.Background(),
 			dbx.NewExp(fmt.Sprintf("validityNotAfter<DATETIME('now', '-%d days')", persistenceSettings.ExpiredCertificatesMaxDaysRetention)),

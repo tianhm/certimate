@@ -12,14 +12,14 @@ import (
 
 func init() {
 	if err := ACMEDns01Registries.Register(domain.ACMEDns01ProviderTypeGoDaddy, func(options *ProviderFactoryOptions) (challenge.Provider, error) {
-		access := domain.AccessConfigForGoDaddy{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForGoDaddy{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := godaddy.NewChallengeProvider(&godaddy.ChallengeProviderConfig{
-			ApiKey:                access.ApiKey,
-			ApiSecret:             access.ApiSecret,
+			ApiKey:                credentials.ApiKey,
+			ApiSecret:             credentials.ApiSecret,
 			DnsPropagationTimeout: options.DnsPropagationTimeout,
 			DnsTTL:                options.DnsTTL,
 		})

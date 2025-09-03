@@ -7,9 +7,9 @@ import (
 )
 
 type deployerProviderOptions struct {
-	Provider              domain.DeploymentProviderType
-	ProviderAccessConfig  map[string]any
-	ProviderServiceConfig map[string]any
+	Provider               domain.DeploymentProviderType
+	ProviderAccessConfig   map[string]any
+	ProviderExtendedConfig map[string]any
 }
 
 func createSSLDeployerProvider(options *deployerProviderOptions) (core.SSLDeployer, error) {
@@ -19,7 +19,7 @@ func createSSLDeployerProvider(options *deployerProviderOptions) (core.SSLDeploy
 	}
 
 	return provider(&deployers.ProviderFactoryOptions{
-		AccessConfig:   options.ProviderAccessConfig,
-		ProviderConfig: options.ProviderServiceConfig,
+		ProviderAccessConfig:   options.ProviderAccessConfig,
+		ProviderExtendedConfig: options.ProviderExtendedConfig,
 	})
 }

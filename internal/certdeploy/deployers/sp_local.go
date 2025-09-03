@@ -10,18 +10,18 @@ import (
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeLocal, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
 		provider, err := local.NewSSLDeployerProvider(&local.SSLDeployerProviderConfig{
-			ShellEnv:                 local.ShellEnvType(xmaps.GetString(options.ProviderConfig, "shellEnv")),
-			PreCommand:               xmaps.GetString(options.ProviderConfig, "preCommand"),
-			PostCommand:              xmaps.GetString(options.ProviderConfig, "postCommand"),
-			OutputFormat:             local.OutputFormatType(xmaps.GetOrDefaultString(options.ProviderConfig, "format", string(local.OUTPUT_FORMAT_PEM))),
-			OutputCertPath:           xmaps.GetString(options.ProviderConfig, "certPath"),
-			OutputServerCertPath:     xmaps.GetString(options.ProviderConfig, "certPathForServerOnly"),
-			OutputIntermediaCertPath: xmaps.GetString(options.ProviderConfig, "certPathForIntermediaOnly"),
-			OutputKeyPath:            xmaps.GetString(options.ProviderConfig, "keyPath"),
-			PfxPassword:              xmaps.GetString(options.ProviderConfig, "pfxPassword"),
-			JksAlias:                 xmaps.GetString(options.ProviderConfig, "jksAlias"),
-			JksKeypass:               xmaps.GetString(options.ProviderConfig, "jksKeypass"),
-			JksStorepass:             xmaps.GetString(options.ProviderConfig, "jksStorepass"),
+			ShellEnv:                 local.ShellEnvType(xmaps.GetString(options.ProviderExtendedConfig, "shellEnv")),
+			PreCommand:               xmaps.GetString(options.ProviderExtendedConfig, "preCommand"),
+			PostCommand:              xmaps.GetString(options.ProviderExtendedConfig, "postCommand"),
+			OutputFormat:             local.OutputFormatType(xmaps.GetOrDefaultString(options.ProviderExtendedConfig, "format", string(local.OUTPUT_FORMAT_PEM))),
+			OutputCertPath:           xmaps.GetString(options.ProviderExtendedConfig, "certPath"),
+			OutputServerCertPath:     xmaps.GetString(options.ProviderExtendedConfig, "certPathForServerOnly"),
+			OutputIntermediaCertPath: xmaps.GetString(options.ProviderExtendedConfig, "certPathForIntermediaOnly"),
+			OutputKeyPath:            xmaps.GetString(options.ProviderExtendedConfig, "keyPath"),
+			PfxPassword:              xmaps.GetString(options.ProviderExtendedConfig, "pfxPassword"),
+			JksAlias:                 xmaps.GetString(options.ProviderExtendedConfig, "jksAlias"),
+			JksKeypass:               xmaps.GetString(options.ProviderExtendedConfig, "jksKeypass"),
+			JksStorepass:             xmaps.GetString(options.ProviderExtendedConfig, "jksStorepass"),
 		})
 		return provider, err
 	}); err != nil {

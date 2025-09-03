@@ -12,16 +12,16 @@ import (
 
 func init() {
 	if err := ACMEDns01Registries.Register(domain.ACMEDns01ProviderTypeAWSRoute53, func(options *ProviderFactoryOptions) (challenge.Provider, error) {
-		access := domain.AccessConfigForAWS{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForAWS{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := awsroute53.NewChallengeProvider(&awsroute53.ChallengeProviderConfig{
-			AccessKeyId:           access.AccessKeyId,
-			SecretAccessKey:       access.SecretAccessKey,
-			Region:                xmaps.GetString(options.ProviderConfig, "region"),
-			HostedZoneId:          xmaps.GetString(options.ProviderConfig, "hostedZoneId"),
+			AccessKeyId:           credentials.AccessKeyId,
+			SecretAccessKey:       credentials.SecretAccessKey,
+			Region:                xmaps.GetString(options.ProviderExtendedConfig, "region"),
+			HostedZoneId:          xmaps.GetString(options.ProviderExtendedConfig, "hostedZoneId"),
 			DnsPropagationTimeout: options.DnsPropagationTimeout,
 			DnsTTL:                options.DnsTTL,
 		})

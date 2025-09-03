@@ -12,13 +12,13 @@ import (
 
 func init() {
 	if err := ACMEDns01Registries.Register(domain.ACMEDns01ProviderTypeNS1, func(options *ProviderFactoryOptions) (challenge.Provider, error) {
-		access := domain.AccessConfigForNS1{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForNS1{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := ns1.NewChallengeProvider(&ns1.ChallengeProviderConfig{
-			ApiKey:                access.ApiKey,
+			ApiKey:                credentials.ApiKey,
 			DnsPropagationTimeout: options.DnsPropagationTimeout,
 			DnsTTL:                options.DnsTTL,
 		})

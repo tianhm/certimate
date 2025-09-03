@@ -11,19 +11,19 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeWangsuCDNPro, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
-		access := domain.AccessConfigForWangsu{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForWangsu{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := wangsucdnpro.NewSSLDeployerProvider(&wangsucdnpro.SSLDeployerProviderConfig{
-			AccessKeyId:     access.AccessKeyId,
-			AccessKeySecret: access.AccessKeySecret,
-			ApiKey:          access.ApiKey,
-			Environment:     xmaps.GetOrDefaultString(options.ProviderConfig, "environment", "production"),
-			Domain:          xmaps.GetString(options.ProviderConfig, "domain"),
-			CertificateId:   xmaps.GetString(options.ProviderConfig, "certificateId"),
-			WebhookId:       xmaps.GetString(options.ProviderConfig, "webhookId"),
+			AccessKeyId:     credentials.AccessKeyId,
+			AccessKeySecret: credentials.AccessKeySecret,
+			ApiKey:          credentials.ApiKey,
+			Environment:     xmaps.GetOrDefaultString(options.ProviderExtendedConfig, "environment", "production"),
+			Domain:          xmaps.GetString(options.ProviderExtendedConfig, "domain"),
+			CertificateId:   xmaps.GetString(options.ProviderExtendedConfig, "certificateId"),
+			WebhookId:       xmaps.GetString(options.ProviderExtendedConfig, "webhookId"),
 		})
 		return provider, err
 	}); err != nil {

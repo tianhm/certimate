@@ -11,18 +11,18 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeCTCCCloudELB, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
-		access := domain.AccessConfigForCTCCCloud{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForCTCCCloud{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := ctcccloudelb.NewSSLDeployerProvider(&ctcccloudelb.SSLDeployerProviderConfig{
-			AccessKeyId:     access.AccessKeyId,
-			SecretAccessKey: access.SecretAccessKey,
-			RegionId:        xmaps.GetString(options.ProviderConfig, "regionId"),
-			ResourceType:    ctcccloudelb.ResourceType(xmaps.GetString(options.ProviderConfig, "resourceType")),
-			LoadbalancerId:  xmaps.GetString(options.ProviderConfig, "loadbalancerId"),
-			ListenerId:      xmaps.GetString(options.ProviderConfig, "listenerId"),
+			AccessKeyId:     credentials.AccessKeyId,
+			SecretAccessKey: credentials.SecretAccessKey,
+			RegionId:        xmaps.GetString(options.ProviderExtendedConfig, "regionId"),
+			ResourceType:    ctcccloudelb.ResourceType(xmaps.GetString(options.ProviderExtendedConfig, "resourceType")),
+			LoadbalancerId:  xmaps.GetString(options.ProviderExtendedConfig, "loadbalancerId"),
+			ListenerId:      xmaps.GetString(options.ProviderExtendedConfig, "listenerId"),
 		})
 		return provider, err
 	}); err != nil {

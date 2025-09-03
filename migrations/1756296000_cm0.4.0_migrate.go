@@ -35,6 +35,162 @@ func init() {
 			}
 		}
 
+		// update collection `acme_accounts`
+		//   - add field `acmeAcctUrl`
+		//   - add field `acmeDirUrl`
+		//   - rename field `key` to `privateKey`
+		//   - rename field `resource` to `acmeAccount`
+		//   - migrate field `acmeAccount`
+		{
+			collection, err := app.FindCollectionByNameOrId("012d7abbod1hwvr")
+			if err != nil {
+				return err
+			}
+
+			if err := collection.Fields.AddMarshaledJSONAt(5, []byte(`{
+					"exceptDomains": null,
+					"hidden": false,
+					"id": "url2424532088",
+					"name": "acmeAcctUrl",
+					"onlyDomains": null,
+					"presentable": false,
+					"required": false,
+					"system": false,
+					"type": "url"
+				}`)); err != nil {
+				return err
+			}
+
+			if err := collection.Fields.AddMarshaledJSONAt(6, []byte(`{
+					"exceptDomains": null,
+					"hidden": false,
+					"id": "url3632694140",
+					"name": "acmeDirUrl",
+					"onlyDomains": null,
+					"presentable": false,
+					"required": false,
+					"system": false,
+					"type": "url"
+				}`)); err != nil {
+				return err
+			}
+
+			if err := collection.Fields.AddMarshaledJSONAt(3, []byte(`{
+					"autogeneratePattern": "",
+					"hidden": false,
+					"id": "genxqtii",
+					"max": 0,
+					"min": 0,
+					"name": "privateKey",
+					"pattern": "",
+					"presentable": false,
+					"primaryKey": false,
+					"required": false,
+					"system": false,
+					"type": "text"
+				}`)); err != nil {
+				return err
+			}
+
+			if err := collection.Fields.AddMarshaledJSONAt(4, []byte(`{
+					"hidden": false,
+					"id": "1aoia909",
+					"maxSize": 2000000,
+					"name": "acmeAccount",
+					"presentable": false,
+					"required": false,
+					"system": false,
+					"type": "json"
+				}`)); err != nil {
+				return err
+			}
+
+			if err := app.Save(collection); err != nil {
+				return err
+			}
+
+			records, err := app.FindAllRecords(collection)
+			if err != nil {
+				return err
+			}
+
+			for _, record := range records {
+				changed := false
+				deleted := false
+
+				resource := make(map[string]any)
+				if err := record.UnmarshalJSONField("acmeAccount", &resource); err != nil {
+					return err
+				}
+
+				if _, ok := resource["body"]; ok {
+					record.Set("acmeAcctUrl", resource["uri"].(string))
+					record.Set("acmeAccount", resource["body"].(map[string]any))
+					changed = true
+				}
+
+				ca := record.GetString("ca")
+				if strings.Contains(ca, "#") {
+					record.Set("ca", strings.Split(ca, "#")[0])
+					if access, err := app.FindRecordById("access", strings.Split(ca, "#")[1]); err != nil {
+						deleted = true
+					} else {
+						switch access.GetString("provider") {
+						case "buypass":
+							record.Set("acmeDirUrl", "https://api.buypass.com/acme/directory")
+							changed = true
+
+						case "googletrustservices":
+							record.Set("acmeDirUrl", "https://dv.acme-v02.api.pki.goog/directory")
+							changed = true
+
+						case "sslcom":
+							record.Set("acmeDirUrl", "https://acme.ssl.com/sslcom-dv-rsa")
+							changed = true
+
+						case "zerossl":
+							record.Set("acmeDirUrl", "https://acme.zerossl.com/v2/DV90")
+							changed = true
+
+						case "acmeca":
+							accessConfig := make(map[string]any)
+							access.UnmarshalJSONField("config", &accessConfig)
+							record.Set("acmeDirUrl", accessConfig["endpoint"].(string))
+							changed = true
+						}
+					}
+				} else {
+					switch ca {
+					case "letsencrypt":
+						record.Set("acmeDirUrl", "https://acme-v02.api.letsencrypt.org/directory")
+						changed = true
+
+					case "letsencryptstaging":
+						record.Set("acmeDirUrl", "https://acme-staging-v02.api.letsencrypt.org/directory")
+						changed = true
+					}
+				}
+
+				if changed {
+					if err := app.Save(record); err != nil {
+						return err
+					}
+
+					tracer.Printf("record #%s in collection '%s' updated", record.Id, collection.Name)
+				}
+
+				if deleted {
+					if err := app.Delete(record); err != nil {
+						return err
+					}
+
+					tracer.Printf("record #%s in collection '%s' deleted", record.Id, collection.Name)
+				}
+			}
+
+			tracer.Printf("collection '%s' updated", collection.Name)
+		}
+
 		// update collection `access`
 		//   - modify field `config` schema: rename property `defaultReceiver` to `receiver`
 		//   - modify field `reserve` candidates
@@ -153,6 +309,7 @@ func init() {
 		//   - modify field `source` candidates
 		//   - rename field `effectAt` to `validityNotBefore`
 		//   - rename field `expireAt` to `validityNotAfter`
+		//   - rename field `acmeAccountUrl` to `acmeAcctUrl`
 		//   - rename field `workflowId` to `workflowRef`
 		//   - rename field `workflowRunId` to `workflowRunRef`
 		//   - rename field `workflowOutputId`(aka `workflowOutputRef`)
@@ -202,6 +359,23 @@ func init() {
 					"required": false,
 					"system": false,
 					"type": "date"
+				}`)); err != nil {
+					return err
+				}
+
+				if err := collection.Fields.AddMarshaledJSONAt(11, []byte(`{
+					"autogeneratePattern": "",
+					"hidden": false,
+					"id": "text2045248758",
+					"max": 0,
+					"min": 0,
+					"name": "acmeAcctUrl",
+					"pattern": "",
+					"presentable": false,
+					"primaryKey": false,
+					"required": false,
+					"system": false,
+					"type": "text"
 				}`)); err != nil {
 					return err
 				}

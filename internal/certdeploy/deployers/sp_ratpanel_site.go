@@ -11,17 +11,17 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeRatPanelSite, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
-		access := domain.AccessConfigForRatPanel{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForRatPanel{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := ratpanelsite.NewSSLDeployerProvider(&ratpanelsite.SSLDeployerProviderConfig{
-			ServerUrl:                access.ServerUrl,
-			AccessTokenId:            access.AccessTokenId,
-			AccessToken:              access.AccessToken,
-			AllowInsecureConnections: access.AllowInsecureConnections,
-			SiteName:                 xmaps.GetString(options.ProviderConfig, "siteName"),
+			ServerUrl:                credentials.ServerUrl,
+			AccessTokenId:            credentials.AccessTokenId,
+			AccessToken:              credentials.AccessToken,
+			AllowInsecureConnections: credentials.AllowInsecureConnections,
+			SiteName:                 xmaps.GetString(options.ProviderExtendedConfig, "siteName"),
 		})
 		return provider, err
 	}); err != nil {

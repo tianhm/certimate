@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 
 	"github.com/certimate-go/certimate/internal/app"
 	"github.com/certimate-go/certimate/internal/domain"
@@ -53,17 +52,17 @@ func (r *WorkflowOutputRepository) Save(ctx context.Context, workflowOutput *dom
 
 func (r *WorkflowOutputRepository) castRecordToModel(record *core.Record) (*domain.WorkflowOutput, error) {
 	if record == nil {
-		return nil, fmt.Errorf("the record is nil")
+		return nil, errors.New("the record is nil")
 	}
 
 	nodeConfig := make(domain.WorkflowNodeConfig)
 	if err := record.UnmarshalJSONField("nodeConfig", &nodeConfig); err != nil {
-		return nil, fmt.Errorf("field 'nodeConfig' is malformed")
+		return nil, errors.New("field 'nodeConfig' is malformed")
 	}
 
 	outputs := make([]*domain.WorkflowOutputEntry, 0)
 	if err := record.UnmarshalJSONField("outputs", &outputs); err != nil {
-		return nil, fmt.Errorf("field 'outputs' is malformed")
+		return nil, errors.New("field 'outputs' is malformed")
 	}
 
 	workflowOutput := &domain.WorkflowOutput{

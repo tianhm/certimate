@@ -11,15 +11,15 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeJDCloudVOD, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
-		access := domain.AccessConfigForJDCloud{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForJDCloud{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := jdcloudvod.NewSSLDeployerProvider(&jdcloudvod.SSLDeployerProviderConfig{
-			AccessKeyId:     access.AccessKeyId,
-			AccessKeySecret: access.AccessKeySecret,
-			Domain:          xmaps.GetString(options.ProviderConfig, "domain"),
+			AccessKeyId:     credentials.AccessKeyId,
+			AccessKeySecret: credentials.AccessKeySecret,
+			Domain:          xmaps.GetString(options.ProviderExtendedConfig, "domain"),
 		})
 		return provider, err
 	}); err != nil {

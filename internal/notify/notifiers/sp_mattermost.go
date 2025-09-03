@@ -11,16 +11,16 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.NotificationProviderTypeMattermost, func(options *ProviderFactoryOptions) (core.Notifier, error) {
-		access := domain.AccessConfigForMattermost{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForMattermost{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := mattermost.NewNotifierProvider(&mattermost.NotifierProviderConfig{
-			ServerUrl: access.ServerUrl,
-			Username:  access.Username,
-			Password:  access.Password,
-			ChannelId: xmaps.GetOrDefaultString(options.ProviderConfig, "channelId", access.ChannelId),
+			ServerUrl: credentials.ServerUrl,
+			Username:  credentials.Username,
+			Password:  credentials.Password,
+			ChannelId: xmaps.GetOrDefaultString(options.ProviderExtendedConfig, "channelId", credentials.ChannelId),
 		})
 		return provider, err
 	}); err != nil {

@@ -3,19 +3,18 @@
 import (
 	"fmt"
 
-	"github.com/go-acme/lego/v4/challenge"
-
 	"github.com/certimate-go/certimate/internal/domain"
+	"github.com/certimate-go/certimate/pkg/core"
 )
 
-type ProviderFactoryFunc func(options *ProviderFactoryOptions) (challenge.Provider, error)
+type ProviderFactoryFunc func(options *ProviderFactoryOptions) (core.ACMEChallenger, error)
 
 type ProviderFactoryOptions struct {
-	AccessConfig          map[string]any
-	ProviderConfig        map[string]any
-	DnsPropagationWait    int32
-	DnsPropagationTimeout int32
-	DnsTTL                int32
+	ProviderAccessConfig   map[string]any
+	ProviderExtendedConfig map[string]any
+	DnsPropagationWait     int32
+	DnsPropagationTimeout  int32
+	DnsTTL                 int32
 }
 
 type Registry[T comparable] interface {

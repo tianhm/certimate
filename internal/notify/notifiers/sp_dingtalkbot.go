@@ -11,14 +11,14 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.NotificationProviderTypeDingTalkBot, func(options *ProviderFactoryOptions) (core.Notifier, error) {
-		access := domain.AccessConfigForDingTalkBot{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForDingTalkBot{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := dingtalkbot.NewNotifierProvider(&dingtalkbot.NotifierProviderConfig{
-			WebhookUrl: access.WebhookUrl,
-			Secret:     access.Secret,
+			WebhookUrl: credentials.WebhookUrl,
+			Secret:     credentials.Secret,
 		})
 		return provider, err
 	}); err != nil {

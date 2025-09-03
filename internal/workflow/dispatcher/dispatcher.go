@@ -61,7 +61,7 @@ type workflowDispatcher struct {
 	workflowRunRepo workflowRunRepository
 	workflowLogRepo workflowLogRepository
 
-	logger *slog.Logger
+	syslog *slog.Logger
 }
 
 var _ WorkflowDispatcher = (*workflowDispatcher)(nil)
@@ -176,7 +176,7 @@ func (wd *workflowDispatcher) Cancel(ctx context.Context, runId string) error {
 		task.cancel()
 		delete(wd.processingTasks, runId)
 
-		wd.logger.Info(fmt.Sprintf("workflow run #%s was canceled", task.RunId))
+		wd.syslog.Info(fmt.Sprintf("workflow run #%s was canceled", task.RunId))
 	}
 
 	for i, pendingRunId := range wd.pendingRunQueue {
@@ -198,7 +198,7 @@ func (wd *workflowDispatcher) tryExecuteAsync(task *taskInfo) {
 	defer func() {
 		if r := recover(); r != nil {
 			slog.Default().Warn(fmt.Sprintf("workflow dispatcher panic: %v, stack trace: %s", r, string(debug.Stack())), slog.Any("workflowId", task.WorkflowId), slog.Any("runId", task.RunId))
-			wd.logger.Error(fmt.Sprintf("workflow dispatcher panic: %v", r), slog.Any("workflowId", task.WorkflowId), slog.Any("runId", task.RunId))
+			wd.syslog.Error(fmt.Sprintf("workflow dispatcher panic: %v", r), slog.Any("workflowId", task.WorkflowId), slog.Any("runId", task.RunId))
 
 			if workflowRun != nil {
 				workflowRun.Status = domain.WorkflowRunStatusTypeFailed
@@ -220,7 +220,7 @@ func (wd *workflowDispatcher) tryExecuteAsync(task *taskInfo) {
 	// 查询运行实体，并级联更新状态
 	if run, err := wd.workflowRunRepo.GetById(task.ctx, task.RunId); err != nil {
 		if !(errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded)) {
-			wd.logger.Error(fmt.Sprintf("failed to get workflow run #%s record", task.RunId), slog.Any("error", err))
+			wd.syslog.Error(fmt.Sprintf("failed to get workflow run #%s record", task.RunId), slog.Any("error", err))
 		}
 		return
 	} else {
@@ -279,7 +279,7 @@ func (wd *workflowDispatcher) tryExecuteAsync(task *taskInfo) {
 		logsBuf = append(logsBuf, log)
 
 		if _, err := wd.workflowLogRepo.Save(ctx, &log); err != nil {
-			wd.logger.Error(err.Error())
+			wd.syslog.Error(err.Error())
 		}
 
 		return nil
@@ -293,21 +293,21 @@ func (wd *workflowDispatcher) tryExecuteAsync(task *taskInfo) {
 		log.Timestamp = record.Time.UnixMilli()
 		log.Level = int32(record.Level)
 		log.Message = record.Message
-		log.Data = record.Data
+		log.Data = record.Data()
 		log.CreatedAt = time.Now()
 		logsBuf = append(logsBuf, log)
 
 		if _, err := wd.workflowLogRepo.Save(ctx, &log); err != nil {
-			wd.logger.Error(err.Error())
+			wd.syslog.Error(err.Error())
 		}
 
 		return nil
 	})
 
 	// 执行工作流
-	wd.logger.Info(fmt.Sprintf("workflow run #%s was started", task.RunId))
+	wd.syslog.Info(fmt.Sprintf("workflow run #%s was started", task.RunId))
 	we.Invoke(task.ctx, workflowRun.WorkflowId, workflowRun.Id, workflowRun.Graph)
-	wd.logger.Info(fmt.Sprintf("workflow run #%s was stopped", task.RunId))
+	wd.syslog.Info(fmt.Sprintf("workflow run #%s was stopped", task.RunId))
 }
 
 func (wd *workflowDispatcher) tryNextAsync() {
@@ -316,7 +316,7 @@ func (wd *workflowDispatcher) tryNextAsync() {
 	for i, pendingRunId := range wd.pendingRunQueue {
 		workflowRun, err := wd.workflowRunRepo.GetById(context.Background(), pendingRunId)
 		if err != nil {
-			wd.logger.Error(fmt.Sprintf("failed to get workflow run #%s record", pendingRunId), slog.Any("error", err))
+			wd.syslog.Error(fmt.Sprintf("failed to get workflow run #%s record", pendingRunId), slog.Any("error", err))
 			continue
 		}
 
@@ -329,9 +329,9 @@ func (wd *workflowDispatcher) tryNextAsync() {
 		}
 
 		if hasSameWorkflowTask {
-			wd.logger.Warn(fmt.Sprintf("workflow run #%s is pending, because tasks that belonging to the same workflow already exists", pendingRunId))
+			wd.syslog.Warn(fmt.Sprintf("workflow run #%s is pending, because tasks that belonging to the same workflow already exists", pendingRunId))
 		} else if len(wd.processingTasks) >= wd.concurrency {
-			wd.logger.Warn(fmt.Sprintf("workflow run #%s is pending, because the maximum concurrency limit has been reached", pendingRunId))
+			wd.syslog.Warn(fmt.Sprintf("workflow run #%s is pending, because the maximum concurrency limit has been reached", pendingRunId))
 		} else {
 			wd.taskMtx.RUnlock()
 			wd.taskMtx.Lock()
@@ -360,6 +360,6 @@ func newWorkflowDispatcher() WorkflowDispatcher {
 		workflowRunRepo: repository.NewWorkflowRunRepository(),
 		workflowLogRepo: repository.NewWorkflowLogRepository(),
 
-		logger: app.GetLogger(),
+		syslog: app.GetLogger(),
 	}
 }

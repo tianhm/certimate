@@ -12,14 +12,14 @@ import (
 
 func init() {
 	if err := ACMEDns01Registries.Register(domain.ACMEDns01ProviderTypeCTCCCloudSmartDNS, func(options *ProviderFactoryOptions) (challenge.Provider, error) {
-		access := domain.AccessConfigForCTCCCloud{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForCTCCCloud{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := ctcccloud.NewChallengeProvider(&ctcccloud.ChallengeProviderConfig{
-			AccessKeyId:           access.AccessKeyId,
-			SecretAccessKey:       access.SecretAccessKey,
+			AccessKeyId:           credentials.AccessKeyId,
+			SecretAccessKey:       credentials.SecretAccessKey,
 			DnsPropagationTimeout: options.DnsPropagationTimeout,
 			DnsTTL:                options.DnsTTL,
 		})

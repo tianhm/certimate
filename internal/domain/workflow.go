@@ -3,7 +3,10 @@ package domain
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
+
+	"github.com/samber/lo"
 
 	"github.com/certimate-go/certimate/internal/domain/expr"
 	xmaps "github.com/certimate-go/certimate/pkg/utils/maps"
@@ -133,8 +136,11 @@ func (c WorkflowNodeConfig) AsBranchBlock() WorkflowNodeConfigForBranchBlock {
 }
 
 func (c WorkflowNodeConfig) AsBizApply() WorkflowNodeConfigForBizApply {
+	domains := lo.Filter(strings.Split(xmaps.GetString(c, "domains"), ";"), func(s string, _ int) bool { return s != "" })
+	nameservers := lo.Filter(strings.Split(xmaps.GetString(c, "nameservers"), ";"), func(s string, _ int) bool { return s != "" })
+
 	return WorkflowNodeConfigForBizApply{
-		Domains:               xmaps.GetString(c, "domains"),
+		Domains:               domains,
 		ContactEmail:          xmaps.GetString(c, "contactEmail"),
 		ChallengeType:         xmaps.GetString(c, "challengeType"),
 		Provider:              xmaps.GetString(c, "provider"),
@@ -145,10 +151,11 @@ func (c WorkflowNodeConfig) AsBizApply() WorkflowNodeConfigForBizApply {
 		CAProviderAccessId:    xmaps.GetString(c, "caProviderAccessId"),
 		CAProviderConfig:      xmaps.GetKVMapAny(c, "caProviderConfig"),
 		ACMEProfile:           xmaps.GetString(c, "acmeProfile"),
-		Nameservers:           xmaps.GetString(c, "nameservers"),
+		Nameservers:           nameservers,
 		DnsPropagationWait:    xmaps.GetInt32(c, "dnsPropagationWait"),
 		DnsPropagationTimeout: xmaps.GetInt32(c, "dnsPropagationTimeout"),
 		DnsTTL:                xmaps.GetInt32(c, "dnsTTL"),
+		HttpDelayWait:         xmaps.GetInt32(c, "httpDelayWait"),
 		DisableFollowCNAME:    xmaps.GetBool(c, "disableFollowCNAME"),
 		DisableARI:            xmaps.GetBool(c, "disableARI"),
 		SkipBeforeExpiryDays:  xmaps.GetInt32(c, "skipBeforeExpiryDays"),
@@ -203,21 +210,22 @@ type WorkflowNodeConfigForBranchBlock struct {
 }
 
 type WorkflowNodeConfigForBizApply struct {
-	Domains               string         `json:"domains"`                         // 域名列表，以半角分号分隔
+	Domains               []string       `json:"domains"`                         // 域名列表，以半角分号分隔
 	ContactEmail          string         `json:"contactEmail"`                    // 联系邮箱
-	ChallengeType         string         `json:"challengeType"`                   // 验证方式。目前仅支持 dns-01
-	Provider              string         `json:"provider"`                        // DNS 提供商
-	ProviderAccessId      string         `json:"providerAccessId"`                // DNS 提供商授权记录 ID
-	ProviderConfig        map[string]any `json:"providerConfig,omitempty"`        // DNS 提供商额外配置
+	ChallengeType         string         `json:"challengeType"`                   // 质询方式
+	Provider              string         `json:"provider"`                        // 质询提供商
+	ProviderAccessId      string         `json:"providerAccessId"`                // 质询提供商授权记录 ID
+	ProviderConfig        map[string]any `json:"providerConfig,omitempty"`        // 质询提供商额外配置
 	KeyAlgorithm          string         `json:"keyAlgorithm,omitempty"`          // 证书算法
 	CAProvider            string         `json:"caProvider,omitempty"`            // CA 提供商（零值时使用全局配置）
 	CAProviderAccessId    string         `json:"caProviderAccessId,omitempty"`    // CA 提供商授权记录 ID
 	CAProviderConfig      map[string]any `json:"caProviderConfig,omitempty"`      // CA 提供商额外配置
 	ACMEProfile           string         `json:"acmeProfile,omitempty"`           // ACME Profiles Extension
-	Nameservers           string         `json:"nameservers,omitempty"`           // DNS 服务器列表，以半角分号分隔
+	Nameservers           []string       `json:"nameservers,omitempty"`           // DNS 服务器列表，以半角分号分隔
 	DnsPropagationWait    int32          `json:"dnsPropagationWait,omitempty"`    // DNS 传播等待时间，等同于 lego 的 `--dns-propagation-wait` 参数
 	DnsPropagationTimeout int32          `json:"dnsPropagationTimeout,omitempty"` // DNS 传播检查超时时间（零值时使用提供商的默认值）
 	DnsTTL                int32          `json:"dnsTTL,omitempty"`                // DNS 解析记录 TTL（零值时使用提供商的默认值）
+	HttpDelayWait         int32          `json:"httpDelayWait,omitempty"`         // HTTP 等待时间
 	DisableFollowCNAME    bool           `json:"disableFollowCNAME,omitempty"`    // 是否关闭 CNAME 跟随
 	DisableARI            bool           `json:"disableARI,omitempty"`            // 是否关闭 ARI
 	SkipBeforeExpiryDays  int32          `json:"skipBeforeExpiryDays,omitempty"`  // 证书到期前多少天前跳过续期

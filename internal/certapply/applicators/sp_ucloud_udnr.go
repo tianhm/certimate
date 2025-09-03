@@ -12,14 +12,14 @@ import (
 
 func init() {
 	if err := ACMEDns01Registries.Register(domain.ACMEDns01ProviderTypeUCloudUDNR, func(options *ProviderFactoryOptions) (challenge.Provider, error) {
-		access := domain.AccessConfigForUCloud{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForUCloud{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := udnr.NewChallengeProvider(&udnr.ChallengeProviderConfig{
-			PrivateKey:            access.PrivateKey,
-			PublicKey:             access.PublicKey,
+			PrivateKey:            credentials.PrivateKey,
+			PublicKey:             credentials.PublicKey,
 			DnsPropagationTimeout: options.DnsPropagationTimeout,
 			DnsTTL:                options.DnsTTL,
 		})

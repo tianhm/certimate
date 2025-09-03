@@ -11,14 +11,14 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.NotificationProviderTypeTelegramBot, func(options *ProviderFactoryOptions) (core.Notifier, error) {
-		access := domain.AccessConfigForTelegramBot{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForTelegramBot{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := telegrambot.NewNotifierProvider(&telegrambot.NotifierProviderConfig{
-			BotToken: access.BotToken,
-			ChatId:   xmaps.GetOrDefaultInt64(options.ProviderConfig, "chatId", access.ChatId),
+			BotToken: credentials.BotToken,
+			ChatId:   xmaps.GetOrDefaultInt64(options.ProviderExtendedConfig, "chatId", credentials.ChatId),
 		})
 		return provider, err
 	}); err != nil {

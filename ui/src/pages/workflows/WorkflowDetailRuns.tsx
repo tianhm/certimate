@@ -15,13 +15,7 @@ import WorkflowStatus from "@/components/workflow/WorkflowStatus";
 import { WORKFLOW_TRIGGERS } from "@/domain/workflow";
 import { WORKFLOW_RUN_STATUSES, type WorkflowRunModel } from "@/domain/workflowRun";
 import { useAppSettings, useZustandShallowSelector } from "@/hooks";
-import {
-  get as getWorkflowRun,
-  list as listWorkflowRuns,
-  remove as removeWorkflowRun,
-  subscribe as subscribeWorkflowRun,
-  unsubscribe as unsubscribeWorkflowRun,
-} from "@/repository/workflowRun";
+import { get as getWorkflowRun, list as listWorkflowRuns, remove as removeWorkflowRun, subscribe as subscribeWorkflowRun } from "@/repository/workflowRun";
 import { useWorkflowStore } from "@/stores/workflow";
 import { getErrMsg } from "@/utils/error";
 
@@ -225,6 +219,7 @@ const WorkflowDetailRuns = () => {
   );
 
   useEffect(() => {
+    const unsubscribers = new Map<string, () => void>();
     const items = tableData.filter((e) => e.status === WORKFLOW_RUN_STATUSES.PENDING || e.status === WORKFLOW_RUN_STATUSES.PROCESSING);
     for (const item of items) {
       subscribeWorkflowRun(item.id, (cb) => {
@@ -236,20 +231,20 @@ const WorkflowDetailRuns = () => {
           return [...prev];
         });
 
-        if (cb.record.id === detailDrawerProps.data?.id) {
-          detailDrawerProps.data = { ...detailDrawerProps.data, ...cb.record };
-        }
-
         if (cb.record.status !== WORKFLOW_RUN_STATUSES.PENDING && cb.record.status !== WORKFLOW_RUN_STATUSES.PROCESSING) {
-          unsubscribeWorkflowRun(item.id);
+          unsubscribers.get(cb.record.id)?.();
+          unsubscribers.delete(cb.record.id);
         }
+      }).then((unsubscriber) => {
+        unsubscribers.set(item.id, unsubscriber);
       });
     }
 
     return () => {
-      for (const item of items) {
-        unsubscribeWorkflowRun(item.id);
+      for (const unsubscriber of unsubscribers.values()) {
+        unsubscriber();
       }
+      unsubscribers.clear();
     };
   }, [tableData]);
 

@@ -11,15 +11,15 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeBunnyCDN, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
-		access := domain.AccessConfigForBunny{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForBunny{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := bunnycdn.NewSSLDeployerProvider(&bunnycdn.SSLDeployerProviderConfig{
-			ApiKey:     access.ApiKey,
-			PullZoneId: xmaps.GetString(options.ProviderConfig, "pullZoneId"),
-			Hostname:   xmaps.GetString(options.ProviderConfig, "hostname"),
+			ApiKey:     credentials.ApiKey,
+			PullZoneId: xmaps.GetString(options.ProviderExtendedConfig, "pullZoneId"),
+			Hostname:   xmaps.GetString(options.ProviderExtendedConfig, "hostname"),
 		})
 		return provider, err
 	}); err != nil {

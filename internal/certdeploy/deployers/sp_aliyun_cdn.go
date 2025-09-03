@@ -11,16 +11,16 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeAliyunCDN, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
-		access := domain.AccessConfigForAliyun{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForAliyun{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := aliyuncdn.NewSSLDeployerProvider(&aliyuncdn.SSLDeployerProviderConfig{
-			AccessKeyId:     access.AccessKeyId,
-			AccessKeySecret: access.AccessKeySecret,
-			ResourceGroupId: access.ResourceGroupId,
-			Domain:          xmaps.GetString(options.ProviderConfig, "domain"),
+			AccessKeyId:     credentials.AccessKeyId,
+			AccessKeySecret: credentials.AccessKeySecret,
+			ResourceGroupId: credentials.ResourceGroupId,
+			Domain:          xmaps.GetString(options.ProviderExtendedConfig, "domain"),
 		})
 		return provider, err
 	}); err != nil {

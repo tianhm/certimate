@@ -7,9 +7,9 @@ import (
 )
 
 type notifierProviderOptions struct {
-	Provider              domain.NotificationProviderType
-	ProviderAccessConfig  map[string]any
-	ProviderServiceConfig map[string]any
+	Provider               domain.NotificationProviderType
+	ProviderAccessConfig   map[string]any
+	ProviderExtendedConfig map[string]any
 }
 
 func createNotifierProvider(options *notifierProviderOptions) (core.Notifier, error) {
@@ -19,7 +19,7 @@ func createNotifierProvider(options *notifierProviderOptions) (core.Notifier, er
 	}
 
 	return provider(&notifiers.ProviderFactoryOptions{
-		AccessConfig:   options.ProviderAccessConfig,
-		ProviderConfig: options.ProviderServiceConfig,
+		ProviderAccessConfig:   options.ProviderAccessConfig,
+		ProviderExtendedConfig: options.ProviderExtendedConfig,
 	})
 }

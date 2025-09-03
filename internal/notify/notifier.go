@@ -21,6 +21,7 @@ type NotifierWithWorkflowNodeConfig struct {
 	Message string
 }
 
+// TODO: refactor
 func NewWithWorkflowNode(config NotifierWithWorkflowNodeConfig) (Notifier, error) {
 	if config.Node == nil {
 		return nil, fmt.Errorf("the node is nil")
@@ -31,9 +32,9 @@ func NewWithWorkflowNode(config NotifierWithWorkflowNodeConfig) (Notifier, error
 
 	nodeCfg := config.Node.Data.Config.AsBizNotify()
 	options := &notifierProviderOptions{
-		Provider:              domain.NotificationProviderType(nodeCfg.Provider),
-		ProviderAccessConfig:  make(map[string]any),
-		ProviderServiceConfig: nodeCfg.ProviderConfig,
+		Provider:               domain.NotificationProviderType(nodeCfg.Provider),
+		ProviderAccessConfig:   make(map[string]any),
+		ProviderExtendedConfig: nodeCfg.ProviderConfig,
 	}
 
 	accessRepo := repository.NewAccessRepository()

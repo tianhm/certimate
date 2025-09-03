@@ -11,15 +11,15 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeEdgioApplications, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
-		access := domain.AccessConfigForEdgio{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForEdgio{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := edgioapps.NewSSLDeployerProvider(&edgioapps.SSLDeployerProviderConfig{
-			ClientId:      access.ClientId,
-			ClientSecret:  access.ClientSecret,
-			EnvironmentId: xmaps.GetString(options.ProviderConfig, "environmentId"),
+			ClientId:      credentials.ClientId,
+			ClientSecret:  credentials.ClientSecret,
+			EnvironmentId: xmaps.GetString(options.ProviderExtendedConfig, "environmentId"),
 		})
 		return provider, err
 	}); err != nil {

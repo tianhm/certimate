@@ -5,13 +5,33 @@ import (
 	"log/slog"
 	"maps"
 	"math"
+	"os"
+	"slices"
+	"strings"
 	"time"
 
-	"github.com/certimate-go/certimate/internal/applicant"
+	"github.com/go-acme/lego/v4/certcrypto"
+	legocertifier "github.com/go-acme/lego/v4/certificate"
+	"github.com/go-acme/lego/v4/lego"
+	legolog "github.com/go-acme/lego/v4/log"
+	"github.com/samber/lo"
+
+	"github.com/certimate-go/certimate/internal/app"
+	"github.com/certimate-go/certimate/internal/certapply"
 	"github.com/certimate-go/certimate/internal/domain"
 	"github.com/certimate-go/certimate/internal/repository"
+	"github.com/certimate-go/certimate/internal/tools/mproc"
 	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
 )
+
+var useMultiProc = true
+
+func init() {
+	envMultiProc := os.Getenv("CERTIMATE_WORKFLOW_MULTIPROC")
+	if envMultiProc == "0" {
+		useMultiProc = false
+	}
+}
 
 /**
  * Result Variables:
@@ -25,6 +45,7 @@ import (
 type bizApplyNodeExecutor struct {
 	nodeExecutor
 
+	accessRepo      accessRepository
 	certificateRepo certificateRepository
 	wfoutputRepo    workflowOutputRepository
 }
@@ -57,27 +78,13 @@ func (ne *bizApplyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 		ne.logger.Info("no found last issued certificate, begin to apply")
 	}
 
-	// 初始化申请器
-	// TODO: 解耦
-	applicant, err := applicant.NewWithWorkflowNode(applicant.ApplicantWithWorkflowNodeConfig{
-		WorkflowId: execCtx.WorkflowId,
-		Node:       execCtx.Node,
-		Logger:     ne.logger,
-	})
+	obtainResp, err := ne.executeObtain(execCtx, &nodeCfg, lastCertificate)
 	if err != nil {
-		ne.logger.Warn("failed to create applicant provider")
-		return execRes, err
-	}
-
-	// 申请证书
-	applyResult, err := applicant.Apply(execCtx.ctx)
-	if err != nil {
-		ne.logger.Warn("failed to obtain certificate")
 		return execRes, err
 	}
 
 	// 解析证书
-	certX509, err := xcert.ParseCertificateFromPEM(applyResult.FullChainCertificate)
+	certX509, err := xcert.ParseCertificateFromPEM(obtainResp.FullChainCertificate)
 	if err != nil {
 		ne.logger.Warn("failed to parse certificate, may be the CA responded error")
 		return execRes, err
@@ -86,12 +93,12 @@ func (ne *bizApplyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 	// 保存证书实体
 	certificate := &domain.Certificate{
 		Source:            domain.CertificateSourceTypeRequest,
-		Certificate:       applyResult.FullChainCertificate,
-		PrivateKey:        applyResult.PrivateKey,
-		IssuerCertificate: applyResult.IssuerCertificate,
-		ACMEAccountUrl:    applyResult.ACMEAccountUrl,
-		ACMECertUrl:       applyResult.ACMECertUrl,
-		ACMECertStableUrl: applyResult.ACMECertStableUrl,
+		Certificate:       obtainResp.FullChainCertificate,
+		PrivateKey:        obtainResp.PrivateKey,
+		IssuerCertificate: obtainResp.IssuerCertificate,
+		ACMEAcctUrl:       obtainResp.ACMEAcctUrl,
+		ACMECertUrl:       obtainResp.ACMECertUrl,
+		ACMECertStableUrl: obtainResp.ACMECertStableUrl,
 		WorkflowId:        execCtx.WorkflowId,
 		WorkflowRunId:     execCtx.RunId,
 		WorkflowNodeId:    execCtx.Node.Id,
@@ -105,7 +112,7 @@ func (ne *bizApplyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 	}
 
 	// 保存 ARI 记录
-	if lastCertificate != nil && applyResult.ARIReplaced {
+	if lastCertificate != nil && obtainResp.ARIReplaced {
 		lastCertificate.ACMERenewed = true
 		ne.certificateRepo.Save(execCtx.ctx, lastCertificate)
 	}
@@ -145,7 +152,7 @@ func (ne *bizApplyNodeExecutor) checkCanSkip(execCtx *NodeExecutionContext, last
 		// 比较和上次申请时的关键配置（即影响证书签发的）参数是否一致
 		lastNodeCfg := lastOutput.NodeConfig.AsBizApply()
 
-		if thisNodeCfg.Domains != lastNodeCfg.Domains {
+		if !slices.Equal(thisNodeCfg.Domains, lastNodeCfg.Domains) {
 			return false, "the configuration item 'Domains' changed"
 		}
 		if thisNodeCfg.ContactEmail != lastNodeCfg.ContactEmail {
@@ -188,9 +195,159 @@ func (ne *bizApplyNodeExecutor) checkCanSkip(execCtx *NodeExecutionContext, last
 	return false, ""
 }
 
+func (ne *bizApplyNodeExecutor) executeObtain(execCtx *NodeExecutionContext, nodeCfg *domain.WorkflowNodeConfigForBizApply, lastCertificate *domain.Certificate) (*certapply.ObtainCertificateResponse, error) {
+	// 读取证书算法
+	legoKeyType, err := domain.CertificateKeyAlgorithmType(nodeCfg.KeyAlgorithm).KeyType()
+	if err != nil {
+		return nil, err
+	}
+
+	// 读取质询提供商授权
+	providerAccessConfig := make(map[string]any)
+	if nodeCfg.ProviderAccessId != "" {
+		if access, err := ne.accessRepo.GetById(execCtx.ctx, nodeCfg.ProviderAccessId); err != nil {
+			return nil, fmt.Errorf("failed to get access #%s record: %w", nodeCfg.ProviderAccessId, err)
+		} else {
+			providerAccessConfig = access.Config
+		}
+	}
+
+	// 读取证书颁发机构授权
+	caAccessConfig := make(map[string]any)
+	if nodeCfg.CAProviderAccessId != "" {
+		if access, err := ne.accessRepo.GetById(execCtx.ctx, nodeCfg.CAProviderAccessId); err != nil {
+			return nil, fmt.Errorf("failed to get access #%s record: %w", nodeCfg.CAProviderAccessId, err)
+		} else {
+			caAccessConfig = access.Config
+		}
+	}
+
+	// 初始化 ACME 配置项
+	legoOptions := &certapply.ACMEConfigOptions{
+		CAProvider:       nodeCfg.CAProvider,
+		CAAccessConfig:   caAccessConfig,
+		CAProviderConfig: nodeCfg.CAProviderConfig,
+		CertifierKeyType: legoKeyType,
+	}
+	legoConfig, err := certapply.NewACMEConfig(legoOptions)
+	if err != nil {
+		ne.logger.Warn("failed to initialize acme config")
+		return nil, err
+	} else {
+		ne.logger.Info("acme config initialized", slog.String("acmeDirUrl", legoConfig.CADirUrl))
+	}
+
+	// 初始化 ACME 账户
+	// 注意此步骤仍需在主进程中进行，以保证并发安全
+	legoUser, err := certapply.NewACMEAccountWithSingleFlight(legoConfig, nodeCfg.ContactEmail)
+	if err != nil {
+		ne.logger.Warn("failed to initialize acme account")
+		return nil, err
+	} else {
+		ne.logger.Info("acme account initialized", slog.String("acmeAcctUrl", legoUser.ACMEAcctUrl))
+	}
+
+	// 构造证书申请请求
+	obtainReq := &certapply.ObtainCertificateRequest{
+		Domains:                nodeCfg.Domains,
+		KeyType:                legoKeyType,
+		ChallengeType:          nodeCfg.ChallengeType,
+		Provider:               nodeCfg.Provider,
+		ProviderAccessConfig:   providerAccessConfig,
+		ProviderExtendedConfig: nodeCfg.ProviderConfig,
+		DisableFollowCNAME:     nodeCfg.DisableFollowCNAME,
+		Nameservers:            nodeCfg.Nameservers,
+		DnsPropagationWait:     nodeCfg.DnsPropagationWait,
+		DnsPropagationTimeout:  nodeCfg.DnsPropagationTimeout,
+		DnsTTL:                 nodeCfg.DnsTTL,
+		HttpDelayWait:          nodeCfg.HttpDelayWait,
+		ACMEProfile:            nodeCfg.ACMEProfile,
+		ARIReplacesAcctUrl: lo.If(lastCertificate == nil, "").
+			ElseF(func() string {
+				if lastCertificate.ACMERenewed {
+					return ""
+				}
+
+				return lastCertificate.ACMEAcctUrl
+			}),
+		ARIReplacesCertId: lo.If(lastCertificate == nil, "").
+			ElseF(func() string {
+				if lastCertificate.ACMERenewed {
+					return ""
+				}
+
+				newCertSan := slices.Clone(nodeCfg.Domains)
+				oldCertSan := strings.Split(lastCertificate.SubjectAltNames, ";")
+				slices.Sort(newCertSan)
+				slices.Sort(oldCertSan)
+				if !slices.Equal(newCertSan, oldCertSan) {
+					return ""
+				}
+
+				oldCertX509, err := certcrypto.ParsePEMCertificate([]byte(lastCertificate.Certificate))
+				if err != nil {
+					return ""
+				}
+
+				oldARICertId, _ := legocertifier.MakeARICertID(oldCertX509)
+				return oldARICertId
+			}),
+	}
+
+	// 如果启用多进程模式，发送指令
+	if useMultiProc {
+		type InData struct {
+			Account *certapply.ACMEAccount              `json:"account,omitempty"`
+			Request *certapply.ObtainCertificateRequest `json:"request,omitempty"`
+		}
+
+		type OutData struct {
+			Response *certapply.ObtainCertificateResponse `json:"response"`
+		}
+
+		msender := mproc.NewSender[InData, OutData]("certapply", ne.logger)
+		moutput, err := msender.SendWithContext(execCtx.ctx, &InData{
+			Account: legoUser,
+			Request: obtainReq,
+		})
+		if err != nil {
+			ne.logger.Warn("failed to obtain certificate")
+			return nil, err
+		}
+
+		if moutput.Response != nil {
+			return moutput.Response, nil
+		} else {
+			panic("impossible!")
+		}
+	}
+
+	// 初始化 ACME 客户端
+	legolog.Logger = certapply.NewLegoLogger(app.GetLogger())
+	legoClient, err := certapply.NewACMEClientWithAccount(legoUser, func(c *lego.Config) error {
+		c.UserAgent = "certimate"
+		c.Certificate.KeyType = legoKeyType
+		return nil
+	})
+	if err != nil {
+		ne.logger.Warn("failed to initialize acme client")
+		return nil, err
+	}
+
+	// 申请证书
+	obtainResp, err := legoClient.ObtainCertificateWithContext(execCtx.ctx, obtainReq)
+	if err != nil {
+		ne.logger.Warn("failed to obtain certificate")
+		return nil, err
+	}
+
+	return obtainResp, nil
+}
+
 func newBizApplyNodeExecutor() NodeExecutor {
 	return &bizApplyNodeExecutor{
 		nodeExecutor:    nodeExecutor{logger: slog.Default()},
+		accessRepo:      repository.NewAccessRepository(),
 		certificateRepo: repository.NewCertificateRepository(),
 		wfoutputRepo:    repository.NewWorkflowOutputRepository(),
 	}

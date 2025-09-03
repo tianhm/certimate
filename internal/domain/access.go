@@ -22,10 +22,14 @@ type AccessConfigFor1Panel struct {
 	AllowInsecureConnections bool   `json:"allowInsecureConnections,omitempty"`
 }
 
-type AccessConfigForACMECA struct {
-	Endpoint   string `json:"endpoint"`
+type AccessConfigForACMEExternalAccountBinding struct {
 	EabKid     string `json:"eabKid,omitempty"`
 	EabHmacKey string `json:"eabHmacKey,omitempty"`
+}
+
+type AccessConfigForACMECA struct {
+	AccessConfigForACMEExternalAccountBinding
+	Endpoint string `json:"endpoint"`
 }
 
 type AccessConfigForACMEHttpReq struct {
@@ -208,8 +212,7 @@ type AccessConfigForGoEdge struct {
 }
 
 type AccessConfigForGoogleTrustServices struct {
-	EabKid     string `json:"eabKid"`
-	EabHmacKey string `json:"eabHmacKey"`
+	AccessConfigForACMEExternalAccountBinding
 }
 
 type AccessConfigForHetzner struct {
@@ -355,8 +358,7 @@ type AccessConfigForSSH struct {
 }
 
 type AccessConfigForSSLCom struct {
-	EabKid     string `json:"eabKid"`
-	EabHmacKey string `json:"eabHmacKey"`
+	AccessConfigForACMEExternalAccountBinding
 }
 
 type AccessConfigForTelegramBot struct {
@@ -419,6 +421,5 @@ type AccessConfigForWestcn struct {
 }
 
 type AccessConfigForZeroSSL struct {
-	EabKid     string `json:"eabKid"`
-	EabHmacKey string `json:"eabHmacKey"`
+	AccessConfigForACMEExternalAccountBinding
 }

@@ -11,15 +11,15 @@ import (
 
 func init() {
 	if err := Registries.Register(domain.DeploymentProviderTypeRainYunRCDN, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
-		access := domain.AccessConfigForRainYun{}
-		if err := xmaps.Populate(options.AccessConfig, &access); err != nil {
+		credentials := domain.AccessConfigForRainYun{}
+		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
 		provider, err := rainyunrcdn.NewSSLDeployerProvider(&rainyunrcdn.SSLDeployerProviderConfig{
-			ApiKey:     access.ApiKey,
-			InstanceId: xmaps.GetInt32(options.ProviderConfig, "instanceId"),
-			Domain:     xmaps.GetString(options.ProviderConfig, "domain"),
+			ApiKey:     credentials.ApiKey,
+			InstanceId: xmaps.GetInt32(options.ProviderExtendedConfig, "instanceId"),
+			Domain:     xmaps.GetString(options.ProviderExtendedConfig, "domain"),
 		})
 		return provider, err
 	}); err != nil {

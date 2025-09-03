@@ -16,16 +16,15 @@ import (
 	"github.com/go-acme/lego/v4/challenge/http01"
 	"github.com/go-acme/lego/v4/log"
 	"github.com/samber/lo"
-	"github.com/xhit/go-str2duration/v2"
 
 	"github.com/certimate-go/certimate/internal/certapply/applicators"
 	"github.com/certimate-go/certimate/internal/domain"
 )
 
 type ObtainCertificateRequest struct {
-	Domains  []string
-	KeyType  certcrypto.KeyType
-	LifeTime string
+	Domains    []string
+	KeyType    certcrypto.KeyType
+	ValidityTo time.Time
 
 	// 提供商相关
 	ChallengeType          string
@@ -155,14 +154,8 @@ func (c *ACMEClient) ObtainCertificate(request *ObtainCertificateRequest) (*Obta
 		Domains:        request.Domains,
 		Bundle:         true,
 		Profile:        request.ACMEProfile,
+		NotAfter:       request.ValidityTo,
 		ReplacesCertID: lo.If(request.ARIReplacesAcctUrl == c.account.ACMEAcctUrl, request.ARIReplacesCertId).Else(""),
-	}
-	if request.LifeTime != "" {
-		lifeTime, err := str2duration.ParseDuration(request.LifeTime)
-		if err != nil {
-			return nil, fmt.Errorf("invalid lifetime: %w", err)
-		}
-		req.NotAfter = time.Now().Add(lifeTime)
 	}
 	resp, err := c.client.Certificate.Obtain(req)
 	if err != nil {

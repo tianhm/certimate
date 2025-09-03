@@ -15,6 +15,7 @@ import (
 	"github.com/go-acme/lego/v4/lego"
 	legolog "github.com/go-acme/lego/v4/log"
 	"github.com/samber/lo"
+	"github.com/xhit/go-str2duration/v2"
 
 	"github.com/certimate-go/certimate/internal/app"
 	"github.com/certimate-go/certimate/internal/certapply"
@@ -261,8 +262,15 @@ func (ne *bizApplyNodeExecutor) executeObtain(execCtx *NodeExecutionContext, nod
 		DnsPropagationTimeout:  nodeCfg.DnsPropagationTimeout,
 		DnsTTL:                 nodeCfg.DnsTTL,
 		HttpDelayWait:          nodeCfg.HttpDelayWait,
-		LifeTime:               nodeCfg.LifeTime,
-		ACMEProfile:            nodeCfg.ACMEProfile,
+		ValidityTo: lo.If(nodeCfg.ValidityLifetime == "", time.Time{}).
+			ElseF(func() time.Time {
+				duration, err := str2duration.ParseDuration(nodeCfg.ValidityLifetime)
+				if err != nil {
+					return time.Time{}
+				}
+				return time.Now().Add(duration)
+			}),
+		ACMEProfile: nodeCfg.ACMEProfile,
 		ARIReplacesAcctUrl: lo.If(lastCertificate == nil, "").
 			ElseF(func() string {
 				if lastCertificate.ACMERenewed {

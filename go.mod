@@ -97,6 +97,7 @@ require (
 	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
 	github.com/go-acme/alidns-20150109/v4 v4.5.10 // indirect
 	github.com/go-acme/tencentclouddnspod v1.0.1208 // indirect
+	github.com/go-cmd/cmd v1.4.3 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-openapi/jsonpointer v0.21.0 // indirect
 	github.com/go-openapi/jsonreference v0.21.0 // indirect

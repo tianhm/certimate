@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-acme/lego/v4/certcrypto"
+
 	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
 )
 
@@ -134,3 +136,21 @@ const (
 	CertificateKeyAlgorithmTypeEC384   = CertificateKeyAlgorithmType("EC384")
 	CertificateKeyAlgorithmTypeEC512   = CertificateKeyAlgorithmType("EC512")
 )
+
+func (t CertificateKeyAlgorithmType) KeyType() (certcrypto.KeyType, error) {
+	keyTypeMap := map[CertificateKeyAlgorithmType]certcrypto.KeyType{
+		CertificateKeyAlgorithmTypeRSA2048: certcrypto.RSA2048,
+		CertificateKeyAlgorithmTypeRSA3072: certcrypto.RSA3072,
+		CertificateKeyAlgorithmTypeRSA4096: certcrypto.RSA4096,
+		CertificateKeyAlgorithmTypeRSA8192: certcrypto.RSA8192,
+		CertificateKeyAlgorithmTypeEC256:   certcrypto.EC256,
+		CertificateKeyAlgorithmTypeEC384:   certcrypto.EC384,
+		CertificateKeyAlgorithmTypeEC512:   certcrypto.KeyType("P512"),
+	}
+
+	if keyType, ok := keyTypeMap[t]; ok {
+		return keyType, nil
+	}
+
+	return certcrypto.RSA2048, fmt.Errorf("unsupported key algorithm type: '%s'", t)
+}

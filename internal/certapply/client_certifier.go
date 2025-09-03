@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-acme/lego/v4/acme"
+	"github.com/go-acme/lego/v4/certcrypto"
 	"github.com/go-acme/lego/v4/certificate"
 	"github.com/go-acme/lego/v4/challenge/dns01"
 	"github.com/go-acme/lego/v4/challenge/http01"
@@ -22,6 +23,7 @@ import (
 
 type ObtainCertificateRequest struct {
 	Domains []string
+	KeyType certcrypto.KeyType
 
 	// 提供商相关
 	ChallengeType          string
@@ -60,7 +62,7 @@ type ObtainCertificateResponse struct {
 	ARIReplaced          bool
 }
 
-func (c *ACMEClient) ObtainCertificate(ctx context.Context, request *ObtainCertificateRequest) (*ObtainCertificateResponse, error) {
+func (c *ACMEClient) ObtainCertificateWithContext(ctx context.Context, request *ObtainCertificateRequest) (*ObtainCertificateResponse, error) {
 	type result struct {
 		res *ObtainCertificateResponse
 		err error
@@ -69,7 +71,7 @@ func (c *ACMEClient) ObtainCertificate(ctx context.Context, request *ObtainCerti
 	done := make(chan result, 1)
 
 	go func() {
-		res, err := c.obtainCertificate(request)
+		res, err := c.ObtainCertificate(request)
 		done <- result{res, err}
 	}()
 
@@ -81,7 +83,7 @@ func (c *ACMEClient) ObtainCertificate(ctx context.Context, request *ObtainCerti
 	}
 }
 
-func (c *ACMEClient) obtainCertificate(request *ObtainCertificateRequest) (*ObtainCertificateResponse, error) {
+func (c *ACMEClient) ObtainCertificate(request *ObtainCertificateRequest) (*ObtainCertificateResponse, error) {
 	if request == nil {
 		return nil, errors.New("the request is nil")
 	}

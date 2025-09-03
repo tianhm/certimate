@@ -13,6 +13,7 @@ import (
 	"github.com/pocketbase/pocketbase/tools/hook"
 	"github.com/spf13/pflag"
 
+	"github.com/certimate-go/certimate/cmd"
 	"github.com/certimate-go/certimate/internal/app"
 	"github.com/certimate-go/certimate/internal/rest/routes"
 	"github.com/certimate-go/certimate/internal/scheduler"
@@ -41,6 +42,8 @@ func main() {
 		// (the isGoRun check is to enable it only during development)
 		Automigrate: strings.HasPrefix(os.Args[0], os.TempDir()),
 	})
+
+	app.RootCmd.AddCommand(cmd.NewInternalCommand(app))
 
 	app.OnServe().BindFunc(func(e *core.ServeEvent) error {
 		scheduler.Register()

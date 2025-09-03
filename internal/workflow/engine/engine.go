@@ -131,6 +131,11 @@ func (we *workflowEngine) executeNode(wfCtx *WorkflowContext, node *Node) error 
 		executor.SetLogger(logger)
 	}
 
+	// 节点已禁用，直接跳过执行
+	if node.Data.Disabled {
+		return nil
+	}
+
 	we.fireOnNodeStartHooks(wfCtx.ctx, node)
 
 	execCtx := newNodeExecutionContext(wfCtx, node)
@@ -197,11 +202,6 @@ func (we *workflowEngine) executeBlocks(wfCtx *WorkflowContext, blocks []*Node) 
 		case <-wfCtx.ctx.Done():
 			return wfCtx.ctx.Err()
 		default:
-		}
-
-		// 节点已禁用，直接跳过执行
-		if node.Data.Disabled {
-			continue
 		}
 
 		err := we.executeNode(wfCtx, node)

@@ -6,6 +6,7 @@
 export const ACCESS_PROVIDERS = Object.freeze({
   ["1PANEL"]: "1panel",
   ACMECA: "acmeca",
+  ACMEDNS: "acmedns",
   ACMEHTTPREQ: "acmehttpreq",
   ALIYUN: "aliyun",
   APISIX: "apisix",
@@ -173,6 +174,7 @@ export const accessProvidersMap: Map<AccessProvider["type"] | string, AccessProv
       [ACCESS_PROVIDERS.CMCCCLOUD, "provider.cmcccloud", "/imgs/providers/cmcccloud.svg", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.WESTCN, "provider.westcn", "/imgs/providers/westcn.svg", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.POWERDNS, "provider.powerdns", "/imgs/providers/powerdns.svg", [ACCESS_USAGES.DNS]],
+      [ACCESS_PROVIDERS.ACMEDNS, "provider.acmedns", "/imgs/providers/acmedns.svg", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.ACMEHTTPREQ, "provider.acmehttpreq", "/imgs/providers/acmehttpreq.svg", [ACCESS_USAGES.DNS]],
 
       [ACCESS_PROVIDERS.LETSENCRYPT, "provider.letsencrypt", "/imgs/providers/letsencrypt.svg", [ACCESS_USAGES.CA], "builtin"],
@@ -264,6 +266,7 @@ export const caProvidersMap: Map<CAProvider["type"] | string, CAProvider> = new 
   NOTICE: If you add new constant, please keep ASCII order.
  */
 export const ACME_DNS01_PROVIDERS = Object.freeze({
+  ACMEDNS: `${ACCESS_PROVIDERS.ACMEDNS}`,
   ACMEHTTPREQ: `${ACCESS_PROVIDERS.ACMEHTTPREQ}`,
   ALIYUN: `${ACCESS_PROVIDERS.ALIYUN}`, // 兼容旧值，等同于 `ALIYUN_DNS`
   ALIYUN_DNS: `${ACCESS_PROVIDERS.ALIYUN}-dns`,
@@ -369,6 +372,7 @@ export const acmeDns01ProvidersMap: Map<ACMEDns01Provider["type"] | string, ACME
       [ACME_DNS01_PROVIDERS.UCLOUD_UDNR, "provider.ucloud.udnr"],
       [ACME_DNS01_PROVIDERS.WESTCN, "provider.westcn"],
       [ACME_DNS01_PROVIDERS.POWERDNS, "provider.powerdns"],
+      [ACME_DNS01_PROVIDERS.ACMEDNS, "provider.acmedns"],
       [ACME_DNS01_PROVIDERS.ACMEHTTPREQ, "provider.acmehttpreq"],
     ] satisfies Array<[ACMEDns01ProviderType, string]>
   ).map(([type, name]) => [

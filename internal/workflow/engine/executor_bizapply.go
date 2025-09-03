@@ -261,6 +261,7 @@ func (ne *bizApplyNodeExecutor) executeObtain(execCtx *NodeExecutionContext, nod
 		DnsPropagationTimeout:  nodeCfg.DnsPropagationTimeout,
 		DnsTTL:                 nodeCfg.DnsTTL,
 		HttpDelayWait:          nodeCfg.HttpDelayWait,
+		LifeTime:               nodeCfg.LifeTime,
 		ACMEProfile:            nodeCfg.ACMEProfile,
 		ARIReplacesAcctUrl: lo.If(lastCertificate == nil, "").
 			ElseF(func() string {

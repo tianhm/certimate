@@ -318,6 +318,15 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
           </Form.Item>
 
           <Form.Item
+            name="lifeTime"
+            label={t("workflow_node.apply.form.life_time.label")}
+            rules={[formRule]}
+            tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.apply.form.life_time.tooltip") }}></span>}
+          >
+            <Input allowClear type="string" placeholder={t("workflow_node.apply.form.life_time.placeholder")} />
+          </Form.Item>
+
+          <Form.Item
             name="acmeProfile"
             label={t("workflow_node.apply.form.acme_profile.label")}
             rules={[formRule]}
@@ -595,6 +604,13 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
         (v) => (v == null || v === "" ? void 0 : Number(v)),
         z.number().int(t("workflow_node.apply.form.dns_ttl.placeholder")).gte(1, t("workflow_node.apply.form.dns_ttl.placeholder")).nullish()
       ),
+      lifeTime: z
+        .string()
+        .nullish()
+        .refine((v) => {
+          if (!v) return true;
+          return /^\d+[d|h]$/.test(v) && parseInt(v) > 0;
+        }, t("workflow_node.apply.form.life_time.placeholder")),
       acmeProfile: z.string().nullish(),
       disableFollowCNAME: z.boolean().nullish(),
       disableARI: z.boolean().nullish(),

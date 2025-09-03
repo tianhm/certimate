@@ -32,6 +32,12 @@ type AccessConfigForACMECA struct {
 	Endpoint string `json:"endpoint"`
 }
 
+type AccessConfigForACMEDNS struct {
+	ApiBase        string `json:"apiBase"`
+	StorageBaseUrl string `json:"storageBaseUrl,omitempty"`
+	StoragePath    string `json:"storagePath,omitempty"`
+}
+
 type AccessConfigForACMEHttpReq struct {
 	Endpoint string `json:"endpoint"`
 	Mode     string `json:"mode,omitempty"`

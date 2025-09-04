@@ -6,7 +6,7 @@ import (
 	"maps"
 	"strings"
 
-	"github.com/certimate-go/certimate/internal/deployer"
+	"github.com/certimate-go/certimate/internal/certdeploy"
 	"github.com/certimate-go/certimate/internal/domain"
 	"github.com/certimate-go/certimate/internal/repository"
 )
@@ -18,6 +18,7 @@ import (
 type bizDeployNodeExecutor struct {
 	nodeExecutor
 
+	accessRepo      accessRepository
 	certificateRepo certificateRepository
 	wfoutputRepo    workflowOutputRepository
 }
@@ -66,21 +67,28 @@ func (ne *bizDeployNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 		}
 	}
 
-	// 初始化部署器
-	// TODO: 解耦
-	deployer, err := deployer.NewWithWorkflowNode(deployer.DeployerWithWorkflowNodeConfig{
-		Node:           execCtx.Node,
-		Logger:         ne.logger,
-		CertificatePEM: inputCertificate.Certificate,
-		PrivateKeyPEM:  inputCertificate.PrivateKey,
-	})
-	if err != nil {
-		ne.logger.Warn("failed to create deployer provider")
-		return execRes, err
+	// 读取部署提供商授权
+	providerAccessConfig := make(map[string]any)
+	if nodeCfg.ProviderAccessId != "" {
+		if access, err := ne.accessRepo.GetById(execCtx.ctx, nodeCfg.ProviderAccessId); err != nil {
+			return nil, fmt.Errorf("failed to get access #%s record: %w", nodeCfg.ProviderAccessId, err)
+		} else {
+			providerAccessConfig = access.Config
+		}
 	}
 
+	// 初始化部署器
+	deployClient := certdeploy.NewClient(certdeploy.WithLogger(ne.logger))
+
 	// 部署证书
-	if err := deployer.Deploy(execCtx.ctx); err != nil {
+	deployReq := &certdeploy.DeployCertificateRequest{
+		Provider:               nodeCfg.Provider,
+		ProviderAccessConfig:   providerAccessConfig,
+		ProviderExtendedConfig: nodeCfg.ProviderConfig,
+		Certificate:            inputCertificate.Certificate,
+		PrivateKey:             inputCertificate.PrivateKey,
+	}
+	if _, err := deployClient.DeployCertificate(execCtx.ctx, deployReq); err != nil {
 		ne.logger.Warn("failed to deploy certificate")
 		return execRes, err
 	}
@@ -127,6 +135,7 @@ func (ne *bizDeployNodeExecutor) checkCanSkip(execCtx *NodeExecutionContext, las
 func newBizDeployNodeExecutor() NodeExecutor {
 	return &bizDeployNodeExecutor{
 		nodeExecutor:    nodeExecutor{logger: slog.Default()},
+		accessRepo:      repository.NewAccessRepository(),
 		certificateRepo: repository.NewCertificateRepository(),
 		wfoutputRepo:    repository.NewWorkflowOutputRepository(),
 	}

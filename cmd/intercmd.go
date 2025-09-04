@@ -69,7 +69,7 @@ func internalCertApplyCommand(app core.App) *cobra.Command {
 					return nil, fmt.Errorf("failed to initialize acme client: %w", err)
 				}
 
-				resp, err := client.ObtainCertificateWithContext(ctx, params.Request)
+				resp, err := client.ObtainCertificate(ctx, params.Request)
 				if err != nil {
 					return nil, fmt.Errorf("failed to obtain certificate: %w", err)
 				}

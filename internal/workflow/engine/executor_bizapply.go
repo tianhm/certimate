@@ -343,8 +343,8 @@ func (ne *bizApplyNodeExecutor) executeObtain(execCtx *NodeExecutionContext, nod
 		return nil, err
 	}
 
-	// 申请证书
-	obtainResp, err := legoClient.ObtainCertificateWithContext(execCtx.ctx, obtainReq)
+	// 执行申请证书请求
+	obtainResp, err := legoClient.ObtainCertificate(execCtx.ctx, obtainReq)
 	if err != nil {
 		ne.logger.Warn("failed to obtain certificate")
 		return nil, err

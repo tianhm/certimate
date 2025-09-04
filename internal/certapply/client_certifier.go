@@ -63,7 +63,7 @@ type ObtainCertificateResponse struct {
 	ARIReplaced          bool
 }
 
-func (c *ACMEClient) ObtainCertificateWithContext(ctx context.Context, request *ObtainCertificateRequest) (*ObtainCertificateResponse, error) {
+func (c *ACMEClient) ObtainCertificate(ctx context.Context, request *ObtainCertificateRequest) (*ObtainCertificateResponse, error) {
 	type result struct {
 		res *ObtainCertificateResponse
 		err error
@@ -72,7 +72,7 @@ func (c *ACMEClient) ObtainCertificateWithContext(ctx context.Context, request *
 	done := make(chan result, 1)
 
 	go func() {
-		res, err := c.ObtainCertificate(request)
+		res, err := c.sendObtainCertificateRequest(request)
 		done <- result{res, err}
 	}()
 
@@ -84,7 +84,7 @@ func (c *ACMEClient) ObtainCertificateWithContext(ctx context.Context, request *
 	}
 }
 
-func (c *ACMEClient) ObtainCertificate(request *ObtainCertificateRequest) (*ObtainCertificateResponse, error) {
+func (c *ACMEClient) sendObtainCertificateRequest(request *ObtainCertificateRequest) (*ObtainCertificateResponse, error) {
 	if request == nil {
 		return nil, errors.New("the request is nil")
 	}

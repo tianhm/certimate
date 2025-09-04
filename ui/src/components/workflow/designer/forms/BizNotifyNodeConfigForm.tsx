@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+﻿import { useMemo } from "react";
 import { getI18n, useTranslation } from "react-i18next";
 import { type FlowNodeEntity, getNodeForm } from "@flowgram.ai/fixed-layout-editor";
 import { IconPlus } from "@tabler/icons-react";
@@ -8,7 +8,9 @@ import { z } from "zod";
 
 import AccessEditDrawer from "@/components/access/AccessEditDrawer";
 import AccessSelect from "@/components/access/AccessSelect";
+import NotificationProviderPicker from "@/components/provider/NotificationProviderPicker";
 import NotificationProviderSelect from "@/components/provider/NotificationProviderSelect";
+import Show from "@/components/Show";
 import { ACCESS_USAGES, NOTIFICATION_PROVIDERS, accessProvidersMap, notificationProvidersMap } from "@/domain/provider";
 import { type WorkflowNodeConfigForBizNotify, defaultNodeConfigForBizNotify } from "@/domain/workflow";
 import { useAntdForm, useZustandShallowSelector } from "@/hooks";
@@ -79,134 +81,113 @@ const BizNotifyNodeConfigForm = ({ node, ...props }: BizNotifyNodeConfigFormProp
     }
   }, [fieldProvider]);
 
-  const [showProvider, setShowProvider] = useState(false);
-  useEffect(() => {
-    // 通常情况下每个授权信息只对应一个消息通知提供商，此时无需显示消息通知提供商字段；
-    // 如果对应多个，则显示。
-    if (fieldProviderAccessId) {
-      const access = accesses.find((e) => e.id === fieldProviderAccessId);
-      const providers = Array.from(notificationProvidersMap.values()).filter((e) => e.provider === access?.provider);
-      setShowProvider(providers.length > 1);
-    } else {
-      setShowProvider(false);
-    }
-  }, [accesses, fieldProviderAccessId]);
-
-  const handleProviderSelect = (value: string) => {
-    // 切换消息通知提供商时联动授权信息
-    if (initialValues?.provider === value) {
-      formInst.setFieldValue("providerAccessId", initialValues?.providerAccessId);
-    } else {
-      if (notificationProvidersMap.get(fieldProvider)?.provider !== notificationProvidersMap.get(value)?.provider) {
-        formInst.setFieldValue("providerAccessId", void 0);
-      }
-    }
+  const handleProviderPick = (value: string) => {
+    formInst.setFieldValue("provider", value);
   };
 
-  const handleProviderAccessSelect = (value: string) => {
-    // 切换授权信息时联动消息通知提供商
-    const access = accesses.find((access) => access.id === value);
-    const provider = Array.from(notificationProvidersMap.values()).find((provider) => provider.provider === access?.provider);
-    if (fieldProvider !== provider?.type) {
-      formInst.setFieldValue("provider", provider?.type);
+  const handleProviderSelect = (value?: string | undefined) => {
+    // 切换通知渠道时重置表单，避免其他通知渠道的配置字段影响当前通知渠道
+    if (initialValues?.provider === value) {
+      formInst.resetFields(["providerConfig"]);
+    } else {
+      if (notificationProvidersMap.get(fieldProvider)?.provider !== notificationProvidersMap.get(value!)?.provider) {
+        formInst.setFieldValue("providerAccessId", void 0);
+      }
     }
   };
 
   return (
     <NodeFormContextProvider value={{ node }}>
       <Form {...formProps} clearOnDestroy={true} form={formInst} layout="vertical" preserve={false} scrollToFirstError>
-        <div id="parameters" data-anchor="parameters">
-          <Form.Item name="subject" label={t("workflow_node.notify.form.subject.label")} rules={[formRule]}>
-            <Input placeholder={t("workflow_node.notify.form.subject.placeholder")} />
-          </Form.Item>
+        <Show when={!fieldProvider}>
+          <NotificationProviderPicker autoFocus placeholder={t("workflow_node.notify.form.provider.search.placeholder")} onSelect={handleProviderPick} />
+        </Show>
 
-          <Form.Item name="message" label={t("workflow_node.notify.form.message.label")} rules={[formRule]}>
-            <Input.TextArea autoSize={{ minRows: 3, maxRows: 10 }} placeholder={t("workflow_node.notify.form.message.placeholder")} />
-          </Form.Item>
-        </div>
+        <div style={{ display: fieldProvider ? "block" : "none" }}>
+          <div id="parameters" data-anchor="parameters">
+            <Form.Item name="subject" label={t("workflow_node.notify.form.subject.label")} rules={[formRule]}>
+              <Input placeholder={t("workflow_node.notify.form.subject.placeholder")} />
+            </Form.Item>
 
-        <div id="channel" data-anchor="channel">
-          <Divider size="small">
-            <Typography.Text className="text-xs font-normal" type="secondary">
-              {t("workflow_node.notify.form_anchor.channel.title")}
-            </Typography.Text>
-          </Divider>
+            <Form.Item name="message" label={t("workflow_node.notify.form.message.label")} rules={[formRule]}>
+              <Input.TextArea autoSize={{ minRows: 3, maxRows: 10 }} placeholder={t("workflow_node.notify.form.message.placeholder")} />
+            </Form.Item>
+          </div>
 
-          <Form.Item name="provider" label={t("workflow_node.notify.form.provider.label")} hidden={!showProvider} rules={[formRule]}>
-            <NotificationProviderSelect
-              disabled={!showProvider}
-              placeholder={t("workflow_node.notify.form.provider.placeholder")}
-              showSearch
-              onFilter={(_, option) => {
-                if (fieldProviderAccessId) {
-                  return accesses.find((e) => e.id === fieldProviderAccessId)?.provider === option.provider;
-                }
+          <div id="channel" data-anchor="channel">
+            <Divider size="small">
+              <Typography.Text className="text-xs font-normal" type="secondary">
+                {t("workflow_node.notify.form_anchor.channel.title")}
+              </Typography.Text>
+            </Divider>
 
-                return true;
-              }}
-              onSelect={handleProviderSelect}
-            />
-          </Form.Item>
-
-          <Form.Item label={t("workflow_node.notify.form.provider_access.label")}>
-            <div className="absolute -top-[6px] right-0 -translate-y-full">
-              <AccessEditDrawer
-                mode="create"
-                trigger={
-                  <Button size="small" type="link">
-                    {t("workflow_node.notify.form.provider_access.button")}
-                    <IconPlus size="1.25em" />
-                  </Button>
-                }
-                usage="notification"
-                afterSubmit={(record) => {
-                  const provider = accessProvidersMap.get(record.provider);
-                  if (provider?.usages?.includes(ACCESS_USAGES.NOTIFICATION)) {
-                    formInst.setFieldValue("providerAccessId", record.id);
-                    handleProviderAccessSelect(record.id);
-                  }
-                }}
-              />
-            </div>
-            <Form.Item name="providerAccessId" noStyle rules={[formRule]}>
-              <AccessSelect
-                placeholder={t("workflow_node.notify.form.provider_access.placeholder")}
+            <Form.Item name="provider" label={t("workflow_node.notify.form.provider.label")} rules={[formRule]}>
+              <NotificationProviderSelect
+                allowClear
+                disabled={!!initialValues?.provider}
+                placeholder={t("workflow_node.notify.form.provider.placeholder")}
                 showSearch
-                onChange={handleProviderAccessSelect}
-                onFilter={(_, option) => {
-                  if (option.reserve !== "notif") return false;
-
-                  const provider = accessProvidersMap.get(option.provider);
-                  return !!provider?.usages?.includes(ACCESS_USAGES.NOTIFICATION);
-                }}
+                onSelect={handleProviderSelect}
+                onClear={handleProviderSelect}
               />
             </Form.Item>
-          </Form.Item>
 
-          <FormNestedFieldsContextProvider value={{ parentNamePath: "providerConfig" }}>
-            {NestedProviderConfigFields && <NestedProviderConfigFields />}
-          </FormNestedFieldsContextProvider>
-        </div>
-
-        <div id="strategy" data-anchor="strategy">
-          <Divider size="small">
-            <Typography.Text className="text-xs font-normal" type="secondary">
-              {t("workflow_node.notify.form_anchor.strategy.title")}
-            </Typography.Text>
-          </Divider>
-
-          <Form.Item label={t("workflow_node.notify.form.skip_on_all_prev_skipped.label")}>
-            <Flex align="center" gap={8} wrap="wrap">
-              <div>{t("workflow_node.notify.form.skip_on_all_prev_skipped.prefix")}</div>
-              <Form.Item name="skipOnAllPrevSkipped" noStyle rules={[formRule]}>
-                <Switch
-                  checkedChildren={t("workflow_node.notify.form.skip_on_all_prev_skipped.switch.on")}
-                  unCheckedChildren={t("workflow_node.notify.form.skip_on_all_prev_skipped.switch.off")}
+            <Form.Item label={t("workflow_node.notify.form.provider_access.label")}>
+              <div className="absolute -top-[6px] right-0 -translate-y-full">
+                <AccessEditDrawer
+                  mode="create"
+                  trigger={
+                    <Button size="small" type="link">
+                      {t("workflow_node.notify.form.provider_access.button")}
+                      <IconPlus size="1.25em" />
+                    </Button>
+                  }
+                  usage="notification"
+                  afterSubmit={(record) => {
+                    const provider = accessProvidersMap.get(record.provider);
+                    if (provider?.usages?.includes(ACCESS_USAGES.NOTIFICATION)) {
+                      formInst.setFieldValue("providerAccessId", record.id);
+                    }
+                  }}
+                />
+              </div>
+              <Form.Item name="providerAccessId" noStyle rules={[formRule]}>
+                <AccessSelect
+                  placeholder={t("workflow_node.notify.form.provider_access.placeholder")}
+                  showSearch
+                  onFilter={(_, option) => {
+                    if (option.reserve !== "notif") return false;
+                    return notificationProvidersMap.get(fieldProvider)?.provider === option.provider;
+                  }}
                 />
               </Form.Item>
-              <div>{t("workflow_node.notify.form.skip_on_all_prev_skipped.suffix")}</div>
-            </Flex>
-          </Form.Item>
+            </Form.Item>
+
+            <FormNestedFieldsContextProvider value={{ parentNamePath: "providerConfig" }}>
+              {NestedProviderConfigFields && <NestedProviderConfigFields />}
+            </FormNestedFieldsContextProvider>
+          </div>
+
+          <div id="strategy" data-anchor="strategy">
+            <Divider size="small">
+              <Typography.Text className="text-xs font-normal" type="secondary">
+                {t("workflow_node.notify.form_anchor.strategy.title")}
+              </Typography.Text>
+            </Divider>
+
+            <Form.Item label={t("workflow_node.notify.form.skip_on_all_prev_skipped.label")}>
+              <Flex align="center" gap={8} wrap="wrap">
+                <div>{t("workflow_node.notify.form.skip_on_all_prev_skipped.prefix")}</div>
+                <Form.Item name="skipOnAllPrevSkipped" noStyle rules={[formRule]}>
+                  <Switch
+                    checkedChildren={t("workflow_node.notify.form.skip_on_all_prev_skipped.switch.on")}
+                    unCheckedChildren={t("workflow_node.notify.form.skip_on_all_prev_skipped.switch.off")}
+                  />
+                </Form.Item>
+                <div>{t("workflow_node.notify.form.skip_on_all_prev_skipped.suffix")}</div>
+              </Flex>
+            </Form.Item>
+          </div>
         </div>
       </Form>
     </NodeFormContextProvider>

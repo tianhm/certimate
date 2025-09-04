@@ -467,7 +467,7 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
   const handleProviderSelect = (value?: string | undefined) => {
     // 切换部署目标时重置表单，避免其他部署目标的配置字段影响当前部署目标
     if (initialValues?.provider === value) {
-      formInst.resetFields();
+      formInst.resetFields(["providerConfig"]);
     } else {
       const oldValues = formInst.getFieldsValue();
       const newValues: Record<string, unknown> = {};
@@ -537,10 +537,7 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
                   showSearch
                   onFilter={(_, option) => {
                     if (option.reserve) return false;
-                    if (fieldProvider) return deploymentProvidersMap.get(fieldProvider)?.provider === option.provider;
-
-                    const provider = accessProvidersMap.get(option.provider);
-                    return !!provider?.usages?.includes(ACCESS_USAGES.HOSTING);
+                    return deploymentProvidersMap.get(fieldProvider)?.provider === option.provider;
                   }}
                 />
               </Form.Item>

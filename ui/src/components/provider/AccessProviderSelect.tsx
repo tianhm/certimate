@@ -1,20 +1,33 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Avatar, Select, type SelectProps, Tag, Typography, theme } from "antd";
+import { Avatar, Select, Tag, Typography, theme } from "antd";
 
 import Show from "@/components/Show";
 import { ACCESS_USAGES, type AccessProvider, type AccessUsageType, accessProvidersMap } from "@/domain/provider";
 
-export interface AccessProviderSelectProps
-  extends Omit<SelectProps, "filterOption" | "filterSort" | "labelRender" | "options" | "optionFilterProp" | "optionLabelProp" | "optionRender"> {
+import { type SharedSelectProps } from "./_shared";
+
+export interface AccessProviderSelectProps extends SharedSelectProps<AccessProvider> {
   showOptionTags?: boolean | { [key in AccessUsageType]?: boolean };
-  onFilter?: (value: string, option: AccessProvider) => boolean;
 }
 
 const AccessProviderSelect = ({ showOptionTags, onFilter, ...props }: AccessProviderSelectProps = { showOptionTags: true }) => {
   const { t } = useTranslation();
 
   const { token: themeToken } = theme.useToken();
+
+  const showOptionTagForDNS = useMemo(() => {
+    return typeof showOptionTags === "object" ? !!showOptionTags?.[ACCESS_USAGES.DNS] : !!showOptionTags;
+  }, [showOptionTags]);
+  const showOptionTagForHosting = useMemo(() => {
+    return typeof showOptionTags === "object" ? !!showOptionTags?.[ACCESS_USAGES.HOSTING] : !!showOptionTags;
+  }, [showOptionTags]);
+  const showOptionTagForCA = useMemo(() => {
+    return typeof showOptionTags === "object" ? !!showOptionTags?.[ACCESS_USAGES.CA] : !!showOptionTags;
+  }, [showOptionTags]);
+  const showOptionTagForNotification = useMemo(() => {
+    return typeof showOptionTags === "object" ? !!showOptionTags?.[ACCESS_USAGES.NOTIFICATION] : !!showOptionTags;
+  }, [showOptionTags]);
 
   const options = useMemo<Array<{ key: string; value: string; label: string; data: AccessProvider }>>(() => {
     return Array.from(accessProvidersMap.values())
@@ -33,19 +46,6 @@ const AccessProviderSelect = ({ showOptionTags, onFilter, ...props }: AccessProv
         data: provider,
       }));
   }, [onFilter]);
-
-  const showOptionTagForDNS = useMemo(() => {
-    return typeof showOptionTags === "object" ? !!showOptionTags?.[ACCESS_USAGES.DNS] : !!showOptionTags;
-  }, [showOptionTags]);
-  const showOptionTagForHosting = useMemo(() => {
-    return typeof showOptionTags === "object" ? !!showOptionTags?.[ACCESS_USAGES.HOSTING] : !!showOptionTags;
-  }, [showOptionTags]);
-  const showOptionTagForCA = useMemo(() => {
-    return typeof showOptionTags === "object" ? !!showOptionTags?.[ACCESS_USAGES.CA] : !!showOptionTags;
-  }, [showOptionTags]);
-  const showOptionTagForNotification = useMemo(() => {
-    return typeof showOptionTags === "object" ? !!showOptionTags?.[ACCESS_USAGES.NOTIFICATION] : !!showOptionTags;
-  }, [showOptionTags]);
 
   const renderOption = (key: string) => {
     const provider = accessProvidersMap.get(key) ?? ({ type: "", name: "", icon: "", usages: [] } as unknown as AccessProvider);

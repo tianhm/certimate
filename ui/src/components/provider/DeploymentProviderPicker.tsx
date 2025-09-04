@@ -1,6 +1,6 @@
 ﻿import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useMount, useSize } from "ahooks";
+import { useMount } from "ahooks";
 import { Avatar, Card, Checkbox, Empty, Flex, Input, type InputRef, Tabs, Tooltip, Typography } from "antd";
 
 import Show from "@/components/Show";
@@ -9,24 +9,26 @@ import { useZustandShallowSelector } from "@/hooks";
 import { useAccessesStore } from "@/stores/access";
 import { mergeCls } from "@/utils/css";
 
-export interface DeploymentProviderPickerProps {
-  className?: string;
-  style?: React.CSSProperties;
-  autoFocus?: boolean;
-  gap?: number | "small" | "middle" | "large";
-  placeholder?: string;
-  onFilter?: (value: string, option: DeploymentProvider) => boolean;
-  onSelect?: (value: string) => void;
-}
+import { type SharedPickerProps, usePickerWrapperCols } from "./_shared";
 
-const DeploymentProviderPicker = ({ className, style, autoFocus, gap = "middle", placeholder, onFilter, onSelect }: DeploymentProviderPickerProps) => {
+export interface DeploymentProviderPickerProps extends SharedPickerProps<DeploymentProvider> {}
+
+const DeploymentProviderPicker = ({
+  className,
+  style,
+  autoFocus,
+  gap = "middle",
+  placeholder,
+  showSearch = true,
+  onFilter,
+  onSelect,
+}: DeploymentProviderPickerProps) => {
   const { t } = useTranslation();
 
   const { accesses, fetchAccesses } = useAccessesStore(useZustandShallowSelector(["accesses", "fetchAccesses"]));
   useMount(() => fetchAccesses(false));
 
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const wrapperSize = useSize(wrapperRef);
+  const { wrapperElRef, cols } = usePickerWrapperCols(320);
 
   const [isAvailableOnly, setIsAvailableOnly] = useState(true);
 
@@ -72,99 +74,91 @@ const DeploymentProviderPicker = ({ className, style, autoFocus, gap = "middle",
         return true;
       });
   }, [onFilter, accesses, isAvailableOnly, category, keyword]);
-  const providerCols = useMemo(() => {
-    if (!wrapperSize) {
-      return 1;
-    }
-
-    const cols = Math.floor(wrapperSize.width / 320);
-    return Math.min(9, Math.max(1, cols));
-  }, [wrapperSize]);
 
   const handleProviderTypeSelect = (value: string) => {
     onSelect?.(value);
   };
 
   return (
-    <div className={className} style={style} ref={wrapperRef}>
-      <Input.Search ref={keywordInputRef} placeholder={placeholder ?? t("common.text.search")} onChange={(e) => setKeyword(e.target.value.trim())} />
+    <div className={className} style={style} ref={wrapperElRef}>
+      <Show when={showSearch}>
+        <div className="mb-4">
+          <Input.Search ref={keywordInputRef} placeholder={placeholder ?? t("common.text.search")} onChange={(e) => setKeyword(e.target.value.trim())} />
+        </div>
+      </Show>
 
-      <div className="mt-4">
-        <Flex justify="end">
-          <Checkbox checked={isAvailableOnly} onClick={() => setIsAvailableOnly(!isAvailableOnly)}>
-            {t("provider.text.show_available_hosting_provider_only")}
-          </Checkbox>
-        </Flex>
-      </div>
+      <Flex className="mb-4" justify="end">
+        <Checkbox checked={isAvailableOnly} onClick={() => setIsAvailableOnly(!isAvailableOnly)}>
+          {t("provider.text.show_available_provider_only")}
+        </Checkbox>
+      </Flex>
 
-      <div className="mt-4">
-        <Flex>
-          <Tabs
-            defaultActiveKey={DEPLOYMENT_CATEGORIES.ALL}
-            items={[
-              DEPLOYMENT_CATEGORIES.ALL,
-              DEPLOYMENT_CATEGORIES.CDN,
-              DEPLOYMENT_CATEGORIES.STORAGE,
-              DEPLOYMENT_CATEGORIES.LOADBALANCE,
-              DEPLOYMENT_CATEGORIES.FIREWALL,
-              DEPLOYMENT_CATEGORIES.AV,
-              DEPLOYMENT_CATEGORIES.ACCELERATOR,
-              DEPLOYMENT_CATEGORIES.APIGATEWAY,
-              DEPLOYMENT_CATEGORIES.SERVERLESS,
-              DEPLOYMENT_CATEGORIES.WEBSITE,
-              DEPLOYMENT_CATEGORIES.SSL,
-              DEPLOYMENT_CATEGORIES.NAS,
-              DEPLOYMENT_CATEGORIES.OTHER,
-            ].map((key) => ({
-              key: key,
-              label: t(`provider.category.${key}`),
-            }))}
-            size="small"
-            tabBarStyle={{ marginLeft: "-1rem" }}
-            tabPosition="left"
-            onChange={(key) => setCategory(key)}
-          />
+      <Flex>
+        <Tabs
+          defaultActiveKey={DEPLOYMENT_CATEGORIES.ALL}
+          items={[
+            DEPLOYMENT_CATEGORIES.ALL,
+            DEPLOYMENT_CATEGORIES.CDN,
+            DEPLOYMENT_CATEGORIES.STORAGE,
+            DEPLOYMENT_CATEGORIES.LOADBALANCE,
+            DEPLOYMENT_CATEGORIES.FIREWALL,
+            DEPLOYMENT_CATEGORIES.AV,
+            DEPLOYMENT_CATEGORIES.ACCELERATOR,
+            DEPLOYMENT_CATEGORIES.APIGATEWAY,
+            DEPLOYMENT_CATEGORIES.SERVERLESS,
+            DEPLOYMENT_CATEGORIES.WEBSITE,
+            DEPLOYMENT_CATEGORIES.SSL,
+            DEPLOYMENT_CATEGORIES.NAS,
+            DEPLOYMENT_CATEGORIES.OTHER,
+          ].map((key) => ({
+            key: key,
+            label: t(`provider.category.${key}`),
+          }))}
+          size="small"
+          tabBarStyle={{ marginLeft: "-1rem" }}
+          tabPosition="left"
+          onChange={(key) => setCategory(key)}
+        />
 
-          <div className="flex-1">
-            <Show when={providers.length > 0} fallback={<Empty description={t("common.text.nodata")} image={Empty.PRESENTED_IMAGE_SIMPLE} />}>
-              <div
-                className={mergeCls("grid w-full gap-2", `grid-cols-${providerCols}`, {
-                  "gap-4": gap === "large",
-                  "gap-2": gap === "middle",
-                  "gap-1": gap === "small",
-                  [`gap-${+gap || "2"}`]: typeof gap === "number",
-                })}
-              >
-                {providers.map((provider) => {
-                  return (
-                    <div key={provider.type}>
-                      <Card
-                        className="h-16 w-full overflow-hidden shadow"
-                        styles={{ body: { height: "100%", padding: "0.5rem 1rem" } }}
-                        hoverable
-                        onClick={() => {
-                          handleProviderTypeSelect(provider.type);
-                        }}
-                      >
-                        <div className="flex size-full items-center gap-4 overflow-hidden">
-                          <Avatar className="bg-stone-100" icon={<img src={provider.icon} />} shape="square" size={28} />
-                          <div className="flex-1 overflow-hidden">
-                            <div className="line-clamp-2 max-w-full">
-                              <Tooltip title={t(provider.name)} mouseEnterDelay={1}>
-                                <Typography.Text>{t(provider.name) || "\u00A0"}</Typography.Text>
-                              </Tooltip>
-                            </div>
+        <div className="flex-1">
+          <Show when={providers.length > 0} fallback={<Empty description={t("provider.text.nodata")} image={Empty.PRESENTED_IMAGE_SIMPLE} />}>
+            <div
+              className={mergeCls("grid w-full gap-2", `grid-cols-${cols}`, {
+                "gap-4": gap === "large",
+                "gap-2": gap === "middle",
+                "gap-1": gap === "small",
+                [`gap-${+gap || "2"}`]: typeof gap === "number",
+              })}
+            >
+              {providers.map((provider) => {
+                return (
+                  <div key={provider.type}>
+                    <Card
+                      className="h-16 w-full overflow-hidden shadow"
+                      styles={{ body: { height: "100%", padding: "0.5rem 1rem" } }}
+                      hoverable
+                      onClick={() => {
+                        handleProviderTypeSelect(provider.type);
+                      }}
+                    >
+                      <div className="flex size-full items-center gap-4 overflow-hidden">
+                        <Avatar className="bg-stone-100" icon={<img src={provider.icon} />} shape="square" size={28} />
+                        <div className="flex-1 overflow-hidden">
+                          <div className="line-clamp-2 max-w-full">
+                            <Tooltip title={t(provider.name)} mouseEnterDelay={1}>
+                              <Typography.Text>{t(provider.name) || "\u00A0"}</Typography.Text>
+                            </Tooltip>
                           </div>
                         </div>
-                      </Card>
-                    </div>
-                  );
-                })}
-              </div>
-            </Show>
-          </div>
-        </Flex>
-      </div>
+                      </div>
+                    </Card>
+                  </div>
+                );
+              })}
+            </div>
+          </Show>
+        </div>
+      </Flex>
     </div>
   );
 };

@@ -194,6 +194,7 @@
   "provider.category.nas": "NAS",
   "provider.category.other": "Other",
 
+  "provider.text.nodata": "No providers available",
   "provider.text.default_ca_provider": "(Default) Follow global settings",
-  "provider.text.show_available_hosting_provider_only": "Only display available providers (with added credentials)"
+  "provider.text.show_available_provider_only": "Only display available providers (with added credentials)"
 }

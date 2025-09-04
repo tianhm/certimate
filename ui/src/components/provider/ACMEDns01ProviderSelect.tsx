@@ -1,13 +1,12 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Avatar, Select, type SelectProps, Typography, theme } from "antd";
+import { Avatar, Select, Typography, theme } from "antd";
 
 import { type ACMEDns01Provider, acmeDns01ProvidersMap } from "@/domain/provider";
 
-export interface ACMEDns01ProviderSelectProps
-  extends Omit<SelectProps, "filterOption" | "filterSort" | "labelRender" | "options" | "optionFilterProp" | "optionLabelProp" | "optionRender"> {
-  onFilter?: (value: string, option: ACMEDns01Provider) => boolean;
-}
+import { type SharedSelectProps } from "./_shared";
+
+export interface ACMEDns01ProviderSelectProps extends SharedSelectProps<ACMEDns01Provider> {}
 
 const ACMEDns01ProviderSelect = ({ onFilter, ...props }: ACMEDns01ProviderSelectProps) => {
   const { t } = useTranslation();

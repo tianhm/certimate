@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	notifyTestTitle = "[Certimate] Notification Test"
-	notifyTestBody  = "Welcome to use Certimate!"
+	notifyTestSubject = "[Certimate] Notification Testing"
+	notifyTestMessage = "Welcome to use Certimate!"
 )
 
 type NotifyService struct{}

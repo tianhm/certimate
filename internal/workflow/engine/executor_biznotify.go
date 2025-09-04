@@ -11,6 +11,7 @@ import (
 type bizNotifyNodeExecutor struct {
 	nodeExecutor
 
+	accessRepo   accessRepository
 	settingsRepo settingsRepository
 }
 
@@ -26,20 +27,28 @@ func (ne *bizNotifyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 		return execRes, nil
 	}
 
-	// 初始化通知器
-	deployer, err := notify.NewWithWorkflowNode(notify.NotifierWithWorkflowNodeConfig{
-		Node:    execCtx.Node,
-		Logger:  ne.logger,
-		Subject: nodeCfg.Subject,
-		Message: nodeCfg.Message,
-	})
-	if err != nil {
-		ne.logger.Warn("failed to create notifier provider")
-		return execRes, err
+	// 读取部署提供商授权
+	providerAccessConfig := make(map[string]any)
+	if nodeCfg.ProviderAccessId != "" {
+		if access, err := ne.accessRepo.GetById(execCtx.ctx, nodeCfg.ProviderAccessId); err != nil {
+			return nil, fmt.Errorf("failed to get access #%s record: %w", nodeCfg.ProviderAccessId, err)
+		} else {
+			providerAccessConfig = access.Config
+		}
 	}
 
+	// 初始化通知器
+	notifyClient := notify.NewClient(notify.WithLogger(ne.logger))
+
 	// 推送通知
-	if err := deployer.Notify(execCtx.ctx); err != nil {
+	notifyReq := &notify.SendNotificationRequest{
+		Provider:               nodeCfg.Provider,
+		ProviderAccessConfig:   providerAccessConfig,
+		ProviderExtendedConfig: nodeCfg.ProviderConfig,
+		Subject:                nodeCfg.Subject,
+		Message:                nodeCfg.Message,
+	}
+	if _, err := notifyClient.SendNotification(execCtx.ctx, notifyReq); err != nil {
 		ne.logger.Warn("failed to send notification")
 		return execRes, err
 	}
@@ -69,6 +78,7 @@ func (ne *bizNotifyNodeExecutor) checkCanSkip(execCtx *NodeExecutionContext) (_s
 func newBizNotifyNodeExecutor() NodeExecutor {
 	return &bizNotifyNodeExecutor{
 		nodeExecutor: nodeExecutor{logger: slog.Default()},
+		accessRepo:   repository.NewAccessRepository(),
 		settingsRepo: repository.NewSettingsRepository(),
 	}
 }

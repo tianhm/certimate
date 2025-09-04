@@ -9,6 +9,7 @@ import (
 )
 
 type ChallengeProviderConfig struct {
+	// 网站根目录路径。
 	WebRootPath string `json:"webRootPath"`
 }
 

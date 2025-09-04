@@ -1,4 +1,4 @@
-﻿import { useMemo } from "react";
+﻿import { useEffect, useMemo } from "react";
 import { getI18n, useTranslation } from "react-i18next";
 import { type FlowNodeEntity, getNodeForm } from "@flowgram.ai/fixed-layout-editor";
 import { IconPlus } from "@tabler/icons-react";
@@ -11,6 +11,7 @@ import AccessSelect from "@/components/access/AccessSelect";
 import NotificationProviderPicker from "@/components/provider/NotificationProviderPicker";
 import NotificationProviderSelect from "@/components/provider/NotificationProviderSelect";
 import Show from "@/components/Show";
+import { type AccessModel } from "@/domain/access";
 import { ACCESS_USAGES, NOTIFICATION_PROVIDERS, accessProvidersMap, notificationProvidersMap } from "@/domain/provider";
 import { type WorkflowNodeConfigForBizNotify, defaultNodeConfigForBizNotify } from "@/domain/workflow";
 import { useAntdForm, useZustandShallowSelector } from "@/hooks";
@@ -38,6 +39,10 @@ const BizNotifyNodeConfigForm = ({ node, ...props }: BizNotifyNodeConfigFormProp
   const { i18n, t } = useTranslation();
 
   const { accesses } = useAccessesStore(useZustandShallowSelector("accesses"));
+  const accessOptionFilter = (_: string, option: AccessModel) => {
+    if (option.reserve !== "notif") return false;
+    return notificationProvidersMap.get(fieldProvider)?.provider === option.provider;
+  };
 
   const initialValues = useMemo(() => {
     return getNodeForm(node)?.getValueIn("config") as WorkflowNodeConfigForBizNotify | undefined;
@@ -81,6 +86,24 @@ const BizNotifyNodeConfigForm = ({ node, ...props }: BizNotifyNodeConfigFormProp
     }
   }, [fieldProvider]);
 
+  useEffect(() => {
+    // 如果未选择通知渠道，则清空授权信息
+    if (!fieldProvider && fieldProviderAccessId) {
+      formInst.setFieldValue("providerAccessId", void 0);
+      return;
+    }
+
+    // 如果已选择通知渠道只有一个授权信息，则自动选择该授权信息
+    if (fieldProvider && !fieldProviderAccessId) {
+      const availableAccesses = accesses
+        .filter((access) => accessOptionFilter(access.provider, access))
+        .filter((access) => access.provider === notificationProvidersMap.get(fieldProvider)?.provider);
+      if (availableAccesses.length === 1) {
+        formInst.setFieldValue("providerAccessId", availableAccesses[0].id);
+      }
+    }
+  }, [fieldProvider, fieldProviderAccessId]);
+
   const handleProviderPick = (value: string) => {
     formInst.setFieldValue("provider", value);
   };
@@ -90,9 +113,7 @@ const BizNotifyNodeConfigForm = ({ node, ...props }: BizNotifyNodeConfigFormProp
     if (initialValues?.provider === value) {
       formInst.resetFields(["providerConfig"]);
     } else {
-      if (notificationProvidersMap.get(fieldProvider)?.provider !== notificationProvidersMap.get(value!)?.provider) {
-        formInst.setFieldValue("providerAccessId", void 0);
-      }
+      formInst.setFieldValue("providerConfig", void 0);
     }
   };
 
@@ -152,14 +173,7 @@ const BizNotifyNodeConfigForm = ({ node, ...props }: BizNotifyNodeConfigFormProp
                 />
               </div>
               <Form.Item name="providerAccessId" noStyle rules={[formRule]}>
-                <AccessSelect
-                  placeholder={t("workflow_node.notify.form.provider_access.placeholder")}
-                  showSearch
-                  onFilter={(_, option) => {
-                    if (option.reserve !== "notif") return false;
-                    return notificationProvidersMap.get(fieldProvider)?.provider === option.provider;
-                  }}
-                />
+                <AccessSelect placeholder={t("workflow_node.notify.form.provider_access.placeholder")} showSearch onFilter={accessOptionFilter} />
               </Form.Item>
             </Form.Item>
 

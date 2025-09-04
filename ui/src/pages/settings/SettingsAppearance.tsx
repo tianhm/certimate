@@ -48,7 +48,7 @@ const SettingsAppearanceTheme = ({ className, style }: { className?: string; sty
     <div className={className} style={style}>
       <Form layout="vertical">
         <Form.Item extra={themeChanged ? t("settings.appearance.theme.form.value.extra") : void 0}>
-          <Radio.Group className="w-full" value={themeMode} onChange={handleChange}>
+          <Radio.Group block value={themeMode} onChange={handleChange}>
             <div className="flex w-full items-center gap-4 max-md:flex-wrap">
               {themeItems.map((item) => (
                 <div className="relative max-w-44 flex-1/3 max-md:flex-1/2 max-sm:flex-1" key={item.key}>

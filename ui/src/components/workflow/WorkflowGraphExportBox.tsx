@@ -111,13 +111,9 @@ const WorkflowGraphExportBox = ({ className, style, data }: WorkflowGraphExportB
   return (
     <Form className={className} style={style} layout="vertical">
       <Form.Item className="mb-4" label={t("workflow.detail.design.action.export.form.format.label")}>
-        <Radio.Group className="w-full" value={format} onChange={(e) => setFormat(e.target.value)}>
-          <Radio.Button className="w-1/2 text-center" value="yaml">
-            YAML
-          </Radio.Button>
-          <Radio.Button className="w-1/2 text-center" value="json">
-            JSON
-          </Radio.Button>
+        <Radio.Group block value={format} onChange={(e) => setFormat(e.target.value)}>
+          <Radio.Button value="yaml">YAML</Radio.Button>
+          <Radio.Button value="json">JSON</Radio.Button>
         </Radio.Group>
       </Form.Item>
 

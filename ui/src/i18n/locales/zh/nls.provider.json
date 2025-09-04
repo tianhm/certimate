@@ -196,5 +196,5 @@
 
   "provider.text.nodata": "暂无提供商",
   "provider.text.default_ca_provider": "（默认）不指定，跟随全局设置",
-  "provider.text.show_available_provider_only": "仅列出可用的提供商（即已添加过授权凭据的）"
+  "provider.text.unavailable_options": "以下提供商不可用（即未添加过授权凭据）"
 }

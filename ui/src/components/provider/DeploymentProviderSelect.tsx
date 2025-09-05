@@ -1,34 +1,31 @@
-import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Avatar, Select, Typography, theme } from "antd";
 
 import { type DeploymentProvider, deploymentProvidersMap } from "@/domain/provider";
 
-import { type SharedSelectProps } from "./_shared";
+import { type SharedSelectProps, useSelectDataSource } from "./_shared";
 
-export interface DeploymentProviderSelectProps extends SharedSelectProps<DeploymentProvider> {}
+export interface DeploymentProviderSelectProps extends SharedSelectProps<DeploymentProvider> {
+  showAvailability?: boolean;
+}
 
-const DeploymentProviderSelect = ({ onFilter, ...props }: DeploymentProviderSelectProps) => {
+const DeploymentProviderSelect = ({ showAvailability = false, onFilter, ...props }: DeploymentProviderSelectProps) => {
   const { t } = useTranslation();
 
   const { token: themeToken } = theme.useToken();
 
-  const options = useMemo<Array<{ key: string; value: string; label: string; data: DeploymentProvider }>>(() => {
-    return Array.from(deploymentProvidersMap.values())
-      .filter((provider) => {
-        if (onFilter) {
-          return onFilter(provider.type, provider);
-        }
-
-        return true;
-      })
-      .map((provider) => ({
-        key: provider.type,
-        value: provider.type,
-        label: t(provider.name),
-        data: provider,
-      }));
-  }, [onFilter]);
+  const dataSources = useSelectDataSource({
+    dataSource: Array.from(deploymentProvidersMap.values()),
+    filters: [onFilter!],
+  });
+  const dataSource2Options = (providers: DeploymentProvider[]): Array<{ key: string; value: string; label: string; data: DeploymentProvider }> => {
+    return providers.map((provider) => ({
+      key: provider.type,
+      value: provider.type,
+      label: t(provider.name),
+      data: provider,
+    }));
+  };
 
   const renderOption = (key: string) => {
     const provider = deploymentProvidersMap.get(key);
@@ -45,9 +42,11 @@ const DeploymentProviderSelect = ({ onFilter, ...props }: DeploymentProviderSele
       {...props}
       filterOption={(inputValue, option) => {
         if (!option) return false;
+        if (!option.label) return false;
+        if (!option.value) return false;
 
         const value = inputValue.toLowerCase();
-        return option.value.toLowerCase().includes(value) || option.label.toLowerCase().includes(value);
+        return String(option.value).toLowerCase().includes(value) || String(option.label).toLowerCase().includes(value);
       }}
       labelRender={({ value }) => {
         if (value != null) {
@@ -56,10 +55,23 @@ const DeploymentProviderSelect = ({ onFilter, ...props }: DeploymentProviderSele
 
         return <span style={{ color: themeToken.colorTextPlaceholder }}>{props.placeholder}</span>;
       }}
-      options={options}
+      options={
+        showAvailability
+          ? [
+              {
+                label: t("provider.text.available_group"),
+                options: dataSource2Options(dataSources.available),
+              },
+              {
+                label: t("provider.text.unavailable_group"),
+                options: dataSource2Options(dataSources.unavailable),
+              },
+            ]
+          : dataSource2Options(dataSources.filtered)
+      }
       optionFilterProp={void 0}
       optionLabelProp={void 0}
-      optionRender={(option) => renderOption(option.data.value)}
+      optionRender={(option) => renderOption(option.data.value as string)}
     />
   );
 };

@@ -7,7 +7,7 @@ import Show from "@/components/Show";
 import { ACCESS_USAGES, type AccessProvider, type AccessUsageType, accessProvidersMap } from "@/domain/provider";
 import { mergeCls } from "@/utils/css";
 
-import { type SharedPickerProps, usePickerWrapperCols } from "./_shared";
+import { type SharedPickerProps, usePickerDataSource, usePickerWrapperCols } from "./_shared";
 
 export interface AccessProviderPickerProps extends SharedPickerProps<AccessProvider> {
   showOptionTags?: boolean | { [key in AccessUsageType]?: boolean };
@@ -20,7 +20,7 @@ const AccessProviderPicker = ({
   gap = "middle",
   placeholder,
   showOptionTags,
-  showSearch = true,
+  showSearch = false,
   onFilter,
   onSelect,
 }: AccessProviderPickerProps) => {
@@ -52,24 +52,62 @@ const AccessProviderPicker = ({
     }
   });
 
-  const providers = useMemo(() => {
-    return Array.from(accessProvidersMap.values())
-      .filter((provider) => {
-        if (onFilter) {
-          return onFilter(provider.type, provider);
-        }
+  const dataSources = usePickerDataSource({
+    dataSource: Array.from(accessProvidersMap.values()),
+    filters: [onFilter!],
+    keyword: keyword,
+  });
 
-        return true;
-      })
-      .filter((provider) => {
-        if (keyword) {
-          const value = keyword.toLowerCase();
-          return provider.type.toLowerCase().includes(value) || t(provider.name).toLowerCase().includes(value);
-        }
+  const renderOption = (provider: AccessProvider) => {
+    return (
+      <div key={provider.type}>
+        <Card
+          className={mergeCls("w-full overflow-hidden shadow", provider.builtin ? " cursor-not-allowed" : "", showOptionTagAnyhow ? "h-32" : "h-28")}
+          styles={{ body: { height: "100%", padding: "0.5rem 1rem" } }}
+          hoverable
+          onClick={() => {
+            if (provider.builtin) {
+              return;
+            }
 
-        return true;
-      });
-  }, [onFilter, keyword]);
+            handleProviderTypeSelect(provider.type);
+          }}
+        >
+          <div className="flex size-full flex-col items-center justify-center gap-3 overflow-hidden p-2">
+            <div className="flex items-center justify-center">
+              <Avatar className="bg-stone-100" icon={<img src={provider.icon} />} shape="square" size={32} />
+            </div>
+            <div className="w-full overflow-hidden text-center">
+              <div className={mergeCls("w-full truncate", { "mb-1": showOptionTagAnyhow })}>
+                <Tooltip title={t(provider.name)} mouseEnterDelay={1}>
+                  <Typography.Text type={provider.builtin ? "secondary" : void 0}>{t(provider.name) || "\u00A0"}</Typography.Text>
+                </Tooltip>
+              </div>
+              <Show when={showOptionTagAnyhow}>
+                <div className="origin-top scale-80 whitespace-nowrap" style={{ marginInlineEnd: "-8px" }}>
+                  <Show when={provider.builtin}>
+                    <Tag>{t("access.props.provider.builtin")}</Tag>
+                  </Show>
+                  <Show when={showOptionTagForDNS && provider.usages.includes(ACCESS_USAGES.DNS)}>
+                    <Tag color="#d93f0b99">{t("access.props.provider.usage.dns")}</Tag>
+                  </Show>
+                  <Show when={showOptionTagForHosting && provider.usages.includes(ACCESS_USAGES.HOSTING)}>
+                    <Tag color="#0052cc99">{t("access.props.provider.usage.hosting")}</Tag>
+                  </Show>
+                  <Show when={showOptionTagForCA && provider.usages.includes(ACCESS_USAGES.CA)}>
+                    <Tag color="#0e8a1699">{t("access.props.provider.usage.ca")}</Tag>
+                  </Show>
+                  <Show when={showOptionTagForNotification && provider.usages.includes(ACCESS_USAGES.NOTIFICATION)}>
+                    <Tag color="#1d76db99">{t("access.props.provider.usage.notification")}</Tag>
+                  </Show>
+                </div>
+              </Show>
+            </div>
+          </div>
+        </Card>
+      </div>
+    );
+  };
 
   const handleProviderTypeSelect = (value: string) => {
     onSelect?.(value);
@@ -83,7 +121,7 @@ const AccessProviderPicker = ({
         </div>
       </Show>
 
-      <Show when={providers.length > 0} fallback={<Empty description={t("provider.text.nodata")} image={Empty.PRESENTED_IMAGE_SIMPLE} />}>
+      <Show when={dataSources.filtered.length > 0} fallback={<Empty description={t("provider.text.nodata")} image={Empty.PRESENTED_IMAGE_SIMPLE} />}>
         <div
           className={mergeCls("grid w-full gap-2", `grid-cols-${cols}`, {
             "gap-4": gap === "large",
@@ -92,56 +130,7 @@ const AccessProviderPicker = ({
             [`gap-${+gap || "2"}`]: typeof gap === "number",
           })}
         >
-          {providers.map((provider) => {
-            return (
-              <div key={provider.type}>
-                <Card
-                  className={mergeCls("w-full overflow-hidden shadow", provider.builtin ? " cursor-not-allowed" : "", showOptionTagAnyhow ? "h-32" : "h-28")}
-                  styles={{ body: { height: "100%", padding: "0.5rem 1rem" } }}
-                  hoverable
-                  onClick={() => {
-                    if (provider.builtin) {
-                      return;
-                    }
-
-                    handleProviderTypeSelect(provider.type);
-                  }}
-                >
-                  <div className="flex size-full flex-col items-center justify-center gap-3 overflow-hidden p-2">
-                    <div className="flex items-center justify-center">
-                      <Avatar className="bg-stone-100" icon={<img src={provider.icon} />} shape="square" size={32} />
-                    </div>
-                    <div className="w-full overflow-hidden text-center">
-                      <div className={mergeCls("w-full truncate", { "mb-1": showOptionTagAnyhow })}>
-                        <Tooltip title={t(provider.name)} mouseEnterDelay={1}>
-                          <Typography.Text type={provider.builtin ? "secondary" : void 0}>{t(provider.name) || "\u00A0"}</Typography.Text>
-                        </Tooltip>
-                      </div>
-                      <Show when={showOptionTagAnyhow}>
-                        <div className="origin-top scale-80 whitespace-nowrap" style={{ marginInlineEnd: "-8px" }}>
-                          <Show when={provider.builtin}>
-                            <Tag>{t("access.props.provider.builtin")}</Tag>
-                          </Show>
-                          <Show when={showOptionTagForDNS && provider.usages.includes(ACCESS_USAGES.DNS)}>
-                            <Tag color="#d93f0b99">{t("access.props.provider.usage.dns")}</Tag>
-                          </Show>
-                          <Show when={showOptionTagForHosting && provider.usages.includes(ACCESS_USAGES.HOSTING)}>
-                            <Tag color="#0052cc99">{t("access.props.provider.usage.hosting")}</Tag>
-                          </Show>
-                          <Show when={showOptionTagForCA && provider.usages.includes(ACCESS_USAGES.CA)}>
-                            <Tag color="#0e8a1699">{t("access.props.provider.usage.ca")}</Tag>
-                          </Show>
-                          <Show when={showOptionTagForNotification && provider.usages.includes(ACCESS_USAGES.NOTIFICATION)}>
-                            <Tag color="#1d76db99">{t("access.props.provider.usage.notification")}</Tag>
-                          </Show>
-                        </div>
-                      </Show>
-                    </div>
-                  </div>
-                </Card>
-              </div>
-            );
-          })}
+          {dataSources.filtered.map((provider) => renderOption(provider))}
         </div>
       </Show>
     </div>

@@ -112,7 +112,7 @@ const AccessForm = ({ className, style, disabled, initialValues, mode, usage, ..
     reserve: z.string().nullish(),
   });
   const formRule = createSchemaFieldRule(formSchema);
-  const { form: formInst, formProps } = useAntdForm({
+  const { form: formInst, formProps } = useAntdForm<z.infer<typeof formSchema>>({
     form: props.form,
     name: "accessForm",
     initialValues: initialValues,

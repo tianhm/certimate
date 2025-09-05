@@ -34,7 +34,7 @@ const StartNodeConfigForm = ({ node, ...props }: StartNodeConfigFormProps) => {
 
   const formSchema = getSchema({ i18n });
   const formRule = createSchemaFieldRule(formSchema);
-  const { form: formInst, formProps } = useAntdForm({
+  const { form: formInst, formProps } = useAntdForm<z.infer<typeof formSchema>>({
     form: props.form,
     name: "workflowNodeStartConfigForm",
     initialValues: initialValues ?? getInitialValues(),

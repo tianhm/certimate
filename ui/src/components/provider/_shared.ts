@@ -16,81 +16,30 @@ export interface SharedSelectProps<T extends Provider>
   onFilter?: (value: string, option: T) => boolean;
 }
 
-export interface SharedPickerProps<T extends Provider> {
-  className?: string;
-  style?: React.CSSProperties;
-  autoFocus?: boolean;
-  gap?: number | "small" | "middle" | "large";
-  placeholder?: string;
-  showSearch?: boolean;
-  onFilter?: (value: string, option: T) => boolean;
-  onSelect?: (value: string) => void;
-}
-
-export const usePickerWrapperCols = (width: number) => {
-  const wrapperElRef = useRef<HTMLDivElement>(null);
-  const wrapperSize = useSize(wrapperElRef);
-
-  const cols = useMemo(() => {
-    if (!wrapperSize) {
-      return 1;
-    }
-
-    const cols = Math.floor(wrapperSize.width / width);
-    return Math.min(9, Math.max(1, cols));
-  }, [wrapperSize, width]);
-
-  return {
-    wrapperElRef,
-    cols,
-  };
-};
-
-export const usePickerDataSource = <T extends Provider>({
+export const useSelectDataSource = <T extends Provider>({
   dataSource,
   filters,
-  keyword,
-  onFilter,
   deps,
 }: {
   dataSource: T[];
-  filters?: Array<(option: T) => boolean>;
-  keyword?: string;
-  onFilter?: (value: string, option: T) => boolean;
+  filters?: Array<(value: string, option: T) => boolean>;
   deps?: React.DependencyList;
 }) => {
-  const { t } = useTranslation();
-
   const { accesses, fetchAccesses } = useAccessesStore(useZustandShallowSelector(["accesses", "fetchAccesses"]));
   useMount(() => fetchAccesses(false));
 
   const filteredDataSource = useMemo(() => {
-    return dataSource
-      .filter((provider) => {
-        if (onFilter) {
-          return onFilter(provider.type, provider);
+    return dataSource.filter((provider) => {
+      if (filters) {
+        for (const filter of filters) {
+          if (!filter) continue;
+          if (!filter(provider.type, provider)) return false;
         }
+      }
 
-        return true;
-      })
-      .filter((provider) => {
-        if (filters) {
-          for (const filter of filters) {
-            if (!filter(provider)) return false;
-          }
-        }
-
-        return true;
-      })
-      .filter((provider) => {
-        if (keyword) {
-          const value = keyword.toLowerCase();
-          return provider.type.toLowerCase().includes(value) || t(provider.name).toLowerCase().includes(value);
-        }
-
-        return true;
-      });
-  }, [dataSource, filters, keyword, onFilter, ...(deps ?? [])]);
+      return true;
+    });
+  }, [dataSource, filters, ...(deps ?? [])]);
 
   const availableDataSource = useMemo(() => {
     return filteredDataSource.filter((provider) => {
@@ -107,7 +56,94 @@ export const usePickerDataSource = <T extends Provider>({
   }, [filteredDataSource, availableDataSource, ...(deps ?? [])]);
 
   return {
-    all: dataSource,
+    raw: dataSource,
+    filtered: filteredDataSource,
+    available: availableDataSource,
+    unavailable: unavailableDataSource,
+  };
+};
+
+export interface SharedPickerProps<T extends Provider> {
+  className?: string;
+  style?: React.CSSProperties;
+  autoFocus?: boolean;
+  gap?: number | "small" | "middle" | "large";
+  placeholder?: string;
+  showSearch?: boolean;
+  onFilter?: (value: string, option: T) => boolean;
+  onSelect?: (value: string) => void;
+}
+
+export const usePickerWrapperCols = (width: number) => {
+  const wrapperElRef = useRef<HTMLDivElement>(null);
+  const wrapperSize = useSize(wrapperElRef);
+
+  const columns = useMemo(() => {
+    const wWidth = wrapperSize?.width ?? document.body.clientWidth - 256;
+    const wCols = Math.floor(wWidth / width);
+    return Math.min(9, Math.max(1, wCols));
+  }, [wrapperSize, width]);
+
+  return {
+    wrapperElRef,
+    cols: columns,
+  };
+};
+
+export const usePickerDataSource = <T extends Provider>({
+  dataSource,
+  filters,
+  keyword,
+  deps,
+}: {
+  dataSource: T[];
+  filters?: Array<(value: string, option: T) => boolean>;
+  keyword?: string;
+  deps?: React.DependencyList;
+}) => {
+  const { t } = useTranslation();
+
+  const { accesses, fetchAccesses } = useAccessesStore(useZustandShallowSelector(["accesses", "fetchAccesses"]));
+  useMount(() => fetchAccesses(false));
+
+  const filteredDataSource = useMemo(() => {
+    return dataSource
+      .filter((provider) => {
+        if (filters) {
+          for (const filter of filters) {
+            if (!filter) continue;
+            if (!filter(provider.type, provider)) return false;
+          }
+        }
+
+        return true;
+      })
+      .filter((provider) => {
+        if (keyword) {
+          const value = keyword.toLowerCase();
+          return provider.type.toLowerCase().includes(value) || t(provider.name).toLowerCase().includes(value);
+        }
+
+        return true;
+      });
+  }, [dataSource, filters, keyword, ...(deps ?? [])]);
+
+  const availableDataSource = useMemo(() => {
+    return filteredDataSource.filter((provider) => {
+      return accesses.some((access) => {
+        if ("builtin" in provider && provider.builtin) return true;
+        if ("provider" in provider) return access.provider === provider.provider;
+        return access.provider === provider.type;
+      });
+    });
+  }, [accesses, filteredDataSource, ...(deps ?? [])]);
+
+  const unavailableDataSource = useMemo(() => {
+    return filteredDataSource.filter((item) => !availableDataSource.includes(item));
+  }, [filteredDataSource, availableDataSource, ...(deps ?? [])]);
+
+  return {
+    raw: dataSource,
     filtered: filteredDataSource,
     available: availableDataSource,
     unavailable: unavailableDataSource,

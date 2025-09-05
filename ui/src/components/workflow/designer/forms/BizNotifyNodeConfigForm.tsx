@@ -50,7 +50,7 @@ const BizNotifyNodeConfigForm = ({ node, ...props }: BizNotifyNodeConfigFormProp
 
   const formSchema = getSchema({ i18n });
   const formRule = createSchemaFieldRule(formSchema);
-  const { form: formInst, formProps } = useAntdForm({
+  const { form: formInst, formProps } = useAntdForm<z.infer<typeof formSchema>>({
     form: props.form,
     name: "workflowNodeBizNotifyNodeConfigForm",
     initialValues: initialValues ?? getInitialValues(),
@@ -121,7 +121,13 @@ const BizNotifyNodeConfigForm = ({ node, ...props }: BizNotifyNodeConfigFormProp
     <NodeFormContextProvider value={{ node }}>
       <Form {...formProps} clearOnDestroy={true} form={formInst} layout="vertical" preserve={false} scrollToFirstError>
         <Show when={!fieldProvider}>
-          <NotificationProviderPicker autoFocus placeholder={t("workflow_node.notify.form.provider.search.placeholder")} onSelect={handleProviderPick} />
+          <NotificationProviderPicker
+            autoFocus
+            placeholder={t("workflow_node.notify.form.provider.search.placeholder")}
+            showAvailability
+            showSearch
+            onSelect={handleProviderPick}
+          />
         </Show>
 
         <div style={{ display: fieldProvider ? "block" : "none" }}>
@@ -147,6 +153,7 @@ const BizNotifyNodeConfigForm = ({ node, ...props }: BizNotifyNodeConfigFormProp
                 allowClear
                 disabled={!!initialValues?.provider}
                 placeholder={t("workflow_node.notify.form.provider.placeholder")}
+                showAvailability
                 showSearch
                 onSelect={handleProviderSelect}
                 onClear={handleProviderSelect}

@@ -4,7 +4,22 @@ import { Link } from "react-router";
 import { type FlowNodeEntity, getNodeForm } from "@flowgram.ai/fixed-layout-editor";
 import { IconChevronRight, IconCircleMinus, IconPlus } from "@tabler/icons-react";
 import { useControllableValue, useMount } from "ahooks";
-import { type AnchorProps, AutoComplete, Button, Divider, Flex, Form, type FormInstance, Input, InputNumber, Select, Space, Switch, Typography } from "antd";
+import {
+  type AnchorProps,
+  AutoComplete,
+  Button,
+  Divider,
+  Flex,
+  Form,
+  type FormInstance,
+  Input,
+  InputNumber,
+  Radio,
+  Select,
+  Space,
+  Switch,
+  Typography,
+} from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
@@ -31,6 +46,9 @@ import { NodeType } from "../nodes/typings";
 
 const MULTIPLE_INPUT_SEPARATOR = ";";
 
+const CHALLENGE_TYPE_DNS01 = "dns-01";
+const CHALLENGE_TYPE_HTTP01 = "http-01";
+
 export interface BizApplyNodeConfigFormProps {
   form: FormInstance;
   node: FlowNodeEntity;
@@ -51,12 +69,13 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
 
   const formSchema = getSchema({ i18n });
   const formRule = createSchemaFieldRule(formSchema);
-  const { form: formInst, formProps } = useAntdForm({
+  const { form: formInst, formProps } = useAntdForm<z.infer<typeof formSchema>>({
     form: props.form,
     name: "workflowNodeBizApplyConfigForm",
     initialValues: initialValues ?? getInitialValues(),
   });
 
+  const fieldChallengeType = Form.useWatch<string>("challengeType", { form: formInst, preserve: true });
   const fieldProvider = Form.useWatch<string>("provider", { form: formInst, preserve: true });
   const fieldProviderAccessId = Form.useWatch<string>("providerAccessId", { form: formInst, preserve: true });
   const fieldCAProvider = Form.useWatch<string>("caProvider", { form: formInst, preserve: true });
@@ -112,6 +131,29 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
     }
   }, [fieldCAProvider]);
 
+  const handleChallengeTypeChange = (value: string) => {
+    switch (value) {
+      case CHALLENGE_TYPE_DNS01:
+        {
+          formInst.setFieldValue("provider", void 0);
+          formInst.setFieldValue("providerAccessId", void 0);
+          formInst.setFieldValue("providerConfig", void 0);
+        }
+        break;
+
+      case CHALLENGE_TYPE_HTTP01:
+        {
+          formInst.setFieldValue("provider", void 0);
+          formInst.setFieldValue("providerAccessId", void 0);
+          formInst.setFieldValue("providerConfig", void 0);
+          formInst.setFieldValue("dnsPropagationWait", void 0);
+          formInst.setFieldValue("dnsPropagationTimeout", void 0);
+          formInst.setFieldValue("dnsTTL", void 0);
+        }
+        break;
+    }
+  };
+
   const handleProviderSelect = (value: string) => {
     if (fieldProvider === value) return;
 
@@ -136,7 +178,7 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
 
   const handleCAProviderSelect = (value?: string | undefined) => {
     // 切换 CA 提供商时联动授权信息
-    if (value === "") {
+    if (value == null || value === "") {
       setTimeout(() => {
         formInst.setFieldValue("caProvider", void 0);
         formInst.setFieldValue("caProviderAccessId", void 0);
@@ -173,14 +215,11 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
             <InternalEmailInput placeholder={t("workflow_node.apply.form.contact_email.placeholder")} />
           </Form.Item>
 
-          <Form.Item name="challengeType" label={t("workflow_node.apply.form.challenge_type.label")} rules={[formRule]} hidden>
-            <Select
-              options={["DNS-01"].map((e) => ({
-                label: e,
-                value: e.toLowerCase(),
-              }))}
-              placeholder={t("workflow_node.apply.form.challenge_type.placeholder")}
-            />
+          <Form.Item name="challengeType" label={t("workflow_node.apply.form.challenge_type.label")} rules={[formRule]}>
+            <Radio.Group block onChange={(e) => handleChallengeTypeChange(e.target.value)}>
+              <Radio.Button value={CHALLENGE_TYPE_DNS01}>DNS-01</Radio.Button>
+              <Radio.Button value={CHALLENGE_TYPE_HTTP01}>HTTP-01</Radio.Button>
+            </Radio.Group>
           </Form.Item>
 
           <Form.Item name="provider" label={t("workflow_node.apply.form.provider.label")} hidden={!showProvider} rules={[formRule]}>
@@ -367,6 +406,7 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
 
           <Form.Item
             name="dnsPropagationWait"
+            hidden={fieldChallengeType !== CHALLENGE_TYPE_DNS01}
             label={t("workflow_node.apply.form.dns_propagation_wait.label")}
             rules={[formRule]}
             tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.apply.form.dns_propagation_wait.tooltip") }}></span>}
@@ -383,6 +423,7 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
 
           <Form.Item
             name="dnsPropagationTimeout"
+            hidden={fieldChallengeType !== CHALLENGE_TYPE_DNS01}
             label={t("workflow_node.apply.form.dns_propagation_timeout.label")}
             rules={[formRule]}
             tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.apply.form.dns_propagation_timeout.tooltip") }}></span>}
@@ -399,6 +440,7 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
 
           <Form.Item
             name="dnsTTL"
+            hidden={fieldChallengeType !== CHALLENGE_TYPE_DNS01}
             label={t("workflow_node.apply.form.dns_ttl.label")}
             extra={t("workflow_node.apply.form.dns_ttl.help")}
             rules={[formRule]}
@@ -644,7 +686,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
           .every((e) => validDomainName(e, { allowWildcard: true }));
       }, t("common.errmsg.domain_invalid")),
       contactEmail: z.email(t("common.errmsg.email_invalid")),
-      challengeType: z.string().nullish(),
+      challengeType: z.string().nonempty(t("workflow_node.apply.form.challenge_type.placeholder")),
       provider: z.string(t("workflow_node.apply.form.provider.placeholder")).nonempty(t("workflow_node.apply.form.provider.placeholder")),
       providerAccessId: z.string(t("workflow_node.apply.form.provider_access.placeholder")).nonempty(t("workflow_node.apply.form.provider_access.placeholder")),
       providerConfig: z.any().nullish(),

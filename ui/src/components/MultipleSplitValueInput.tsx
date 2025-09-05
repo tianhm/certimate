@@ -56,7 +56,7 @@ const MultipleSplitValueInput = ({
     name: "componentMultipleSplitValueInput_" + nanoid(),
     initialValues: { value: value?.split(delimiter) },
     onSubmit: (values) => {
-      const temp = values.value ?? [];
+      const temp = (values.value ?? []) as string[];
       if (splitOptions.trimSpace) {
         temp.map((e) => e.trim());
       }

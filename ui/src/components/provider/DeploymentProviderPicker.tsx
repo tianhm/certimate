@@ -10,7 +10,7 @@ import { mergeCls } from "@/utils/css";
 import { type SharedPickerProps, usePickerDataSource, usePickerWrapperCols } from "./_shared";
 
 export interface DeploymentProviderPickerProps extends SharedPickerProps<DeploymentProvider> {
-  showAvailable?: boolean;
+  showAvailability?: boolean;
 }
 
 const DeploymentProviderPicker = ({
@@ -19,8 +19,8 @@ const DeploymentProviderPicker = ({
   autoFocus,
   gap = "middle",
   placeholder,
-  showAvailable = true,
-  showSearch = true,
+  showAvailability = false,
+  showSearch = false,
   onFilter,
   onSelect,
 }: DeploymentProviderPickerProps) => {
@@ -41,7 +41,8 @@ const DeploymentProviderPicker = ({
   const dataSources = usePickerDataSource({
     dataSource: Array.from(deploymentProvidersMap.values()),
     filters: [
-      (provider) => {
+      onFilter!,
+      (_, provider) => {
         if (category && category !== DEPLOYMENT_CATEGORIES.ALL) {
           return provider.category === category;
         }
@@ -50,28 +51,29 @@ const DeploymentProviderPicker = ({
       },
     ],
     keyword: keyword,
-    onFilter: onFilter,
     deps: [category],
   });
 
-  const renderOption = (provider: DeploymentProvider) => {
+  const renderOption = (provider: DeploymentProvider, transparent: boolean = false) => {
     return (
       <div key={provider.type}>
         <Card
-          className="h-16 w-full overflow-hidden shadow"
+          className="group/provider h-16 w-full overflow-hidden shadow"
           styles={{ body: { height: "100%", padding: "0.5rem 1rem" } }}
           hoverable
           onClick={() => {
             handleProviderTypeSelect(provider.type);
           }}
         >
-          <div className="flex size-full items-center gap-4 overflow-hidden">
-            <Avatar className="bg-stone-100" icon={<img src={provider.icon} />} shape="square" size={28} />
-            <div className="flex-1 overflow-hidden">
-              <div className="line-clamp-2 max-w-full">
-                <Tooltip title={t(provider.name)} mouseEnterDelay={1}>
-                  <Typography.Text>{t(provider.name) || "\u00A0"}</Typography.Text>
-                </Tooltip>
+          <div className={mergeCls("size-full", transparent ? "transition-opacity opacity-75 group-hover/provider:opacity-100" : void 0)}>
+            <div className="flex size-full items-center gap-4 overflow-hidden">
+              <Avatar className="bg-stone-100" icon={<img src={provider.icon} />} shape="square" size={28} />
+              <div className="flex-1 overflow-hidden">
+                <div className="line-clamp-2 max-w-full">
+                  <Tooltip title={t(provider.name)} mouseEnterDelay={1}>
+                    <Typography.Text>{t(provider.name) || "\u00A0"}</Typography.Text>
+                  </Tooltip>
+                </div>
               </div>
             </div>
           </div>
@@ -129,13 +131,13 @@ const DeploymentProviderPicker = ({
                 [`gap-${+gap || "2"}`]: typeof gap === "number",
               })}
             >
-              {(showAvailable ? dataSources.available : dataSources.filtered).map((provider) => renderOption(provider))}
+              {(showAvailability ? dataSources.available : dataSources.filtered).map((provider) => renderOption(provider))}
             </div>
 
-            <Show when={showAvailable && dataSources.unavailable.length > 0}>
+            <Show when={showAvailability && dataSources.unavailable.length > 0}>
               <Divider size="small">
                 <Typography.Text className="text-xs font-normal" type="secondary">
-                  {t("provider.text.unavailable_options")}
+                  {t("provider.text.unavailable_divider")}
                 </Typography.Text>
               </Divider>
 
@@ -147,7 +149,7 @@ const DeploymentProviderPicker = ({
                   [`gap-${+gap || "2"}`]: typeof gap === "number",
                 })}
               >
-                {dataSources.unavailable.map((provider) => renderOption(provider))}
+                {dataSources.unavailable.map((provider) => renderOption(provider, true))}
               </div>
             </Show>
           </Show>

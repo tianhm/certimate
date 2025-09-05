@@ -150,7 +150,7 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
     }
   });
   const formRule = createSchemaFieldRule(formSchema);
-  const { form: formInst, formProps } = useAntdForm({
+  const { form: formInst, formProps } = useAntdForm<z.infer<typeof formSchema>>({
     form: props.form,
     name: "workflowNodeBizDeployConfigForm",
     initialValues: initialValues ?? getInitialValues(),
@@ -504,16 +504,53 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
     <NodeFormContextProvider value={{ node }}>
       <Form {...formProps} clearOnDestroy={true} form={formInst} layout="vertical" preserve={false} scrollToFirstError>
         <Show when={!fieldProvider}>
-          <DeploymentProviderPicker autoFocus placeholder={t("workflow_node.deploy.form.provider.search.placeholder")} onSelect={handleProviderPick} />
+          <DeploymentProviderPicker
+            autoFocus
+            placeholder={t("workflow_node.deploy.form.provider.search.placeholder")}
+            showAvailability
+            showSearch
+            onSelect={handleProviderPick}
+          />
         </Show>
 
         <div style={{ display: fieldProvider ? "block" : "none" }}>
           <div id="parameters" data-anchor="parameters">
+            <Form.Item
+              name="certificateOutputNodeId"
+              label={t("workflow_node.deploy.form.certificate_output_node_id.label")}
+              extra={t("workflow_node.deploy.form.certificate_output_node_id.help")}
+              rules={[formRule]}
+            >
+              <Select
+                optionRender={({ label, value }) => {
+                  return (
+                    <div className="flex items-center justify-between gap-4 overflow-hidden">
+                      <div className="flex-1 truncate">{label}</div>
+                      <div className="origin-right scale-90 font-mono text-xs" style={{ color: themeToken.colorTextSecondary }}>
+                        (NodeID: {value})
+                      </div>
+                    </div>
+                  );
+                }}
+                options={certificateOutputNodeIdOptions}
+                placeholder={t("workflow_node.deploy.form.certificate_output_node_id.placeholder")}
+              />
+            </Form.Item>
+          </div>
+
+          <div id="deployment" data-anchor="deployment">
+            <Divider size="small">
+              <Typography.Text className="text-xs font-normal" type="secondary">
+                {t("workflow_node.deploy.form_anchor.deployment.title")}
+              </Typography.Text>
+            </Divider>
+
             <Form.Item name="provider" label={t("workflow_node.deploy.form.provider.label")} rules={[formRule]}>
               <DeploymentProviderSelect
                 allowClear
                 disabled={!!initialValues?.provider}
                 placeholder={t("workflow_node.deploy.form.provider.placeholder")}
+                showAvailability
                 showSearch
                 onSelect={handleProviderSelect}
                 onClear={handleProviderSelect}
@@ -550,42 +587,8 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
               </Form.Item>
             </Form.Item>
 
-            <Form.Item
-              name="certificateOutputNodeId"
-              label={t("workflow_node.deploy.form.certificate_output_node_id.label")}
-              extra={t("workflow_node.deploy.form.certificate_output_node_id.help")}
-              rules={[formRule]}
-            >
-              <Select
-                optionRender={({ label, value }) => {
-                  return (
-                    <div className="flex items-center justify-between gap-4 overflow-hidden">
-                      <div className="flex-1 truncate">{label}</div>
-                      <div className="origin-right scale-90 font-mono text-xs" style={{ color: themeToken.colorTextSecondary }}>
-                        (NodeID: {value})
-                      </div>
-                    </div>
-                  );
-                }}
-                options={certificateOutputNodeIdOptions}
-                placeholder={t("workflow_node.deploy.form.certificate_output_node_id.placeholder")}
-              />
-            </Form.Item>
-          </div>
-
-          <div id="deployment" data-anchor="deployment">
             <FormNestedFieldsContextProvider value={{ parentNamePath: "providerConfig" }}>
-              {NestedProviderConfigFields && (
-                <>
-                  <Divider size="small">
-                    <Typography.Text className="text-xs font-normal" type="secondary">
-                      {t("workflow_node.deploy.form_anchor.deployment.title")}
-                    </Typography.Text>
-                  </Divider>
-
-                  <NestedProviderConfigFields />
-                </>
-              )}
+              {NestedProviderConfigFields && <NestedProviderConfigFields />}
             </FormNestedFieldsContextProvider>
           </div>
 

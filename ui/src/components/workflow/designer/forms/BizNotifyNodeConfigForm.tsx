@@ -12,7 +12,7 @@ import NotificationProviderPicker from "@/components/provider/NotificationProvid
 import NotificationProviderSelect from "@/components/provider/NotificationProviderSelect";
 import Show from "@/components/Show";
 import { type AccessModel } from "@/domain/access";
-import { ACCESS_USAGES, NOTIFICATION_PROVIDERS, accessProvidersMap, notificationProvidersMap } from "@/domain/provider";
+import { NOTIFICATION_PROVIDERS, notificationProvidersMap } from "@/domain/provider";
 import { type WorkflowNodeConfigForBizNotify, defaultNodeConfigForBizNotify } from "@/domain/workflow";
 import { useAntdForm, useZustandShallowSelector } from "@/hooks";
 import { useAccessesStore } from "@/stores/access";
@@ -97,7 +97,7 @@ const BizNotifyNodeConfigForm = ({ node, ...props }: BizNotifyNodeConfigFormProp
     if (fieldProvider && !fieldProviderAccessId) {
       const availableAccesses = accesses
         .filter((access) => accessOptionFilter(access.provider, access))
-        .filter((access) => access.provider === notificationProvidersMap.get(fieldProvider)?.provider);
+        .filter((access) => notificationProvidersMap.get(fieldProvider)?.provider === access.provider);
       if (availableAccesses.length === 1) {
         formInst.setFieldValue("providerAccessId", availableAccesses[0].id);
       }
@@ -106,13 +106,17 @@ const BizNotifyNodeConfigForm = ({ node, ...props }: BizNotifyNodeConfigFormProp
 
   const handleProviderPick = (value: string) => {
     formInst.setFieldValue("provider", value);
+    formInst.setFieldValue("providerAccessId", void 0);
+    formInst.setFieldValue("providerConfig", void 0);
   };
 
   const handleProviderSelect = (value?: string | undefined) => {
     // 切换通知渠道时重置表单，避免其他通知渠道的配置字段影响当前通知渠道
     if (initialValues?.provider === value) {
+      formInst.setFieldValue("providerAccessId", void 0);
       formInst.resetFields(["providerConfig"]);
     } else {
+      formInst.setFieldValue("providerAccessId", void 0);
       formInst.setFieldValue("providerConfig", void 0);
     }
   };
@@ -163,6 +167,7 @@ const BizNotifyNodeConfigForm = ({ node, ...props }: BizNotifyNodeConfigFormProp
             <Form.Item label={t("workflow_node.notify.form.provider_access.label")}>
               <div className="absolute -top-[6px] right-0 -translate-y-full">
                 <AccessEditDrawer
+                  data={{ provider: notificationProvidersMap.get(fieldProvider!)?.provider }}
                   mode="create"
                   trigger={
                     <Button size="small" type="link">
@@ -172,15 +177,19 @@ const BizNotifyNodeConfigForm = ({ node, ...props }: BizNotifyNodeConfigFormProp
                   }
                   usage="notification"
                   afterSubmit={(record) => {
-                    const provider = accessProvidersMap.get(record.provider);
-                    if (provider?.usages?.includes(ACCESS_USAGES.NOTIFICATION)) {
-                      formInst.setFieldValue("providerAccessId", record.id);
-                    }
+                    if (!accessOptionFilter(record.provider, record)) return;
+                    if (notificationProvidersMap.get(fieldProvider!)?.provider !== record.provider) return;
+                    formInst.setFieldValue("providerAccessId", record.id);
                   }}
                 />
               </div>
               <Form.Item name="providerAccessId" noStyle rules={[formRule]}>
-                <AccessSelect placeholder={t("workflow_node.notify.form.provider_access.placeholder")} showSearch onFilter={accessOptionFilter} />
+                <AccessSelect
+                  disabled={!fieldProvider}
+                  placeholder={t("workflow_node.notify.form.provider_access.placeholder")}
+                  showSearch
+                  onFilter={accessOptionFilter}
+                />
               </Form.Item>
             </Form.Item>
 

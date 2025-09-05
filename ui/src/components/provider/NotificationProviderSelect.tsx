@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Avatar, Select, Typography, theme } from "antd";
 
@@ -18,14 +19,29 @@ const NotificationProviderSelect = ({ showAvailability = false, onFilter, ...pro
     dataSource: Array.from(notificationProvidersMap.values()),
     filters: [onFilter!],
   });
-  const dataSource2Options = (providers: NotificationProvider[]): Array<{ key: string; value: string; label: string; data: NotificationProvider }> => {
-    return providers.map((provider) => ({
-      key: provider.type,
-      value: provider.type,
-      label: t(provider.name),
-      data: provider,
-    }));
-  };
+  const options = useMemo(() => {
+    const convert = (providers: NotificationProvider[]): Array<{ key: string; value: string; label: string; data: NotificationProvider }> => {
+      return providers.map((provider) => ({
+        key: provider.type,
+        value: provider.type,
+        label: t(provider.name),
+        data: provider,
+      }));
+    };
+
+    return showAvailability
+      ? [
+          {
+            label: t("provider.text.available_group"),
+            options: convert(dataSources.available),
+          },
+          {
+            label: t("provider.text.unavailable_group"),
+            options: convert(dataSources.unavailable),
+          },
+        ].filter((group) => group.options.length > 0)
+      : convert(dataSources.filtered);
+  }, [showAvailability, dataSources]);
 
   const renderOption = (key: string) => {
     const provider = notificationProvidersMap.get(key);
@@ -55,20 +71,7 @@ const NotificationProviderSelect = ({ showAvailability = false, onFilter, ...pro
 
         return <span style={{ color: themeToken.colorTextPlaceholder }}>{props.placeholder}</span>;
       }}
-      options={
-        showAvailability
-          ? [
-              {
-                label: t("provider.text.available_group"),
-                options: dataSource2Options(dataSources.available),
-              },
-              {
-                label: t("provider.text.unavailable_group"),
-                options: dataSource2Options(dataSources.unavailable),
-              },
-            ]
-          : dataSource2Options(dataSources.filtered)
-      }
+      options={options}
       optionFilterProp={void 0}
       optionLabelProp={void 0}
       optionRender={(option) => renderOption(option.data.value as string)}

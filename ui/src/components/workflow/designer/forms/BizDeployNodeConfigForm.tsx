@@ -12,7 +12,7 @@ import DeploymentProviderPicker from "@/components/provider/DeploymentProviderPi
 import DeploymentProviderSelect from "@/components/provider/DeploymentProviderSelect";
 import Show from "@/components/Show";
 import { type AccessModel } from "@/domain/access";
-import { ACCESS_USAGES, DEPLOYMENT_PROVIDERS, accessProvidersMap, deploymentProvidersMap } from "@/domain/provider";
+import { DEPLOYMENT_PROVIDERS, deploymentProvidersMap } from "@/domain/provider";
 import { type WorkflowNodeConfigForBizDeploy, defaultNodeConfigForBizDeploy } from "@/domain/workflow";
 import { useAntdForm, useZustandShallowSelector } from "@/hooks";
 import { useAccessesStore } from "@/stores/access";
@@ -480,7 +480,7 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
     if (fieldProvider && !fieldProviderAccessId) {
       const availableAccesses = accesses
         .filter((access) => accessOptionFilter(access.provider, access))
-        .filter((access) => access.provider === deploymentProvidersMap.get(fieldProvider)?.provider);
+        .filter((access) => deploymentProvidersMap.get(fieldProvider)?.provider === access.provider);
       if (availableAccesses.length === 1) {
         formInst.setFieldValue("providerAccessId", availableAccesses[0].id);
       }
@@ -489,13 +489,17 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
 
   const handleProviderPick = (value: string) => {
     formInst.setFieldValue("provider", value);
+    formInst.setFieldValue("providerAccessId", void 0);
+    formInst.setFieldValue("providerConfig", void 0);
   };
 
   const handleProviderSelect = (value?: string | undefined) => {
     // 切换部署目标时重置表单，避免其他部署目标的配置字段影响当前部署目标
     if (initialValues?.provider === value) {
+      formInst.setFieldValue("providerAccessId", void 0);
       formInst.resetFields(["providerConfig"]);
     } else {
+      formInst.setFieldValue("providerAccessId", void 0);
       formInst.setFieldValue("providerConfig", void 0);
     }
   };
@@ -557,12 +561,7 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
               />
             </Form.Item>
 
-            <Form.Item
-              className="relative"
-              hidden={!showProviderAccess}
-              label={t("workflow_node.deploy.form.provider_access.label")}
-              tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.provider_access.tooltip") }}></span>}
-            >
+            <Form.Item className="relative" hidden={!showProviderAccess} label={t("workflow_node.deploy.form.provider_access.label")}>
               <div className="absolute -top-[6px] right-0 -translate-y-full">
                 <AccessEditDrawer
                   data={{ provider: deploymentProvidersMap.get(fieldProvider!)?.provider }}
@@ -575,15 +574,19 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
                   }
                   usage="hosting"
                   afterSubmit={(record) => {
-                    const provider = accessProvidersMap.get(record.provider);
-                    if (provider?.usages?.includes(ACCESS_USAGES.HOSTING)) {
-                      formInst.setFieldValue("providerAccessId", record.id);
-                    }
+                    if (!accessOptionFilter(record.provider, record)) return;
+                    if (deploymentProvidersMap.get(fieldProvider!)?.provider !== record.provider) return;
+                    formInst.setFieldValue("providerAccessId", record.id);
                   }}
                 />
               </div>
               <Form.Item name="providerAccessId" rules={[formRule]} noStyle>
-                <AccessSelect placeholder={t("workflow_node.deploy.form.provider_access.placeholder")} showSearch onFilter={accessOptionFilter} />
+                <AccessSelect
+                  disabled={!fieldProvider}
+                  placeholder={t("workflow_node.deploy.form.provider_access.placeholder")}
+                  showSearch
+                  onFilter={accessOptionFilter}
+                />
               </Form.Item>
             </Form.Item>
 

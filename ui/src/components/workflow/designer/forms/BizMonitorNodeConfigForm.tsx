@@ -90,7 +90,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
   const { t } = i18n;
 
   return z.object({
-    host: z.string().refine((v) => {
+    host: z.string(t("workflow_node.monitor.form.host.placeholder")).refine((v) => {
       return validDomainName(v) || validIPv4Address(v) || validIPv6Address(v);
     }, t("common.errmsg.host_invalid")),
     port: z.preprocess(

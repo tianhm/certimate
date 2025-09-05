@@ -76,6 +76,7 @@
   "workflow.detail.design.drawer.node_id.label": "节点 ID：",
   "workflow.detail.design.drawer.disabled.on.tooltip": "禁用",
   "workflow.detail.design.drawer.disabled.off.tooltip": "启用",
+  "workflow.detail.design.drawer.errmsg.invalid_form": "请检查表单内容",
   "workflow.detail.design.action.publish.button": "发布更改",
   "workflow.detail.design.action.publish.modal.title": "发布更改",
   "workflow.detail.design.action.publish.modal.content": "确定要发布更改吗？",

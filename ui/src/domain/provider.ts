@@ -1,3 +1,14 @@
+interface BaseProvider<P> {
+  type: P;
+  name: string;
+  icon: string;
+  builtin: boolean;
+}
+
+interface BaseProviderWithAccess<P> extends BaseProvider<P> {
+  provider: AccessProviderType;
+}
+
 // #region AccessProvider
 /*
   注意：如果追加新的常量值，请保持以 ASCII 排序。
@@ -95,13 +106,9 @@ export const ACCESS_USAGES = Object.freeze({
 
 export type AccessUsageType = (typeof ACCESS_USAGES)[keyof typeof ACCESS_USAGES];
 
-export type AccessProvider = {
-  type: AccessProviderType;
-  name: string;
-  icon: string;
+export interface AccessProvider extends BaseProvider<AccessProviderType> {
   usages: AccessUsageType[];
-  builtin: boolean;
-};
+}
 
 export const accessProvidersMap: Map<AccessProvider["type"] | string, AccessProvider> = new Map(
   /*
@@ -224,13 +231,7 @@ export const CA_PROVIDERS = Object.freeze({
 
 export type CAProviderType = (typeof CA_PROVIDERS)[keyof typeof CA_PROVIDERS];
 
-export type CAProvider = {
-  type: CAProviderType;
-  name: string;
-  icon: string;
-  provider: AccessProviderType;
-  builtin: boolean;
-};
+export interface CAProvider extends BaseProviderWithAccess<CAProviderType> {}
 
 export const caProvidersMap: Map<CAProvider["type"] | string, CAProvider> = new Map(
   /*
@@ -320,12 +321,7 @@ export const ACME_DNS01_PROVIDERS = Object.freeze({
 
 export type ACMEDns01ProviderType = (typeof ACME_DNS01_PROVIDERS)[keyof typeof ACME_DNS01_PROVIDERS];
 
-export type ACMEDns01Provider = {
-  type: ACMEDns01ProviderType;
-  name: string;
-  icon: string;
-  provider: AccessProviderType;
-};
+export interface ACMEDns01Provider extends BaseProviderWithAccess<ACMEDns01ProviderType> {}
 
 export const acmeDns01ProvidersMap: Map<ACMEDns01Provider["type"] | string, ACMEDns01Provider> = new Map(
   /*
@@ -382,6 +378,44 @@ export const acmeDns01ProvidersMap: Map<ACMEDns01Provider["type"] | string, ACME
       name: name,
       icon: accessProvidersMap.get(type.split("-")[0])!.icon,
       provider: type.split("-")[0] as AccessProviderType,
+      builtin: false,
+    },
+  ])
+);
+// #endregion
+
+// #region ACMEHTTP01Provider
+/*
+  注意：如果追加新的常量值，请保持以 ASCII 排序。
+  NOTICE: If you add new constant, please keep ASCII order.
+ */
+export const ACME_HTTP01_PROVIDERS = Object.freeze({
+  LOCAL: `${ACCESS_PROVIDERS.LOCAL}`,
+  SSH: `${ACCESS_PROVIDERS.SSH}`,
+} as const);
+
+export type ACMEHttp01ProviderType = (typeof ACME_HTTP01_PROVIDERS)[keyof typeof ACME_HTTP01_PROVIDERS];
+
+export interface ACMEHttp01Provider extends BaseProviderWithAccess<ACMEHttp01ProviderType> {}
+
+export const acmeHttp01ProvidersMap: Map<ACMEHttp01Provider["type"] | string, ACMEHttp01Provider> = new Map(
+  /*
+    注意：此处的顺序决定显示在前端的顺序。
+    NOTICE: The following order determines the order displayed at the frontend.
+   */
+  (
+    [
+      [ACME_HTTP01_PROVIDERS.LOCAL, "provider.local", "builtin"],
+      [ACME_HTTP01_PROVIDERS.SSH, "provider.ssh"],
+    ] satisfies Array<[ACMEHttp01ProviderType, string, "builtin"] | [ACMEHttp01ProviderType, string]>
+  ).map(([type, name, builtin]) => [
+    type,
+    {
+      type: type,
+      name: name,
+      icon: accessProvidersMap.get(type.split("-")[0])!.icon,
+      provider: type.split("-")[0] as AccessProviderType,
+      builtin: builtin === "builtin",
     },
   ])
 );
@@ -514,14 +548,9 @@ export const DEPLOYMENT_CATEGORIES = Object.freeze({
 
 export type DeploymentCategoryType = (typeof DEPLOYMENT_CATEGORIES)[keyof typeof DEPLOYMENT_CATEGORIES];
 
-export type DeploymentProvider = {
-  type: DeploymentProviderType;
-  name: string;
-  icon: string;
-  provider: AccessProviderType;
+export interface DeploymentProvider extends BaseProviderWithAccess<DeploymentProviderType> {
   category: DeploymentCategoryType;
-  builtin: boolean;
-};
+}
 
 export const deploymentProvidersMap: Map<DeploymentProvider["type"] | string, DeploymentProvider> = new Map(
   /*
@@ -663,12 +692,7 @@ export const NOTIFICATION_PROVIDERS = Object.freeze({
 
 export type NotificationProviderType = (typeof NOTIFICATION_PROVIDERS)[keyof typeof NOTIFICATION_PROVIDERS];
 
-export type NotificationProvider = {
-  type: NotificationProviderType;
-  name: string;
-  icon: string;
-  provider: AccessProviderType;
-};
+export interface NotificationProvider extends BaseProviderWithAccess<NotificationProviderType> {}
 
 export const notificationProvidersMap: Map<NotificationProvider["type"] | string, NotificationProvider> = new Map(
   /*
@@ -694,6 +718,7 @@ export const notificationProvidersMap: Map<NotificationProvider["type"] | string
       name: accessProvidersMap.get(type.split("-")[0])!.name,
       icon: accessProvidersMap.get(type.split("-")[0])!.icon,
       provider: type.split("-")[0] as AccessProviderType,
+      builtin: false,
     },
   ])
 );

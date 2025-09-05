@@ -114,7 +114,8 @@ export type WorkflowNodeConfigForBizApply = {
 
 export const defaultNodeConfigForBizApply = (): Partial<WorkflowNodeConfigForBizApply> => {
   return {
-    keyAlgorithm: "RSA2048",
+    challengeType: "dns-01" as const,
+    keyAlgorithm: "RSA2048" as const,
     skipBeforeExpiryDays: 30,
   };
 };

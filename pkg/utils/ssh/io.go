@@ -5,11 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/pkg/sftp"
 	"github.com/povsister/scp"
 	"golang.org/x/crypto/ssh"
+
+	xfilepath "github.com/certimate-go/certimate/pkg/utils/filepath"
 )
 
 // 与 [WriteRemote] 类似，但写入的是字符串内容。
@@ -97,7 +98,7 @@ func writeRemoteWithSFTP(sshCli *ssh.Client, path string, data []byte) error {
 	}
 	defer sftpCli.Close()
 
-	if err := sftpCli.MkdirAll(filepath.ToSlash(filepath.Dir(path))); err != nil {
+	if err := sftpCli.MkdirAll(xfilepath.Dir(path)); err != nil {
 		return fmt.Errorf("failed to create remote directory: %w", err)
 	}
 
@@ -122,7 +123,7 @@ func removeRemoteWithSFTP(sshCli *ssh.Client, path string) error {
 	}
 	defer sftpCli.Close()
 
-	if err := sftpCli.MkdirAll(filepath.ToSlash(filepath.Dir(path))); err != nil {
+	if err := sftpCli.MkdirAll(xfilepath.Dir(path)); err != nil {
 		return fmt.Errorf("failed to create remote directory: %w", err)
 	}
 

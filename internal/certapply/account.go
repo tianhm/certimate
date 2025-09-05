@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/go-acme/lego/v4/lego"
 	"github.com/go-acme/lego/v4/registration"
@@ -70,10 +71,23 @@ func NewACMEAccount(config *ACMEConfig, email string, register bool) (*ACMEAccou
 		var regres *registration.Resource
 		var regerr error
 		if legoClient.GetExternalAccountRequired() {
+			if config.EABKid == "" {
+				return nil, errors.New("missing or invalid eab kid")
+			}
+			if config.EABHmacKey == "" {
+				return nil, errors.New("missing or invalid eab hmac key")
+			}
+
+			// patch, see https://github.com/go-acme/lego/issues/2634
+			keyId := strings.TrimSpace(config.EABKid)
+			keyEncoded := strings.TrimSpace(config.EABHmacKey)
+			keyEncoded = strings.ReplaceAll(strings.ReplaceAll(keyEncoded, "+", "-"), "/", "_")
+			keyEncoded = strings.TrimRight(keyEncoded, "=")
+
 			regres, regerr = legoClient.Registration.RegisterWithExternalAccountBinding(registration.RegisterEABOptions{
 				TermsOfServiceAgreed: true,
-				Kid:                  config.EABKid,
-				HmacEncoded:          config.EABHmacEncoded,
+				Kid:                  keyId,
+				HmacEncoded:          keyEncoded,
 			})
 		} else {
 			regres, regerr = legoClient.Registration.Register(registration.RegisterOptions{
@@ -81,7 +95,7 @@ func NewACMEAccount(config *ACMEConfig, email string, register bool) (*ACMEAccou
 			})
 		}
 		if regerr != nil {
-			return nil, fmt.Errorf("failed to register acme account: %w", err)
+			return nil, fmt.Errorf("failed to register acme account: %w", regerr)
 		}
 
 		account.ACMEAccount = &regres.Body

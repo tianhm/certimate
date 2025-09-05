@@ -13,6 +13,7 @@ const (
 	AccessProviderTypeACMECA              = AccessProviderType("acmeca")
 	AccessProviderTypeACMEDNS             = AccessProviderType("acmedns")
 	AccessProviderTypeACMEHttpReq         = AccessProviderType("acmehttpreq")
+	AccessProviderTypeActalisSSL          = AccessProviderType("actalisssl")
 	AccessProviderTypeAkamai              = AccessProviderType("akamai") // Akamai（预留）
 	AccessProviderTypeAliyun              = AccessProviderType("aliyun")
 	AccessProviderTypeAPISIX              = AccessProviderType("apisix")
@@ -86,6 +87,7 @@ const (
 	AccessProviderTypeUpyun               = AccessProviderType("upyun")
 	AccessProviderTypeVercel              = AccessProviderType("vercel")
 	AccessProviderTypeVolcEngine          = AccessProviderType("volcengine")
+	AccessProviderTypeVultr               = AccessProviderType("vultr")
 	AccessProviderTypeWangsu              = AccessProviderType("wangsu")
 	AccessProviderTypeWebhook             = AccessProviderType("webhook")
 	AccessProviderTypeWeComBot            = AccessProviderType("wecombot")
@@ -104,6 +106,7 @@ NOTICE: If you add new constant, please keep ASCII order.
 */
 const (
 	CAProviderTypeACMECA              = CAProviderType(AccessProviderTypeACMECA)
+	CAProviderTypeActalisSSL          = CAProviderType(AccessProviderTypeActalisSSL)
 	CAProviderTypeBuypass             = CAProviderType(AccessProviderTypeBuypass)
 	CAProviderTypeGoogleTrustServices = CAProviderType(AccessProviderTypeGoogleTrustServices)
 	CAProviderTypeLetsEncrypt         = CAProviderType(AccessProviderTypeLetsEncrypt)
@@ -171,6 +174,7 @@ const (
 	ACMEDns01ProviderTypeVercel            = ACMEDns01ProviderType(AccessProviderTypeVercel)
 	ACMEDns01ProviderTypeVolcEngine        = ACMEDns01ProviderType(AccessProviderTypeVolcEngine) // 兼容旧值，等同于 [ACMEDns01ProviderTypeVolcEngineDNS]
 	ACMEDns01ProviderTypeVolcEngineDNS     = ACMEDns01ProviderType(AccessProviderTypeVolcEngine + "-dns")
+	ACMEDns01ProviderTypeVultr             = ACMEDns01ProviderType(AccessProviderTypeVultr)
 	ACMEDns01ProviderTypeWestcn            = ACMEDns01ProviderType(AccessProviderTypeWestcn)
 )
 

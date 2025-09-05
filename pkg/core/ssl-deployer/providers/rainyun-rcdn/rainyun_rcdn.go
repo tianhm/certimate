@@ -80,7 +80,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 
 	// RCDN SSL 绑定域名
 	// REF: https://apifox.com/apidoc/shared/a4595cc8-44c5-4678-a2a3-eed7738dab03/api-184214120
-	certId, _ := strconv.Atoi(upres.CertId)
+	certId, _ := strconv.ParseInt(upres.CertId, 10, 32)
 	rcdnInstanceSslBindReq := &rainyunsdk.RcdnInstanceSslBindRequest{
 		CertId:  int32(certId),
 		Domains: []string{d.config.Domain},

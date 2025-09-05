@@ -1,5 +1,5 @@
 import { getI18n, useTranslation } from "react-i18next";
-import { Form } from "antd";
+import { Form, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
@@ -51,6 +51,17 @@ const BizNotifyNodeConfigFieldsProviderWebhook = () => {
       <Form.Item>
         <Tips message={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.notify.form.webhook_data.guide") }}></span>} />
       </Form.Item>
+
+      <Form.Item name={[parentNamePath, "timeout"]} label={t("workflow_node.notify.form.webhook_timeout.label")} rules={[formRule]}>
+        <Input
+          type="number"
+          allowClear
+          min={0}
+          max={3600}
+          placeholder={t("workflow_node.notify.form.webhook_timeout.placeholder")}
+          addonAfter={t("workflow_node.notify.form.webhook_timeout.unit")}
+        />
+      </Form.Item>
     </>
   );
 };
@@ -76,6 +87,10 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
           return false;
         }
       }, t("workflow_node.notify.form.webhook_data.errmsg.json_invalid")),
+    timeout: z.preprocess(
+      (v) => (v == null || v === "" ? void 0 : Number(v)),
+      z.number().int(t("workflow_node.notify.form.webhook_timeout.placeholder")).gte(1, t("workflow_node.notify.form.webhook_timeout.placeholder")).nullish()
+    ),
   });
 };
 

@@ -15,6 +15,7 @@ import AccessConfigFieldsProvider1Panel from "./forms/AccessConfigFieldsProvider
 import AccessConfigFieldsProviderACMECA from "./forms/AccessConfigFieldsProviderACMECA";
 import AccessConfigFieldsProviderACMEDNS from "./forms/AccessConfigFieldsProviderACMEDNS";
 import AccessConfigFieldsProviderACMEHttpReq from "./forms/AccessConfigFieldsProviderACMEHttpReq";
+import AccessConfigFieldsProviderActalisSSL from "./forms/AccessConfigFieldsProviderActalisSSL";
 import AccessConfigFieldsProviderAliyun from "./forms/AccessConfigFieldsProviderAliyun";
 import AccessConfigFieldsProviderAPISIX from "./forms/AccessConfigFieldsProviderAPISIX";
 import AccessConfigFieldsProviderAWS from "./forms/AccessConfigFieldsProviderAWS";
@@ -80,6 +81,7 @@ import AccessConfigFieldsProviderUniCloud from "./forms/AccessConfigFieldsProvid
 import AccessConfigFieldsProviderUpyun from "./forms/AccessConfigFieldsProviderUpyun";
 import AccessConfigFieldsProviderVercel from "./forms/AccessConfigFieldsProviderVercel";
 import AccessConfigFieldsProviderVolcEngine from "./forms/AccessConfigFieldsProviderVolcEngine";
+import AccessConfigFieldsProviderVultr from "./forms/AccessConfigFieldsProviderVultr";
 import AccessConfigFieldsProviderWangsu from "./forms/AccessConfigFieldsProviderWangsu";
 import AccessConfigFieldsProviderWebhook from "./forms/AccessConfigFieldsProviderWebhook";
 import AccessConfigFieldsProviderWeComBot from "./forms/AccessConfigFieldsProviderWeComBot";
@@ -139,6 +141,9 @@ const AccessForm = ({ className, style, disabled, initialValues, mode, usage, ..
       }
       case ACCESS_PROVIDERS.ACMEHTTPREQ: {
         return <AccessConfigFieldsProviderACMEHttpReq />;
+      }
+      case ACCESS_PROVIDERS.ACTALISSSL: {
+        return <AccessConfigFieldsProviderActalisSSL />;
       }
       case ACCESS_PROVIDERS.ALIYUN: {
         return <AccessConfigFieldsProviderAliyun />;
@@ -334,6 +339,9 @@ const AccessForm = ({ className, style, disabled, initialValues, mode, usage, ..
       }
       case ACCESS_PROVIDERS.VOLCENGINE: {
         return <AccessConfigFieldsProviderVolcEngine />;
+      }
+      case ACCESS_PROVIDERS.VULTR: {
+        return <AccessConfigFieldsProviderVultr />;
       }
       case ACCESS_PROVIDERS.WANGSU: {
         return <AccessConfigFieldsProviderWangsu />;

@@ -111,7 +111,9 @@ func (s *WorkflowService) StartRun(ctx context.Context, req *dtos.WorkflowStartR
 		workflowRun = resp
 	}
 
-	s.dispatcher.Start(ctx, workflowRun.Id)
+	if err := s.dispatcher.Start(ctx, workflowRun.Id); err != nil {
+		return nil, err
+	}
 
 	return &dtos.WorkflowStartRunResp{RunId: workflowRun.Id}, nil
 }
@@ -131,7 +133,9 @@ func (s *WorkflowService) CancelRun(ctx context.Context, req *dtos.WorkflowCance
 		return nil, errors.New("workflow run is not pending or processing")
 	}
 
-	s.dispatcher.Cancel(ctx, workflowRun.Id)
+	if err := s.dispatcher.Cancel(ctx, workflowRun.Id); err != nil {
+		return nil, err
+	}
 
 	return &dtos.WorkflowCancelRunResp{}, nil
 }

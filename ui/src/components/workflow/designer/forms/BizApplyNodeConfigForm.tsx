@@ -509,7 +509,7 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
           >
             <AutoComplete
               allowClear
-              options={["classic", "tlsserver", "shortlived"].map((value) => ({ value }))}
+              options={["classic", "tlsserver", "shortlived"].map((s) => ({ value: s }))}
               placeholder={t("workflow_node.apply.form.acme_profile.placeholder")}
               filterOption={(inputValue, option) => option!.value.toLowerCase().includes(inputValue.toLowerCase())}
             />

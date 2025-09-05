@@ -15,6 +15,7 @@ import (
 var acmeDirUrls = map[string]string{
 	string(domain.CAProviderTypeLetsEncrypt):         "https://acme-v02.api.letsencrypt.org/directory",
 	string(domain.CAProviderTypeLetsEncryptStaging):  "https://acme-staging-v02.api.letsencrypt.org/directory",
+	string(domain.CAProviderTypeActalisSSL):          "https://acme-api.actalis.com/acme/directory",
 	string(domain.CAProviderTypeBuypass):             "https://api.buypass.com/acme/directory",
 	string(domain.CAProviderTypeGoogleTrustServices): "https://dv.acme-v02.api.pki.goog/directory",
 	string(domain.CAProviderTypeSSLCom):              "https://acme.ssl.com/sslcom-dv-rsa",

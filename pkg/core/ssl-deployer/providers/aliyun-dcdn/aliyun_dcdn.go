@@ -5,13 +5,16 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strconv"
 	"strings"
-	"time"
 
 	aliopen "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	alidcdn "github.com/alibabacloud-go/dcdn-20180115/v3/client"
 	"github.com/alibabacloud-go/tea/tea"
+	"github.com/samber/lo"
+
 	"github.com/certimate-go/certimate/pkg/core"
+	sslmgrsp "github.com/certimate-go/certimate/pkg/core/ssl-manager/providers/aliyun-cas"
 )
 
 type SSLDeployerProviderConfig struct {
@@ -21,14 +24,17 @@ type SSLDeployerProviderConfig struct {
 	AccessKeySecret string `json:"accessKeySecret"`
 	// 阿里云资源组 ID。
 	ResourceGroupId string `json:"resourceGroupId,omitempty"`
+	// 阿里云地域。
+	Region string `json:"region"`
 	// 加速域名（支持泛域名）。
 	Domain string `json:"domain"`
 }
 
 type SSLDeployerProvider struct {
-	config    *SSLDeployerProviderConfig
-	logger    *slog.Logger
-	sdkClient *alidcdn.Client
+	config     *SSLDeployerProviderConfig
+	logger     *slog.Logger
+	sdkClient  *alidcdn.Client
+	sslManager core.SSLManager
 }
 
 var _ core.SSLDeployer = (*SSLDeployerProvider)(nil)
@@ -43,10 +49,23 @@ func NewSSLDeployerProvider(config *SSLDeployerProviderConfig) (*SSLDeployerProv
 		return nil, fmt.Errorf("could not create sdk client: %w", err)
 	}
 
+	sslmgr, err := sslmgrsp.NewSSLManagerProvider(&sslmgrsp.SSLManagerProviderConfig{
+		AccessKeyId:     config.AccessKeyId,
+		AccessKeySecret: config.AccessKeySecret,
+		ResourceGroupId: config.ResourceGroupId,
+		Region: lo.
+			If(config.Region == "" || strings.HasPrefix(config.Region, "cn-"), "cn-hangzhou").
+			Else("ap-southeast-1"),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("could not create ssl manager: %w", err)
+	}
+
 	return &SSLDeployerProvider{
-		config:    config,
-		logger:    slog.Default(),
-		sdkClient: client,
+		config:     config,
+		logger:     slog.Default(),
+		sdkClient:  client,
+		sslManager: sslmgr,
 	}, nil
 }
 
@@ -63,18 +82,28 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		return nil, errors.New("config `domain` is required")
 	}
 
+	// 上传证书
+	upres, err := d.sslManager.Upload(ctx, certPEM, privkeyPEM)
+	if err != nil {
+		return nil, fmt.Errorf("failed to upload certificate file: %w", err)
+	} else {
+		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
+	}
+
 	// "*.example.com" → ".example.com"，适配阿里云 DCDN 要求的泛域名格式
 	domain := strings.TrimPrefix(d.config.Domain, "*")
 
 	// 配置域名证书
 	// REF: https://help.aliyun.com/zh/edge-security-acceleration/dcdn/developer-reference/api-dcdn-2018-01-15-setdcdndomainsslcertificate
+	certId, _ := strconv.ParseInt(upres.CertId, 10, 64)
 	setDcdnDomainSSLCertificateReq := &alidcdn.SetDcdnDomainSSLCertificateRequest{
-		DomainName:  tea.String(domain),
-		CertName:    tea.String(fmt.Sprintf("certimate-%d", time.Now().UnixMilli())),
-		CertType:    tea.String("upload"),
+		DomainName: tea.String(domain),
+		CertType:   tea.String("cas"),
+		CertId:     tea.Int64(int64(certId)),
+		CertRegion: lo.
+			If(d.config.Region == "" || strings.HasPrefix(d.config.Region, "cn-"), tea.String("cn-hangzhou")).
+			Else(tea.String("ap-southeast-1")),
 		SSLProtocol: tea.String("on"),
-		SSLPub:      tea.String(certPEM),
-		SSLPri:      tea.String(privkeyPEM),
 	}
 	setDcdnDomainSSLCertificateResp, err := d.sdkClient.SetDcdnDomainSSLCertificate(setDcdnDomainSSLCertificateReq)
 	d.logger.Debug("sdk request 'dcdn.SetDcdnDomainSSLCertificate'", slog.Any("request", setDcdnDomainSSLCertificateReq), slog.Any("response", setDcdnDomainSSLCertificateResp))

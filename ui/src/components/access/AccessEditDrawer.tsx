@@ -29,7 +29,7 @@ export interface AccessEditDrawerProps {
 const AccessEditDrawer = ({ afterClose, afterSubmit, mode, data, loading, trigger, usage, ...props }: AccessEditDrawerProps) => {
   const { t } = useTranslation();
 
-  const { notification } = App.useApp();
+  const { message, notification } = App.useApp();
 
   const { createAccess, updateAccess } = useAccessesStore(useZustandShallowSelector(["createAccess", "updateAccess"]));
 
@@ -57,6 +57,8 @@ const AccessEditDrawer = ({ afterClose, afterSubmit, mode, data, loading, trigge
     try {
       await formInst.validateFields();
     } catch (err) {
+      message.warning(t("common.errmsg.form_invalid"));
+
       setFormPending(false);
       throw err;
     }

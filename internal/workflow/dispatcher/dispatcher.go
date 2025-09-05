@@ -330,8 +330,8 @@ func (wd *workflowDispatcher) tryNextAsync() {
 
 		if hasSameWorkflowTask {
 			wd.syslog.Warn(fmt.Sprintf("workflow run #%s is pending, because tasks that belonging to the same workflow already exists", pendingRunId))
-		} else if len(wd.processingTasks) >= wd.concurrency {
-			wd.syslog.Warn(fmt.Sprintf("workflow run #%s is pending, because the maximum concurrency limit has been reached", pendingRunId))
+		} else if len(wd.processingTasks) >= wd.concurrency && wd.concurrency > 0 {
+			wd.syslog.Warn(fmt.Sprintf("workflow run #%s is pending, because the maximum concurrency (limit: %d) has been reached", pendingRunId, wd.concurrency))
 		} else {
 			wd.taskMtx.RUnlock()
 			wd.taskMtx.Lock()

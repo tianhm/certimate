@@ -84,7 +84,7 @@ export const NodeConfigDrawer = ({ children, afterClose, anchor, footer = true, 
     try {
       await formInst.validateFields();
     } catch (err) {
-      message.warning(t("workflow.detail.design.drawer.errmsg.invalid_form"));
+      message.warning(t("common.errmsg.form_invalid"));
 
       setFormPending(false);
       throw err;

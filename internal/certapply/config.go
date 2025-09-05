@@ -34,7 +34,7 @@ type ACMEConfig struct {
 	CAProvider       domain.CAProviderType
 	CADirUrl         string
 	EABKid           string
-	EABHmacEncoded   string
+	EABHmacKey       string
 	CertifierKeyType certcrypto.KeyType
 }
 
@@ -93,12 +93,12 @@ func NewACMEConfig(options *ACMEConfigOptions) (*ACMEConfig, error) {
 		ca.CADirUrl = endpoint
 	}
 
-	eab := &domain.AccessConfigForACMEExternalAccountBinding{}
+	eab := domain.AccessConfigForACMEExternalAccountBinding{}
 	if err := xmaps.Populate(caAccessConfig, &eab); err != nil {
 		return nil, err
 	}
 	ca.EABKid = eab.EabKid
-	ca.EABHmacEncoded = eab.EabHmacKey
+	ca.EABHmacKey = eab.EabHmacKey
 
 	return ca, nil
 }

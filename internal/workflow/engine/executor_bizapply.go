@@ -87,7 +87,7 @@ func (ne *bizApplyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 	// 解析证书
 	certX509, err := xcert.ParseCertificateFromPEM(obtainResp.FullChainCertificate)
 	if err != nil {
-		ne.logger.Warn("failed to parse certificate, may be the CA responded error")
+		ne.logger.Warn("could not parse certificate, may be the CA responded error")
 		return execRes, err
 	}
 
@@ -106,7 +106,7 @@ func (ne *bizApplyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 	}
 	certificate.PopulateFromX509(certX509)
 	if certificate, err := ne.certificateRepo.Save(execCtx.ctx, certificate); err != nil {
-		ne.logger.Warn("failed to save certificate")
+		ne.logger.Warn("could not save certificate")
 		return execRes, err
 	} else {
 		ne.logger.Info("certificate saved", slog.String("recordId", certificate.Id))
@@ -232,7 +232,7 @@ func (ne *bizApplyNodeExecutor) executeObtain(execCtx *NodeExecutionContext, nod
 	}
 	legoConfig, err := certapply.NewACMEConfig(legoOptions)
 	if err != nil {
-		ne.logger.Warn("failed to initialize acme config")
+		ne.logger.Warn("could not initialize acme config")
 		return nil, err
 	} else {
 		ne.logger.Info("acme config initialized", slog.String("acmeDirUrl", legoConfig.CADirUrl))
@@ -242,7 +242,7 @@ func (ne *bizApplyNodeExecutor) executeObtain(execCtx *NodeExecutionContext, nod
 	// 注意此步骤仍需在主进程中进行，以保证并发安全
 	legoUser, err := certapply.NewACMEAccountWithSingleFlight(legoConfig, nodeCfg.ContactEmail)
 	if err != nil {
-		ne.logger.Warn("failed to initialize acme account")
+		ne.logger.Warn("could not initialize acme account")
 		return nil, err
 	} else {
 		ne.logger.Info("acme account initialized", slog.String("acmeAcctUrl", legoUser.ACMEAcctUrl))
@@ -320,7 +320,7 @@ func (ne *bizApplyNodeExecutor) executeObtain(execCtx *NodeExecutionContext, nod
 			Request: obtainReq,
 		})
 		if err != nil {
-			ne.logger.Warn("failed to obtain certificate")
+			ne.logger.Warn("could not obtain certificate")
 			return nil, err
 		}
 
@@ -339,14 +339,14 @@ func (ne *bizApplyNodeExecutor) executeObtain(execCtx *NodeExecutionContext, nod
 		return nil
 	})
 	if err != nil {
-		ne.logger.Warn("failed to initialize acme client")
+		ne.logger.Warn("could not initialize acme client")
 		return nil, err
 	}
 
 	// 执行申请证书请求
 	obtainResp, err := legoClient.ObtainCertificate(execCtx.ctx, obtainReq)
 	if err != nil {
-		ne.logger.Warn("failed to obtain certificate")
+		ne.logger.Warn("could not obtain certificate")
 		return nil, err
 	}
 

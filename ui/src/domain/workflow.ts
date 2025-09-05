@@ -174,7 +174,9 @@ export const defaultNodeConfigForBizNotify = (): Partial<WorkflowNodeConfigForBi
 };
 
 export const newNodeId = (): string => {
-  return nanoid();
+  return nanoid()
+    .replace(/^[_-]+/g, "")
+    .replace(/[_-]+$/g, "");
 };
 
 export const newNode = (type: WorkflowNodeType, { i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }): WorkflowNode => {

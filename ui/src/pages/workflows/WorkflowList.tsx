@@ -313,7 +313,7 @@ const WorkflowList = () => {
 
   const handleRecordActiveChange = async (workflow: WorkflowModel) => {
     try {
-      if (!workflow.enabled && !workflow.graphContent) {
+      if (!workflow.enabled && !workflow.hasContent) {
         message.warning(t("workflow.action.enable.errmsg.unpublished"));
         return;
       }
@@ -326,7 +326,8 @@ const WorkflowList = () => {
         setTableData((prev) => {
           return prev.map((item) => {
             if (item.id === workflow.id) {
-              return resp;
+              item.enabled = resp.enabled;
+              item.updated = resp.updated;
             }
             return item;
           });

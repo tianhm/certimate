@@ -43,7 +43,7 @@ func (ne *bizDeployNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 			if len(s) == 2 {
 				certificate, err := ne.certificateRepo.GetById(execCtx.ctx, s[1])
 				if err != nil {
-					ne.logger.Warn("failed to get input certificate")
+					ne.logger.Warn("could not get input certificate")
 					return execRes, err
 				}
 
@@ -89,7 +89,7 @@ func (ne *bizDeployNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 		PrivateKey:             inputCertificate.PrivateKey,
 	}
 	if _, err := deployClient.DeployCertificate(execCtx.ctx, deployReq); err != nil {
-		ne.logger.Warn("failed to deploy certificate")
+		ne.logger.Warn("could not deploy certificate")
 		return execRes, err
 	}
 

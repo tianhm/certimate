@@ -234,16 +234,6 @@ const BizDeployNodeConfigFieldsProviderLocal = () => {
         />
       </Form.Item>
 
-      <Form.Item
-        name={[parentNamePath, "certPath"]}
-        initialValue={initialValues.certPath}
-        label={t("workflow_node.deploy.form.local_cert_path.label")}
-        extra={t("workflow_node.deploy.form.local_cert_path.help")}
-        rules={[formRule]}
-      >
-        <Input placeholder={t("workflow_node.deploy.form.local_cert_path.placeholder")} />
-      </Form.Item>
-
       <Show when={fieldFormat === FORMAT_PEM}>
         <Form.Item
           name={[parentNamePath, "keyPath"]}
@@ -254,7 +244,19 @@ const BizDeployNodeConfigFieldsProviderLocal = () => {
         >
           <Input placeholder={t("workflow_node.deploy.form.local_key_path.placeholder")} />
         </Form.Item>
+      </Show>
 
+      <Form.Item
+        name={[parentNamePath, "certPath"]}
+        initialValue={initialValues.certPath}
+        label={t(`workflow_node.deploy.form.local_${fieldFormat === FORMAT_PEM ? "fullchaincert" : "cert"}_path.label`)}
+        extra={t("workflow_node.deploy.form.local_cert_path.help")}
+        rules={[formRule]}
+      >
+        <Input placeholder={t(`workflow_node.deploy.form.local_${fieldFormat === FORMAT_PEM ? "fullchaincert" : "cert"}_path.placeholder`)} />
+      </Form.Item>
+
+      <Show when={fieldFormat === FORMAT_PEM}>
         <Form.Item
           name={[parentNamePath, "certPathForServerOnly"]}
           initialValue={initialValues.certPathForServerOnly}
@@ -411,19 +413,19 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
   return z
     .object({
       format: z.literal([FORMAT_PEM, FORMAT_PFX, FORMAT_JKS], t("workflow_node.deploy.form.local_format.placeholder")),
+      keyPath: z
+        .string()
+        .max(256, t("common.errmsg.string_max", { max: 256 }))
+        .nullish(),
       certPath: z
         .string()
-        .min(1, t("workflow_node.deploy.form.local_cert_path.tooltip"))
+        .min(1, t("workflow_node.deploy.form.local_cert_path.placeholder"))
         .max(256, t("common.errmsg.string_max", { max: 256 })),
       certPathForServerOnly: z
         .string()
         .max(256, t("common.errmsg.string_max", { max: 256 }))
         .nullish(),
       certPathForIntermediaOnly: z
-        .string()
-        .max(256, t("common.errmsg.string_max", { max: 256 }))
-        .nullish(),
-      keyPath: z
         .string()
         .max(256, t("common.errmsg.string_max", { max: 256 }))
         .nullish(),
@@ -460,7 +462,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
             if (!values.keyPath?.trim()) {
               ctx.addIssue({
                 code: "custom",
-                message: t("workflow_node.deploy.form.ssh_key_path.tooltip"),
+                message: t("workflow_node.deploy.form.local_key_path.placeholder"),
                 path: ["keyPath"],
               });
             }
@@ -472,7 +474,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
             if (!values.pfxPassword?.trim()) {
               ctx.addIssue({
                 code: "custom",
-                message: t("workflow_node.deploy.form.ssh_pfx_password.tooltip"),
+                message: t("workflow_node.deploy.form.local_pfx_password.placeholder"),
                 path: ["pfxPassword"],
               });
             }
@@ -484,7 +486,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
             if (!values.jksAlias?.trim()) {
               ctx.addIssue({
                 code: "custom",
-                message: t("workflow_node.deploy.form.ssh_jks_alias.tooltip"),
+                message: t("workflow_node.deploy.form.local_jks_alias.placeholder"),
                 path: ["jksAlias"],
               });
             }
@@ -492,7 +494,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
             if (!values.jksKeypass?.trim()) {
               ctx.addIssue({
                 code: "custom",
-                message: t("workflow_node.deploy.form.ssh_jks_keypass.tooltip"),
+                message: t("workflow_node.deploy.form.local_jks_keypass.placeholder"),
                 path: ["jksKeypass"],
               });
             }
@@ -500,7 +502,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
             if (!values.jksStorepass?.trim()) {
               ctx.addIssue({
                 code: "custom",
-                message: t("workflow_node.deploy.form.ssh_jks_storepass.tooltip"),
+                message: t("workflow_node.deploy.form.local_jks_storepass.placeholder"),
                 path: ["jksStorepass"],
               });
             }

@@ -53,7 +53,7 @@ func (e *EvalResult) GetFloat64() (float64, error) {
 
 	floatValue, err := strconv.ParseFloat(stringValue, 64)
 	if err != nil {
-		return 0, fmt.Errorf("failed to parse float64: %v", err)
+		return 0, fmt.Errorf("failed to parse float64: %w", err)
 	}
 	return floatValue, nil
 }

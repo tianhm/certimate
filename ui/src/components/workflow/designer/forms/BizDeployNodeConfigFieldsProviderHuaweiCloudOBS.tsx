@@ -20,13 +20,13 @@ const BizDeployNodeConfigFieldsProviderHuaweiCloudOBS = () => {
   return (
     <>
       <Form.Item
-        name={[parentNamePath, "endpoint"]}
-        initialValue={initialValues.endpoint}
-        label={t("workflow_node.deploy.form.huaweicloud_obs_endpoint.label")}
+        name={[parentNamePath, "region"]}
+        initialValue={initialValues.region}
+        label={t("workflow_node.deploy.form.huaweicloud_obs_region.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.huaweicloud_obs_endpoint.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.huaweicloud_obs_region.tooltip") }}></span>}
       >
-        <Input placeholder={t("workflow_node.deploy.form.huaweicloud_obs_endpoint.placeholder")} />
+        <Input placeholder={t("workflow_node.deploy.form.huaweicloud_obs_region.placeholder")} />
       </Form.Item>
 
       <Form.Item
@@ -54,7 +54,7 @@ const BizDeployNodeConfigFieldsProviderHuaweiCloudOBS = () => {
 
 const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   return {
-    endpoint: "",
+    region: "",
     bucket: "",
     domain: "",
   };
@@ -64,9 +64,9 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
   const { t } = i18n;
 
   return z.object({
-    endpoint: z
-      .string(t("workflow_node.deploy.form.huaweicloud_obs_endpoint.placeholder"))
-      .nonempty(t("workflow_node.deploy.form.huaweicloud_obs_endpoint.placeholder")),
+    region: z
+      .string(t("workflow_node.deploy.form.huaweicloud_obs_region.placeholder"))
+      .nonempty(t("workflow_node.deploy.form.huaweicloud_obs_region.placeholder")),
     bucket: z
       .string(t("workflow_node.deploy.form.huaweicloud_obs_bucket.placeholder"))
       .nonempty(t("workflow_node.deploy.form.huaweicloud_obs_bucket.placeholder")),

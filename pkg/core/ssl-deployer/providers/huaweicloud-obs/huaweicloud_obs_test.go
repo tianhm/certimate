@@ -16,19 +16,19 @@ var (
 	fInputKeyPath    string
 	fAccessKeyId     string
 	fSecretAccessKey string
-	fEndpoint        string
+	fRegion          string
 	fBucket          string
 	fDomain          string
 )
 
 func init() {
-	argsPrefix := "CERTIMATE_SSLDEPLOYER_HUAWEICLOUDCDN_"
+	argsPrefix := "CERTIMATE_SSLDEPLOYER_HUAWEICLOUDOBS_"
 
 	flag.StringVar(&fInputCertPath, argsPrefix+"INPUTCERTPATH", "", "")
 	flag.StringVar(&fInputKeyPath, argsPrefix+"INPUTKEYPATH", "", "")
 	flag.StringVar(&fAccessKeyId, argsPrefix+"ACCESSKEYID", "", "")
 	flag.StringVar(&fSecretAccessKey, argsPrefix+"SECRETACCESSKEY", "", "")
-	flag.StringVar(&fEndpoint, argsPrefix+"ENDPOINT", "", "")
+	flag.StringVar(&fRegion, argsPrefix+"REGION", "", "")
 	flag.StringVar(&fBucket, argsPrefix+"BUCKET", "", "")
 	flag.StringVar(&fDomain, argsPrefix+"DOMAIN", "", "")
 }
@@ -37,13 +37,13 @@ func init() {
 Shell command to run this test:
 
 	go test -v ./huaweicloud_obs_test.go -args \
-	--CERTIMATE_SSLDEPLOYER_HUAWEICLOUDCDN_INPUTCERTPATH="/path/to/your-input-cert.pem" \
-	--CERTIMATE_SSLDEPLOYER_HUAWEICLOUDCDN_INPUTKEYPATH="/path/to/your-input-key.pem" \
-	--CERTIMATE_SSLDEPLOYER_HUAWEICLOUDCDN_ACCESSKEYID="your-access-key-id" \
-	--CERTIMATE_SSLDEPLOYER_HUAWEICLOUDCDN_SECRETACCESSKEY="your-secret-access-key" \
-	--CERTIMATE_SSLDEPLOYER_HUAWEICLOUDCDN_ENDPOINT="https://your-endpoint" \
-	--CERTIMATE_SSLDEPLOYER_HUAWEICLOUDCDN_BUCKET="your-bucket" \
-	--CERTIMATE_SSLDEPLOYER_HUAWEICLOUDCDN_DOMAIN="example.com"
+	--CERTIMATE_SSLDEPLOYER_HUAWEICLOUDOBS_INPUTCERTPATH="/path/to/your-input-cert.pem" \
+	--CERTIMATE_SSLDEPLOYER_HUAWEICLOUDOBS_INPUTKEYPATH="/path/to/your-input-key.pem" \
+	--CERTIMATE_SSLDEPLOYER_HUAWEICLOUDOBS_ACCESSKEYID="your-access-key-id" \
+	--CERTIMATE_SSLDEPLOYER_HUAWEICLOUDOBS_SECRETACCESSKEY="your-secret-access-key" \
+	--CERTIMATE_SSLDEPLOYER_HUAWEICLOUDOBS_REGION="cn-north-4" \
+	--CERTIMATE_SSLDEPLOYER_HUAWEICLOUDOBS_BUCKET="your-bucket" \
+	--CERTIMATE_SSLDEPLOYER_HUAWEICLOUDOBS_DOMAIN="example.com"
 */
 func TestDeploy(t *testing.T) {
 	flag.Parse()
@@ -55,7 +55,7 @@ func TestDeploy(t *testing.T) {
 			fmt.Sprintf("INPUTKEYPATH: %v", fInputKeyPath),
 			fmt.Sprintf("ACCESSKEYID: %v", fAccessKeyId),
 			fmt.Sprintf("SECRETACCESSKEY: %v", fSecretAccessKey),
-			fmt.Sprintf("ENDPOINT: %v", fEndpoint),
+			fmt.Sprintf("REGION: %v", fRegion),
 			fmt.Sprintf("BUCKET: %v", fBucket),
 			fmt.Sprintf("DOMAIN: %v", fDomain),
 		}, "\n"))
@@ -63,7 +63,7 @@ func TestDeploy(t *testing.T) {
 		deployer, err := provider.NewSSLDeployerProvider(&provider.SSLDeployerProviderConfig{
 			AccessKeyId:     fAccessKeyId,
 			SecretAccessKey: fSecretAccessKey,
-			Endpoint:        fEndpoint,
+			Region:          fRegion,
 			Bucket:          fBucket,
 			Domain:          fDomain,
 		})

@@ -16,9 +16,9 @@ func init() {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
-		jumpServers := make([]ssh.JumpServerConfig, len(credentials.JumpServers))
+		jumpServers := make([]ssh.ServerConfig, len(credentials.JumpServers))
 		for i, jumpServer := range credentials.JumpServers {
-			jumpServers[i] = ssh.JumpServerConfig{
+			jumpServers[i] = ssh.ServerConfig{
 				SshHost:          jumpServer.Host,
 				SshPort:          jumpServer.Port,
 				SshAuthMethod:    jumpServer.AuthMethod,
@@ -30,13 +30,15 @@ func init() {
 		}
 
 		provider, err := ssh.NewSSLDeployerProvider(&ssh.SSLDeployerProviderConfig{
-			SshHost:                  credentials.Host,
-			SshPort:                  credentials.Port,
-			SshAuthMethod:            credentials.AuthMethod,
-			SshUsername:              credentials.Username,
-			SshPassword:              credentials.Password,
-			SshKey:                   credentials.Key,
-			SshKeyPassphrase:         credentials.KeyPassphrase,
+			ServerConfig: ssh.ServerConfig{
+				SshHost:          credentials.Host,
+				SshPort:          credentials.Port,
+				SshAuthMethod:    credentials.AuthMethod,
+				SshUsername:      credentials.Username,
+				SshPassword:      credentials.Password,
+				SshKey:           credentials.Key,
+				SshKeyPassphrase: credentials.KeyPassphrase,
+			},
 			JumpServers:              jumpServers,
 			UseSCP:                   xmaps.GetBool(options.ProviderExtendedConfig, "useSCP"),
 			PreCommand:               xmaps.GetString(options.ProviderExtendedConfig, "preCommand"),

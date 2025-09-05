@@ -1,13 +1,12 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Avatar, Select, type SelectProps, Typography, theme } from "antd";
+import { Avatar, Select, Typography, theme } from "antd";
 
 import { type CAProvider, caProvidersMap } from "@/domain/provider";
 
-export interface CAProviderSelectProps
-  extends Omit<SelectProps, "filterOption" | "filterSort" | "labelRender" | "options" | "optionFilterProp" | "optionLabelProp" | "optionRender"> {
-  onFilter?: (value: string, option: CAProvider) => boolean;
-}
+import { type SharedSelectProps } from "./_shared";
+
+export interface CAProviderSelectProps extends SharedSelectProps<CAProvider> {}
 
 const CAProviderSelect = ({ onFilter, ...props }: CAProviderSelectProps) => {
   const { t } = useTranslation();

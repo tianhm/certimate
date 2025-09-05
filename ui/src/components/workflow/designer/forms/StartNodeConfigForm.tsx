@@ -34,7 +34,7 @@ const StartNodeConfigForm = ({ node, ...props }: StartNodeConfigFormProps) => {
 
   const formSchema = getSchema({ i18n });
   const formRule = createSchemaFieldRule(formSchema);
-  const { form: formInst, formProps } = useAntdForm({
+  const { form: formInst, formProps } = useAntdForm<z.infer<typeof formSchema>>({
     form: props.form,
     name: "workflowNodeStartConfigForm",
     initialValues: initialValues ?? getInitialValues(),
@@ -134,7 +134,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
 
   return z
     .object({
-      trigger: z.string().nonempty(t("workflow_node.start.form.trigger.placeholder")),
+      trigger: z.string(t("workflow_node.start.form.trigger.placeholder")).nonempty(t("workflow_node.start.form.trigger.placeholder")),
       triggerCron: z.string().nullish(),
     })
     .superRefine((values, ctx) => {

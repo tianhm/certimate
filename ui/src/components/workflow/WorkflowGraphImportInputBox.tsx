@@ -229,13 +229,9 @@ const WorkflowGraphImportInputBox = forwardRef<WorkflowGraphImportInputBoxInstan
   return (
     <Form className={className} style={style} {...formProps} clearOnDestroy={true} form={formInst} layout="vertical" preserve={false} scrollToFirstError>
       <Form.Item className="mb-4" name="format" label={t("workflow.detail.design.action.import.form.format.label")} rules={[formRule]}>
-        <Radio.Group className="w-full" onChange={(e) => handleFormatChange(e.target.value)}>
-          <Radio.Button className="w-1/2 text-center" value="yaml">
-            YAML
-          </Radio.Button>
-          <Radio.Button className="w-1/2 text-center" value="json">
-            JSON
-          </Radio.Button>
+        <Radio.Group block onChange={(e) => handleFormatChange(e.target.value)}>
+          <Radio.Button value="yaml">YAML</Radio.Button>
+          <Radio.Button value="json">JSON</Radio.Button>
         </Radio.Group>
       </Form.Item>
 

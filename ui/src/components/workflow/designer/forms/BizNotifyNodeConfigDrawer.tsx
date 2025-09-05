@@ -23,11 +23,12 @@ const BizNotifyNodeConfigDrawer = ({ node, ...props }: BizNotifyNodeConfigDrawer
 
   const [formInst] = Form.useForm();
 
+  const fieldProvider = Form.useWatch<string>("provider", { form: formInst, preserve: true });
+
   return (
     <NodeConfigDrawer
-      anchor={{
-        items: BizNotifyNodeConfigForm.getAnchorItems({ i18n }),
-      }}
+      anchor={fieldProvider ? { items: BizNotifyNodeConfigForm.getAnchorItems({ i18n }) } : false}
+      footer={fieldProvider ? void 0 : false}
       form={formInst}
       node={node}
       {...props}

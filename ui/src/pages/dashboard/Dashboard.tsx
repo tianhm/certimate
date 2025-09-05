@@ -383,7 +383,7 @@ const WorkflowRunHistoryTable = ({ className, style }: { className?: string; sty
               icon={<IconHistory size={24} />}
               extra={
                 loadError ? (
-                  <Button icon={<IconReload size="1.25em" />} type="primary" onClick={handleReloadClick}>
+                  <Button ghost icon={<IconReload size="1.25em" />} type="primary" onClick={handleReloadClick}>
                     {t("common.button.reload")}
                   </Button>
                 ) : (

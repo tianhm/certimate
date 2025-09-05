@@ -31,7 +31,7 @@ export const NodeConfigDrawer = ({ children, afterClose, anchor, footer = true, 
 
   const refresh = useRefresh();
 
-  const { modal, notification } = App.useApp();
+  const { message, modal, notification } = App.useApp();
 
   const [open, setOpen] = useControllableValue<boolean>(props, {
     valuePropName: "open",
@@ -84,6 +84,8 @@ export const NodeConfigDrawer = ({ children, afterClose, anchor, footer = true, 
     try {
       await formInst.validateFields();
     } catch (err) {
+      message.warning(t("workflow.detail.design.drawer.errmsg.invalid_form"));
+
       setFormPending(false);
       throw err;
     }

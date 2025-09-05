@@ -50,13 +50,11 @@ const AccessConfigFormFieldsProviderSSH = ({ disabled }: { disabled?: boolean })
         label={t("access.form.ssh_auth_method.label")}
         rules={[formRule]}
       >
-        <Radio.Group
-          options={[AUTH_METHOD_NONE, AUTH_METHOD_PASSWORD, AUTH_METHOD_KEY].map((s) => ({
-            key: s,
-            label: t(`access.form.ssh_auth_method.option.${s}.label`),
-            value: s,
-          }))}
-        />
+        <Radio.Group block>
+          <Radio.Button value={AUTH_METHOD_NONE}>{t("access.form.ssh_auth_method.option.none.label")}</Radio.Button>
+          <Radio.Button value={AUTH_METHOD_PASSWORD}>{t("access.form.ssh_auth_method.option.password.label")}</Radio.Button>
+          <Radio.Button value={AUTH_METHOD_KEY}>{t("access.form.ssh_auth_method.option.key.label")}</Radio.Button>
+        </Radio.Group>
       </Form.Item>
 
       <Form.Item name={[parentNamePath, "username"]} initialValue={initialValues.username} label={t("access.form.ssh_username.label")} rules={[formRule]}>

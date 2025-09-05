@@ -2,25 +2,25 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Avatar, Select, Typography, theme } from "antd";
 
-import { type ACMEDns01Provider, acmeDns01ProvidersMap } from "@/domain/provider";
+import { type ACMEHttp01Provider, acmeHttp01ProvidersMap } from "@/domain/provider";
 
 import { type SharedSelectProps, useSelectDataSource } from "./_shared";
 
-export interface ACMEDns01ProviderSelectProps extends SharedSelectProps<ACMEDns01Provider> {
+export interface ACMEHttp01ProviderSelectProps extends SharedSelectProps<ACMEHttp01Provider> {
   showAvailability?: boolean;
 }
 
-const ACMEDns01ProviderSelect = ({ showAvailability, onFilter, ...props }: ACMEDns01ProviderSelectProps) => {
+const ACMEHttp01ProviderSelect = ({ showAvailability, onFilter, ...props }: ACMEHttp01ProviderSelectProps) => {
   const { t } = useTranslation();
 
   const { token: themeToken } = theme.useToken();
 
   const dataSources = useSelectDataSource({
-    dataSource: Array.from(acmeDns01ProvidersMap.values()),
+    dataSource: Array.from(acmeHttp01ProvidersMap.values()),
     filters: [onFilter!],
   });
   const options = useMemo(() => {
-    const convert = (providers: ACMEDns01Provider[]): Array<{ key: string; value: string; label: string; data: ACMEDns01Provider }> => {
+    const convert = (providers: ACMEHttp01Provider[]): Array<{ key: string; value: string; label: string; data: ACMEHttp01Provider }> => {
       return providers.map((provider) => ({
         key: provider.type,
         value: provider.type,
@@ -44,7 +44,7 @@ const ACMEDns01ProviderSelect = ({ showAvailability, onFilter, ...props }: ACMED
   }, [showAvailability, dataSources]);
 
   const renderOption = (key: string) => {
-    const provider = acmeDns01ProvidersMap.get(key);
+    const provider = acmeHttp01ProvidersMap.get(key);
     return (
       <div className="flex items-center gap-2 truncate overflow-hidden">
         <Avatar shape="square" src={provider?.icon} size="small" />
@@ -79,4 +79,4 @@ const ACMEDns01ProviderSelect = ({ showAvailability, onFilter, ...props }: ACMED
   );
 };
 
-export default ACMEDns01ProviderSelect;
+export default ACMEHttp01ProviderSelect;

@@ -407,7 +407,7 @@ const AccessList = () => {
           <Table<AccessModel>
             columns={tableColumns}
             dataSource={tableData}
-            loading={!loadedAtOnce || loading}
+            loading={loading}
             locale={{
               emptyText: loading ? (
                 <Skeleton />
@@ -415,12 +415,18 @@ const AccessList = () => {
                 <Empty
                   className="py-24"
                   title={t("access.nodata.title")}
-                  description={t("access.nodata.description")}
+                  description={!loadedAtOnce ? getErrMsg("Network error.") : t("access.nodata.description")}
                   icon={<IconFingerprint size={24} />}
                   extra={
-                    <Button icon={<IconCirclePlus size="1.25em" />} type="primary" onClick={handleCreateClick}>
-                      {t("access.action.create.button")}
-                    </Button>
+                    !loadedAtOnce ? (
+                      <Button ghost icon={<IconReload size="1.25em" />} type="primary" onClick={handleReloadClick}>
+                        {t("common.button.reload")}
+                      </Button>
+                    ) : (
+                      <Button icon={<IconCirclePlus size="1.25em" />} type="primary" onClick={handleCreateClick}>
+                        {t("access.nodata.button")}
+                      </Button>
+                    )
                   }
                 />
               ),

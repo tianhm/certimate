@@ -4,7 +4,22 @@ import { Link } from "react-router";
 import { type FlowNodeEntity, getNodeForm } from "@flowgram.ai/fixed-layout-editor";
 import { IconChevronRight, IconCircleMinus, IconPlus } from "@tabler/icons-react";
 import { useControllableValue, useMount } from "ahooks";
-import { type AnchorProps, AutoComplete, Button, Divider, Flex, Form, type FormInstance, Input, InputNumber, Select, Space, Switch, Typography } from "antd";
+import {
+  type AnchorProps,
+  AutoComplete,
+  Button,
+  Divider,
+  Flex,
+  Form,
+  type FormInstance,
+  Input,
+  InputNumber,
+  Radio,
+  Select,
+  Space,
+  Switch,
+  Typography,
+} from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
@@ -12,9 +27,11 @@ import AccessEditDrawer from "@/components/access/AccessEditDrawer";
 import AccessSelect from "@/components/access/AccessSelect";
 import MultipleSplitValueInput from "@/components/MultipleSplitValueInput";
 import ACMEDns01ProviderSelect from "@/components/provider/ACMEDns01ProviderSelect";
+import ACMEHttp01ProviderSelect from "@/components/provider/ACMEHttp01ProviderSelect";
 import CAProviderSelect from "@/components/provider/CAProviderSelect";
 import Show from "@/components/Show";
-import { ACCESS_USAGES, ACME_DNS01_PROVIDERS, accessProvidersMap, acmeDns01ProvidersMap, caProvidersMap } from "@/domain/provider";
+import { type AccessModel } from "@/domain/access";
+import { ACME_DNS01_PROVIDERS, ACME_HTTP01_PROVIDERS, acmeDns01ProvidersMap, acmeHttp01ProvidersMap, caProvidersMap } from "@/domain/provider";
 import { type WorkflowNodeConfigForBizApply, defaultNodeConfigForBizApply } from "@/domain/workflow";
 import { useAntdForm, useZustandShallowSelector } from "@/hooks";
 import { useAccessesStore } from "@/stores/access";
@@ -26,10 +43,15 @@ import BizApplyNodeConfigFieldsProviderAliyunESA from "./BizApplyNodeConfigField
 import BizApplyNodeConfigFieldsProviderAWSRoute53 from "./BizApplyNodeConfigFieldsProviderAWSRoute53";
 import BizApplyNodeConfigFieldsProviderHuaweiCloudDNS from "./BizApplyNodeConfigFieldsProviderHuaweiCloudDNS";
 import BizApplyNodeConfigFieldsProviderJDCloudDNS from "./BizApplyNodeConfigFieldsProviderJDCloudDNS";
+import BizApplyNodeConfigFieldsProviderLocal from "./BizApplyNodeConfigFieldsProviderLocal";
+import BizApplyNodeConfigFieldsProviderSSH from "./BizApplyNodeConfigFieldsProviderSSH";
 import BizApplyNodeConfigFieldsProviderTencentCloudEO from "./BizApplyNodeConfigFieldsProviderTencentCloudEO";
 import { NodeType } from "../nodes/typings";
 
 const MULTIPLE_INPUT_SEPARATOR = ";";
+
+const CHALLENGE_TYPE_DNS01 = "dns-01";
+const CHALLENGE_TYPE_HTTP01 = "http-01";
 
 export interface BizApplyNodeConfigFormProps {
   form: FormInstance;
@@ -44,6 +66,16 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
   const { i18n, t } = useTranslation();
 
   const { accesses } = useAccessesStore(useZustandShallowSelector("accesses"));
+  const accessOptionFilter = (_: string, option: AccessModel) => {
+    if (option.reserve) return false;
+    if (fieldChallengeType === CHALLENGE_TYPE_DNS01) return acmeDns01ProvidersMap.get(fieldProvider)?.provider === option.provider;
+    if (fieldChallengeType === CHALLENGE_TYPE_HTTP01) return acmeHttp01ProvidersMap.get(fieldProvider)?.provider === option.provider;
+    return false;
+  };
+  const accessOptionFilterForCA = (_: string, option: AccessModel) => {
+    if (option.reserve !== "ca") return false;
+    return caProvidersMap.get(fieldCAProvider)?.provider === option.provider;
+  };
 
   const initialValues = useMemo(() => {
     return getNodeForm(node)?.getValueIn("config") as WorkflowNodeConfigForBizApply | undefined;
@@ -51,55 +83,95 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
 
   const formSchema = getSchema({ i18n });
   const formRule = createSchemaFieldRule(formSchema);
-  const { form: formInst, formProps } = useAntdForm({
+  const { form: formInst, formProps } = useAntdForm<z.infer<typeof formSchema>>({
     form: props.form,
     name: "workflowNodeBizApplyConfigForm",
     initialValues: initialValues ?? getInitialValues(),
   });
 
+  const fieldChallengeType = Form.useWatch<string>("challengeType", { form: formInst, preserve: true });
   const fieldProvider = Form.useWatch<string>("provider", { form: formInst, preserve: true });
   const fieldProviderAccessId = Form.useWatch<string>("providerAccessId", { form: formInst, preserve: true });
   const fieldCAProvider = Form.useWatch<string>("caProvider", { form: formInst, preserve: true });
+  const fieldCAProviderAccessId = Form.useWatch<string>("caProviderAccessId", { form: formInst, preserve: true });
 
   const NestedProviderConfigFields = useMemo(() => {
     /*
       注意：如果追加新的子组件，请保持以 ASCII 排序。
       NOTICE: If you add new child component, please keep ASCII order.
       */
-    switch (fieldProvider) {
-      case ACME_DNS01_PROVIDERS.ALIYUN_ESA: {
-        return BizApplyNodeConfigFieldsProviderAliyunESA;
-      }
-      case ACME_DNS01_PROVIDERS.AWS:
-      case ACME_DNS01_PROVIDERS.AWS_ROUTE53: {
-        return BizApplyNodeConfigFieldsProviderAWSRoute53;
-      }
-      case ACME_DNS01_PROVIDERS.HUAWEICLOUD:
-      case ACME_DNS01_PROVIDERS.HUAWEICLOUD_DNS: {
-        return BizApplyNodeConfigFieldsProviderHuaweiCloudDNS;
-      }
-      case ACME_DNS01_PROVIDERS.JDCLOUD:
-      case ACME_DNS01_PROVIDERS.JDCLOUD_DNS: {
-        return BizApplyNodeConfigFieldsProviderJDCloudDNS;
-      }
-      case ACME_DNS01_PROVIDERS.TENCENTCLOUD_EO: {
-        return BizApplyNodeConfigFieldsProviderTencentCloudEO;
-      }
-    }
-  }, [fieldProvider]);
+    switch (fieldChallengeType) {
+      case CHALLENGE_TYPE_DNS01:
+        {
+          switch (fieldProvider) {
+            case ACME_DNS01_PROVIDERS.ALIYUN_ESA: {
+              return BizApplyNodeConfigFieldsProviderAliyunESA;
+            }
+            case ACME_DNS01_PROVIDERS.AWS:
+            case ACME_DNS01_PROVIDERS.AWS_ROUTE53: {
+              return BizApplyNodeConfigFieldsProviderAWSRoute53;
+            }
+            case ACME_DNS01_PROVIDERS.HUAWEICLOUD:
+            case ACME_DNS01_PROVIDERS.HUAWEICLOUD_DNS: {
+              return BizApplyNodeConfigFieldsProviderHuaweiCloudDNS;
+            }
+            case ACME_DNS01_PROVIDERS.JDCLOUD:
+            case ACME_DNS01_PROVIDERS.JDCLOUD_DNS: {
+              return BizApplyNodeConfigFieldsProviderJDCloudDNS;
+            }
+            case ACME_DNS01_PROVIDERS.TENCENTCLOUD_EO: {
+              return BizApplyNodeConfigFieldsProviderTencentCloudEO;
+            }
+          }
+        }
+        break;
 
-  const [showProvider, setShowProvider] = useState(false);
-  useEffect(() => {
-    // 通常情况下每个授权信息只对应一个 DNS 提供商，此时无需显示 DNS 提供商字段；
-    // 如果对应多个（如 AWS 的 Route53、Lightsail，阿里云的 DNS、ESA，腾讯云的 DNS、EdgeOne 等），则显示。
-    if (fieldProviderAccessId) {
-      const access = accesses.find((e) => e.id === fieldProviderAccessId);
-      const providers = Array.from(acmeDns01ProvidersMap.values()).filter((e) => e.provider === access?.provider);
-      setShowProvider(providers.length > 1);
-    } else {
-      setShowProvider(false);
+      case CHALLENGE_TYPE_HTTP01:
+        switch (fieldProvider) {
+          case ACME_HTTP01_PROVIDERS.LOCAL: {
+            return BizApplyNodeConfigFieldsProviderLocal;
+          }
+          case ACME_HTTP01_PROVIDERS.SSH: {
+            return BizApplyNodeConfigFieldsProviderSSH;
+          }
+        }
+        break;
     }
-  }, [accesses, fieldProviderAccessId]);
+  }, [fieldChallengeType, fieldProvider]);
+
+  const [showProviderAccess, setShowProviderAccess] = useState(false);
+  useEffect(() => {
+    // 内置的质询提供商（如本地主机）无需显示授权信息字段
+    switch (fieldChallengeType) {
+      case CHALLENGE_TYPE_DNS01:
+        {
+          if (fieldProvider) {
+            const provider = acmeDns01ProvidersMap.get(fieldProvider);
+            setShowProviderAccess(!provider?.builtin);
+          } else {
+            setShowProviderAccess(false);
+          }
+        }
+        break;
+
+      case CHALLENGE_TYPE_HTTP01:
+        {
+          if (fieldProvider) {
+            const provider = acmeHttp01ProvidersMap.get(fieldProvider);
+            setShowProviderAccess(!provider?.builtin);
+          } else {
+            setShowProviderAccess(false);
+          }
+        }
+        break;
+
+      default:
+        {
+          setShowProviderAccess(false);
+        }
+        break;
+    }
+  }, [fieldChallengeType, fieldProvider]);
 
   const [showCAProviderAccess, setShowCAProviderAccess] = useState(false);
   useEffect(() => {
@@ -112,31 +184,92 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
     }
   }, [fieldCAProvider]);
 
-  const handleProviderSelect = (value: string) => {
-    if (fieldProvider === value) return;
+  useEffect(() => {
+    // 如果未选择质询提供商，则清空授权信息
+    if (!fieldProvider && fieldProviderAccessId) {
+      formInst.setFieldValue("providerAccessId", void 0);
+      return;
+    }
 
-    // 切换 DNS 提供商时联动授权信息
-    if (initialValues?.provider === value) {
-      formInst.setFieldValue("providerAccessId", initialValues?.providerAccessId);
-    } else {
-      if (acmeDns01ProvidersMap.get(fieldProvider)?.provider !== acmeDns01ProvidersMap.get(value)?.provider) {
-        formInst.setFieldValue("providerAccessId", void 0);
+    // 如果已选择质询提供商只有一个授权信息，则自动选择该授权信息
+    if (fieldProvider && !fieldProviderAccessId) {
+      const availableAccesses = accesses
+        .filter((access) => accessOptionFilter(access.provider, access))
+        .filter((access) => {
+          if (fieldChallengeType === CHALLENGE_TYPE_DNS01) return acmeDns01ProvidersMap.get(fieldProvider)?.provider === access.provider;
+          if (fieldChallengeType === CHALLENGE_TYPE_HTTP01) return acmeHttp01ProvidersMap.get(fieldProvider)?.provider === access.provider;
+          return false;
+        });
+      if (availableAccesses.length === 1) {
+        formInst.setFieldValue("providerAccessId", availableAccesses[0].id);
       }
+    }
+  }, [fieldChallengeType, fieldProvider, fieldProviderAccessId]);
+
+  useEffect(() => {
+    // 如果未选择 CA 提供商，则清空授权信息
+    if (!fieldCAProvider && fieldCAProviderAccessId) {
+      formInst.setFieldValue("caProviderAccessId", void 0);
+      return;
+    }
+
+    // 如果已选择 CA 提供商只有一个授权信息，则自动选择该授权信息
+    if (fieldCAProvider && !fieldCAProviderAccessId) {
+      const availableAccesses = accesses
+        .filter((access) => accessOptionFilterForCA(access.provider, access))
+        .filter((access) => caProvidersMap.get(fieldCAProvider)?.provider === access.provider);
+      if (availableAccesses.length === 1) {
+        formInst.setFieldValue("caProviderAccessId", availableAccesses[0].id);
+      }
+    }
+  }, [fieldCAProvider, fieldCAProviderAccessId]);
+
+  const handleChallengeTypeChange = (value: string) => {
+    const resetFieldIfInvalid = (field: keyof z.infer<typeof formSchema>) => {
+      const fieldSchame = formSchema.pick({ [field]: true });
+      const fieldValue = formInst.getFieldValue(field);
+      if (!fieldSchame.safeParse({ [field]: fieldValue }).success) {
+        formInst.setFieldValue(field, void 0);
+      }
+    };
+
+    switch (value) {
+      case CHALLENGE_TYPE_DNS01:
+        {
+          formInst.setFieldValue("provider", void 0);
+          formInst.setFieldValue("providerAccessId", void 0);
+          formInst.setFieldValue("providerConfig", void 0);
+        }
+        break;
+
+      case CHALLENGE_TYPE_HTTP01:
+        {
+          formInst.setFieldValue("provider", void 0);
+          formInst.setFieldValue("providerAccessId", void 0);
+          formInst.setFieldValue("providerConfig", void 0);
+
+          resetFieldIfInvalid("dnsPropagationWait");
+          resetFieldIfInvalid("dnsPropagationTimeout");
+          resetFieldIfInvalid("dnsTTL");
+        }
+        break;
     }
   };
 
-  const handleProviderAccessSelect = (value: string) => {
-    // 切换授权信息时联动 DNS 提供商
-    const access = accesses.find((access) => access.id === value);
-    const provider = Array.from(acmeDns01ProvidersMap.values()).find((provider) => provider.provider === access?.provider);
-    if (fieldProvider !== provider?.type) {
-      formInst.setFieldValue("provider", provider?.type);
+  const handleProviderSelect = (value?: string | undefined) => {
+    // 切换质询提供商时重置表单，避免其他提供商的配置字段影响当前提供商
+    if (initialValues?.provider === value) {
+      formInst.setFieldValue("providerAccessId", void 0);
+      formInst.resetFields(["providerConfig"]);
+    } else {
+      formInst.setFieldValue("providerAccessId", void 0);
+      formInst.setFieldValue("providerConfig", void 0);
     }
   };
 
   const handleCAProviderSelect = (value?: string | undefined) => {
     // 切换 CA 提供商时联动授权信息
-    if (value === "") {
+    if (value == null || value === "") {
       setTimeout(() => {
         formInst.setFieldValue("caProvider", void 0);
         formInst.setFieldValue("caProviderAccessId", void 0);
@@ -154,7 +287,21 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
     <NodeFormContextProvider value={{ node }}>
       <Form {...formProps} clearOnDestroy={true} form={formInst} layout="vertical" preserve={false} scrollToFirstError>
         <div id="parameters" data-anchor="parameters">
-          <Form.Item name="domains" label={t("workflow_node.apply.form.domains.label")} extra={t("workflow_node.apply.form.domains.help")} rules={[formRule]}>
+          <Form.Item
+            name="domains"
+            label={t("workflow_node.apply.form.domains.label")}
+            extra={
+              <span
+                dangerouslySetInnerHTML={{
+                  __html:
+                    fieldChallengeType === CHALLENGE_TYPE_HTTP01
+                      ? t("workflow_node.apply.form.domains.help_no_wildcard")
+                      : t("workflow_node.apply.form.domains.help"),
+                }}
+              ></span>
+            }
+            rules={[formRule]}
+          >
             <MultipleSplitValueInput
               modalTitle={t("workflow_node.apply.form.domains.multiple_input_modal.title")}
               placeholder={t("workflow_node.apply.form.domains.placeholder")}
@@ -172,37 +319,69 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
           >
             <InternalEmailInput placeholder={t("workflow_node.apply.form.contact_email.placeholder")} />
           </Form.Item>
+        </div>
 
-          <Form.Item name="challengeType" label={t("workflow_node.apply.form.challenge_type.label")} rules={[formRule]} hidden>
-            <Select
-              options={["DNS-01"].map((e) => ({
-                label: e,
-                value: e.toLowerCase(),
-              }))}
-              placeholder={t("workflow_node.apply.form.challenge_type.placeholder")}
-            />
+        <div id="challenge" data-anchor="challenge">
+          <Divider size="small">
+            <Typography.Text className="text-xs font-normal" type="secondary">
+              {t("workflow_node.apply.form_anchor.challenge.title")}
+            </Typography.Text>
+          </Divider>
+
+          <Form.Item
+            name="challengeType"
+            label={t("workflow_node.apply.form.challenge_type.label")}
+            rules={[formRule]}
+            tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.apply.form.challenge_type.tooltip") }}></span>}
+          >
+            <Radio.Group block onChange={(e) => handleChallengeTypeChange(e.target.value)}>
+              <Radio.Button value={CHALLENGE_TYPE_DNS01}>DNS-01</Radio.Button>
+              <Radio.Button value={CHALLENGE_TYPE_HTTP01}>HTTP-01</Radio.Button>
+            </Radio.Group>
           </Form.Item>
 
-          <Form.Item name="provider" label={t("workflow_node.apply.form.provider.label")} hidden={!showProvider} rules={[formRule]}>
-            <ACMEDns01ProviderSelect
-              disabled={!showProvider}
-              placeholder={t("workflow_node.apply.form.provider.placeholder")}
-              showSearch
-              onFilter={(_, option) => {
-                if (fieldProviderAccessId) {
-                  return accesses.find((e) => e.id === fieldProviderAccessId)?.provider === option.provider;
-                }
-
-                return true;
-              }}
-              onSelect={handleProviderSelect}
-            />
+          <Form.Item
+            name="provider"
+            label={
+              fieldChallengeType === CHALLENGE_TYPE_DNS01
+                ? t("workflow_node.apply.form.provider_dns01.label")
+                : fieldChallengeType === CHALLENGE_TYPE_HTTP01
+                  ? t("workflow_node.apply.form.provider_http01.label")
+                  : t("workflow_node.apply.form.provider.label")
+            }
+            rules={[formRule]}
+          >
+            {fieldChallengeType === CHALLENGE_TYPE_DNS01 ? (
+              <ACMEDns01ProviderSelect
+                placeholder={t("workflow_node.apply.form.provider_dns01.placeholder")}
+                showAvailability
+                showSearch
+                onSelect={handleProviderSelect}
+                onClear={handleProviderSelect}
+              />
+            ) : fieldChallengeType === CHALLENGE_TYPE_HTTP01 ? (
+              <ACMEHttp01ProviderSelect
+                placeholder={t("workflow_node.apply.form.provider_http01.placeholder")}
+                showAvailability
+                showSearch
+                onSelect={handleProviderSelect}
+                onClear={handleProviderSelect}
+              />
+            ) : (
+              <Select disabled placeholder={t("workflow_node.apply.form.provider.placeholder")} />
+            )}
           </Form.Item>
 
           <Form.Item
             className="relative"
-            label={t("workflow_node.apply.form.provider_access.label")}
-            tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.apply.form.provider_access.tooltip") }}></span>}
+            hidden={!showProviderAccess}
+            label={
+              fieldChallengeType === CHALLENGE_TYPE_DNS01
+                ? t("workflow_node.apply.form.provider_access_dns01.label")
+                : fieldChallengeType === CHALLENGE_TYPE_HTTP01
+                  ? t("workflow_node.apply.form.provider_access_http01.label")
+                  : t("workflow_node.apply.form.provider_access.label")
+            }
           >
             <div className="absolute -top-[6px] right-0 -translate-y-full">
               <AccessEditDrawer
@@ -213,27 +392,27 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
                     <IconPlus size="1.25em" />
                   </Button>
                 }
-                usage="dns"
+                usage={fieldChallengeType === CHALLENGE_TYPE_DNS01 ? "dns" : fieldChallengeType === CHALLENGE_TYPE_HTTP01 ? "hosting" : "dns-hosting"}
                 afterSubmit={(record) => {
-                  const provider = accessProvidersMap.get(record.provider);
-                  if (provider?.usages?.includes(ACCESS_USAGES.DNS)) {
-                    formInst.setFieldValue("providerAccessId", record.id);
-                    handleProviderAccessSelect(record.id);
-                  }
+                  if (!accessOptionFilter(record.provider, record)) return;
+                  if (fieldChallengeType === CHALLENGE_TYPE_DNS01 && acmeDns01ProvidersMap.get(fieldProvider!)?.provider !== record.provider) return;
+                  if (fieldChallengeType === CHALLENGE_TYPE_HTTP01 && acmeHttp01ProvidersMap.get(fieldProvider!)?.provider !== record.provider) return;
+                  formInst.setFieldValue("providerAccessId", record.id);
                 }}
               />
             </div>
             <Form.Item name="providerAccessId" rules={[formRule]} noStyle>
               <AccessSelect
-                placeholder={t("workflow_node.apply.form.provider_access.placeholder")}
+                disabled={!fieldProvider}
+                placeholder={
+                  fieldChallengeType === CHALLENGE_TYPE_DNS01
+                    ? t("workflow_node.apply.form.provider_access_dns01.placeholder")
+                    : fieldChallengeType === CHALLENGE_TYPE_HTTP01
+                      ? t("workflow_node.apply.form.provider_access_http01.placeholder")
+                      : t("workflow_node.apply.form.provider_access.placeholder")
+                }
                 showSearch
-                onChange={handleProviderAccessSelect}
-                onFilter={(_, option) => {
-                  if (option.reserve) return false;
-
-                  const provider = accessProvidersMap.get(option.provider);
-                  return !!provider?.usages?.includes(ACCESS_USAGES.DNS);
-                }}
+                onFilter={accessOptionFilter}
               />
             </Form.Item>
           </Form.Item>
@@ -295,24 +474,18 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
                 }
                 usage="ca"
                 afterSubmit={(record) => {
-                  const provider = accessProvidersMap.get(record.provider);
-                  if (provider?.usages?.includes(ACCESS_USAGES.CA)) {
-                    formInst.setFieldValue("caProviderAccessId", record.id);
-                  }
+                  if (accessOptionFilterForCA(record.provider, record)) return;
+                  if (caProvidersMap.get(fieldProvider!)?.provider !== record.provider) return;
+                  formInst.setFieldValue("caProviderAccessId", record.id);
                 }}
               />
             </div>
             <Form.Item name="caProviderAccessId" noStyle rules={[formRule]}>
               <AccessSelect
+                disabled={!fieldCAProvider}
                 placeholder={t("workflow_node.apply.form.ca_provider_access.placeholder")}
                 showSearch
-                onFilter={(_, option) => {
-                  if (option.reserve !== "ca") return false;
-                  if (fieldCAProvider) return caProvidersMap.get(fieldCAProvider)?.provider === option.provider;
-
-                  const provider = accessProvidersMap.get(option.provider);
-                  return !!provider?.usages?.includes(ACCESS_USAGES.CA);
-                }}
+                onFilter={accessOptionFilterForCA}
               />
             </Form.Item>
           </Form.Item>
@@ -367,6 +540,7 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
 
           <Form.Item
             name="dnsPropagationWait"
+            hidden={fieldChallengeType !== CHALLENGE_TYPE_DNS01}
             label={t("workflow_node.apply.form.dns_propagation_wait.label")}
             rules={[formRule]}
             tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.apply.form.dns_propagation_wait.tooltip") }}></span>}
@@ -383,6 +557,7 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
 
           <Form.Item
             name="dnsPropagationTimeout"
+            hidden={fieldChallengeType !== CHALLENGE_TYPE_DNS01}
             label={t("workflow_node.apply.form.dns_propagation_timeout.label")}
             rules={[formRule]}
             tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.apply.form.dns_propagation_timeout.tooltip") }}></span>}
@@ -399,6 +574,7 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
 
           <Form.Item
             name="dnsTTL"
+            hidden={fieldChallengeType !== CHALLENGE_TYPE_DNS01}
             label={t("workflow_node.apply.form.dns_ttl.label")}
             extra={t("workflow_node.apply.form.dns_ttl.help")}
             rules={[formRule]}
@@ -616,7 +792,7 @@ const InternalValidityLifetimeInput = memo(
 const getAnchorItems = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }): Required<AnchorProps>["items"] => {
   const { t } = i18n;
 
-  return ["parameters", "certificate", "advanced", "strategy"].map((key) => ({
+  return ["parameters", "challenge", "certificate", "advanced", "strategy"].map((key) => ({
     key: key,
     title: t(`workflow_node.apply.form_anchor.${key}.tab`),
     href: "#" + key,
@@ -626,8 +802,7 @@ const getAnchorItems = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n
 const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   return {
     domains: "",
-    provider: "",
-    providerAccessId: "",
+    contactEmail: "",
     ...defaultNodeConfigForBizApply(),
   };
 };
@@ -637,16 +812,16 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
 
   return z
     .object({
-      domains: z.string().refine((v) => {
+      domains: z.string(t("workflow_node.apply.form.domains.placeholder")).refine((v) => {
         if (!v) return false;
         return String(v)
           .split(MULTIPLE_INPUT_SEPARATOR)
           .every((e) => validDomainName(e, { allowWildcard: true }));
       }, t("common.errmsg.domain_invalid")),
       contactEmail: z.email(t("common.errmsg.email_invalid")),
-      challengeType: z.string().nullish(),
+      challengeType: z.string(t("workflow_node.apply.form.challenge_type.placeholder")).nonempty(t("workflow_node.apply.form.challenge_type.placeholder")),
       provider: z.string(t("workflow_node.apply.form.provider.placeholder")).nonempty(t("workflow_node.apply.form.provider.placeholder")),
-      providerAccessId: z.string(t("workflow_node.apply.form.provider_access.placeholder")).nonempty(t("workflow_node.apply.form.provider_access.placeholder")),
+      providerAccessId: z.string(t("workflow_node.apply.form.provider_access.placeholder")).nullish(),
       providerConfig: z.any().nullish(),
       caProvider: z.string().nullish(),
       caProviderAccessId: z.string().nullish(),
@@ -701,6 +876,36 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
       ),
     })
     .superRefine((values, ctx) => {
+      if (values.provider) {
+        switch (values.challengeType) {
+          case CHALLENGE_TYPE_DNS01:
+            {
+              const provider = acmeDns01ProvidersMap.get(values.provider);
+              if (!provider?.builtin && !values.providerAccessId) {
+                ctx.addIssue({
+                  code: "custom",
+                  message: t("workflow_node.deploy.form.provider_access.placeholder"),
+                  path: ["providerAccessId"],
+                });
+              }
+            }
+            break;
+
+          case CHALLENGE_TYPE_HTTP01:
+            {
+              const provider = acmeHttp01ProvidersMap.get(values.provider);
+              if (!provider?.builtin && !values.providerAccessId) {
+                ctx.addIssue({
+                  code: "custom",
+                  message: t("workflow_node.deploy.form.provider_access.placeholder"),
+                  path: ["providerAccessId"],
+                });
+              }
+            }
+            break;
+        }
+      }
+
       if (values.caProvider) {
         const provider = caProvidersMap.get(values.caProvider);
         if (!provider?.builtin && !values.caProviderAccessId) {

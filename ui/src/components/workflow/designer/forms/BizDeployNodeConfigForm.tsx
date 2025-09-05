@@ -11,9 +11,11 @@ import AccessSelect from "@/components/access/AccessSelect";
 import DeploymentProviderPicker from "@/components/provider/DeploymentProviderPicker";
 import DeploymentProviderSelect from "@/components/provider/DeploymentProviderSelect";
 import Show from "@/components/Show";
-import { ACCESS_USAGES, DEPLOYMENT_PROVIDERS, accessProvidersMap, deploymentProvidersMap } from "@/domain/provider";
+import { type AccessModel } from "@/domain/access";
+import { DEPLOYMENT_PROVIDERS, deploymentProvidersMap } from "@/domain/provider";
 import { type WorkflowNodeConfigForBizDeploy, defaultNodeConfigForBizDeploy } from "@/domain/workflow";
-import { useAntdForm } from "@/hooks";
+import { useAntdForm, useZustandShallowSelector } from "@/hooks";
+import { useAccessesStore } from "@/stores/access";
 
 import { getAllPreviousNodes } from "../_util";
 import { FormNestedFieldsContextProvider, NodeFormContextProvider } from "./_context";
@@ -126,6 +128,12 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
 
   const { token: themeToken } = theme.useToken();
 
+  const { accesses } = useAccessesStore(useZustandShallowSelector("accesses"));
+  const accessOptionFilter = (_: string, option: AccessModel) => {
+    if (option.reserve) return false;
+    return deploymentProvidersMap.get(fieldProvider)?.provider === option.provider;
+  };
+
   const initialValues = useMemo(() => {
     return getNodeForm(node)?.getValueIn("config") as WorkflowNodeConfigForBizDeploy | undefined;
   }, [node]);
@@ -142,13 +150,14 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
     }
   });
   const formRule = createSchemaFieldRule(formSchema);
-  const { form: formInst, formProps } = useAntdForm({
+  const { form: formInst, formProps } = useAntdForm<z.infer<typeof formSchema>>({
     form: props.form,
     name: "workflowNodeBizDeployConfigForm",
     initialValues: initialValues ?? getInitialValues(),
   });
 
   const fieldProvider = Form.useWatch<string>("provider", { form: formInst, preserve: true });
+  const fieldProviderAccessId = Form.useWatch<string>("providerAccessId", { form: formInst, preserve: true });
 
   const certificateOutputNodeIdOptions = useMemo(() => {
     return getAllPreviousNodes(node)
@@ -460,29 +469,38 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
     }
   }, [fieldProvider]);
 
+  useEffect(() => {
+    // 如果未选择部署目标，则清空授权信息
+    if (!fieldProvider && fieldProviderAccessId) {
+      formInst.setFieldValue("providerAccessId", void 0);
+      return;
+    }
+
+    // 如果已选择部署目标只有一个授权信息，则自动选择该授权信息
+    if (fieldProvider && !fieldProviderAccessId) {
+      const availableAccesses = accesses
+        .filter((access) => accessOptionFilter(access.provider, access))
+        .filter((access) => deploymentProvidersMap.get(fieldProvider)?.provider === access.provider);
+      if (availableAccesses.length === 1) {
+        formInst.setFieldValue("providerAccessId", availableAccesses[0].id);
+      }
+    }
+  }, [fieldProvider, fieldProviderAccessId]);
+
   const handleProviderPick = (value: string) => {
     formInst.setFieldValue("provider", value);
+    formInst.setFieldValue("providerAccessId", void 0);
+    formInst.setFieldValue("providerConfig", void 0);
   };
 
   const handleProviderSelect = (value?: string | undefined) => {
     // 切换部署目标时重置表单，避免其他部署目标的配置字段影响当前部署目标
     if (initialValues?.provider === value) {
-      formInst.resetFields();
+      formInst.setFieldValue("providerAccessId", void 0);
+      formInst.resetFields(["providerConfig"]);
     } else {
-      const oldValues = formInst.getFieldsValue();
-      const newValues: Record<string, unknown> = {};
-      for (const key in oldValues) {
-        if (key === "certificateOutputNodeId" || key === "provider" || key === "providerAccessId" || key === "skipOnLastSucceeded") {
-          newValues[key] = oldValues[key];
-        } else {
-          delete newValues[key];
-        }
-      }
-      formInst.setFieldsValue(newValues);
-
-      if (deploymentProvidersMap.get(fieldProvider)?.provider !== deploymentProvidersMap.get(value!)?.provider) {
-        formInst.setFieldValue("providerAccessId", void 0);
-      }
+      formInst.setFieldValue("providerAccessId", void 0);
+      formInst.setFieldValue("providerConfig", void 0);
     }
   };
 
@@ -490,62 +508,17 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
     <NodeFormContextProvider value={{ node }}>
       <Form {...formProps} clearOnDestroy={true} form={formInst} layout="vertical" preserve={false} scrollToFirstError>
         <Show when={!fieldProvider}>
-          <DeploymentProviderPicker autoFocus placeholder={t("workflow_node.deploy.form.provider.search.placeholder")} onSelect={handleProviderPick} />
+          <DeploymentProviderPicker
+            autoFocus
+            placeholder={t("workflow_node.deploy.form.provider.search.placeholder")}
+            showAvailability
+            showSearch
+            onSelect={handleProviderPick}
+          />
         </Show>
 
         <div style={{ display: fieldProvider ? "block" : "none" }}>
           <div id="parameters" data-anchor="parameters">
-            <Form.Item name="provider" label={t("workflow_node.deploy.form.provider.label")} rules={[formRule]}>
-              <DeploymentProviderSelect
-                allowClear
-                disabled={!!initialValues?.provider}
-                placeholder={t("workflow_node.deploy.form.provider.placeholder")}
-                showSearch
-                onSelect={handleProviderSelect}
-                onClear={handleProviderSelect}
-              />
-            </Form.Item>
-
-            <Form.Item
-              className="relative"
-              hidden={!showProviderAccess}
-              label={t("workflow_node.deploy.form.provider_access.label")}
-              tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.provider_access.tooltip") }}></span>}
-            >
-              <div className="absolute -top-[6px] right-0 -translate-y-full">
-                <AccessEditDrawer
-                  data={{ provider: deploymentProvidersMap.get(fieldProvider!)?.provider }}
-                  mode="create"
-                  trigger={
-                    <Button size="small" type="link">
-                      {t("workflow_node.deploy.form.provider_access.button")}
-                      <IconPlus size="1.25em" />
-                    </Button>
-                  }
-                  usage="hosting"
-                  afterSubmit={(record) => {
-                    const provider = accessProvidersMap.get(record.provider);
-                    if (provider?.usages?.includes(ACCESS_USAGES.HOSTING)) {
-                      formInst.setFieldValue("providerAccessId", record.id);
-                    }
-                  }}
-                />
-              </div>
-              <Form.Item name="providerAccessId" rules={[formRule]} noStyle>
-                <AccessSelect
-                  placeholder={t("workflow_node.deploy.form.provider_access.placeholder")}
-                  showSearch
-                  onFilter={(_, option) => {
-                    if (option.reserve) return false;
-                    if (fieldProvider) return deploymentProvidersMap.get(fieldProvider)?.provider === option.provider;
-
-                    const provider = accessProvidersMap.get(option.provider);
-                    return !!provider?.usages?.includes(ACCESS_USAGES.HOSTING);
-                  }}
-                />
-              </Form.Item>
-            </Form.Item>
-
             <Form.Item
               name="certificateOutputNodeId"
               label={t("workflow_node.deploy.form.certificate_output_node_id.label")}
@@ -570,18 +543,55 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
           </div>
 
           <div id="deployment" data-anchor="deployment">
-            <FormNestedFieldsContextProvider value={{ parentNamePath: "providerConfig" }}>
-              {NestedProviderConfigFields && (
-                <>
-                  <Divider size="small">
-                    <Typography.Text className="text-xs font-normal" type="secondary">
-                      {t("workflow_node.deploy.form_anchor.deployment.title")}
-                    </Typography.Text>
-                  </Divider>
+            <Divider size="small">
+              <Typography.Text className="text-xs font-normal" type="secondary">
+                {t("workflow_node.deploy.form_anchor.deployment.title")}
+              </Typography.Text>
+            </Divider>
 
-                  <NestedProviderConfigFields />
-                </>
-              )}
+            <Form.Item name="provider" label={t("workflow_node.deploy.form.provider.label")} rules={[formRule]}>
+              <DeploymentProviderSelect
+                allowClear
+                disabled={!!initialValues?.provider}
+                placeholder={t("workflow_node.deploy.form.provider.placeholder")}
+                showAvailability
+                showSearch
+                onSelect={handleProviderSelect}
+                onClear={handleProviderSelect}
+              />
+            </Form.Item>
+
+            <Form.Item className="relative" hidden={!showProviderAccess} label={t("workflow_node.deploy.form.provider_access.label")}>
+              <div className="absolute -top-[6px] right-0 -translate-y-full">
+                <AccessEditDrawer
+                  data={{ provider: deploymentProvidersMap.get(fieldProvider!)?.provider }}
+                  mode="create"
+                  trigger={
+                    <Button size="small" type="link">
+                      {t("workflow_node.deploy.form.provider_access.button")}
+                      <IconPlus size="1.25em" />
+                    </Button>
+                  }
+                  usage="hosting"
+                  afterSubmit={(record) => {
+                    if (!accessOptionFilter(record.provider, record)) return;
+                    if (deploymentProvidersMap.get(fieldProvider!)?.provider !== record.provider) return;
+                    formInst.setFieldValue("providerAccessId", record.id);
+                  }}
+                />
+              </div>
+              <Form.Item name="providerAccessId" rules={[formRule]} noStyle>
+                <AccessSelect
+                  disabled={!fieldProvider}
+                  placeholder={t("workflow_node.deploy.form.provider_access.placeholder")}
+                  showSearch
+                  onFilter={accessOptionFilter}
+                />
+              </Form.Item>
+            </Form.Item>
+
+            <FormNestedFieldsContextProvider value={{ parentNamePath: "providerConfig" }}>
+              {NestedProviderConfigFields && <NestedProviderConfigFields />}
             </FormNestedFieldsContextProvider>
           </div>
 

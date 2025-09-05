@@ -7,20 +7,17 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
-	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 
-	"github.com/pkg/sftp"
-	"github.com/povsister/scp"
 	"golang.org/x/crypto/ssh"
 
 	"github.com/certimate-go/certimate/pkg/core"
 	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
+	xssh "github.com/certimate-go/certimate/pkg/utils/ssh"
 )
 
-type JumpServerConfig struct {
+type ServerConfig struct {
 	// SSH 主机。
 	// 零值时默认值 "localhost"。
 	SshHost string `json:"sshHost,omitempty"`
@@ -43,27 +40,10 @@ type JumpServerConfig struct {
 }
 
 type SSLDeployerProviderConfig struct {
-	// SSH 主机。
-	// 零值时默认值 "localhost"。
-	SshHost string `json:"sshHost,omitempty"`
-	// SSH 端口。
-	// 零值时默认值 22。
-	SshPort int32 `json:"sshPort,omitempty"`
-	// SSH 认证方式。
-	// 可取值 "none"、"password" 或 "key"。
-	// 零值时根据有无密码或私钥字段决定。
-	SshAuthMethod string `json:"sshAuthMethod,omitempty"`
-	// SSH 登录用户名。
-	// 零值时默认值 "root"。
-	SshUsername string `json:"sshUsername,omitempty"`
-	// SSH 登录密码。
-	SshPassword string `json:"sshPassword,omitempty"`
-	// SSH 登录私钥。
-	SshKey string `json:"sshKey,omitempty"`
-	// SSH 登录私钥口令。
-	SshKeyPassphrase string `json:"sshKeyPassphrase,omitempty"`
+	ServerConfig
+
 	// 跳板机配置数组。
-	JumpServers []JumpServerConfig `json:"jumpServers,omitempty"`
+	JumpServers []ServerConfig `json:"jumpServers,omitempty"`
 	// 是否回退使用 SCP。
 	UseSCP bool `json:"useSCP,omitempty"`
 	// 前置命令。
@@ -123,15 +103,16 @@ func (d *SSLDeployerProvider) SetLogger(logger *slog.Logger) {
 }
 
 func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privkeyPEM string) (*core.SSLDeployResult, error) {
+	var err error
+
 	// 提取服务器证书和中间证书
 	serverCertPEM, intermediaCertPEM, err := xcert.ExtractCertificatesFromPEM(certPEM)
 	if err != nil {
 		return nil, fmt.Errorf("failed to extract certs: %w", err)
 	}
 
+	// 创建 TCP 链接
 	var targetConn net.Conn
-
-	// 连接到跳板机
 	if len(d.config.JumpServers) > 0 {
 		var jumpClient *ssh.Client
 		for i, jumpServerConf := range d.config.JumpServers {
@@ -182,7 +163,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	}
 	defer targetConn.Close()
 
-	// 通过已有的连接创建目标服务器 SSH 客户端
+	// 创建 SSH 客户端
 	client, err := createSshClient(
 		targetConn,
 		d.config.SshHost,
@@ -197,7 +178,6 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		return nil, fmt.Errorf("failed to create ssh client: %w", err)
 	}
 	defer client.Close()
-
 	d.logger.Info("ssh connected")
 
 	// 执行前置命令
@@ -212,26 +192,26 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	// 上传证书和私钥文件
 	switch d.config.OutputFormat {
 	case OUTPUT_FORMAT_PEM:
-		if err := writeFileString(client, d.config.UseSCP, d.config.OutputCertPath, certPEM); err != nil {
+		if err := xssh.WriteRemoteString(client, d.config.OutputCertPath, certPEM, d.config.UseSCP); err != nil {
 			return nil, fmt.Errorf("failed to upload certificate file: %w", err)
 		}
 		d.logger.Info("ssl certificate file uploaded", slog.String("path", d.config.OutputCertPath))
 
 		if d.config.OutputServerCertPath != "" {
-			if err := writeFileString(client, d.config.UseSCP, d.config.OutputServerCertPath, serverCertPEM); err != nil {
+			if err := xssh.WriteRemoteString(client, d.config.OutputServerCertPath, serverCertPEM, d.config.UseSCP); err != nil {
 				return nil, fmt.Errorf("failed to save server certificate file: %w", err)
 			}
 			d.logger.Info("ssl server certificate file uploaded", slog.String("path", d.config.OutputServerCertPath))
 		}
 
 		if d.config.OutputIntermediaCertPath != "" {
-			if err := writeFileString(client, d.config.UseSCP, d.config.OutputIntermediaCertPath, intermediaCertPEM); err != nil {
+			if err := xssh.WriteRemoteString(client, d.config.OutputIntermediaCertPath, intermediaCertPEM, d.config.UseSCP); err != nil {
 				return nil, fmt.Errorf("failed to save intermedia certificate file: %w", err)
 			}
 			d.logger.Info("ssl intermedia certificate file uploaded", slog.String("path", d.config.OutputIntermediaCertPath))
 		}
 
-		if err := writeFileString(client, d.config.UseSCP, d.config.OutputKeyPath, privkeyPEM); err != nil {
+		if err := xssh.WriteRemoteString(client, d.config.OutputKeyPath, privkeyPEM, d.config.UseSCP); err != nil {
 			return nil, fmt.Errorf("failed to upload private key file: %w", err)
 		}
 		d.logger.Info("ssl private key file uploaded", slog.String("path", d.config.OutputKeyPath))
@@ -243,7 +223,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		}
 		d.logger.Info("ssl certificate transformed to pfx")
 
-		if err := writeFile(client, d.config.UseSCP, d.config.OutputCertPath, pfxData); err != nil {
+		if err := xssh.WriteRemote(client, d.config.OutputCertPath, pfxData, d.config.UseSCP); err != nil {
 			return nil, fmt.Errorf("failed to upload certificate file: %w", err)
 		}
 		d.logger.Info("ssl certificate file uploaded", slog.String("path", d.config.OutputCertPath))
@@ -255,7 +235,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		}
 		d.logger.Info("ssl certificate transformed to jks")
 
-		if err := writeFile(client, d.config.UseSCP, d.config.OutputCertPath, jksData); err != nil {
+		if err := xssh.WriteRemote(client, d.config.OutputCertPath, jksData, d.config.UseSCP); err != nil {
 			return nil, fmt.Errorf("failed to upload certificate file: %w", err)
 		}
 		d.logger.Info("ssl certificate file uploaded", slog.String("path", d.config.OutputCertPath))
@@ -371,68 +351,4 @@ func execSshCommand(sshCli *ssh.Client, command string) (string, string, error) 
 	}
 
 	return stdoutBuf.String(), stderrBuf.String(), nil
-}
-
-func writeFileString(sshCli *ssh.Client, useSCP bool, path string, content string) error {
-	if useSCP {
-		return writeFileStringWithSCP(sshCli, path, content)
-	}
-
-	return writeFileStringWithSFTP(sshCli, path, content)
-}
-
-func writeFile(sshCli *ssh.Client, useSCP bool, path string, data []byte) error {
-	if useSCP {
-		return writeFileWithSCP(sshCli, path, data)
-	}
-
-	return writeFileWithSFTP(sshCli, path, data)
-}
-
-func writeFileStringWithSCP(sshCli *ssh.Client, path string, content string) error {
-	return writeFileWithSCP(sshCli, path, []byte(content))
-}
-
-func writeFileWithSCP(sshCli *ssh.Client, path string, data []byte) error {
-	scpCli, err := scp.NewClientFromExistingSSH(sshCli, &scp.ClientOption{})
-	if err != nil {
-		return fmt.Errorf("failed to create scp client: %w", err)
-	}
-
-	reader := bytes.NewReader(data)
-	err = scpCli.CopyToRemote(reader, path, &scp.FileTransferOption{})
-	if err != nil {
-		return fmt.Errorf("failed to write to remote file: %w", err)
-	}
-
-	return nil
-}
-
-func writeFileStringWithSFTP(sshCli *ssh.Client, path string, content string) error {
-	return writeFileWithSFTP(sshCli, path, []byte(content))
-}
-
-func writeFileWithSFTP(sshCli *ssh.Client, path string, data []byte) error {
-	sftpCli, err := sftp.NewClient(sshCli)
-	if err != nil {
-		return fmt.Errorf("failed to create sftp client: %w", err)
-	}
-	defer sftpCli.Close()
-
-	if err := sftpCli.MkdirAll(filepath.ToSlash(filepath.Dir(path))); err != nil {
-		return fmt.Errorf("failed to create remote directory: %w", err)
-	}
-
-	file, err := sftpCli.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC)
-	if err != nil {
-		return fmt.Errorf("failed to open remote file: %w", err)
-	}
-	defer file.Close()
-
-	_, err = file.Write(data)
-	if err != nil {
-		return fmt.Errorf("failed to write to remote file: %w", err)
-	}
-
-	return nil
 }

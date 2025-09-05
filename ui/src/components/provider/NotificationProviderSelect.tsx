@@ -1,35 +1,47 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Avatar, Select, type SelectProps, Typography, theme } from "antd";
+import { Avatar, Select, Typography, theme } from "antd";
 
 import { type NotificationProvider, notificationProvidersMap } from "@/domain/provider";
 
-export interface NotificationProviderSelectProps
-  extends Omit<SelectProps, "filterOption" | "filterSort" | "labelRender" | "options" | "optionFilterProp" | "optionLabelProp" | "optionRender"> {
-  onFilter?: (value: string, option: NotificationProvider) => boolean;
+import { type SharedSelectProps, useSelectDataSource } from "./_shared";
+
+export interface NotificationProviderSelectProps extends SharedSelectProps<NotificationProvider> {
+  showAvailability?: boolean;
 }
 
-const NotificationProviderSelect = ({ onFilter, ...props }: NotificationProviderSelectProps) => {
+const NotificationProviderSelect = ({ showAvailability = false, onFilter, ...props }: NotificationProviderSelectProps) => {
   const { t } = useTranslation();
 
   const { token: themeToken } = theme.useToken();
 
-  const options = useMemo<Array<{ key: string; value: string; label: string; data: NotificationProvider }>>(() => {
-    return Array.from(notificationProvidersMap.values())
-      .filter((provider) => {
-        if (onFilter) {
-          return onFilter(provider.type, provider);
-        }
-
-        return true;
-      })
-      .map((provider) => ({
+  const dataSources = useSelectDataSource({
+    dataSource: Array.from(notificationProvidersMap.values()),
+    filters: [onFilter!],
+  });
+  const options = useMemo(() => {
+    const convert = (providers: NotificationProvider[]): Array<{ key: string; value: string; label: string; data: NotificationProvider }> => {
+      return providers.map((provider) => ({
         key: provider.type,
         value: provider.type,
         label: t(provider.name),
         data: provider,
       }));
-  }, [onFilter]);
+    };
+
+    return showAvailability
+      ? [
+          {
+            label: t("provider.text.available_group"),
+            options: convert(dataSources.available),
+          },
+          {
+            label: t("provider.text.unavailable_group"),
+            options: convert(dataSources.unavailable),
+          },
+        ].filter((group) => group.options.length > 0)
+      : convert(dataSources.filtered);
+  }, [showAvailability, dataSources]);
 
   const renderOption = (key: string) => {
     const provider = notificationProvidersMap.get(key);
@@ -46,9 +58,11 @@ const NotificationProviderSelect = ({ onFilter, ...props }: NotificationProvider
       {...props}
       filterOption={(inputValue, option) => {
         if (!option) return false;
+        if (!option.label) return false;
+        if (!option.value) return false;
 
         const value = inputValue.toLowerCase();
-        return option.value.toLowerCase().includes(value) || option.label.toLowerCase().includes(value);
+        return String(option.value).toLowerCase().includes(value) || String(option.label).toLowerCase().includes(value);
       }}
       labelRender={({ value }) => {
         if (value != null) {
@@ -60,7 +74,7 @@ const NotificationProviderSelect = ({ onFilter, ...props }: NotificationProvider
       options={options}
       optionFilterProp={void 0}
       optionLabelProp={void 0}
-      optionRender={(option) => renderOption(option.data.value)}
+      optionRender={(option) => renderOption(option.data.value as string)}
     />
   );
 };

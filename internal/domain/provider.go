@@ -185,6 +185,7 @@ NOTICE: If you add new constant, please keep ASCII order.
 */
 const (
 	ACMEHttp01ProviderTypeLocal = ACMEHttp01ProviderType(AccessProviderTypeLocal)
+	ACMEHttp01ProviderTypeSSH   = ACMEHttp01ProviderType(AccessProviderTypeSSH)
 )
 
 type DeploymentProviderType string

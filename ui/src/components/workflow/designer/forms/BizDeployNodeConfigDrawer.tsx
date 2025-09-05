@@ -28,7 +28,7 @@ const BizDeployNodeConfigDrawer = ({ node, ...props }: BizDeployNodeConfigDrawer
   return (
     <NodeConfigDrawer
       anchor={fieldProvider ? { items: BizDeployNodeConfigForm.getAnchorItems({ i18n }) } : false}
-      footer={fieldProvider ? true : false}
+      footer={fieldProvider ? void 0 : false}
       form={formInst}
       node={node}
       {...props}

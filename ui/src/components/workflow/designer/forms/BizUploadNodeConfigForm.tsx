@@ -32,7 +32,7 @@ const BizUploadNodeConfigForm = ({ node, ...props }: BizUploadNodeConfigFormProp
 
   const formSchema = getSchema({ i18n });
   const formRule = createSchemaFieldRule(formSchema);
-  const { form: formInst, formProps } = useAntdForm({
+  const { form: formInst, formProps } = useAntdForm<z.infer<typeof formSchema>>({
     form: props.form,
     name: "workflowNodeBizUploadConfigForm",
     initialValues: initialValues ?? getInitialValues(),

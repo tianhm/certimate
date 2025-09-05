@@ -54,7 +54,7 @@ const BranchBlockNodeConfigForm = ({ node, ...props }: BranchBlockNodeConfigForm
     }
   });
   const formRule = createSchemaFieldRule(formSchema);
-  const { form: formInst, formProps } = useAntdForm({
+  const { form: formInst, formProps } = useAntdForm<z.infer<typeof formSchema>>({
     form: props.form,
     name: "workflowNodeBranchBlockConfigForm",
     initialValues: initialValues ?? getInitialValues(),

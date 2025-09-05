@@ -64,6 +64,7 @@ import BizDeployNodeConfigFieldsProviderGcoreCDN from "./BizDeployNodeConfigFiel
 import BizDeployNodeConfigFieldsProviderGoEdge from "./BizDeployNodeConfigFieldsProviderGoEdge";
 import BizDeployNodeConfigFieldsProviderHuaweiCloudCDN from "./BizDeployNodeConfigFieldsProviderHuaweiCloudCDN";
 import BizDeployNodeConfigFieldsProviderHuaweiCloudELB from "./BizDeployNodeConfigFieldsProviderHuaweiCloudELB";
+import BizDeployNodeConfigFieldsProviderHuaweiCloudOBS from "./BizDeployNodeConfigFieldsProviderHuaweiCloudOBS";
 import BizDeployNodeConfigFieldsProviderHuaweiCloudWAF from "./BizDeployNodeConfigFieldsProviderHuaweiCloudWAF";
 import BizDeployNodeConfigFieldsProviderJDCloudALB from "./BizDeployNodeConfigFieldsProviderJDCloudALB";
 import BizDeployNodeConfigFieldsProviderJDCloudCDN from "./BizDeployNodeConfigFieldsProviderJDCloudCDN";
@@ -321,6 +322,9 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
       }
       case DEPLOYMENT_PROVIDERS.HUAWEICLOUD_ELB: {
         return BizDeployNodeConfigFieldsProviderHuaweiCloudELB;
+      }
+      case DEPLOYMENT_PROVIDERS.HUAWEICLOUD_OBS: {
+        return BizDeployNodeConfigFieldsProviderHuaweiCloudOBS;
       }
       case DEPLOYMENT_PROVIDERS.HUAWEICLOUD_WAF: {
         return BizDeployNodeConfigFieldsProviderHuaweiCloudWAF;

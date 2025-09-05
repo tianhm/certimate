@@ -96,6 +96,7 @@
   "provider.huaweicloud.dns": "Huawei Cloud - DNS",
   "provider.huaweicloud.elb": "Huawei Cloud - ELB (Elastic Load Balance)",
   "provider.huaweicloud.scm_upload": "Huawei Cloud - Upload to SCM (SSL Certificate Manager)",
+  "provider.huaweicloud.obs": "Huawei Cloud - OBS (Object Storage Service)",
   "provider.huaweicloud.waf": "Huawei Cloud - WAF (Web Application Firewall)",
   "provider.jdcloud": "JD Cloud",
   "provider.jdcloud.alb": "JD Cloud - ALB (Application Load Balancer)",

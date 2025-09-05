@@ -43,6 +43,7 @@ func init() {
 			WebhookData:              xmaps.GetOrDefaultString(options.ProviderExtendedConfig, "webhookData", credentials.DataString),
 			Method:                   credentials.Method,
 			Headers:                  mergedHeaders,
+			Timeout:                  xmaps.GetInt32(options.ProviderExtendedConfig, "timeout"),
 			AllowInsecureConnections: credentials.AllowInsecureConnections,
 		})
 		return provider, err

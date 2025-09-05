@@ -28,6 +28,9 @@ type SSLDeployerProviderConfig struct {
 	Method string `json:"method,omitempty"`
 	// 请求标头。
 	Headers map[string]string `json:"headers,omitempty"`
+	// 请求超时（单位：秒）。
+	// 零值时默认值 30。
+	Timeout int32 `json:"timeout,omitempty"`
 	// 是否允许不安全的连接。
 	AllowInsecureConnections bool `json:"allowInsecureConnections,omitempty"`
 }
@@ -49,6 +52,9 @@ func NewSSLDeployerProvider(config *SSLDeployerProviderConfig) (*SSLDeployerProv
 		SetTimeout(30 * time.Second).
 		SetRetryCount(3).
 		SetRetryWaitTime(5 * time.Second)
+	if config.Timeout > 0 {
+		client.SetTimeout(time.Duration(config.Timeout) * time.Second)
+	}
 	if config.AllowInsecureConnections {
 		client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 	}

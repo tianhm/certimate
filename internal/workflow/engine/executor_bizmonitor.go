@@ -67,7 +67,7 @@ func (ne *bizMonitorNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeE
 	}
 
 	if err != nil {
-		ne.logger.Warn("failed to monitor certificate")
+		ne.logger.Warn("could not retrieve certificate")
 		return execRes, err
 	} else {
 		if len(certs) == 0 {

@@ -63,7 +63,7 @@ func (ne *bizUploadNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 	}
 	certificate.PopulateFromPEM(nodeCfg.Certificate, nodeCfg.PrivateKey)
 	if certificate, err := ne.certificateRepo.Save(execCtx.ctx, certificate); err != nil {
-		ne.logger.Warn("failed to save certificate")
+		ne.logger.Warn("could not save certificate")
 		return execRes, err
 	} else {
 		ne.logger.Info("certificate saved", slog.String("recordId", certificate.Id))

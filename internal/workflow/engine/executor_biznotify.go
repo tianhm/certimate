@@ -49,7 +49,7 @@ func (ne *bizNotifyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 		Message:                nodeCfg.Message,
 	}
 	if _, err := notifyClient.SendNotification(execCtx.ctx, notifyReq); err != nil {
-		ne.logger.Warn("failed to send notification")
+		ne.logger.Warn("could not send notification")
 		return execRes, err
 	}
 

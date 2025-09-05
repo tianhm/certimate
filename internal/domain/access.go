@@ -44,6 +44,10 @@ type AccessConfigForACMEHttpReq struct {
 	Password string `json:"password,omitempty"`
 }
 
+type AccessConfigForActalisSSL struct {
+	AccessConfigForACMEExternalAccountBinding
+}
+
 type AccessConfigForAliyun struct {
 	AccessKeyId     string `json:"accessKeyId"`
 	AccessKeySecret string `json:"accessKeySecret"`

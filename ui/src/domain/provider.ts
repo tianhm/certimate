@@ -19,6 +19,7 @@ export const ACCESS_PROVIDERS = Object.freeze({
   ACMECA: "acmeca",
   ACMEDNS: "acmedns",
   ACMEHTTPREQ: "acmehttpreq",
+  ACTALISSSL: "actalisssl",
   ALIYUN: "aliyun",
   APISIX: "apisix",
   AWS: "aws",
@@ -188,6 +189,7 @@ export const accessProvidersMap: Map<AccessProvider["type"] | string, AccessProv
 
       [ACCESS_PROVIDERS.LETSENCRYPT, "provider.letsencrypt", "/imgs/providers/letsencrypt.svg", [ACCESS_USAGES.CA], "builtin"],
       [ACCESS_PROVIDERS.LETSENCRYPTSTAGING, "provider.letsencryptstaging", "/imgs/providers/letsencrypt.svg", [ACCESS_USAGES.CA], "builtin"],
+      [ACCESS_PROVIDERS.ACTALISSSL, "provider.actalisssl", "/imgs/providers/actalisssl.png", [ACCESS_USAGES.CA]],
       [ACCESS_PROVIDERS.BUYPASS, "provider.buypass", "/imgs/providers/buypass.png", [ACCESS_USAGES.CA]],
       [ACCESS_PROVIDERS.GOOGLETRUSTSERVICES, "provider.googletrustservices", "/imgs/providers/google.svg", [ACCESS_USAGES.CA]],
       [ACCESS_PROVIDERS.SSLCOM, "provider.sslcom", "/imgs/providers/sslcom.svg", [ACCESS_USAGES.CA]],
@@ -223,6 +225,7 @@ export const accessProvidersMap: Map<AccessProvider["type"] | string, AccessProv
  */
 export const CA_PROVIDERS = Object.freeze({
   ACMECA: `${ACCESS_PROVIDERS.ACMECA}`,
+  ACTALISSSL: `${ACCESS_PROVIDERS.ACTALISSSL}`,
   BUYPASS: `${ACCESS_PROVIDERS.BUYPASS}`,
   GOOGLETRUSTSERVICES: `${ACCESS_PROVIDERS.GOOGLETRUSTSERVICES}`,
   LETSENCRYPT: `${ACCESS_PROVIDERS.LETSENCRYPT}`,
@@ -244,6 +247,7 @@ export const caProvidersMap: Map<CAProvider["type"] | string, CAProvider> = new 
     [
       [CA_PROVIDERS.LETSENCRYPT, "builtin"],
       [CA_PROVIDERS.LETSENCRYPTSTAGING, "builtin"],
+      [CA_PROVIDERS.ACTALISSSL],
       [CA_PROVIDERS.BUYPASS],
       [CA_PROVIDERS.GOOGLETRUSTSERVICES],
       [CA_PROVIDERS.SSLCOM],

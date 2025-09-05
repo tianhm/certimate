@@ -108,6 +108,76 @@ const SSLProviderEditFormLetsEncryptStagingConfig = () => {
   );
 };
 
+const SSLProviderEditFormActalisSSLConfig = () => {
+  const { t } = useTranslation();
+
+  const { pending, settings, updateSettings } = useContext(SSLProviderContext);
+
+  const formSchema = z.object({
+    eabKid: z
+      .string(t("access.form.actalisssl_eab_kid.placeholder"))
+      .min(1, t("access.form.actalisssl_eab_kid.placeholder"))
+      .max(256, t("common.errmsg.string_max", { max: 256 })),
+    eabHmacKey: z
+      .string(t("access.form.actalisssl_eab_hmac_key.placeholder"))
+      .min(1, t("access.form.actalisssl_eab_hmac_key.placeholder"))
+      .max(256, t("common.errmsg.string_max", { max: 256 })),
+  });
+  const formRule = createSchemaFieldRule(formSchema);
+  const { form: formInst, formProps } = useAntdForm<z.infer<typeof formSchema>>({
+    initialValues: settings?.content?.config?.[CA_PROVIDERS.ACTALISSSL],
+    onSubmit: async (values) => {
+      const newSettings = produce(settings, (draft) => {
+        draft.content ??= {} as SSLProviderSettingsContent;
+        draft.content.provider = CA_PROVIDERS.ACTALISSSL;
+
+        draft.content.config ??= {} as SSLProviderSettingsContent["config"];
+        draft.content.config[CA_PROVIDERS.ACTALISSSL] = values;
+      });
+      await updateSettings(newSettings);
+
+      setFormChanged(false);
+    },
+  });
+
+  const [formChanged, setFormChanged] = useState(false);
+  useEffect(() => {
+    setFormChanged(settings?.content?.provider !== CA_PROVIDERS.ACTALISSSL);
+  }, [settings?.content?.provider]);
+
+  const handleFormChange = () => {
+    setFormChanged(true);
+  };
+
+  return (
+    <Form {...formProps} form={formInst} disabled={pending} layout="vertical" onValuesChange={handleFormChange}>
+      <Form.Item
+        name="eabKid"
+        label={t("access.form.actalisssl_eab_kid.label")}
+        rules={[formRule]}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.actalisssl_eab_kid.tooltip") }}></span>}
+      >
+        <Input autoComplete="new-password" placeholder={t("access.form.actalisssl_eab_kid.placeholder")} />
+      </Form.Item>
+
+      <Form.Item
+        name="eabHmacKey"
+        label={t("access.form.actalisssl_eab_hmac_key.label")}
+        rules={[formRule]}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.actalisssl_eab_hmac_key.tooltip") }}></span>}
+      >
+        <Input.Password autoComplete="new-password" placeholder={t("access.form.actalisssl_eab_hmac_key.placeholder")} />
+      </Form.Item>
+
+      <Form.Item>
+        <Button type="primary" htmlType="submit" disabled={!formChanged} loading={pending}>
+          {t("common.button.save")}
+        </Button>
+      </Form.Item>
+    </Form>
+  );
+};
+
 const SSLProviderEditFormBuypassConfig = () => {
   const { t } = useTranslation();
 
@@ -466,6 +536,7 @@ const SettingsSSLProvider = () => {
   const providers = [
     [CA_PROVIDERS.LETSENCRYPT, "provider.letsencrypt", "letsencrypt.org", "/imgs/providers/letsencrypt.svg"],
     [CA_PROVIDERS.LETSENCRYPTSTAGING, "provider.letsencryptstaging", "letsencrypt.org", "/imgs/providers/letsencrypt.svg"],
+    [CA_PROVIDERS.ACTALISSSL, "provider.actalisssl", "actalis.com", "/imgs/providers/actalisssl.png"],
     [CA_PROVIDERS.BUYPASS, "provider.buypass", "buypass.com", "/imgs/providers/buypass.png"],
     [CA_PROVIDERS.GOOGLETRUSTSERVICES, "provider.googletrustservices", "pki.goog", "/imgs/providers/google.svg"],
     [CA_PROVIDERS.SSLCOM, "provider.sslcom", "ssl.com", "/imgs/providers/sslcom.svg"],
@@ -486,6 +557,8 @@ const SettingsSSLProvider = () => {
         return <SSLProviderEditFormLetsEncryptConfig />;
       case CA_PROVIDERS.LETSENCRYPTSTAGING:
         return <SSLProviderEditFormLetsEncryptStagingConfig />;
+      case CA_PROVIDERS.ACTALISSSL:
+        return <SSLProviderEditFormActalisSSLConfig />;
       case CA_PROVIDERS.BUYPASS:
         return <SSLProviderEditFormBuypassConfig />;
       case CA_PROVIDERS.GOOGLETRUSTSERVICES:

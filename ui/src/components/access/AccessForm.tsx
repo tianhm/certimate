@@ -15,6 +15,7 @@ import AccessConfigFieldsProvider1Panel from "./forms/AccessConfigFieldsProvider
 import AccessConfigFieldsProviderACMECA from "./forms/AccessConfigFieldsProviderACMECA";
 import AccessConfigFieldsProviderACMEDNS from "./forms/AccessConfigFieldsProviderACMEDNS";
 import AccessConfigFieldsProviderACMEHttpReq from "./forms/AccessConfigFieldsProviderACMEHttpReq";
+import AccessConfigFieldsProviderActalisSSL from "./forms/AccessConfigFieldsProviderActalisSSL";
 import AccessConfigFieldsProviderAliyun from "./forms/AccessConfigFieldsProviderAliyun";
 import AccessConfigFieldsProviderAPISIX from "./forms/AccessConfigFieldsProviderAPISIX";
 import AccessConfigFieldsProviderAWS from "./forms/AccessConfigFieldsProviderAWS";
@@ -140,6 +141,9 @@ const AccessForm = ({ className, style, disabled, initialValues, mode, usage, ..
       }
       case ACCESS_PROVIDERS.ACMEHTTPREQ: {
         return <AccessConfigFieldsProviderACMEHttpReq />;
+      }
+      case ACCESS_PROVIDERS.ACTALISSSL: {
+        return <AccessConfigFieldsProviderActalisSSL />;
       }
       case ACCESS_PROVIDERS.ALIYUN: {
         return <AccessConfigFieldsProviderAliyun />;

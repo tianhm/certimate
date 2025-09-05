@@ -5,6 +5,7 @@
   "provider.acmeca": "ACME Custom CA Endpoint",
   "provider.acmedns": "ACME-DNS",
   "provider.acmehttpreq": "ACME Custom HTTP Endpoint",
+  "provider.actalisssl": "Actalis SSL",
   "provider.aliyun": "Alibaba Cloud",
   "provider.aliyun.alb": "Alibaba Cloud - ALB (Application Load Balancer)",
   "provider.aliyun.apigw": "Alibaba Cloud - API Gateway",

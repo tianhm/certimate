@@ -13,6 +13,7 @@ const (
 	AccessProviderTypeACMECA              = AccessProviderType("acmeca")
 	AccessProviderTypeACMEDNS             = AccessProviderType("acmedns")
 	AccessProviderTypeACMEHttpReq         = AccessProviderType("acmehttpreq")
+	AccessProviderTypeActalisSSL          = AccessProviderType("actalisssl")
 	AccessProviderTypeAkamai              = AccessProviderType("akamai") // Akamai（预留）
 	AccessProviderTypeAliyun              = AccessProviderType("aliyun")
 	AccessProviderTypeAPISIX              = AccessProviderType("apisix")
@@ -105,6 +106,7 @@ NOTICE: If you add new constant, please keep ASCII order.
 */
 const (
 	CAProviderTypeACMECA              = CAProviderType(AccessProviderTypeACMECA)
+	CAProviderTypeActalisSSL          = CAProviderType(AccessProviderTypeActalisSSL)
 	CAProviderTypeBuypass             = CAProviderType(AccessProviderTypeBuypass)
 	CAProviderTypeGoogleTrustServices = CAProviderType(AccessProviderTypeGoogleTrustServices)
 	CAProviderTypeLetsEncrypt         = CAProviderType(AccessProviderTypeLetsEncrypt)

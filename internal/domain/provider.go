@@ -86,6 +86,7 @@ const (
 	AccessProviderTypeUpyun               = AccessProviderType("upyun")
 	AccessProviderTypeVercel              = AccessProviderType("vercel")
 	AccessProviderTypeVolcEngine          = AccessProviderType("volcengine")
+	AccessProviderTypeVultr               = AccessProviderType("vultr")
 	AccessProviderTypeWangsu              = AccessProviderType("wangsu")
 	AccessProviderTypeWebhook             = AccessProviderType("webhook")
 	AccessProviderTypeWeComBot            = AccessProviderType("wecombot")
@@ -171,6 +172,7 @@ const (
 	ACMEDns01ProviderTypeVercel            = ACMEDns01ProviderType(AccessProviderTypeVercel)
 	ACMEDns01ProviderTypeVolcEngine        = ACMEDns01ProviderType(AccessProviderTypeVolcEngine) // 兼容旧值，等同于 [ACMEDns01ProviderTypeVolcEngineDNS]
 	ACMEDns01ProviderTypeVolcEngineDNS     = ACMEDns01ProviderType(AccessProviderTypeVolcEngine + "-dns")
+	ACMEDns01ProviderTypeVultr             = ACMEDns01ProviderType(AccessProviderTypeVultr)
 	ACMEDns01ProviderTypeWestcn            = ACMEDns01ProviderType(AccessProviderTypeWestcn)
 )
 

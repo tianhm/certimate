@@ -402,6 +402,10 @@ type AccessConfigForVolcEngine struct {
 	SecretAccessKey string `json:"secretAccessKey"`
 }
 
+type AccessConfigForVultr struct {
+	ApiKey string `json:"apiKey"`
+}
+
 type AccessConfigForWangsu struct {
 	AccessKeyId     string `json:"accessKeyId"`
 	AccessKeySecret string `json:"accessKeySecret"`

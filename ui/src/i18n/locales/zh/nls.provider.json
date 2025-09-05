@@ -171,6 +171,7 @@
   "provider.volcengine.imagex": "火山引擎 - 图片服务 ImageX",
   "provider.volcengine.live": "火山引擎 - 视频直播 Live",
   "provider.volcengine.tos": "火山引擎 - 对象存储 TOS",
+  "provider.vultr": "Vultr",
   "provider.wangsu": "网宿云",
   "provider.wangsu.cdn": "网宿云 - 内容分发网络 CDN",
   "provider.wangsu.cdnpro": "网宿云 - CDN Pro (CDN 360)",

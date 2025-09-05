@@ -88,6 +88,7 @@ export const ACCESS_PROVIDERS = Object.freeze({
   UPYUN: "upyun",
   VERCEL: "vercel",
   VOLCENGINE: "volcengine",
+  VULTR: "vultr",
   WANGSU: "wangsu",
   WEBHOOK: "webhook",
   WECOMBOT: "wecombot",
@@ -178,6 +179,7 @@ export const accessProvidersMap: Map<AccessProvider["type"] | string, AccessProv
       [ACCESS_PROVIDERS.PORKBUN, "provider.porkbun", "/imgs/providers/porkbun.svg", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.SPACESHIP, "provider.spaceship", "/imgs/providers/spaceship.png", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.VERCEL, "provider.vercel", "/imgs/providers/vercel.svg", [ACCESS_USAGES.DNS]],
+      [ACCESS_PROVIDERS.VULTR, "provider.vultr", "/imgs/providers/vultr.svg", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.CMCCCLOUD, "provider.cmcccloud", "/imgs/providers/cmcccloud.svg", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.WESTCN, "provider.westcn", "/imgs/providers/westcn.svg", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.POWERDNS, "provider.powerdns", "/imgs/providers/powerdns.svg", [ACCESS_USAGES.DNS]],
@@ -316,6 +318,7 @@ export const ACME_DNS01_PROVIDERS = Object.freeze({
   VERCEL: `${ACCESS_PROVIDERS.VERCEL}`,
   VOLCENGINE: `${ACCESS_PROVIDERS.VOLCENGINE}`, // 兼容旧值，等同于 `VOLCENGINE_DNS`
   VOLCENGINE_DNS: `${ACCESS_PROVIDERS.VOLCENGINE}-dns`,
+  VULTR: `${ACCESS_PROVIDERS.VULTR}`,
   WESTCN: `${ACCESS_PROVIDERS.WESTCN}`,
 } as const);
 
@@ -362,6 +365,7 @@ export const acmeDns01ProvidersMap: Map<ACMEDns01Provider["type"] | string, ACME
       [ACME_DNS01_PROVIDERS.PORKBUN, "provider.porkbun"],
       [ACME_DNS01_PROVIDERS.SPACESHIP, "provider.spaceship"],
       [ACME_DNS01_PROVIDERS.VERCEL, "provider.vercel"],
+      [ACME_DNS01_PROVIDERS.VULTR, "provider.vultr"],
       [ACME_DNS01_PROVIDERS.CMCCCLOUD_DNS, "provider.cmcccloud.dns"],
       [ACME_DNS01_PROVIDERS.CTCCCLOUD_SMARTDNS, "provider.ctcccloud.smartdns"],
       [ACME_DNS01_PROVIDERS.RAINYUN, "provider.rainyun"],

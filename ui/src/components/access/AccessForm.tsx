@@ -80,6 +80,7 @@ import AccessConfigFieldsProviderUniCloud from "./forms/AccessConfigFieldsProvid
 import AccessConfigFieldsProviderUpyun from "./forms/AccessConfigFieldsProviderUpyun";
 import AccessConfigFieldsProviderVercel from "./forms/AccessConfigFieldsProviderVercel";
 import AccessConfigFieldsProviderVolcEngine from "./forms/AccessConfigFieldsProviderVolcEngine";
+import AccessConfigFieldsProviderVultr from "./forms/AccessConfigFieldsProviderVultr";
 import AccessConfigFieldsProviderWangsu from "./forms/AccessConfigFieldsProviderWangsu";
 import AccessConfigFieldsProviderWebhook from "./forms/AccessConfigFieldsProviderWebhook";
 import AccessConfigFieldsProviderWeComBot from "./forms/AccessConfigFieldsProviderWeComBot";
@@ -334,6 +335,9 @@ const AccessForm = ({ className, style, disabled, initialValues, mode, usage, ..
       }
       case ACCESS_PROVIDERS.VOLCENGINE: {
         return <AccessConfigFieldsProviderVolcEngine />;
+      }
+      case ACCESS_PROVIDERS.VULTR: {
+        return <AccessConfigFieldsProviderVultr />;
       }
       case ACCESS_PROVIDERS.WANGSU: {
         return <AccessConfigFieldsProviderWangsu />;

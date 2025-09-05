@@ -171,6 +171,7 @@
   "provider.volcengine.imagex": "Volcengine - ImageX",
   "provider.volcengine.live": "Volcengine - Live",
   "provider.volcengine.tos": "Volcengine - TOS (Tinder Object Storage)",
+  "provider.vultr": "Vultr",
   "provider.wangsu": "Wangsu Cloud",
   "provider.wangsu.cdn": "Wangsu Cloud - CDN (Content Delivery Network)",
   "provider.wangsu.cdnpro": "Wangsu Cloud - CDN Pro (CDN 360)",

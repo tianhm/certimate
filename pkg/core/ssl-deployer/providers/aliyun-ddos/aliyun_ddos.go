@@ -94,7 +94,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 
 	// 为网站业务转发规则关联 SSL 证书
 	// REF: https://help.aliyun.com/zh/anti-ddos/anti-ddos-pro-and-premium/developer-reference/api-ddoscoo-2020-01-01-associatewebcert
-	certId, _ := strconv.Atoi(upres.CertId)
+	certId, _ := strconv.ParseInt(upres.CertId, 10, 32)
 	associateWebCertReq := &aliddos.AssociateWebCertRequest{
 		Domain: tea.String(d.config.Domain),
 		CertId: tea.Int32(int32(certId)),

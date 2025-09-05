@@ -5,12 +5,16 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"time"
+	"strconv"
+	"strings"
 
 	aliopen "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	"github.com/alibabacloud-go/tea/tea"
 	alivod "github.com/alibabacloud-go/vod-20170321/v4/client"
+	"github.com/samber/lo"
+
 	"github.com/certimate-go/certimate/pkg/core"
+	sslmgrsp "github.com/certimate-go/certimate/pkg/core/ssl-manager/providers/aliyun-cas"
 )
 
 type SSLDeployerProviderConfig struct {
@@ -27,9 +31,10 @@ type SSLDeployerProviderConfig struct {
 }
 
 type SSLDeployerProvider struct {
-	config    *SSLDeployerProviderConfig
-	logger    *slog.Logger
-	sdkClient *alivod.Client
+	config     *SSLDeployerProviderConfig
+	logger     *slog.Logger
+	sdkClient  *alivod.Client
+	sslManager core.SSLManager
 }
 
 var _ core.SSLDeployer = (*SSLDeployerProvider)(nil)
@@ -44,10 +49,23 @@ func NewSSLDeployerProvider(config *SSLDeployerProviderConfig) (*SSLDeployerProv
 		return nil, fmt.Errorf("could not create sdk client: %w", err)
 	}
 
+	sslmgr, err := sslmgrsp.NewSSLManagerProvider(&sslmgrsp.SSLManagerProviderConfig{
+		AccessKeyId:     config.AccessKeyId,
+		AccessKeySecret: config.AccessKeySecret,
+		ResourceGroupId: config.ResourceGroupId,
+		Region: lo.
+			If(config.Region == "" || strings.HasPrefix(config.Region, "cn-"), "cn-hangzhou").
+			Else("ap-southeast-1"),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("could not create ssl manager: %w", err)
+	}
+
 	return &SSLDeployerProvider{
-		config:    config,
-		logger:    slog.Default(),
-		sdkClient: client,
+		config:     config,
+		logger:     slog.Default(),
+		sdkClient:  client,
+		sslManager: sslmgr,
 	}, nil
 }
 
@@ -64,15 +82,25 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		return nil, errors.New("config `domain` is required")
 	}
 
+	// 上传证书
+	upres, err := d.sslManager.Upload(ctx, certPEM, privkeyPEM)
+	if err != nil {
+		return nil, fmt.Errorf("failed to upload certificate file: %w", err)
+	} else {
+		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
+	}
+
 	// 设置域名证书
 	// REF: https://help.aliyun.com/zh/vod/developer-reference/api-vod-2017-03-21-setvoddomainsslcertificate
+	certId, _ := strconv.ParseInt(upres.CertId, 10, 64)
 	setVodDomainSSLCertificateReq := &alivod.SetVodDomainSSLCertificateRequest{
-		DomainName:  tea.String(d.config.Domain),
-		CertName:    tea.String(fmt.Sprintf("certimate-%d", time.Now().UnixMilli())),
-		CertType:    tea.String("upload"),
+		DomainName: tea.String(d.config.Domain),
+		CertType:   tea.String("cas"),
+		CertId:     tea.Int64(int64(certId)),
+		CertRegion: lo.
+			If(d.config.Region == "" || strings.HasPrefix(d.config.Region, "cn-"), tea.String("cn-hangzhou")).
+			Else(tea.String("ap-southeast-1")),
 		SSLProtocol: tea.String("on"),
-		SSLPub:      tea.String(certPEM),
-		SSLPri:      tea.String(privkeyPEM),
 	}
 	setVodDomainSSLCertificateResp, err := d.sdkClient.SetVodDomainSSLCertificate(setVodDomainSSLCertificateReq)
 	d.logger.Debug("sdk request 'live.SetVodDomainSSLCertificate'", slog.Any("request", setVodDomainSSLCertificateReq), slog.Any("response", setVodDomainSSLCertificateResp))

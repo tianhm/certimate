@@ -20,6 +20,7 @@ func init() {
 			AccessKeyId:     credentials.AccessKeyId,
 			AccessKeySecret: credentials.AccessKeySecret,
 			ResourceGroupId: credentials.ResourceGroupId,
+			Region:          xmaps.GetString(options.ProviderExtendedConfig, "region"),
 			Domain:          xmaps.GetString(options.ProviderExtendedConfig, "domain"),
 		})
 		return provider, err

@@ -3,6 +3,8 @@ import { Form, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
+import CodeInput from "@/components/CodeInput";
+
 import { useFormNestedFieldsContext } from "./_context";
 
 const BizDeployNodeConfigFieldsProviderKubernetesSecret = () => {
@@ -13,7 +15,22 @@ const BizDeployNodeConfigFieldsProviderKubernetesSecret = () => {
     [parentNamePath]: getSchema({ i18n }),
   });
   const formRule = createSchemaFieldRule(formSchema);
+  const formInst = Form.useFormInstance();
   const initialValues = getInitialValues();
+
+  const handleSecretAnnotationsBlur = () => {
+    let value = formInst.getFieldValue([parentNamePath, "secretAnnotations"]);
+    value = value.trim();
+    value = value.replace(/(?<!\r)\n/g, "\r\n");
+    formInst.setFieldValue([parentNamePath, "secretAnnotations"], value);
+  };
+
+  const handleSecretLabelsBlur = () => {
+    let value = formInst.getFieldValue([parentNamePath, "secretLabels"]);
+    value = value.trim();
+    value = value.replace(/(?<!\r)\n/g, "\r\n");
+    formInst.setFieldValue([parentNamePath, "secretLabels"], value);
+  };
 
   return (
     <>
@@ -66,6 +83,40 @@ const BizDeployNodeConfigFieldsProviderKubernetesSecret = () => {
       >
         <Input placeholder={t("workflow_node.deploy.form.k8s_secret_data_key_for_key.placeholder")} />
       </Form.Item>
+
+      <Form.Item
+        name={[parentNamePath, "secretAnnotations"]}
+        initialValue={initialValues.secretAnnotations}
+        label={t("workflow_node.deploy.form.k8s_secret_annotations.label")}
+        extra={t("workflow_node.deploy.form.k8s_secret_annotations.help")}
+        rules={[formRule]}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.k8s_secret_annotations.tooltip") }}></span>}
+      >
+        <CodeInput
+          height="auto"
+          minHeight="64px"
+          maxHeight="256px"
+          placeholder={t("workflow_node.deploy.form.k8s_secret_annotations.placeholder")}
+          onBlur={handleSecretAnnotationsBlur}
+        />
+      </Form.Item>
+
+      <Form.Item
+        name={[parentNamePath, "secretLabels"]}
+        initialValue={initialValues.secretLabels}
+        label={t("workflow_node.deploy.form.k8s_secret_labels.label")}
+        extra={t("workflow_node.deploy.form.k8s_secret_labels.help")}
+        rules={[formRule]}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.k8s_secret_labels.tooltip") }}></span>}
+      >
+        <CodeInput
+          height="auto"
+          minHeight="64px"
+          maxHeight="256px"
+          placeholder={t("workflow_node.deploy.form.k8s_secret_labels.placeholder")}
+          onBlur={handleSecretLabelsBlur}
+        />
+      </Form.Item>
     </>
   );
 };
@@ -88,6 +139,34 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
     secretType: z.string().nonempty(t("workflow_node.deploy.form.k8s_secret_type.placeholder")),
     secretDataKeyForCrt: z.string().nonempty(t("workflow_node.deploy.form.k8s_secret_data_key_for_crt.placeholder")),
     secretDataKeyForKey: z.string().nonempty(t("workflow_node.deploy.form.k8s_secret_data_key_for_key.placeholder")),
+    secretAnnotations: z
+      .string()
+      .nullish()
+      .refine((v) => {
+        if (!v) return true;
+
+        const lines = v.split(/\r?\n/);
+        for (const line of lines) {
+          if (line.split(":").length < 2) {
+            return false;
+          }
+        }
+        return true;
+      }, t("workflow_node.deploy.form.k8s_secret_annotations.errmsg.invalid")),
+    secretLabels: z
+      .string()
+      .nullish()
+      .refine((v) => {
+        if (!v) return true;
+
+        const lines = v.split(/\r?\n/);
+        for (const line of lines) {
+          if (line.split(":").length < 2) {
+            return false;
+          }
+        }
+        return true;
+      }, t("workflow_node.deploy.form.k8s_secret_labels.errmsg.invalid")),
   });
 };
 

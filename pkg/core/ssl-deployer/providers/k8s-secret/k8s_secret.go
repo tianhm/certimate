@@ -30,6 +30,10 @@ type SSLDeployerProviderConfig struct {
 	SecretDataKeyForCrt string `json:"secretDataKeyForCrt,omitempty"`
 	// Kubernetes Secret 中用于存放私钥的 Key。
 	SecretDataKeyForKey string `json:"secretDataKeyForKey,omitempty"`
+	// Kubernetes Secret 注解。
+	SecretAnnotations map[string]string `json:"secretAnnotations,omitempty"`
+	// Kubernetes Secret 标签。
+	SecretLabels map[string]string `json:"secretLabels,omitempty"`
 }
 
 type SSLDeployerProvider struct {
@@ -94,6 +98,17 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		"certimate/issuer-sn":         certX509.Issuer.SerialNumber,
 		"certimate/issuer-org":        strings.Join(certX509.Issuer.Organization, ","),
 	}
+	secretLabels := map[string]string{}
+	if d.config.SecretAnnotations != nil {
+		for k, v := range d.config.SecretAnnotations {
+			secretAnnotations[k] = v
+		}
+	}
+	if d.config.SecretLabels != nil {
+		for k, v := range d.config.SecretLabels {
+			secretLabels[k] = v
+		}
+	}
 
 	// 获取 Secret 实例，如果不存在则创建
 	secretPayload, err = client.CoreV1().Secrets(d.config.Namespace).Get(context.TODO(), d.config.SecretName, k8smeta.GetOptions{})
@@ -106,6 +121,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			ObjectMeta: k8smeta.ObjectMeta{
 				Name:        d.config.SecretName,
 				Annotations: secretAnnotations,
+				Labels:      secretLabels,
 			},
 			Type: k8score.SecretType(d.config.SecretType),
 		}
@@ -129,6 +145,13 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	} else {
 		for k, v := range secretAnnotations {
 			secretPayload.ObjectMeta.Annotations[k] = v
+		}
+	}
+	if secretPayload.ObjectMeta.Labels == nil {
+		secretPayload.ObjectMeta.Labels = secretLabels
+	} else {
+		for k, v := range secretLabels {
+			secretPayload.ObjectMeta.Labels[k] = v
 		}
 	}
 	if secretPayload.Data == nil {

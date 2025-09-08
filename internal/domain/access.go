@@ -220,6 +220,10 @@ type AccessConfigForGoEdge struct {
 	AllowInsecureConnections bool   `json:"allowInsecureConnections,omitempty"`
 }
 
+type AccessConfigForGlobalSignAtlas struct {
+	AccessConfigForACMEExternalAccountBinding
+}
+
 type AccessConfigForGoogleTrustServices struct {
 	AccessConfigForACMEExternalAccountBinding
 }

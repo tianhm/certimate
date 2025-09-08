@@ -86,6 +86,7 @@
   "provider.flexcdn": "FlexCDN",
   "provider.gcore": "Gcore",
   "provider.gcore.cdn": "Gcore - CDN (Content Delivery Network)",
+  "provider.globalsignatlas": "GlobalSign Atlas",
   "provider.gname": "GNAME",
   "provider.godaddy": "GoDaddy",
   "provider.goedge": "GoEdge",

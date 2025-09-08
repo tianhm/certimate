@@ -45,6 +45,7 @@ import AccessConfigFieldsProviderEdgio from "./forms/AccessConfigFieldsProviderE
 import AccessConfigFieldsProviderEmail from "./forms/AccessConfigFieldsProviderEmail";
 import AccessConfigFieldsProviderFlexCDN from "./forms/AccessConfigFieldsProviderFlexCDN";
 import AccessConfigFieldsProviderGcore from "./forms/AccessConfigFieldsProviderGcore";
+import AccessConfigFieldsProviderGlobalSignAtlas from "./forms/AccessConfigFieldsProviderGlobalSignAtlas";
 import AccessConfigFieldsProviderGname from "./forms/AccessConfigFieldsProviderGname";
 import AccessConfigFieldsProviderGoDaddy from "./forms/AccessConfigFieldsProviderGoDaddy";
 import AccessConfigFieldsProviderGoEdge from "./forms/AccessConfigFieldsProviderGoEdge";
@@ -240,6 +241,9 @@ const AccessForm = ({ className, style, disabled, initialValues, mode, usage, ..
       }
       case ACCESS_PROVIDERS.GOEDGE: {
         return <AccessConfigFieldsProviderGoEdge />;
+      }
+      case ACCESS_PROVIDERS.GLOBALSIGNATLAS: {
+        return <AccessConfigFieldsProviderGlobalSignAtlas />;
       }
       case ACCESS_PROVIDERS.GOOGLETRUSTSERVICES: {
         return <AccessConfigFieldsProviderGoogleTrustServices />;

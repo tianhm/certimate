@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { App, Button, Card, Form, Input, Skeleton, Typography } from "antd";
+import { App, Button, Card, Form, Input, Skeleton } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { produce } from "immer";
 import { z } from "zod";
@@ -43,6 +43,7 @@ const SettingsSSLProvider = () => {
     [CA_PROVIDERS.LETSENCRYPTSTAGING, "provider.letsencryptstaging", "letsencrypt.org", "/imgs/providers/letsencrypt.svg"],
     [CA_PROVIDERS.ACTALISSSL, "provider.actalisssl", "actalis.com", "/imgs/providers/actalisssl.png"],
     [CA_PROVIDERS.BUYPASS, "provider.buypass", "buypass.com", "/imgs/providers/buypass.png"],
+    [CA_PROVIDERS.GLOBALSIGNATLAS, "provider.globalsignatlas", "atlas.globalsign.com", "/imgs/providers/globalsignatlas.png"],
     [CA_PROVIDERS.GOOGLETRUSTSERVICES, "provider.googletrustservices", "pki.goog", "/imgs/providers/google.svg"],
     [CA_PROVIDERS.SSLCOM, "provider.sslcom", "ssl.com", "/imgs/providers/sslcom.svg"],
     [CA_PROVIDERS.ZEROSSL, "provider.zerossl", "zerossl.com", "/imgs/providers/zerossl.svg"],
@@ -66,6 +67,8 @@ const SettingsSSLProvider = () => {
         return <InternalSettingsFormProviderActalisSSL />;
       case CA_PROVIDERS.BUYPASS:
         return <InternalSettingsFormProviderBuypass />;
+      case CA_PROVIDERS.GLOBALSIGNATLAS:
+        return <InternalSettingsFormProviderGlobalSignAtlas />;
       case CA_PROVIDERS.GOOGLETRUSTSERVICES:
         return <InternalSettingsFormProviderGoogleTrustServices />;
       case CA_PROVIDERS.SSLCOM:
@@ -104,11 +107,9 @@ const SettingsSSLProvider = () => {
       <h2>{t("settings.sslprovider.ca.title")}</h2>
       <Show when={!loading} fallback={<Skeleton active />}>
         <Form form={formInst} disabled={formPending} layout="vertical" initialValues={{ provider: providerValue }}>
-          <div className="mb-2">
-            <Typography.Text type="secondary">
-              <span dangerouslySetInnerHTML={{ __html: t("settings.sslprovider.ca.tips") }}></span>
-            </Typography.Text>
-          </div>
+          <Form.Item>
+            <Tips message={<span dangerouslySetInnerHTML={{ __html: t("settings.sslprovider.ca.tips") }}></span>} />
+          </Form.Item>
 
           <Form.Item name="provider" label={t("settings.sslprovider.form.provider.label")} extra={t("settings.sslprovider.form.provider.help")}>
             <div className="flex w-full flex-wrap items-center gap-4">
@@ -263,6 +264,14 @@ const InternalSettingsFormProviderActalisSSL = () => {
 
 const InternalSettingsFormProviderBuypass = () => {
   return <InternalSharedForm provider={CA_PROVIDERS.BUYPASS} />;
+};
+
+const InternalSettingsFormProviderGlobalSignAtlas = () => {
+  return (
+    <InternalSharedForm provider={CA_PROVIDERS.GLOBALSIGNATLAS}>
+      <InternalSharedFormEabFields i18nKey="globalsignatlas" />
+    </InternalSharedForm>
+  );
 };
 
 const InternalSettingsFormProviderGoogleTrustServices = () => {

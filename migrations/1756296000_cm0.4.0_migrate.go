@@ -1006,6 +1006,30 @@ func init() {
 								},
 							})
 
+						case "upload":
+							if _, ok := current.Config["source"].(string); !ok {
+								current.Config["source"] = "form"
+							}
+
+							temp = append(temp, &dWorkflowNode{
+								Id:   current.Id,
+								Type: "bizUpload",
+								Data: dWorkflowNodeData{
+									Name:   current.Name,
+									Config: current.Config,
+								},
+							})
+
+						case "monitor":
+							temp = append(temp, &dWorkflowNode{
+								Id:   current.Id,
+								Type: "bizMonitor",
+								Data: dWorkflowNodeData{
+									Name:   current.Name,
+									Config: current.Config,
+								},
+							})
+
 						case "deploy":
 							if s, ok := current.Config["certificate"].(string); ok {
 								current.Config["certificateOutputNodeId"] = strings.Split(s, "#")[0]
@@ -1021,10 +1045,14 @@ func init() {
 								},
 							})
 
-						case "upload", "monitor", "notify":
+						case "notify":
+							if _, ok := current.Config["channel"].(string); ok {
+								delete(current.Config, "channel")
+							}
+
 							temp = append(temp, &dWorkflowNode{
 								Id:   current.Id,
-								Type: "biz" + strings.Title(current.Type),
+								Type: "bizNotify",
 								Data: dWorkflowNodeData{
 									Name:   current.Name,
 									Config: current.Config,

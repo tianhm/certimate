@@ -121,14 +121,16 @@ export const defaultNodeConfigForBizApply = (): Partial<WorkflowNodeConfigForBiz
 };
 
 export type WorkflowNodeConfigForBizUpload = {
-  certificateId: string;
-  domains: string;
+  source: string;
+  domains?: string;
   certificate: string;
   privateKey: string;
 };
 
 export const defaultNodeConfigForBizUpload = (): Partial<WorkflowNodeConfigForBizUpload> => {
-  return {};
+  return {
+    source: "form" as const,
+  };
 };
 
 export type WorkflowNodeConfigForBizMonitor = {

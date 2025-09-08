@@ -270,11 +270,9 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
   const handleCAProviderSelect = (value?: string | undefined) => {
     // 切换 CA 提供商时联动授权信息
     if (value == null || value === "") {
-      setTimeout(() => {
-        formInst.setFieldValue("caProvider", void 0);
-        formInst.setFieldValue("caProviderAccessId", void 0);
-      }, 0);
-    } else if (initialValues?.caProvider === value) {
+      formInst.setFieldValue("caProvider", void 0);
+      formInst.setFieldValue("caProviderAccessId", void 0);
+    } else if (value === initialValues?.caProvider) {
       formInst.setFieldValue("caProviderAccessId", initialValues?.caProviderAccessId);
     } else {
       if (caProvidersMap.get(fieldCAProvider)?.provider !== caProvidersMap.get(value!)?.provider) {
@@ -454,6 +452,8 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
               <CAProviderSelect
                 allowClear
                 placeholder={t("workflow_node.apply.form.ca_provider.placeholder")}
+                showAvailability
+                showDefault
                 showSearch
                 onSelect={handleCAProviderSelect}
                 onClear={handleCAProviderSelect}

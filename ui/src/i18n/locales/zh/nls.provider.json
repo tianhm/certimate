@@ -86,6 +86,7 @@
   "provider.flexcdn": "FlexCDN",
   "provider.gcore": "Gcore",
   "provider.gcore.cdn": "Gcore - 内容分发网络 CDN",
+  "provider.globalsignatlas": "GlobalSign Atlas",
   "provider.gname": "GNAME",
   "provider.godaddy": "GoDaddy",
   "provider.goedge": "GoEdge",
@@ -133,6 +134,7 @@
   "provider.ratpanel.console": "耗子面板 - 面板自身",
   "provider.ratpanel.site": "耗子面板 - 网站",
   "provider.safeline": "雷池",
+  "provider.sectigo": "Sectigo",
   "provider.slackbot": "Slack 机器人",
   "provider.spaceship": "Spaceship",
   "provider.ssh": "远程主机（SSH）",
@@ -197,7 +199,9 @@
   "provider.category.other": "其他",
 
   "provider.text.nodata": "暂无提供商",
-  "provider.text.default_ca_provider": "（默认）不指定，跟随全局设置",
+  "provider.text.default_ca": "（默认）不指定，跟随全局设置",
+  "provider.text.default_ca_in_group": "不指定，跟随全局设置",
+  "provider.text.default_group": "默认",
   "provider.text.available_group": "可用（已添加授权凭据）",
   "provider.text.unavailable_group": "不可用（未添加授权凭据）",
   "provider.text.unavailable_divider": "以下提供商不可用（即未添加过授权凭据）"

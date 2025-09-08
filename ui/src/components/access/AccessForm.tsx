@@ -45,6 +45,7 @@ import AccessConfigFieldsProviderEdgio from "./forms/AccessConfigFieldsProviderE
 import AccessConfigFieldsProviderEmail from "./forms/AccessConfigFieldsProviderEmail";
 import AccessConfigFieldsProviderFlexCDN from "./forms/AccessConfigFieldsProviderFlexCDN";
 import AccessConfigFieldsProviderGcore from "./forms/AccessConfigFieldsProviderGcore";
+import AccessConfigFieldsProviderGlobalSignAtlas from "./forms/AccessConfigFieldsProviderGlobalSignAtlas";
 import AccessConfigFieldsProviderGname from "./forms/AccessConfigFieldsProviderGname";
 import AccessConfigFieldsProviderGoDaddy from "./forms/AccessConfigFieldsProviderGoDaddy";
 import AccessConfigFieldsProviderGoEdge from "./forms/AccessConfigFieldsProviderGoEdge";
@@ -70,6 +71,7 @@ import AccessConfigFieldsProviderQiniu from "./forms/AccessConfigFieldsProviderQ
 import AccessConfigFieldsProviderRainYun from "./forms/AccessConfigFieldsProviderRainYun";
 import AccessConfigFieldsProviderRatPanel from "./forms/AccessConfigFieldsProviderRatPanel";
 import AccessConfigFieldsProviderSafeLine from "./forms/AccessConfigFieldsProviderSafeLine";
+import AccessConfigFieldsProviderSectigo from "./forms/AccessConfigFieldsProviderSectigo";
 import AccessConfigFieldsProviderSlackBot from "./forms/AccessConfigFieldsProviderSlackBot";
 import AccessConfigFieldsProviderSpaceship from "./forms/AccessConfigFieldsProviderSpaceship";
 import AccessConfigFieldsProviderSSH from "./forms/AccessConfigFieldsProviderSSH";
@@ -241,6 +243,9 @@ const AccessForm = ({ className, style, disabled, initialValues, mode, usage, ..
       case ACCESS_PROVIDERS.GOEDGE: {
         return <AccessConfigFieldsProviderGoEdge />;
       }
+      case ACCESS_PROVIDERS.GLOBALSIGNATLAS: {
+        return <AccessConfigFieldsProviderGlobalSignAtlas />;
+      }
       case ACCESS_PROVIDERS.GOOGLETRUSTSERVICES: {
         return <AccessConfigFieldsProviderGoogleTrustServices />;
       }
@@ -306,6 +311,9 @@ const AccessForm = ({ className, style, disabled, initialValues, mode, usage, ..
       }
       case ACCESS_PROVIDERS.SAFELINE: {
         return <AccessConfigFieldsProviderSafeLine />;
+      }
+      case ACCESS_PROVIDERS.SECTIGO: {
+        return <AccessConfigFieldsProviderSectigo />;
       }
       case ACCESS_PROVIDERS.SLACKBOT: {
         return <AccessConfigFieldsProviderSlackBot />;

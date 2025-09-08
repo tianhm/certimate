@@ -1,51 +1,75 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { useControllableValue } from "ahooks";
 import { Avatar, Select, Typography, theme } from "antd";
 
 import { type CAProvider, caProvidersMap } from "@/domain/provider";
 
-import { type SharedSelectProps } from "./_shared";
+import { type SharedSelectProps, useSelectDataSource } from "./_shared";
 
-export interface CAProviderSelectProps extends SharedSelectProps<CAProvider> {}
+export interface CAProviderSelectProps extends SharedSelectProps<CAProvider> {
+  showAvailability?: boolean;
+  showDefault?: boolean;
+}
 
-const CAProviderSelect = ({ onFilter, ...props }: CAProviderSelectProps) => {
+const CAProviderSelect = ({ showAvailability, showDefault, onFilter, ...props }: CAProviderSelectProps) => {
   const { t } = useTranslation();
 
   const { token: themeToken } = theme.useToken();
 
-  const options = useMemo<Array<{ key: string; value: string; label: string; data: CAProvider }>>(() => {
-    const temp = Array.from(caProvidersMap.values())
-      .filter((provider) => {
-        if (onFilter) {
-          return onFilter(provider.type, provider);
-        }
+  const [value, setValue] = useControllableValue<string | undefined>(props, {
+    valuePropName: "value",
+    defaultValuePropName: "defaultValue",
+    trigger: "onChange",
+  });
 
-        return true;
-      })
-      .map((provider) => ({
-        key: provider.type as string,
-        value: provider.type as string,
+  const dataSources = useSelectDataSource({
+    dataSource: Array.from(caProvidersMap.values()),
+    filters: [onFilter!],
+  });
+  const options = useMemo(() => {
+    const convert = (providers: CAProvider[]): Array<{ key: string; value: string; label: string; data: CAProvider }> => {
+      return providers.map((provider) => ({
+        key: provider.type,
+        value: provider.type,
         label: t(provider.name),
         data: provider,
       }));
+    };
 
-    temp.unshift({
+    const defaultOption = {
       key: "",
       value: "",
-      label: t("provider.text.default_ca_provider"),
       data: {} as CAProvider,
-    });
+    };
+    const plainOptions = convert(dataSources.filtered);
+    const groupOptions = [
+      {
+        label: t("provider.text.available_group"),
+        options: convert(dataSources.available),
+      },
+      {
+        label: t("provider.text.unavailable_group"),
+        options: convert(dataSources.unavailable),
+      },
+    ].filter((group) => group.options.length > 0);
+
+    const temp = showAvailability
+      ? showDefault
+        ? [{ label: t("provider.text.default_group"), options: [defaultOption] }, ...groupOptions]
+        : groupOptions
+      : showDefault
+        ? [defaultOption, ...plainOptions]
+        : plainOptions;
 
     return temp;
-  }, [onFilter]);
+  }, [showAvailability, showDefault, dataSources]);
 
   const renderOption = (key: string) => {
     if (key === "") {
       return (
-        <div className="flex items-center gap-2 truncate overflow-hidden">
-          <Typography.Text className="italic" ellipsis italic>
-            {t("provider.text.default_ca_provider")}
-          </Typography.Text>
+        <div className="truncate">
+          <Typography.Text ellipsis>{showAvailability ? t("provider.text.default_ca_in_group") : t("provider.text.default_ca")}</Typography.Text>
         </div>
       );
     }
@@ -59,17 +83,24 @@ const CAProviderSelect = ({ onFilter, ...props }: CAProviderSelectProps) => {
     );
   };
 
+  const handleChange = (value: string) => {
+    setValue((_) => (value !== "" ? value : void 0));
+  };
+
   return (
     <Select
       {...props}
       filterOption={(inputValue, option) => {
+        if (option?.value === "") return true;
         if (!option) return false;
+        if (!option.label) return false;
+        if (!option.value) return false;
 
         const value = inputValue.toLowerCase();
-        return option.value.toLowerCase().includes(value) || option.label.toLowerCase().includes(value);
+        return String(option.value).toLowerCase().includes(value) || String(option.label).toLowerCase().includes(value);
       }}
       labelRender={({ value }) => {
-        if (value != null) {
+        if (value != null && value !== "") {
           return renderOption(value as string);
         }
 
@@ -78,7 +109,10 @@ const CAProviderSelect = ({ onFilter, ...props }: CAProviderSelectProps) => {
       options={options}
       optionFilterProp={void 0}
       optionLabelProp={void 0}
-      optionRender={(option) => renderOption(option.data.value)}
+      optionRender={(option) => renderOption(option.data.value as string)}
+      value={value}
+      onChange={handleChange}
+      onSelect={handleChange}
     />
   );
 };

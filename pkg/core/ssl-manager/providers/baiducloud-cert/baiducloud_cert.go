@@ -95,7 +95,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 				if err != nil {
 					continue
 				}
-				if !xcert.EqualCertificate(certX509, oldCertX509) {
+				if !xcert.EqualCertificates(certX509, oldCertX509) {
 					continue
 				}
 			}

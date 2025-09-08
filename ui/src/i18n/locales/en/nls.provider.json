@@ -86,6 +86,7 @@
   "provider.flexcdn": "FlexCDN",
   "provider.gcore": "Gcore",
   "provider.gcore.cdn": "Gcore - CDN (Content Delivery Network)",
+  "provider.globalsignatlas": "GlobalSign Atlas",
   "provider.gname": "GNAME",
   "provider.godaddy": "GoDaddy",
   "provider.goedge": "GoEdge",
@@ -133,6 +134,7 @@
   "provider.ratpanel.console": "RatPanel - Console itself",
   "provider.ratpanel.site": "RatPanel - Website",
   "provider.safeline": "SafeLine",
+  "provider.sectigo": "Sectigo",
   "provider.slackbot": "Slack Bot",
   "provider.spaceship": "Spaceship",
   "provider.ssh": "Remote host (SSH)",
@@ -198,7 +200,9 @@
   "provider.category.other": "Other",
 
   "provider.text.nodata": "No providers available",
-  "provider.text.default_ca_provider": "(Default) Follow global settings",
+  "provider.text.default_ca": "(Default) Follow global settings",
+  "provider.text.default_ca_in_group": "Follow global settings",
+  "provider.text.default_group": "Default",
   "provider.text.available_group": "Available (with added credentials)",
   "provider.text.unavailable_group": "Unavailable (without added credentials)",
   "provider.text.unavailable_divider": "The following providers are not available (without added credentials)"

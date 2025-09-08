@@ -14,7 +14,7 @@ import (
 //
 // 出参:
 //   - 是否相同。
-func EqualCertificate(a, b *x509.Certificate) bool {
+func EqualCertificates(a, b *x509.Certificate) bool {
 	if a == nil || b == nil {
 		return false
 	}

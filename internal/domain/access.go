@@ -220,6 +220,10 @@ type AccessConfigForGoEdge struct {
 	AllowInsecureConnections bool   `json:"allowInsecureConnections,omitempty"`
 }
 
+type AccessConfigForGlobalSignAtlas struct {
+	AccessConfigForACMEExternalAccountBinding
+}
+
 type AccessConfigForGoogleTrustServices struct {
 	AccessConfigForACMEExternalAccountBinding
 }
@@ -335,6 +339,11 @@ type AccessConfigForSafeLine struct {
 	ServerUrl                string `json:"serverUrl"`
 	ApiToken                 string `json:"apiToken"`
 	AllowInsecureConnections bool   `json:"allowInsecureConnections,omitempty"`
+}
+
+type AccessConfigForGlobalSectigo struct {
+	AccessConfigForACMEExternalAccountBinding
+	ValidationType string `json:"validationType"`
 }
 
 type AccessConfigForSlackBot struct {

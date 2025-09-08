@@ -165,9 +165,9 @@ func (c WorkflowNodeConfig) AsBizApply() WorkflowNodeConfigForBizApply {
 
 func (c WorkflowNodeConfig) AsBizUpload() WorkflowNodeConfigForBizUpload {
 	return WorkflowNodeConfigForBizUpload{
+		Source:      xmaps.GetOrDefaultString(c, "source", "form"),
 		Certificate: xmaps.GetString(c, "certificate"),
 		PrivateKey:  xmaps.GetString(c, "privateKey"),
-		Domains:     xmaps.GetString(c, "domains"),
 	}
 }
 
@@ -234,9 +234,9 @@ type WorkflowNodeConfigForBizApply struct {
 }
 
 type WorkflowNodeConfigForBizUpload struct {
-	Certificate string `json:"certificate"` // 证书 PEM 内容
-	PrivateKey  string `json:"privateKey"`  // 私钥 PEM 内容
-	Domains     string `json:"domains,omitempty"`
+	Source      string `json:"source"`      // 证书来源（零值时默认值 "form"）
+	Certificate string `json:"certificate"` // 证书，根据证书来源决定是 PEM 内容 / 文件路径 / URL
+	PrivateKey  string `json:"privateKey"`  // 私钥，根据证书来源决定是 PEM 内容 / 文件路径 / URL
 }
 
 type WorkflowNodeConfigForBizMonitor struct {

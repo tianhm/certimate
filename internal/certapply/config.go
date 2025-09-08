@@ -17,10 +17,15 @@ var acmeDirUrls = map[string]string{
 	string(domain.CAProviderTypeLetsEncryptStaging):  "https://acme-staging-v02.api.letsencrypt.org/directory",
 	string(domain.CAProviderTypeActalisSSL):          "https://acme-api.actalis.com/acme/directory",
 	string(domain.CAProviderTypeBuypass):             "https://api.buypass.com/acme/directory",
+	string(domain.CAProviderTypeGlobalSignAtlas):     "https://emea.acme.atlas.globalsign.com/directory",
 	string(domain.CAProviderTypeGoogleTrustServices): "https://dv.acme-v02.api.pki.goog/directory",
 	string(domain.CAProviderTypeSSLCom):              "https://acme.ssl.com/sslcom-dv-rsa",
 	string(domain.CAProviderTypeSSLCom) + "RSA":      "https://acme.ssl.com/sslcom-dv-rsa",
 	string(domain.CAProviderTypeSSLCom) + "ECC":      "https://acme.ssl.com/sslcom-dv-ecc",
+	string(domain.CAProviderTypeSectigo):             "https://acme.sectigo.com/v2/DV",
+	string(domain.CAProviderTypeSectigo) + "DV":      "https://acme.sectigo.com/v2/DV",
+	string(domain.CAProviderTypeSectigo) + "OV":      "https://acme.sectigo.com/v2/OV",
+	string(domain.CAProviderTypeSectigo) + "EV":      "https://acme.sectigo.com/v2/EV",
 	string(domain.CAProviderTypeZeroSSL):             "https://acme.zerossl.com/v2/DV90",
 }
 
@@ -68,6 +73,20 @@ func NewACMEConfig(options *ACMEConfigOptions) (*ACMEConfig, error) {
 
 	ca := &ACMEConfig{CAProvider: domain.CAProviderType(caProvider), CertifierKeyType: options.CertifierKeyType}
 	switch ca.CAProvider {
+	case domain.CAProviderTypeSectigo:
+		credentials := &domain.AccessConfigForGlobalSectigo{}
+		if err := xmaps.Populate(caAccessConfig, &credentials); err != nil {
+			return nil, err
+		} else if strings.EqualFold(credentials.ValidationType, "DV") {
+			ca.CADirUrl = acmeDirUrls[string(domain.CAProviderTypeSectigo)+"DV"]
+		} else if strings.EqualFold(credentials.ValidationType, "OV") {
+			ca.CADirUrl = acmeDirUrls[string(domain.CAProviderTypeSectigo)+"OV"]
+		} else if strings.EqualFold(credentials.ValidationType, "EV") {
+			ca.CADirUrl = acmeDirUrls[string(domain.CAProviderTypeSectigo)+"EV"]
+		} else {
+			ca.CADirUrl = acmeDirUrls[string(domain.CAProviderTypeSectigo)]
+		}
+
 	case domain.CAProviderTypeSSLCom:
 		if strings.HasPrefix(string(options.CertifierKeyType), "RSA") {
 			ca.CADirUrl = acmeDirUrls[string(domain.CAProviderTypeSSLCom)+"RSA"]

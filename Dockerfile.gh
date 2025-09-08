@@ -1,18 +1,10 @@
-FROM node:22-alpine AS webui-builder
-WORKDIR /app
-COPY . /app/
-RUN \
-  cd /app/ui && \
-  npm install && \
-  npm run build
-
-
+# Build docker image on GitHub Actions runner is too slow,
+# and it doesn't support armv7 (see https://github.com/parcel-bundler/lightningcss/issues/988).
+# So we pre-build webui, and just use simple Dockerfile here.
 
 FROM golang:1.24-alpine AS server-builder
 WORKDIR /app
 COPY ../. /app/
-RUN rm -rf /app/ui/dist
-COPY --from=webui-builder /app/ui/dist /app/ui/dist
 ENV CGO_ENABLED=0
 RUN go build -ldflags="-s -w" -o certimate
 

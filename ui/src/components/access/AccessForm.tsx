@@ -71,6 +71,7 @@ import AccessConfigFieldsProviderQiniu from "./forms/AccessConfigFieldsProviderQ
 import AccessConfigFieldsProviderRainYun from "./forms/AccessConfigFieldsProviderRainYun";
 import AccessConfigFieldsProviderRatPanel from "./forms/AccessConfigFieldsProviderRatPanel";
 import AccessConfigFieldsProviderSafeLine from "./forms/AccessConfigFieldsProviderSafeLine";
+import AccessConfigFieldsProviderSectigo from "./forms/AccessConfigFieldsProviderSectigo";
 import AccessConfigFieldsProviderSlackBot from "./forms/AccessConfigFieldsProviderSlackBot";
 import AccessConfigFieldsProviderSpaceship from "./forms/AccessConfigFieldsProviderSpaceship";
 import AccessConfigFieldsProviderSSH from "./forms/AccessConfigFieldsProviderSSH";
@@ -310,6 +311,9 @@ const AccessForm = ({ className, style, disabled, initialValues, mode, usage, ..
       }
       case ACCESS_PROVIDERS.SAFELINE: {
         return <AccessConfigFieldsProviderSafeLine />;
+      }
+      case ACCESS_PROVIDERS.SECTIGO: {
+        return <AccessConfigFieldsProviderSectigo />;
       }
       case ACCESS_PROVIDERS.SLACKBOT: {
         return <AccessConfigFieldsProviderSlackBot />;

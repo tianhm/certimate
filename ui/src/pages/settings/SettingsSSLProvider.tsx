@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { App, Button, Card, Form, Input, Skeleton } from "antd";
+import { App, Button, Card, Form, Input, Select, Skeleton } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { produce } from "immer";
 import { z } from "zod";
@@ -45,6 +45,7 @@ const SettingsSSLProvider = () => {
     [CA_PROVIDERS.BUYPASS, "provider.buypass", "buypass.com", "/imgs/providers/buypass.png"],
     [CA_PROVIDERS.GLOBALSIGNATLAS, "provider.globalsignatlas", "atlas.globalsign.com", "/imgs/providers/globalsignatlas.png"],
     [CA_PROVIDERS.GOOGLETRUSTSERVICES, "provider.googletrustservices", "pki.goog", "/imgs/providers/google.svg"],
+    [CA_PROVIDERS.SECTIGO, "provider.sectigo", "sectigo.com", "/imgs/providers/sectigo.svg"],
     [CA_PROVIDERS.SSLCOM, "provider.sslcom", "ssl.com", "/imgs/providers/sslcom.svg"],
     [CA_PROVIDERS.ZEROSSL, "provider.zerossl", "zerossl.com", "/imgs/providers/zerossl.svg"],
     [CA_PROVIDERS.ACMECA, "provider.acmeca", "\u00A0", "/imgs/providers/acmeca.svg"],
@@ -71,6 +72,8 @@ const SettingsSSLProvider = () => {
         return <InternalSettingsFormProviderGlobalSignAtlas />;
       case CA_PROVIDERS.GOOGLETRUSTSERVICES:
         return <InternalSettingsFormProviderGoogleTrustServices />;
+      case CA_PROVIDERS.SECTIGO:
+        return <InternalSettingsFormProviderSectigo />;
       case CA_PROVIDERS.SSLCOM:
         return <InternalSettingsFormProviderSSLCom />;
       case CA_PROVIDERS.ZEROSSL:
@@ -278,6 +281,32 @@ const InternalSettingsFormProviderGoogleTrustServices = () => {
   return (
     <InternalSharedForm provider={CA_PROVIDERS.GOOGLETRUSTSERVICES}>
       <InternalSharedFormEabFields i18nKey="googletrustservices" />
+    </InternalSharedForm>
+  );
+};
+
+const InternalSettingsFormProviderSectigo = () => {
+  const { t } = useTranslation();
+
+  const formSchema = z.object({
+    validationType: z.string().nonempty(t("access.form.sectigo_validation_type.placeholder")),
+  });
+  const formRule = createSchemaFieldRule(formSchema);
+
+  return (
+    <InternalSharedForm provider={CA_PROVIDERS.SECTIGO}>
+      <Form.Item name="validationType" initialValue="dv" label={t("access.form.sectigo_validation_type.label")} rules={[formRule]}>
+        <Select
+          options={["dv", "ov", "ev"].map((s) => ({
+            key: s,
+            label: t(`access.form.sectigo_validation_type.option.${s}.label`),
+            value: s,
+          }))}
+          placeholder={t("access.form.sectigo_validation_type.placeholder")}
+        />
+      </Form.Item>
+
+      <InternalSharedFormEabFields i18nKey="sectigo" />
     </InternalSharedForm>
   );
 };

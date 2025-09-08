@@ -341,6 +341,11 @@ type AccessConfigForSafeLine struct {
 	AllowInsecureConnections bool   `json:"allowInsecureConnections,omitempty"`
 }
 
+type AccessConfigForGlobalSectigo struct {
+	AccessConfigForACMEExternalAccountBinding
+	ValidationType string `json:"validationType"`
+}
+
 type AccessConfigForSlackBot struct {
 	BotToken  string `json:"botToken"`
 	ChannelId string `json:"channelId,omitempty"`

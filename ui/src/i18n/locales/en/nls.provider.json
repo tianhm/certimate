@@ -134,6 +134,7 @@
   "provider.ratpanel.console": "RatPanel - Console itself",
   "provider.ratpanel.site": "RatPanel - Website",
   "provider.safeline": "SafeLine",
+  "provider.sectigo": "Sectigo",
   "provider.slackbot": "Slack Bot",
   "provider.spaceship": "Spaceship",
   "provider.ssh": "Remote host (SSH)",

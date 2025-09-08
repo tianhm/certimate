@@ -15,6 +15,7 @@ import (
 
 	"github.com/certimate-go/certimate/pkg/core"
 	sslmgrsp "github.com/certimate-go/certimate/pkg/core/ssl-manager/providers/tencentcloud-ssl"
+	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
 )
 
 type SSLDeployerProviderConfig struct {
@@ -24,6 +25,9 @@ type SSLDeployerProviderConfig struct {
 	SecretKey string `json:"secretKey"`
 	// 腾讯云接口端点。
 	Endpoint string `json:"endpoint,omitempty"`
+	// 域名匹配模式。
+	// 零值时默认值 [MatchPatternExact]。
+	MatchPattern string `json:"matchPattern,omitempty"`
 	// 加速域名（支持泛域名）。
 	Domain string `json:"domain"`
 }
@@ -95,17 +99,39 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	}
 
 	// 获取待部署的 CDN 实例
-	// 如果是泛域名，根据证书匹配 CDN 实例
 	domains := make([]string, 0)
-	if strings.HasPrefix(d.config.Domain, "*.") {
-		temp, err := d.getDomainsByCertId(ctx, upres.CertId)
-		if err != nil {
-			return nil, err
+	switch d.config.MatchPattern {
+	case "", MatchPatternExact:
+		{
+			domains = append(domains, d.config.Domain)
 		}
 
-		domains = temp
-	} else {
-		domains = append(domains, d.config.Domain)
+	case MatchPatternWildcard:
+		{
+			if strings.HasPrefix(d.config.Domain, "*.") {
+				temp, err := d.getMatchedDomainsByWildcard(ctx, d.config.Domain)
+				if err != nil {
+					return nil, err
+				}
+
+				domains = temp
+			} else {
+				domains = append(domains, d.config.Domain)
+			}
+		}
+
+	case MatchPatternCertSAN:
+		{
+			temp, err := d.getMatchedDomainsByCertId(ctx, upres.CertId)
+			if err != nil {
+				return nil, err
+			}
+
+			domains = temp
+		}
+
+	default:
+		return nil, fmt.Errorf("unsupported match pattern: '%s'", d.config.MatchPattern)
 	}
 
 	// 遍历更新域名证书
@@ -134,7 +160,55 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	return &core.SSLDeployResult{}, nil
 }
 
-func (d *SSLDeployerProvider) getDomainsByCertId(ctx context.Context, cloudCertId string) ([]string, error) {
+func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, wildcardDomain string) ([]string, error) {
+	domains := make([]string, 0)
+
+	// 遍历查询域名基本信息，获取匹配的域名
+	// REF: https://cloud.tencent.com/document/api/228/41118
+	describeDomainsOffset := int64(0)
+	describeDomainsLimit := int64(100)
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+
+		describeDomainsReq := tccdn.NewDescribeDomainsRequest()
+		describeDomainsReq.Filters = []*tccdn.DomainFilter{
+			{
+				Name:  common.StringPtr("domain"),
+				Value: common.StringPtrs([]string{strings.TrimPrefix(wildcardDomain, "*.")}),
+				Fuzzy: common.BoolPtr(true),
+			},
+		}
+		describeDomainsReq.Offset = common.Int64Ptr(describeDomainsOffset)
+		describeDomainsReq.Limit = common.Int64Ptr(describeDomainsLimit)
+		describeDomainsResp, err := d.sdkClient.DescribeDomains(describeDomainsReq)
+		d.logger.Debug("sdk request 'cdn.DescribeDomains'", slog.Any("request", describeDomainsReq), slog.Any("response", describeDomainsResp))
+		if err != nil {
+			return nil, fmt.Errorf("failed to execute sdk request 'cdn.DescribeDomains': %w", err)
+		}
+
+		if describeDomainsResp.Response.Domains != nil {
+			for _, domain := range describeDomainsResp.Response.Domains {
+				if lo.FromPtr(domain.Product) == "cdn" && xcert.MatchHostname(wildcardDomain, lo.FromPtr(domain.Domain)) {
+					domains = append(domains, *domain.Domain)
+				}
+			}
+		}
+
+		if len(describeDomainsResp.Response.Domains) < int(describeDomainsLimit) {
+			break
+		} else {
+			describeDomainsOffset += describeDomainsLimit
+		}
+	}
+
+	return domains, nil
+}
+
+func (d *SSLDeployerProvider) getMatchedDomainsByCertId(ctx context.Context, cloudCertId string) ([]string, error) {
 	// 获取证书中的可用域名
 	// REF: https://cloud.tencent.com/document/api/228/42491
 	describeCertDomainsReq := tccdn.NewDescribeCertDomainsRequest()
@@ -177,7 +251,10 @@ func (d *SSLDeployerProvider) updateDomainHttpsServerCert(ctx context.Context, d
 	}
 
 	domainConfig := describeDomainsConfigResp.Response.Domains[0]
-	if domainConfig.Https != nil && domainConfig.Https.CertInfo != nil && domainConfig.Https.CertInfo.CertId != nil && *domainConfig.Https.CertInfo.CertId == cloudCertId {
+	if domainConfig.Https != nil &&
+		domainConfig.Https.CertInfo != nil &&
+		domainConfig.Https.CertInfo.CertId != nil &&
+		*domainConfig.Https.CertInfo.CertId == cloudCertId {
 		// 已部署过此域名，跳过
 		return nil
 	}
@@ -188,9 +265,7 @@ func (d *SSLDeployerProvider) updateDomainHttpsServerCert(ctx context.Context, d
 	updateDomainConfigReq.Domain = common.StringPtr(domain)
 	updateDomainConfigReq.Https = domainConfig.Https
 	if updateDomainConfigReq.Https == nil {
-		updateDomainConfigReq.Https = &tccdn.Https{
-			Switch: common.StringPtr("on"),
-		}
+		updateDomainConfigReq.Https = &tccdn.Https{Switch: common.StringPtr("on")}
 	} else {
 		updateDomainConfigReq.Https.SslStatus = nil
 	}

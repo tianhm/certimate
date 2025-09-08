@@ -12,6 +12,7 @@ import (
 
 	"github.com/certimate-go/certimate/pkg/core"
 	sslmgrsp "github.com/certimate-go/certimate/pkg/core/ssl-manager/providers/volcengine-live"
+	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
 )
 
 type SSLDeployerProviderConfig struct {
@@ -19,6 +20,9 @@ type SSLDeployerProviderConfig struct {
 	AccessKeyId string `json:"accessKeyId"`
 	// 火山引擎 AccessKeySecret。
 	AccessKeySecret string `json:"accessKeySecret"`
+	// 域名匹配模式。
+	// 零值时默认值 [MatchPatternExact]。
+	MatchPattern string `json:"matchPattern,omitempty"`
 	// 直播流域名（支持泛域名）。
 	Domain string `json:"domain"`
 }
@@ -80,51 +84,37 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
 	}
 
+	// 获取待部署的直播实例
 	domains := make([]string, 0)
-	if strings.HasPrefix(d.config.Domain, "*.") {
-		listDomainDetailPageNum := int32(1)
-		listDomainDetailPageSize := int32(1000)
-		listDomainDetailTotal := 0
-		for {
-			// 查询域名列表
-			// REF: https://www.volcengine.com/docs/6469/1186277#%E6%9F%A5%E8%AF%A2%E5%9F%9F%E5%90%8D%E5%88%97%E8%A1%A8
-			listDomainDetailReq := &velive.ListDomainDetailBody{
-				PageNum:  listDomainDetailPageNum,
-				PageSize: listDomainDetailPageSize,
-			}
-			listDomainDetailResp, err := d.sdkClient.ListDomainDetail(ctx, listDomainDetailReq)
-			d.logger.Debug("sdk request 'live.ListDomainDetail'", slog.Any("request", listDomainDetailReq), slog.Any("response", listDomainDetailResp))
-			if err != nil {
-				return nil, fmt.Errorf("failed to execute sdk request 'live.ListDomainDetail': %w", err)
-			}
+	switch d.config.MatchPattern {
+	case "", MatchPatternExact:
+		{
+			domains = append(domains, d.config.Domain)
+		}
 
-			if listDomainDetailResp.Result.DomainList != nil {
-				for _, item := range listDomainDetailResp.Result.DomainList {
-					// 仅匹配泛域名的下一级子域名
-					wildcardDomain := strings.TrimPrefix(d.config.Domain, "*")
-					if strings.HasSuffix(item.Domain, wildcardDomain) && !strings.Contains(strings.TrimSuffix(item.Domain, wildcardDomain), ".") {
-						domains = append(domains, item.Domain)
-					}
+	case MatchPatternWildcard:
+		{
+			if strings.HasPrefix(d.config.Domain, "*.") {
+				temp, err := d.getMatchedDomainsByWildcard(ctx, d.config.Domain)
+				if err != nil {
+					return nil, err
 				}
-			}
 
-			listDomainDetailLen := len(listDomainDetailResp.Result.DomainList)
-			if listDomainDetailLen < int(listDomainDetailPageSize) || int(listDomainDetailResp.Result.Total) <= listDomainDetailTotal+listDomainDetailLen {
-				break
+				domains = temp
 			} else {
-				listDomainDetailPageNum++
-				listDomainDetailTotal += listDomainDetailLen
+				domains = append(domains, d.config.Domain)
 			}
 		}
 
-		if len(domains) == 0 {
-			return nil, errors.New("domain not found")
-		}
-	} else {
-		domains = append(domains, d.config.Domain)
+	default:
+		return nil, fmt.Errorf("unsupported match pattern: '%s'", d.config.MatchPattern)
 	}
 
-	if len(domains) > 0 {
+	// 遍历绑定证书
+	if len(domains) == 0 {
+		d.logger.Info("no live domains to deploy")
+	} else {
+		d.logger.Info("found live domains to deploy", slog.Any("domains", domains))
 		var errs []error
 
 		for _, domain := range domains {
@@ -132,16 +122,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			case <-ctx.Done():
 				return nil, ctx.Err()
 			default:
-				// 绑定证书
-				// REF: https://www.volcengine.com/docs/6469/1186278#%E7%BB%91%E5%AE%9A%E8%AF%81%E4%B9%A6
-				bindCertReq := &velive.BindCertBody{
-					ChainID: upres.CertId,
-					Domain:  domain,
-					HTTPS:   ve.Bool(true),
-				}
-				bindCertResp, err := d.sdkClient.BindCert(ctx, bindCertReq)
-				d.logger.Debug("sdk request 'live.BindCert'", slog.Any("request", bindCertReq), slog.Any("response", bindCertResp))
-				if err != nil {
+				if err := d.bindCert(ctx, domain, upres.CertId); err != nil {
 					errs = append(errs, err)
 				}
 			}
@@ -153,4 +134,68 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	}
 
 	return &core.SSLDeployResult{}, nil
+}
+
+func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, wildcardDomain string) ([]string, error) {
+	domains := make([]string, 0)
+
+	// 遍历查询域名列表，获取匹配的域名
+	// REF: https://www.volcengine.com/docs/6469/1186277#%E6%9F%A5%E8%AF%A2%E5%9F%9F%E5%90%8D%E5%88%97%E8%A1%A8
+	listDomainDetailPageNum := int32(1)
+	listDomainDetailPageSize := int32(1000)
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+
+		listDomainDetailReq := &velive.ListDomainDetailBody{
+			DomainStatusList: ve.Int32Slice([]int32{0}),
+			PageNum:          listDomainDetailPageNum,
+			PageSize:         listDomainDetailPageSize,
+		}
+		listDomainDetailResp, err := d.sdkClient.ListDomainDetail(ctx, listDomainDetailReq)
+		d.logger.Debug("sdk request 'live.ListDomainDetail'", slog.Any("request", listDomainDetailReq), slog.Any("response", listDomainDetailResp))
+		if err != nil {
+			return nil, fmt.Errorf("failed to execute sdk request 'live.ListDomainDetail': %w", err)
+		}
+
+		if listDomainDetailResp.Result.DomainList != nil {
+			for _, domain := range listDomainDetailResp.Result.DomainList {
+				if xcert.MatchHostname(wildcardDomain, domain.Domain) {
+					domains = append(domains, domain.Domain)
+				}
+			}
+		}
+
+		if len(listDomainDetailResp.Result.DomainList) < int(listDomainDetailPageSize) {
+			break
+		} else {
+			listDomainDetailPageNum++
+		}
+	}
+
+	if len(domains) == 0 {
+		return nil, errors.New("domain not found")
+	}
+
+	return domains, nil
+}
+
+func (d *SSLDeployerProvider) bindCert(ctx context.Context, domain string, cloudCertId string) error {
+	// 绑定证书
+	// REF: https://www.volcengine.com/docs/6469/1186278#%E7%BB%91%E5%AE%9A%E8%AF%81%E4%B9%A6
+	bindCertReq := &velive.BindCertBody{
+		ChainID: cloudCertId,
+		Domain:  domain,
+		HTTPS:   ve.Bool(true),
+	}
+	bindCertResp, err := d.sdkClient.BindCert(ctx, bindCertReq)
+	d.logger.Debug("sdk request 'live.BindCert'", slog.Any("request", bindCertReq), slog.Any("response", bindCertResp))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

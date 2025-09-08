@@ -85,10 +85,7 @@ func (ne *bizMonitorNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeE
 
 			now := time.Now()
 			isCertPeriodValid := now.Before(cert.NotAfter) && now.After(cert.NotBefore)
-			isCertHostMatched := true
-			if err := cert.VerifyHostname(targetDomain); err != nil {
-				isCertHostMatched = false
-			}
+			isCertHostMatched := cert.VerifyHostname(targetDomain) == nil
 
 			validated := isCertPeriodValid && isCertHostMatched
 			daysLeft := int(math.Floor(time.Until(cert.NotAfter).Hours() / 24))

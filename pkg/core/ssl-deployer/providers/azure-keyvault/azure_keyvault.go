@@ -117,7 +117,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		} else {
 			oldCertX509, err := x509.ParseCertificate(getCertificateResp.CER)
 			if err == nil {
-				if xcert.EqualCertificate(certX509, oldCertX509) {
+				if xcert.EqualCertificates(certX509, oldCertX509) {
 					return &core.SSLDeployResult{}, nil
 				}
 			}

@@ -141,7 +141,7 @@ func (m *SSLManagerProvider) findCertIfExists(ctx context.Context, certPEM strin
 							continue
 						}
 
-						isSameCert = xcert.EqualCertificate(certX509, oldCertX509)
+						isSameCert = xcert.EqualCertificates(certX509, oldCertX509)
 					}
 				}
 

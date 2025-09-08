@@ -126,7 +126,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 						continue
 					}
 
-					isSameCert = xcert.EqualCertificate(certX509, oldCertX509)
+					isSameCert = xcert.EqualCertificates(certX509, oldCertX509)
 				}
 
 				// 如果已存在相同证书，直接返回

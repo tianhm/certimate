@@ -203,39 +203,35 @@ const InternalSharedForm = ({ children, provider }: { children?: React.ReactNode
 };
 
 const InternalSharedFormEabFields = ({ i18nKey }: { i18nKey: string }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+
+  const hasGuide = i18n.exists(`access.form.${i18nKey}_eab.guide`);
 
   const formSchema = z.object({
     endpoint: z.url(t("common.errmsg.url_invalid")),
     eabKid: z
-      .string(t(`access.form.${i18nKey}_eab_kid.label`))
-      .min(1, t(`access.form.${i18nKey}_eab_kid.label`))
+      .string(t("access.form.shared_acme_eab_kid.label"))
+      .min(1, t("access.form.shared_acme_eab_kid.placeholder"))
       .max(256, t("common.errmsg.string_max", { max: 256 })),
     eabHmacKey: z
-      .string(t(`access.form.${i18nKey}_eab_hmac_key.label`))
-      .min(1, t(`access.form.${i18nKey}_eab_hmac_key.label`))
+      .string(t("access.form.shared_acme_eab_hmac_key.label"))
+      .min(1, t("access.form.shared_acme_eab_hmac_key.placeholder"))
       .max(256, t("common.errmsg.string_max", { max: 256 })),
   });
   const formRule = createSchemaFieldRule(formSchema);
 
   return (
     <>
-      <Form.Item
-        name="eabKid"
-        label={t(`access.form.${i18nKey}_eab_kid.label`)}
-        rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t(`access.form.${i18nKey}_eab_kid.tooltip`) }}></span>}
-      >
-        <Input autoComplete="new-password" placeholder={t(`access.form.${i18nKey}_eab_kid.placeholder`)} />
+      <Form.Item name="eabKid" label={t("access.form.shared_acme_eab_kid.label")} rules={[formRule]}>
+        <Input autoComplete="new-password" placeholder={t("access.form.shared_acme_eab_kid.placeholder")} />
       </Form.Item>
 
-      <Form.Item
-        name="eabHmacKey"
-        label={t(`access.form.${i18nKey}_eab_hmac_key.label`)}
-        rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t(`access.form.${i18nKey}_eab_hmac_key.tooltip`) }}></span>}
-      >
-        <Input.Password autoComplete="new-password" placeholder={t(`access.form.${i18nKey}_eab_hmac_key.placeholder`)} />
+      <Form.Item name="eabHmacKey" label={t("access.form.shared_acme_eab_hmac_key.label")} rules={[formRule]}>
+        <Input.Password autoComplete="new-password" placeholder={t("access.form.shared_acme_eab_hmac_key.placeholder")} />
+      </Form.Item>
+
+      <Form.Item hidden={!hasGuide}>
+        <Tips message={<span dangerouslySetInnerHTML={{ __html: t(`access.form.${i18nKey}_eab.guide`) }}></span>} />
       </Form.Item>
     </>
   );
@@ -356,20 +352,20 @@ const InternalSettingsFormProviderACMECA = () => {
 
       <Form.Item
         name="eabKid"
-        label={t("access.form.zerossl_eab_kid.label")}
+        label={t("access.form.acmeca_eab_kid.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.zerossl_eab_kid.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.acmeca_eab_kid.tooltip") }}></span>}
       >
-        <Input autoComplete="new-password" placeholder={t("access.form.zerossl_eab_kid.placeholder")} />
+        <Input autoComplete="new-password" placeholder={t("access.form.acmeca_eab_kid.placeholder")} />
       </Form.Item>
 
       <Form.Item
         name="eabHmacKey"
-        label={t("access.form.zerossl_eab_hmac_key.label")}
+        label={t("access.form.acmeca_eab_hmac_key.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.zerossl_eab_hmac_key.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.acmeca_eab_hmac_key.tooltip") }}></span>}
       >
-        <Input.Password autoComplete="new-password" placeholder={t("access.form.zerossl_eab_hmac_key.placeholder")} />
+        <Input.Password autoComplete="new-password" placeholder={t("access.form.acmeca_eab_hmac_key.placeholder")} />
       </Form.Item>
     </InternalSharedForm>
   );

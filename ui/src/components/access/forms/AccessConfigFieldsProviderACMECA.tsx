@@ -27,13 +27,7 @@ const AccessConfigFormFieldsProviderACMECA = () => {
         <Input placeholder={t("access.form.acmeca_endpoint.placeholder")} />
       </Form.Item>
 
-      <Form.Item
-        name={[parentNamePath, "eabKid"]}
-        initialValue={initialValues.eabKid}
-        label={t("access.form.acmeca_eab_kid.label")}
-        rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.acmeca_eab_kid.tooltip") }}></span>}
-      >
+      <Form.Item name={[parentNamePath, "eabKid"]} initialValue={initialValues.eabKid} label={t("access.form.acmeca_eab_kid.label")} rules={[formRule]}>
         <Input allowClear autoComplete="new-password" placeholder={t("access.form.acmeca_eab_kid.placeholder")} />
       </Form.Item>
 
@@ -42,7 +36,6 @@ const AccessConfigFormFieldsProviderACMECA = () => {
         initialValue={initialValues.eabHmacKey}
         label={t("access.form.acmeca_eab_hmac_key.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.acmeca_eab_hmac_key.tooltip") }}></span>}
       >
         <Input.Password allowClear autoComplete="new-password" placeholder={t("access.form.acmeca_eab_hmac_key.placeholder")} />
       </Form.Item>

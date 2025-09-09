@@ -1,5 +1,11 @@
 # 贡献指南
 
+<div align="center">
+
+中文 ｜ [English](CONTRIBUTING_EN.md)
+
+</div>
+
 非常感谢你抽出时间来帮助改进 Certimate！以下是向 Certimate 提交 Pull Request 时的操作指南。
 
 我们需要保持敏捷和快速迭代，同时也希望确保贡献者能获得尽可能流畅的参与体验。这份贡献指南旨在帮助你熟悉代码库和我们的工作方式，让你可以尽快进入有趣的开发环节。

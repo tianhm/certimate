@@ -3,6 +3,8 @@ import { Form, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
+import Tips from "@/components/Tips";
+
 import { useFormNestedFieldsContext } from "./_context";
 
 const AccessConfigFormFieldsProviderGoogleTrustServices = () => {
@@ -17,24 +19,21 @@ const AccessConfigFormFieldsProviderGoogleTrustServices = () => {
 
   return (
     <>
-      <Form.Item
-        name={[parentNamePath, "eabKid"]}
-        initialValue={initialValues.eabKid}
-        label={t("access.form.googletrustservices_eab_kid.label")}
-        rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.googletrustservices_eab_kid.tooltip") }}></span>}
-      >
-        <Input autoComplete="new-password" placeholder={t("access.form.googletrustservices_eab_kid.placeholder")} />
+      <Form.Item name={[parentNamePath, "eabKid"]} initialValue={initialValues.eabKid} label={t("access.form.shared_acme_eab_kid.label")} rules={[formRule]}>
+        <Input autoComplete="new-password" placeholder={t("access.form.shared_acme_eab_kid.placeholder")} />
       </Form.Item>
 
       <Form.Item
         name={[parentNamePath, "eabHmacKey"]}
         initialValue={initialValues.eabHmacKey}
-        label={t("access.form.googletrustservices_eab_hmac_key.label")}
+        label={t("access.form.shared_acme_eab_hmac_key.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.googletrustservices_eab_hmac_key.tooltip") }}></span>}
       >
-        <Input.Password autoComplete="new-password" placeholder={t("access.form.googletrustservices_eab_hmac_key.placeholder")} />
+        <Input.Password autoComplete="new-password" placeholder={t("access.form.shared_acme_eab_hmac_key.placeholder")} />
+      </Form.Item>
+
+      <Form.Item>
+        <Tips message={<span dangerouslySetInnerHTML={{ __html: t("access.form.googletrustservices_eab.guide") }}></span>} />
       </Form.Item>
     </>
   );
@@ -53,11 +52,11 @@ const getSchema = ({ i18n = getI18n() }: { i18n: ReturnType<typeof getI18n> }) =
   return z.object({
     eabKid: z
       .string()
-      .min(1, t("access.form.googletrustservices_eab_kid.placeholder"))
+      .min(1, t("access.form.shared_acme_eab_kid.placeholder"))
       .max(256, t("common.errmsg.string_max", { max: 256 })),
     eabHmacKey: z
       .string()
-      .min(1, t("access.form.googletrustservices_eab_hmac_key.placeholder"))
+      .min(1, t("access.form.shared_acme_eab_hmac_key.placeholder"))
       .max(256, t("common.errmsg.string_max", { max: 256 })),
   });
 };

@@ -157,8 +157,8 @@ const WorkflowList = () => {
                 },
               },
               {
-                key: "run",
-                label: t("workflow.action.run.menu"),
+                key: "execute",
+                label: t("workflow.action.execute.menu"),
                 icon: (
                   <span className="anticon scale-125">
                     <IconPlayerPlay size="1em" />
@@ -166,7 +166,7 @@ const WorkflowList = () => {
                 ),
                 disabled: !record.hasContent,
                 onClick: () => {
-                  handleRecordRunClick(record);
+                  handleRecordExecuteClick(record);
                 },
               },
               {
@@ -339,11 +339,11 @@ const WorkflowList = () => {
     }
   };
 
-  const handleRecordRunClick = async (workflow: WorkflowModel) => {
+  const handleRecordExecuteClick = async (workflow: WorkflowModel) => {
     try {
       await startWorkflowRun(workflow.id);
 
-      message.info(t("workflow.action.run.prompt"));
+      message.info(t("workflow.action.execute.prompt"));
     } catch (err) {
       console.error(err);
       notification.error({ message: t("common.text.request_error"), description: getErrMsg(err) });

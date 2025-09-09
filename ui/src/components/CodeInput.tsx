@@ -1,4 +1,4 @@
-﻿import { useMemo, useRef } from "react";
+﻿import { useContext, useMemo, useRef } from "react";
 import { json } from "@codemirror/lang-json";
 import { yaml } from "@codemirror/lang-yaml";
 import { StreamLanguage } from "@codemirror/language";
@@ -9,6 +9,7 @@ import { vscodeDark, vscodeLight } from "@uiw/codemirror-theme-vscode";
 import CodeMirror, { type ReactCodeMirrorProps, type ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import { useFocusWithin, useHover } from "ahooks";
 import { theme } from "antd";
+import DisabledContext from "antd/es/config-provider/DisabledContext";
 
 import { useBrowserTheme } from "@/hooks";
 import { mergeCls } from "@/utils/css";
@@ -16,12 +17,16 @@ import { mergeCls } from "@/utils/css";
 export interface CodeInputProps extends Omit<ReactCodeMirrorProps, "extensions" | "lang" | "theme"> {
   disabled?: boolean;
   language?: string | string[];
+  readOnly?: boolean;
 }
 
-const CodeInput = ({ className, style, disabled, language, ...props }: CodeInputProps) => {
+const CodeInput = ({ className, style, disabled, language, readOnly, ...props }: CodeInputProps) => {
   const { token: themeToken } = theme.useToken();
 
   const { theme: browserTheme } = useBrowserTheme();
+
+  const injectedDisabled = useContext(DisabledContext);
+  const mergedDisabled = disabled ?? injectedDisabled;
 
   const cmRef = useRef<ReactCodeMirrorRef>(null);
   const isFocusing = useFocusWithin(cmRef.current?.editor);
@@ -74,8 +79,8 @@ const CodeInput = ({ className, style, disabled, language, ...props }: CodeInput
         paddingInline: themeToken.Input?.paddingInline,
         fontSize: themeToken.Input?.inputFontSize,
         lineHeight: themeToken.lineHeight,
-        color: disabled ? themeToken.colorTextDisabled : themeToken.colorText,
-        backgroundColor: disabled
+        color: mergedDisabled ? themeToken.colorTextDisabled : themeToken.colorText,
+        backgroundColor: mergedDisabled
           ? themeToken.colorBgContainerDisabled
           : isFocusing
             ? (themeToken.Input?.activeBg ?? themeToken.colorBgContainer)
@@ -106,6 +111,7 @@ const CodeInput = ({ className, style, disabled, language, ...props }: CodeInput
           indentOnInput: false,
         }}
         extensions={cmExtensions}
+        readOnly={readOnly || mergedDisabled}
         theme={cmTheme}
       />
     </div>

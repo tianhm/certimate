@@ -68,8 +68,8 @@ const WorkflowDetail = () => {
     const { promise, resolve } = Promise.withResolvers();
     if (workflow.hasDraft) {
       modal.confirm({
-        title: t("workflow.action.run.modal.title"),
-        content: t("workflow.action.run.modal.content"),
+        title: t("workflow.action.execute.modal.title"),
+        content: t("workflow.action.execute.modal.content"),
         onOk: () => resolve(void 0),
       });
     } else {
@@ -82,7 +82,7 @@ const WorkflowDetail = () => {
 
         await startWorkflowRun(workflow.id);
 
-        message.info(t("workflow.action.run.prompt"));
+        message.info(t("workflow.action.execute.prompt"));
       } catch (err) {
         setRunButtonLoading(false);
 
@@ -137,7 +137,7 @@ const WorkflowDetail = () => {
               <div className="flex items-center gap-2">
                 <Button onClick={handleActiveClick}>{workflow.enabled ? t("workflow.action.disable.button") : t("workflow.action.enable.button")}</Button>
                 <Button disabled={runButtonDisabled} icon={<IconPlayerPlay size="1.25em" />} loading={runButtonLoading} type="primary" onClick={handleRunClick}>
-                  {t("workflow.action.run.button")}
+                  {t("workflow.action.execute.button")}
                 </Button>
               </div>
             </Show>

@@ -42,13 +42,14 @@
 
   "workflow.new.title": "Create Workflow",
   "workflow.new.subtitle": "Using a workflow to monitor, apply, deploy and notify.",
-  "workflow.new.templates.title": "Choose a Workflow Template",
+  "workflow.new.button.create": "Create from blank",
+  "workflow.new.button.import": "Import from file",
+  "workflow.new.templates.title": "Choose a Template",
+  "workflow.new.templates.subtitle": "Use these template workflows to quickly initialize your automated certificate management workflow.",
   "workflow.new.templates.template.standard.title": "Standard template",
   "workflow.new.templates.template.standard.description": "A standard operating procedure that includes application, deployment, and notification steps.",
   "workflow.new.templates.template.certtest.title": "Monitoring template",
   "workflow.new.templates.template.certtest.description": "A monitoring operating procedure that includes monitoring, and notification steps.",
-  "workflow.new.templates.template.empty.title": "Empty template",
-  "workflow.new.templates.template.empty.description": "Customize all the contents of the workflow from the beginning.",
   "workflow.new.templates.default_name": "Untitled workflow",
   "workflow.new.templates.default_description": "Created at {{date}}",
 

@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { App, Card, Col, Row, Spin, Typography } from "antd";
+import { IconArrowRight, IconCode, IconSquarePlus2 } from "@tabler/icons-react";
+import { App, Button, Card, Spin, Typography } from "antd";
 import dayjs from "dayjs";
 
+import WorkflowGraphImportModal from "@/components/workflow/WorkflowGraphImportModal";
 import {
   WORKFLOW_NODE_TYPES,
   type WorkflowModel,
@@ -15,10 +17,10 @@ import {
 import { save as saveWorkflow } from "@/repository/workflow";
 import { getErrMsg } from "@/utils/error";
 
+const TEMPLATE_KEY_BLANK = "blank" as const;
 const TEMPLATE_KEY_STANDARD = "standard" as const;
 const TEMPLATE_KEY_CERTTEST = "certtest" as const;
-const TEMPLATE_KEY_EMPTY = "empty" as const;
-type TemplateKeys = typeof TEMPLATE_KEY_EMPTY | typeof TEMPLATE_KEY_CERTTEST | typeof TEMPLATE_KEY_STANDARD;
+type TemplateKeys = typeof TEMPLATE_KEY_BLANK | typeof TEMPLATE_KEY_CERTTEST | typeof TEMPLATE_KEY_STANDARD;
 
 const WorkflowNew = () => {
   const navigate = useNavigate();
@@ -27,21 +29,56 @@ const WorkflowNew = () => {
 
   const { notification } = App.useApp();
 
-  const templateGridSpans = {
-    xs: { flex: "100%" },
-    md: { flex: "50%" },
-    lg: { flex: "50%" },
-    xl: { flex: "33.3333%" },
-    xxl: { flex: "33.3333%" },
-  };
+  const templates = [
+    {
+      key: TEMPLATE_KEY_STANDARD,
+      name: t("workflow.new.templates.template.standard.title"),
+      description: t("workflow.new.templates.template.standard.description"),
+      image: "/imgs/workflow/tpl-standard.png",
+    },
+    {
+      key: TEMPLATE_KEY_CERTTEST,
+      name: t("workflow.new.templates.template.certtest.title"),
+      description: t("workflow.new.templates.template.certtest.description"),
+      image: "/imgs/workflow/tpl-certtest.png",
+    },
+  ];
   const [templateSelectKey, setTemplateSelectKey] = useState<TemplateKeys>();
+  const [templatePending, setTemplatePending] = useState(false);
 
-  const [pending, setPending] = useState(false);
+  const renderTemplateCard = ({ key, name, description, image }: { key: TemplateKeys; name: string; description: string; image: string }) => {
+    return (
+      <Card
+        key={key}
+        className="group/card size-full"
+        cover={<img className="min-h-[120px] object-contain" src={image} />}
+        hoverable
+        onClick={() => handleTemplateClick(key)}
+      >
+        <div className="flex w-full items-center gap-4">
+          <Card.Meta
+            className="grow"
+            title={
+              <div className="flex w-full items-center justify-between gap-4 overflow-hidden transition-colors group-hover/card:text-primary">
+                <div className="flex-1 truncate">{name}</div>
+                <IconArrowRight className="opacity-0 transition-opacity group-hover/card:opacity-100" size="1.25em" />
+              </div>
+            }
+            description={description}
+          />
+          {templatePending && <Spin spinning={templateSelectKey === key} />}
+        </div>
+      </Card>
+    );
+  };
+
+  const { modalProps: workflowImportModalProps, ...workflowImportModal } = WorkflowGraphImportModal.useModal();
 
   const handleTemplateClick = async (key: TemplateKeys) => {
-    if (pending) return;
+    if (templatePending) return;
 
     setTemplateSelectKey(key);
+    setTemplatePending(true);
 
     try {
       let workflow = {} as WorkflowModel;
@@ -51,7 +88,7 @@ const WorkflowNew = () => {
       workflow.hasDraft = true;
 
       switch (key) {
-        case TEMPLATE_KEY_EMPTY:
+        case TEMPLATE_KEY_BLANK:
           {
             const startNode = newNode(WORKFLOW_NODE_TYPES.START, { i18n: i18n });
             const endNode = newNode(WORKFLOW_NODE_TYPES.END, { i18n: i18n });
@@ -206,9 +243,33 @@ const WorkflowNew = () => {
 
       throw err;
     } finally {
-      setPending(false);
+      setTemplatePending(false);
       setTemplateSelectKey(void 0);
     }
+  };
+
+  const handleImportClick = async () => {
+    if (templatePending) return;
+
+    workflowImportModal.open().then(async (graph) => {
+      setTemplatePending(true);
+
+      try {
+        let workflow = {} as WorkflowModel;
+        workflow.name = t("workflow.new.templates.default_name");
+        workflow.description = t("workflow.new.templates.default_description", { date: dayjs().format("YYYY-MM-DD HH:mm") });
+        workflow.graphDraft = graph;
+        workflow.hasDraft = true;
+        workflow = await saveWorkflow(workflow);
+        navigate(`/workflows/${workflow.id}`, { replace: true });
+      } catch (err) {
+        notification.error({ message: t("common.text.request_error"), description: getErrMsg(err) });
+
+        throw err;
+      } finally {
+        setTemplatePending(false);
+      }
+    });
   };
 
   return (
@@ -219,65 +280,39 @@ const WorkflowNew = () => {
       </div>
 
       <div className="container">
-        <Typography.Text type="secondary">
-          <div className="mb-4 text-xl">{t("workflow.new.templates.title")}</div>
-        </Typography.Text>
-
-        <Row className="justify-stretch" gutter={[16, 16]}>
-          <Col {...templateGridSpans}>
-            <Card
-              className="size-full"
-              cover={<img className="min-h-[120px] object-contain" src="/imgs/workflow/tpl-standard.png" />}
-              hoverable
-              onClick={() => handleTemplateClick(TEMPLATE_KEY_STANDARD)}
-            >
-              <div className="flex w-full items-center gap-4">
-                <Card.Meta
-                  className="grow"
-                  title={t("workflow.new.templates.template.standard.title")}
-                  description={t("workflow.new.templates.template.standard.description")}
-                />
-                <Spin spinning={templateSelectKey === TEMPLATE_KEY_STANDARD} />
+        <div className="my-[6px]">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+            <Card className="size-full" styles={{ body: { padding: "1rem 1.5rem" } }} variant="borderless">
+              <div className="flex flex-col gap-3">
+                <Button
+                  className="border-none px-0 shadow-none"
+                  block
+                  icon={<IconSquarePlus2 size="1.25em" />}
+                  variant="solid"
+                  onClick={() => handleTemplateClick(TEMPLATE_KEY_BLANK)}
+                >
+                  <div className="w-full text-left">{t("workflow.new.button.create")}</div>
+                </Button>
+                <Button className="border-none px-0 shadow-none" block icon={<IconCode size="1.25em" />} variant="solid" onClick={handleImportClick}>
+                  <div className="w-full text-left">{t("workflow.new.button.import")}</div>
+                </Button>
               </div>
             </Card>
-          </Col>
 
-          <Col {...templateGridSpans}>
-            <Card
-              className="size-full"
-              cover={<img className="min-h-[120px] object-contain" src="/imgs/workflow/tpl-certtest.png" />}
-              hoverable
-              onClick={() => handleTemplateClick(TEMPLATE_KEY_CERTTEST)}
-            >
-              <div className="flex w-full items-center gap-4">
-                <Card.Meta
-                  className="grow"
-                  title={t("workflow.new.templates.template.certtest.title")}
-                  description={t("workflow.new.templates.template.certtest.description")}
-                />
-                <Spin spinning={templateSelectKey === TEMPLATE_KEY_CERTTEST} />
-              </div>
-            </Card>
-          </Col>
+            <WorkflowGraphImportModal {...workflowImportModalProps} />
+          </div>
+        </div>
 
-          <Col {...templateGridSpans}>
-            <Card
-              className="size-full"
-              cover={<img className="min-h-[120px] object-contain" src="/imgs/workflow/tpl-blank.png" />}
-              hoverable
-              onClick={() => handleTemplateClick(TEMPLATE_KEY_EMPTY)}
-            >
-              <div className="flex w-full items-center gap-4">
-                <Card.Meta
-                  className="grow"
-                  title={t("workflow.new.templates.template.empty.title")}
-                  description={t("workflow.new.templates.template.empty.description")}
-                />
-                <Spin spinning={templateSelectKey === TEMPLATE_KEY_EMPTY} />
-              </div>
-            </Card>
-          </Col>
-        </Row>
+        <div className="mt-8">
+          <h3>{t("workflow.new.templates.title")}</h3>
+          <Typography.Text type="secondary">
+            <div className="mb-4">{t("workflow.new.templates.subtitle")}</div>
+          </Typography.Text>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+            {templates.map((template) => renderTemplateCard(template))}
+          </div>
+        </div>
       </div>
     </div>
   );

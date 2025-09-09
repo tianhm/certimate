@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"net"
 	"strconv"
-	"strings"
 
 	"golang.org/x/crypto/ssh"
 
@@ -52,6 +51,8 @@ type SSLDeployerProviderConfig struct {
 	PostCommand string `json:"postCommand,omitempty"`
 	// 输出证书格式。
 	OutputFormat OutputFormatType `json:"outputFormat,omitempty"`
+	// 输出私钥文件路径。
+	OutputKeyPath string `json:"outputKeyPath,omitempty"`
 	// 输出证书文件路径。
 	OutputCertPath string `json:"outputCertPath,omitempty"`
 	// 输出服务器证书文件路径。
@@ -60,8 +61,6 @@ type SSLDeployerProviderConfig struct {
 	// 输出中间证书文件路径。
 	// 选填。
 	OutputIntermediaCertPath string `json:"outputIntermediaCertPath,omitempty"`
-	// 输出私钥文件路径。
-	OutputKeyPath string `json:"outputKeyPath,omitempty"`
 	// PFX 导出密码。
 	// 证书格式为 PFX 时必填。
 	PfxPassword string `json:"pfxPassword,omitempty"`
@@ -192,6 +191,11 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	// 上传证书和私钥文件
 	switch d.config.OutputFormat {
 	case OUTPUT_FORMAT_PEM:
+		if err := xssh.WriteRemoteString(client, d.config.OutputKeyPath, privkeyPEM, d.config.UseSCP); err != nil {
+			return nil, fmt.Errorf("failed to upload private key file: %w", err)
+		}
+		d.logger.Info("ssl private key file uploaded", slog.String("path", d.config.OutputKeyPath))
+
 		if err := xssh.WriteRemoteString(client, d.config.OutputCertPath, certPEM, d.config.UseSCP); err != nil {
 			return nil, fmt.Errorf("failed to upload certificate file: %w", err)
 		}
@@ -210,11 +214,6 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			}
 			d.logger.Info("ssl intermedia certificate file uploaded", slog.String("path", d.config.OutputIntermediaCertPath))
 		}
-
-		if err := xssh.WriteRemoteString(client, d.config.OutputKeyPath, privkeyPEM, d.config.UseSCP); err != nil {
-			return nil, fmt.Errorf("failed to upload private key file: %w", err)
-		}
-		d.logger.Info("ssl private key file uploaded", slog.String("path", d.config.OutputKeyPath))
 
 	case OUTPUT_FORMAT_PFX:
 		pfxData, err := xcert.TransformCertificateFromPEMToPFX(certPEM, privkeyPEM, d.config.PfxPassword)
@@ -282,56 +281,19 @@ func createSshClient(conn net.Conn, host string, port int32, authMethod string, 
 		}
 	}
 
-	authentications := make([]ssh.AuthMethod, 0)
 	switch authMethod {
 	case AUTH_METHOD_NONE:
-		{
-		}
+		return xssh.NewClient(conn, host, int(port), username)
 
 	case AUTH_METHOD_PASSWORD:
-		{
-			authentications = append(authentications, ssh.Password(password))
-			authentications = append(authentications, ssh.KeyboardInteractive(func(user, instruction string, questions []string, echos []bool) ([]string, error) {
-				if len(questions) == 1 {
-					return []string{password}, nil
-				}
-				return nil, fmt.Errorf("unexpected keyboard interactive question [%s]", strings.Join(questions, ", "))
-			}))
-		}
+		return xssh.NewClientWithPassword(conn, host, int(port), username, password)
 
 	case AUTH_METHOD_KEY:
-		{
-			var signer ssh.Signer
-			var err error
-
-			if keyPassphrase != "" {
-				signer, err = ssh.ParsePrivateKeyWithPassphrase([]byte(key), []byte(keyPassphrase))
-			} else {
-				signer, err = ssh.ParsePrivateKey([]byte(key))
-			}
-
-			if err != nil {
-				return nil, err
-			}
-
-			authentications = append(authentications, ssh.PublicKeys(signer))
-		}
+		return xssh.NewClientWithKey(conn, host, int(port), username, key, keyPassphrase)
 
 	default:
 		return nil, fmt.Errorf("unsupported auth method '%s'", authMethod)
 	}
-
-	addr := net.JoinHostPort(host, strconv.Itoa(int(port)))
-	sshConn, chans, reqs, err := ssh.NewClientConn(conn, addr, &ssh.ClientConfig{
-		User:            username,
-		Auth:            authentications,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return ssh.NewClient(sshConn, chans, reqs), nil
 }
 
 func execSshCommand(sshCli *ssh.Client, command string) (string, string, error) {

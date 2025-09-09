@@ -6,7 +6,6 @@ import (
 	"net"
 	"path/filepath"
 	"strconv"
-	"strings"
 
 	"github.com/go-acme/lego/v4/challenge/http01"
 	"golang.org/x/crypto/ssh"
@@ -239,54 +238,17 @@ func (p *provider) createSshClient(conn net.Conn, host string, port int32, authM
 		}
 	}
 
-	authentications := make([]ssh.AuthMethod, 0)
 	switch authMethod {
 	case AUTH_METHOD_NONE:
-		{
-		}
+		return xssh.NewClient(conn, host, int(port), username)
 
 	case AUTH_METHOD_PASSWORD:
-		{
-			authentications = append(authentications, ssh.Password(password))
-			authentications = append(authentications, ssh.KeyboardInteractive(func(user, instruction string, questions []string, echos []bool) ([]string, error) {
-				if len(questions) == 1 {
-					return []string{password}, nil
-				}
-				return nil, fmt.Errorf("unexpected keyboard interactive question [%s]", strings.Join(questions, ", "))
-			}))
-		}
+		return xssh.NewClientWithPassword(conn, host, int(port), username, password)
 
 	case AUTH_METHOD_KEY:
-		{
-			var signer ssh.Signer
-			var err error
-
-			if keyPassphrase != "" {
-				signer, err = ssh.ParsePrivateKeyWithPassphrase([]byte(key), []byte(keyPassphrase))
-			} else {
-				signer, err = ssh.ParsePrivateKey([]byte(key))
-			}
-
-			if err != nil {
-				return nil, err
-			}
-
-			authentications = append(authentications, ssh.PublicKeys(signer))
-		}
+		return xssh.NewClientWithKey(conn, host, int(port), username, key, keyPassphrase)
 
 	default:
 		return nil, fmt.Errorf("unsupported auth method '%s'", authMethod)
 	}
-
-	addr := net.JoinHostPort(host, strconv.Itoa(int(port)))
-	sshConn, chans, reqs, err := ssh.NewClientConn(conn, addr, &ssh.ClientConfig{
-		User:            username,
-		Auth:            authentications,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return ssh.NewClient(sshConn, chans, reqs), nil
 }

@@ -40,12 +40,12 @@ const AccessConfigFormFieldsProviderBaotaPanel = () => {
       <Form.Item
         name={[parentNamePath, "allowInsecureConnections"]}
         initialValue={initialValues.allowInsecureConnections}
-        label={t("access.form.common_allow_insecure_conns.label")}
+        label={t("access.form.shared_allow_insecure_conns.label")}
         rules={[formRule]}
       >
         <Switch
-          checkedChildren={t("access.form.common_allow_insecure_conns.switch.on")}
-          unCheckedChildren={t("access.form.common_allow_insecure_conns.switch.off")}
+          checkedChildren={t("access.form.shared_allow_insecure_conns.switch.on")}
+          unCheckedChildren={t("access.form.shared_allow_insecure_conns.switch.off")}
         />
       </Form.Item>
     </>

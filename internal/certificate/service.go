@@ -170,7 +170,7 @@ func (s *CertificateService) ValidateCertificate(ctx context.Context, req *dtos.
 	certX509, err := xcert.ParseCertificateFromPEM(req.Certificate)
 	if err != nil {
 		return nil, err
-	} else if time.Now().After(certX509.NotAfter) {
+	} else if certX509.NotAfter.Before(time.Now()) {
 		return nil, fmt.Errorf("certificate has expired at %s", certX509.NotAfter.UTC().Format(time.RFC3339))
 	}
 

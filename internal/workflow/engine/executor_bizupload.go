@@ -7,6 +7,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"log/slog"
+	"math"
 	"os"
 	"strings"
 	"time"
@@ -20,13 +21,18 @@ import (
 )
 
 /**
- * Result Variables:
- *   - node.skipped: boolean
- *   - certificate.validity: boolean
- *   - certificate.daysLeft: number
+ * Outputs:
+ *   - ref: "certificate": string
  *
- * Result Outputs:
- *   - ref: certificate: string
+ * Variables:
+ *   - "node.skipped": boolean
+ *   - "certificate.domain": string
+ *   - "certificate.domains": string
+ *   - "certificate.notBefore": datetime
+ *   - "certificate.notAfter": datetime
+ *   - "certificate.hoursLeft": number
+ *   - "certificate.daysLeft": number
+ *   - "certificate.validity": boolean
  */
 type bizUploadNodeExecutor struct {
 	nodeExecutor
@@ -52,9 +58,8 @@ func (ne *bizUploadNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 	if err != nil {
 		return execRes, err
 	} else if lastCertificate != nil {
-		execRes.AddOutput(stateIOTypeRef, "certificate", fmt.Sprintf("%s#%s", domain.CollectionNameCertificate, lastCertificate.Id), "string")
-		execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateValidity, time.Now().After(lastCertificate.ValidityNotAfter), "boolean")
-		execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateDaysLeft, int32(time.Until(lastCertificate.ValidityNotAfter).Hours()/24), "number")
+		ne.setOuputsOfResult(execCtx, execRes, lastCertificate, false)
+		ne.setVariablesOfResult(execCtx, execRes, lastCertificate)
 	}
 
 	// 检测是否可以跳过本次执行
@@ -125,7 +130,7 @@ func (ne *bizUploadNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 	certX509, err := certcrypto.ParsePEMCertificate([]byte(certPEM))
 	if err != nil {
 		return execRes, err
-	} else if time.Now().After(certX509.NotAfter) {
+	} else if certX509.NotAfter.Before(time.Now()) {
 		ne.logger.Warn(fmt.Sprintf("the uploaded certificate has expired at %s", certX509.NotAfter.UTC().Format(time.RFC3339)))
 	}
 
@@ -179,10 +184,8 @@ func (ne *bizUploadNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 	}
 
 	// 节点输出
-	execRes.AddOutputWithPersistent(stateIOTypeRef, "certificate", fmt.Sprintf("%s#%s", domain.CollectionNameCertificate, certificate.Id), "string")
-	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyNodeSkipped, false, "boolean")
-	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateValidity, time.Now().After(certificate.ValidityNotAfter), "boolean")
-	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateDaysLeft, int32(time.Until(certificate.ValidityNotAfter).Hours()/24), "number")
+	ne.setOuputsOfResult(execCtx, execRes, certificate, true)
+	ne.setVariablesOfResult(execCtx, execRes, certificate)
 
 	ne.logger.Info("uploading completed")
 	return execRes, nil
@@ -237,6 +240,53 @@ func (ne *bizUploadNodeExecutor) checkCanSkip(execCtx *NodeExecutionContext, las
 	}
 
 	return false, ""
+}
+
+func (ne *bizUploadNodeExecutor) setOuputsOfResult(execCtx *NodeExecutionContext, execRes *NodeExecutionResult, certificate *domain.Certificate, persistent bool) {
+	if certificate != nil {
+		key := "certificate"
+		value := fmt.Sprintf("%s#%s", domain.CollectionNameCertificate, certificate.Id)
+		if persistent {
+			execRes.AddOutputWithPersistent(stateIOTypeRef, key, value, "string")
+		} else {
+			execRes.AddOutput(stateIOTypeRef, key, value, "string")
+		}
+	}
+}
+
+func (ne *bizUploadNodeExecutor) setVariablesOfResult(execCtx *NodeExecutionContext, execRes *NodeExecutionResult, certificate *domain.Certificate) {
+	var vDomain string
+	var vDomains string
+	var vNotBefore time.Time
+	var vNotAfter time.Time
+	var vHoursLeft int32
+	var vDaysLeft int32
+	var vValidity bool
+
+	if certificate != nil {
+		vDomain = strings.Split(certificate.SubjectAltNames, ";")[0]
+		vDomains = certificate.SubjectAltNames
+		vNotBefore = certificate.ValidityNotBefore
+		vNotAfter = certificate.ValidityNotAfter
+		vHoursLeft = int32(math.Floor(time.Until(certificate.ValidityNotAfter).Hours()))
+		vDaysLeft = int32(math.Floor(time.Until(certificate.ValidityNotAfter).Hours() / 24))
+		vValidity = certificate.ValidityNotAfter.After(time.Now())
+	}
+
+	execRes.AddVariable(stateVarKeyCertificateDomain, vDomain, "string")
+	execRes.AddVariable(stateVarKeyCertificateDomains, vDomains, "string")
+	execRes.AddVariable(stateVarKeyCertificateNotBefore, vNotBefore, "datetime")
+	execRes.AddVariable(stateVarKeyCertificateNotAfter, vNotAfter, "datetime")
+	execRes.AddVariable(stateVarKeyCertificateHoursLeft, vHoursLeft, "number")
+	execRes.AddVariable(stateVarKeyCertificateDaysLeft, vDaysLeft, "number")
+	execRes.AddVariable(stateVarKeyCertificateValidity, vValidity, "boolean")
+	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateDomain, vDomain, "string")
+	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateDomains, vDomains, "string")
+	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateNotBefore, vNotBefore, "datetime")
+	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateNotAfter, vNotAfter, "datetime")
+	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateHoursLeft, vHoursLeft, "number")
+	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateDaysLeft, vDaysLeft, "number")
+	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateValidity, vValidity, "boolean")
 }
 
 func newBizUploadNodeExecutor() NodeExecutor {

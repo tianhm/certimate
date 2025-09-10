@@ -22,8 +22,8 @@ func (ne *bizNotifyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 	ne.logger.Info("ready to send notification ...", slog.Any("config", nodeCfg))
 
 	// 检测是否可以跳过本次执行
-	if skippable := ne.checkCanSkip(execCtx); skippable {
-		ne.logger.Info(fmt.Sprintf("skip this notification, because all the previous nodes have been skipped"))
+	if skippable, reason := ne.checkCanSkip(execCtx); skippable {
+		ne.logger.Info(fmt.Sprintf("skip this application, because %s", reason))
 		return execRes, nil
 	}
 
@@ -37,10 +37,8 @@ func (ne *bizNotifyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 		}
 	}
 
-	// 初始化通知器
-	notifyClient := notify.NewClient(notify.WithLogger(ne.logger))
-
 	// 推送通知
+	notifier := notify.NewClient(notify.WithLogger(ne.logger))
 	notifyReq := &notify.SendNotificationRequest{
 		Provider:               nodeCfg.Provider,
 		ProviderAccessConfig:   providerAccessConfig,
@@ -48,7 +46,7 @@ func (ne *bizNotifyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 		Subject:                nodeCfg.Subject,
 		Message:                nodeCfg.Message,
 	}
-	if _, err := notifyClient.SendNotification(execCtx.ctx, notifyReq); err != nil {
+	if _, err := notifier.SendNotification(execCtx.ctx, notifyReq); err != nil {
 		ne.logger.Warn("could not send notification")
 		return execRes, err
 	}
@@ -57,10 +55,10 @@ func (ne *bizNotifyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 	return execRes, nil
 }
 
-func (ne *bizNotifyNodeExecutor) checkCanSkip(execCtx *NodeExecutionContext) (_skip bool) {
+func (ne *bizNotifyNodeExecutor) checkCanSkip(execCtx *NodeExecutionContext) (_skip bool, _reason string) {
 	thisNodeCfg := execCtx.Node.Data.Config.AsBizNotify()
 	if !thisNodeCfg.SkipOnAllPrevSkipped {
-		return false
+		return false, ""
 	}
 
 	var total, skipped int32
@@ -72,7 +70,11 @@ func (ne *bizNotifyNodeExecutor) checkCanSkip(execCtx *NodeExecutionContext) (_s
 			}
 		}
 	}
-	return total > 0 && skipped == total
+	if total == 0 || skipped != total {
+		return false, ""
+	}
+
+	return true, "all the previous nodes have been skipped"
 }
 
 func newBizNotifyNodeExecutor() NodeExecutor {

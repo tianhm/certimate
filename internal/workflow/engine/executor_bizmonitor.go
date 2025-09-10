@@ -17,9 +17,14 @@ import (
 )
 
 /**
- * Result Variables:
- *   - certificate.validity: boolean
- *   - certificate.daysLeft: number
+ * Variables:
+ *   - "certificate.domain": string
+ *   - "certificate.domains": string
+ *   - "certificate.notBefore": datetime
+ *   - "certificate.notAfter": datetime
+ *   - "certificate.hoursLeft": number
+ *   - "certificate.daysLeft": number
+ *   - "certificate.validity": boolean
  */
 type bizMonitorNodeExecutor struct {
 	nodeExecutor
@@ -51,7 +56,7 @@ func (ne *bizMonitorNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeE
 	var certs []*x509.Certificate
 	for attempt := 0; attempt < MAX_ATTEMPTS; attempt++ {
 		if attempt > 0 {
-			ne.logger.Info(fmt.Sprintf("retry %d time(s) ...", attempt, targetAddr))
+			ne.logger.Info(fmt.Sprintf("retry %d time(s) ...", attempt))
 
 			select {
 			case <-execCtx.ctx.Done():
@@ -73,8 +78,7 @@ func (ne *bizMonitorNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeE
 		if len(certs) == 0 {
 			ne.logger.Warn("no ssl certificates retrieved in http response")
 
-			execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateValidity, false, "boolean")
-			execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateDaysLeft, 0, "number")
+			ne.setVariablesOfResult(execCtx, execRes, nil)
 		} else {
 			cert := certs[0] // 只取证书链中的第一个证书，即服务器证书
 			ne.logger.Info(fmt.Sprintf("ssl certificate retrieved (serial='%s', subject='%s', issuer='%s', not_before='%s', not_after='%s', sans='%s')",
@@ -82,15 +86,13 @@ func (ne *bizMonitorNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeE
 				cert.NotBefore.Format(time.RFC3339), cert.NotAfter.Format(time.RFC3339),
 				strings.Join(cert.DNSNames, ";")),
 			)
+			ne.setVariablesOfResult(execCtx, execRes, cert)
 
 			now := time.Now()
 			isCertPeriodValid := now.Before(cert.NotAfter) && now.After(cert.NotBefore)
 			isCertHostMatched := cert.VerifyHostname(targetDomain) == nil
-
+			daysLeft := int32(math.Floor(time.Until(cert.NotAfter).Hours() / 24))
 			validated := isCertPeriodValid && isCertHostMatched
-			daysLeft := int(math.Floor(time.Until(cert.NotAfter).Hours() / 24))
-			execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateValidity, validated, "boolean")
-			execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateDaysLeft, daysLeft, "number")
 
 			if validated {
 				ne.logger.Info(fmt.Sprintf("the certificate is valid, and will expire in %d day(s)", daysLeft))
@@ -102,6 +104,10 @@ func (ne *bizMonitorNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeE
 				} else {
 					ne.logger.Warn("the certificate is invalid")
 				}
+
+				// 除了验证证书有效期，还要确保证书与域名匹配
+				execRes.AddVariable(stateVarKeyCertificateValidity, false, "boolean")
+				execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateValidity, false, "boolean")
 			}
 		}
 	}
@@ -144,6 +150,41 @@ func (ne *bizMonitorNodeExecutor) tryRetrievePeerCertificates(execCtx *NodeExecu
 		return make([]*x509.Certificate, 0), nil
 	}
 	return resp.TLS.PeerCertificates, nil
+}
+
+func (ne *bizMonitorNodeExecutor) setVariablesOfResult(execCtx *NodeExecutionContext, execRes *NodeExecutionResult, certX509 *x509.Certificate) {
+	var vDomain string
+	var vDomains string
+	var vNotBefore time.Time
+	var vNotAfter time.Time
+	var vHoursLeft int32
+	var vDaysLeft int32
+	var vValidity bool
+
+	if certX509 != nil {
+		vDomain = certX509.Subject.CommonName
+		vDomains = strings.Join(certX509.DNSNames, ";")
+		vNotBefore = certX509.NotBefore
+		vNotAfter = certX509.NotAfter
+		vHoursLeft = int32(math.Floor(time.Until(certX509.NotAfter).Hours()))
+		vDaysLeft = int32(math.Floor(time.Until(certX509.NotAfter).Hours() / 24))
+		vValidity = certX509.NotAfter.After(time.Now())
+	}
+
+	execRes.AddVariable(stateVarKeyCertificateDomain, vDomain, "string")
+	execRes.AddVariable(stateVarKeyCertificateDomains, vDomains, "string")
+	execRes.AddVariable(stateVarKeyCertificateNotBefore, vNotBefore, "datetime")
+	execRes.AddVariable(stateVarKeyCertificateNotAfter, vNotAfter, "datetime")
+	execRes.AddVariable(stateVarKeyCertificateHoursLeft, vHoursLeft, "number")
+	execRes.AddVariable(stateVarKeyCertificateDaysLeft, vDaysLeft, "number")
+	execRes.AddVariable(stateVarKeyCertificateValidity, vValidity, "boolean")
+	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateDomain, vDomain, "string")
+	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateDomains, vDomains, "string")
+	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateNotBefore, vNotBefore, "datetime")
+	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateNotAfter, vNotAfter, "datetime")
+	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateHoursLeft, vHoursLeft, "number")
+	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateDaysLeft, vDaysLeft, "number")
+	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateValidity, vValidity, "boolean")
 }
 
 func newBizMonitorNodeExecutor() NodeExecutor {

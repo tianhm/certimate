@@ -212,7 +212,9 @@ func (wd *workflowDispatcher) Cancel(ctx context.Context, runId string) error {
 }
 
 func (wd *workflowDispatcher) tryExecuteAsync(task *taskInfo) {
+	var workflow *domain.Workflow
 	var workflowRun *domain.WorkflowRun
+	var err error
 
 	// 捕获 panic
 	defer func() {
@@ -238,21 +240,26 @@ func (wd *workflowDispatcher) tryExecuteAsync(task *taskInfo) {
 	}()
 
 	// 查询运行实体，并级联更新状态
-	if run, err := wd.workflowRunRepo.GetById(task.ctx, task.RunId); err != nil {
+	if workflowRun, err = wd.workflowRunRepo.GetById(task.ctx, task.RunId); err != nil {
 		if !(errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded)) {
 			wd.syslog.Error(fmt.Sprintf("failed to get workflow run #%s record", task.RunId), slog.Any("error", err))
 		}
 		return
 	} else {
-		workflowRun = run
-
-		if run.Status == domain.WorkflowRunStatusTypePending {
-			run.Status = domain.WorkflowRunStatusTypeProcessing
-			wd.workflowRunRepo.SaveWithCascading(task.ctx, run)
+		if workflowRun.Status == domain.WorkflowRunStatusTypePending {
+			workflowRun.Status = domain.WorkflowRunStatusTypeProcessing
+			wd.workflowRunRepo.SaveWithCascading(task.ctx, workflowRun)
 		} else {
 			// WTF? That should be impossible!
 			return
 		}
+	}
+
+	// 查询工作流实体
+	workflow, err = wd.workflowRepo.GetById(task.ctx, workflowRun.WorkflowId)
+	if err != nil {
+		wd.syslog.Error(fmt.Sprintf("failed to get workflow #%s record", workflowRun.WorkflowId), slog.Any("error", err))
+		return
 	}
 
 	// 初始化工作流引擎
@@ -326,7 +333,13 @@ func (wd *workflowDispatcher) tryExecuteAsync(task *taskInfo) {
 
 	// 执行工作流
 	wd.syslog.Info(fmt.Sprintf("workflow run #%s (work#%s) started", task.RunId, task.WorkflowId))
-	we.Invoke(task.ctx, workflowRun.WorkflowId, workflowRun.Id, workflowRun.Graph)
+	we.Invoke(task.ctx, engine.WorkflowExecution{
+		WorkflowId:   workflowRun.WorkflowId,
+		WorkflowName: workflow.Name,
+		RunId:        workflowRun.Id,
+		RunTrigger:   workflowRun.Trigger,
+		Graph:        workflowRun.Graph,
+	})
 	wd.syslog.Info(fmt.Sprintf("workflow run #%s (work#%s) stopped", task.RunId, task.WorkflowId))
 }
 

@@ -1,7 +1,9 @@
 package migrations
 
 import (
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -21,8 +23,10 @@ func init() {
 		{
 			collection, err := app.FindCollectionByNameOrId("dy6ccjb60spfy6p")
 			if err != nil {
-				return err
-			} else if collection != nil {
+				if !errors.Is(err, sql.ErrNoRows) {
+					return err
+				}
+			} else {
 				if _, err := app.DB().NewQuery("DELETE FROM settings WHERE name = 'notifyChannels'").Execute(); err != nil {
 					return err
 				}
@@ -44,10 +48,11 @@ func init() {
 		{
 			collection, err := app.FindCollectionByNameOrId("012d7abbod1hwvr")
 			if err != nil {
-				return err
-			}
-
-			if err := collection.Fields.AddMarshaledJSONAt(5, []byte(`{
+				if !errors.Is(err, sql.ErrNoRows) {
+					return err
+				}
+			} else {
+				if err := collection.Fields.AddMarshaledJSONAt(5, []byte(`{
 					"exceptDomains": null,
 					"hidden": false,
 					"id": "url2424532088",
@@ -58,10 +63,10 @@ func init() {
 					"system": false,
 					"type": "url"
 				}`)); err != nil {
-				return err
-			}
+					return err
+				}
 
-			if err := collection.Fields.AddMarshaledJSONAt(6, []byte(`{
+				if err := collection.Fields.AddMarshaledJSONAt(6, []byte(`{
 					"exceptDomains": null,
 					"hidden": false,
 					"id": "url3632694140",
@@ -72,10 +77,10 @@ func init() {
 					"system": false,
 					"type": "url"
 				}`)); err != nil {
-				return err
-			}
+					return err
+				}
 
-			if err := collection.Fields.AddMarshaledJSONAt(3, []byte(`{
+				if err := collection.Fields.AddMarshaledJSONAt(3, []byte(`{
 					"autogeneratePattern": "",
 					"hidden": false,
 					"id": "genxqtii",
@@ -89,10 +94,10 @@ func init() {
 					"system": false,
 					"type": "text"
 				}`)); err != nil {
-				return err
-			}
+					return err
+				}
 
-			if err := collection.Fields.AddMarshaledJSONAt(4, []byte(`{
+				if err := collection.Fields.AddMarshaledJSONAt(4, []byte(`{
 					"hidden": false,
 					"id": "1aoia909",
 					"maxSize": 2000000,
@@ -102,93 +107,94 @@ func init() {
 					"system": false,
 					"type": "json"
 				}`)); err != nil {
-				return err
-			}
-
-			if err := app.Save(collection); err != nil {
-				return err
-			}
-
-			records, err := app.FindAllRecords(collection)
-			if err != nil {
-				return err
-			}
-
-			for _, record := range records {
-				changed := false
-				deleted := false
-
-				resource := make(map[string]any)
-				if err := record.UnmarshalJSONField("acmeAccount", &resource); err != nil {
 					return err
 				}
 
-				if _, ok := resource["body"]; ok {
-					record.Set("acmeAcctUrl", resource["uri"].(string))
-					record.Set("acmeAccount", resource["body"].(map[string]any))
-					changed = true
+				if err := app.Save(collection); err != nil {
+					return err
 				}
 
-				ca := record.GetString("ca")
-				if strings.Contains(ca, "#") {
-					record.Set("ca", strings.Split(ca, "#")[0])
-					if access, err := app.FindRecordById("access", strings.Split(ca, "#")[1]); err != nil {
-						deleted = true
+				records, err := app.FindAllRecords(collection)
+				if err != nil {
+					return err
+				}
+
+				for _, record := range records {
+					changed := false
+					deleted := false
+
+					resource := make(map[string]any)
+					if err := record.UnmarshalJSONField("acmeAccount", &resource); err != nil {
+						return err
+					}
+
+					if _, ok := resource["body"]; ok {
+						record.Set("acmeAcctUrl", resource["uri"].(string))
+						record.Set("acmeAccount", resource["body"].(map[string]any))
+						changed = true
+					}
+
+					ca := record.GetString("ca")
+					if strings.Contains(ca, "#") {
+						record.Set("ca", strings.Split(ca, "#")[0])
+						if access, err := app.FindRecordById("access", strings.Split(ca, "#")[1]); err != nil {
+							deleted = true
+						} else {
+							switch access.GetString("provider") {
+							case "buypass":
+								record.Set("acmeDirUrl", "https://api.buypass.com/acme/directory")
+								changed = true
+
+							case "googletrustservices":
+								record.Set("acmeDirUrl", "https://dv.acme-v02.api.pki.goog/directory")
+								changed = true
+
+							case "sslcom":
+								record.Set("acmeDirUrl", "https://acme.ssl.com/sslcom-dv-rsa")
+								changed = true
+
+							case "zerossl":
+								record.Set("acmeDirUrl", "https://acme.zerossl.com/v2/DV90")
+								changed = true
+
+							case "acmeca":
+								accessConfig := make(map[string]any)
+								access.UnmarshalJSONField("config", &accessConfig)
+								record.Set("acmeDirUrl", accessConfig["endpoint"].(string))
+								changed = true
+							}
+						}
 					} else {
-						switch access.GetString("provider") {
-						case "buypass":
-							record.Set("acmeDirUrl", "https://api.buypass.com/acme/directory")
+						switch ca {
+						case "letsencrypt":
+							record.Set("acmeDirUrl", "https://acme-v02.api.letsencrypt.org/directory")
 							changed = true
 
-						case "googletrustservices":
-							record.Set("acmeDirUrl", "https://dv.acme-v02.api.pki.goog/directory")
-							changed = true
-
-						case "sslcom":
-							record.Set("acmeDirUrl", "https://acme.ssl.com/sslcom-dv-rsa")
-							changed = true
-
-						case "zerossl":
-							record.Set("acmeDirUrl", "https://acme.zerossl.com/v2/DV90")
-							changed = true
-
-						case "acmeca":
-							accessConfig := make(map[string]any)
-							access.UnmarshalJSONField("config", &accessConfig)
-							record.Set("acmeDirUrl", accessConfig["endpoint"].(string))
+						case "letsencryptstaging":
+							record.Set("acmeDirUrl", "https://acme-staging-v02.api.letsencrypt.org/directory")
 							changed = true
 						}
 					}
-				} else {
-					switch ca {
-					case "letsencrypt":
-						record.Set("acmeDirUrl", "https://acme-v02.api.letsencrypt.org/directory")
-						changed = true
 
-					case "letsencryptstaging":
-						record.Set("acmeDirUrl", "https://acme-staging-v02.api.letsencrypt.org/directory")
-						changed = true
+					if changed {
+						if err := app.Save(record); err != nil {
+							return err
+						}
+
+						tracer.Printf("record #%s in collection '%s' updated", record.Id, collection.Name)
+					}
+
+					if deleted {
+						if err := app.Delete(record); err != nil {
+							return err
+						}
+
+						tracer.Printf("record #%s in collection '%s' deleted", record.Id, collection.Name)
 					}
 				}
 
-				if changed {
-					if err := app.Save(record); err != nil {
-						return err
-					}
-
-					tracer.Printf("record #%s in collection '%s' updated", record.Id, collection.Name)
-				}
-
-				if deleted {
-					if err := app.Delete(record); err != nil {
-						return err
-					}
-
-					tracer.Printf("record #%s in collection '%s' deleted", record.Id, collection.Name)
-				}
+				tracer.Printf("collection '%s' updated", collection.Name)
 			}
-
-			tracer.Printf("collection '%s' updated", collection.Name)
 		}
 
 		// update collection `access`
@@ -198,8 +204,10 @@ func init() {
 		{
 			collection, err := app.FindCollectionByNameOrId("4yzbv8urny5ja1e")
 			if err != nil {
-				return err
-			} else if collection != nil {
+				if !errors.Is(err, sql.ErrNoRows) {
+					return err
+				}
+			} else {
 				if _, err := app.DB().NewQuery("UPDATE access SET reserve = 'notif' WHERE reserve = 'notification'").Execute(); err != nil {
 					return err
 				}
@@ -316,8 +324,10 @@ func init() {
 		{
 			collection, err := app.FindCollectionByNameOrId("4szxr9x43tpj6np")
 			if err != nil {
-				return err
-			} else if collection != nil {
+				if !errors.Is(err, sql.ErrNoRows) {
+					return err
+				}
+			} else {
 				if err := collection.Fields.AddMarshaledJSONAt(1, []byte(`{
 					"hidden": false,
 					"id": "by9hetqi",
@@ -447,8 +457,10 @@ func init() {
 		{
 			collection, err := app.FindCollectionByNameOrId("tovyif5ax6j62ur")
 			if err != nil {
-				return err
-			} else if collection != nil {
+				if !errors.Is(err, sql.ErrNoRows) {
+					return err
+				}
+			} else {
 				if err := collection.Fields.AddMarshaledJSONAt(3, []byte(`{
 					"hidden": false,
 					"id": "vqoajwjq",
@@ -615,8 +627,10 @@ func init() {
 		{
 			collection, err := app.FindCollectionByNameOrId("qjp8lygssgwyqyz")
 			if err != nil {
-				return err
-			} else if collection != nil {
+				if !errors.Is(err, sql.ErrNoRows) {
+					return err
+				}
+			} else {
 				if err := collection.Fields.AddMarshaledJSONAt(1, []byte(`{
 					"cascadeDelete": true,
 					"collectionId": "tovyif5ax6j62ur",
@@ -746,8 +760,10 @@ func init() {
 		{
 			collection, err := app.FindCollectionByNameOrId("bqnxb95f2cooowp")
 			if err != nil {
-				return err
-			} else if collection != nil {
+				if !errors.Is(err, sql.ErrNoRows) {
+					return err
+				}
+			} else {
 				if err := json.Unmarshal([]byte(`{
 					"indexes": [
 						"CREATE INDEX `+"`"+`idx_BYoQPsz4my`+"`"+` ON `+"`"+`workflow_output`+"`"+` (`+"`"+`workflowRef`+"`"+`)",
@@ -819,8 +835,10 @@ func init() {
 		{
 			collection, err := app.FindCollectionByNameOrId("pbc_1682296116")
 			if err != nil {
-				return err
-			} else if collection != nil {
+				if !errors.Is(err, sql.ErrNoRows) {
+					return err
+				}
+			} else {
 				if field := collection.Fields.GetByName("level"); field != nil && field.Type() == "text" {
 					if _, err := app.DB().NewQuery("UPDATE workflow_logs SET level = '-4' WHERE level = 'DEBUG'").Execute(); err != nil {
 						return err
@@ -1172,8 +1190,10 @@ func init() {
 			{
 				collection, err := app.FindCollectionByNameOrId("tovyif5ax6j62ur")
 				if err != nil {
-					return err
-				} else if collection != nil {
+					if !errors.Is(err, sql.ErrNoRows) {
+						return err
+					}
+				} else {
 					records, err := app.FindAllRecords(collection)
 					if err != nil {
 						return err
@@ -1233,8 +1253,10 @@ func init() {
 			{
 				collection, err := app.FindCollectionByNameOrId("qjp8lygssgwyqyz")
 				if err != nil {
-					return err
-				} else if collection != nil {
+					if !errors.Is(err, sql.ErrNoRows) {
+						return err
+					}
+				} else {
 					records, err := app.FindAllRecords(collection)
 					if err != nil {
 						return err
@@ -1277,8 +1299,10 @@ func init() {
 			{
 				collection, err := app.FindCollectionByNameOrId("bqnxb95f2cooowp")
 				if err != nil {
-					return err
-				} else if collection != nil {
+					if !errors.Is(err, sql.ErrNoRows) {
+						return err
+					}
+				} else {
 					records, err := app.FindAllRecords(collection)
 					if err != nil {
 						return err

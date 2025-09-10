@@ -11,14 +11,10 @@ export interface AppDocumentLinkButtonProps {
 }
 
 const AppDocumentLinkButton = ({ className, style, showIcon = true }: AppDocumentLinkButtonProps) => {
-  const { i18n, t } = useTranslation();
+  const { t } = useTranslation();
 
   const handleDocumentClick = () => {
-    if (i18n.language.startsWith("en")) {
-      window.open(APP_DOCUMENT_URL + "/en/", "_blank");
-    } else {
-      window.open(APP_DOCUMENT_URL, "_blank");
-    }
+    window.open(APP_DOCUMENT_URL, "_blank");
   };
 
   return (

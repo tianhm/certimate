@@ -57,5 +57,17 @@
   "settings.diagnostics.workflow_dispatcher.title": "Workflow dispatcher",
   "settings.diagnostics.workflow_dispatcher.statistics.concurrency": "Concurrency",
   "settings.diagnostics.workflow_dispatcher.statistics.pending": "Pending",
-  "settings.diagnostics.workflow_dispatcher.statistics.processing": "Processing"
+  "settings.diagnostics.workflow_dispatcher.statistics.processing": "Processing",
+
+  "settings.about.tab": "About",
+  "settings.about.version.new": "New version available",
+  "settings.about.socials.document": "Documentation",
+  "settings.about.socials.github": "GitHub",
+  "settings.about.socials.telegram": "Telegram",
+  "settings.about.socials.donate": "Donate",
+  "settings.about.feedback.title": "Help us improve Certimate",
+  "settings.about.feedback.subtitle": "Tell us how to make Certimate work better for you.",
+  "settings.about.feedback.button": "Give feedback",
+  "settings.about.contributors.title": "Contributors",
+  "settings.about.contributors.tips": "Thanks to all the people who have contributed to this project."
 }

@@ -13,7 +13,7 @@ import Show from "@/components/Show";
 import WorkflowStatus from "@/components/workflow/WorkflowStatus";
 import { WORKFLOW_TRIGGERS, type WorkflowModel, duplicateNodes } from "@/domain/workflow";
 import { useAppSettings } from "@/hooks";
-import { list as listWorkflows, remove as removeWorkflow, save as saveWorkflow } from "@/repository/workflow";
+import { get as getWorkflow, list as listWorkflows, remove as removeWorkflow, save as saveWorkflow } from "@/repository/workflow";
 import { getErrMsg } from "@/utils/error";
 
 const WorkflowList = () => {
@@ -356,12 +356,13 @@ const WorkflowList = () => {
       content: t("workflow.action.duplicate.modal.content"),
       onOk: async () => {
         try {
+          workflow = await getWorkflow(workflow.id);
           const workflowCopy = {
             name: `${workflow.name}-copy`,
             description: workflow.description,
             trigger: workflow.trigger,
             triggerCron: workflow.triggerCron,
-            graphDraft: { nodes: duplicateNodes(workflow.graphContent?.nodes ?? workflow.graphDraft?.nodes ?? [], { withCopySuffix: false }) },
+            graphDraft: { nodes: duplicateNodes(workflow.graphDraft?.nodes ?? [], { withCopySuffix: false }) },
             hasDraft: true,
           } as WorkflowModel;
           const resp = await saveWorkflow(workflowCopy);

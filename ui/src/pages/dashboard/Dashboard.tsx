@@ -275,8 +275,8 @@ const WorkflowRunHistoryTable = ({ className, style }: { className?: string; sty
       render: (_, record) => <span className="font-mono">{record.id}</span>,
     },
     {
-      key: "name",
-      title: t("workflow.props.name"),
+      key: "workflow",
+      title: t("workflow_run.props.workflow"),
       render: (_, record) => {
         const workflow = record.expand?.workflowRef;
         return (

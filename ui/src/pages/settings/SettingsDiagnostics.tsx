@@ -127,50 +127,54 @@ const SettingsDiagnosticsLogs = ({ className, style }: { className?: string; sty
     <div className={className} style={style}>
       <div className="size-full overflow-hidden rounded-md bg-black text-stone-200">
         <div className="relative">
-          <Show when={loading}>
-            <div className="absolute top-4 right-8">
-              <Button className="pointer-none" loading>
-                Loading ...
-              </Button>
-            </div>
-          </Show>
-          <Show when={listData.length === 0 && !loading}>
-            <div className="px-4 py-2">
-              <div className="w-full overflow-hidden">
-                <div className="text-xs leading-relaxed text-stone-400">{loadError ? `> ${getErrMsg(loadError)}` : "> no logs avaiable"}</div>
+          <Show>
+            <Show.Case when={loading}>
+              <div className="absolute top-4 right-8">
+                <Button className="pointer-none" loading>
+                  Loading ...
+                </Button>
               </div>
-              <div className="flex w-full items-center">
-                <a onClick={handleReloadClick}>
-                  <span className="text-xs">{t("common.button.reload")}</span>
-                </a>
+            </Show.Case>
+
+            <Show.Case when={listData.length === 0}>
+              <div className="px-4 py-2">
+                <div className="w-full overflow-hidden">
+                  <div className="text-xs leading-relaxed text-stone-400">{loadError ? `> ${getErrMsg(loadError)}` : "> no logs avaiable"}</div>
+                </div>
+                <div className="flex w-full items-center">
+                  <a onClick={handleReloadClick}>
+                    <span className="text-xs">{t("common.button.reload")}</span>
+                  </a>
+                </div>
               </div>
-            </div>
-          </Show>
-          <Show when={listData.length > 0}>
-            <div className="px-4 py-2">
-              <div className="flex w-full flex-col overflow-hidden">
-                {listData.map((record) => {
-                  return (
-                    <div key={record.id} className="text-xs leading-relaxed">
-                      {renderLogRecord(record)}
-                    </div>
-                  );
-                })}
+            </Show.Case>
+
+            <Show.Default>
+              <div className="px-4 py-2">
+                <div className="flex w-full flex-col overflow-hidden">
+                  {listData.map((record) => {
+                    return (
+                      <div key={record.id} className="text-xs leading-relaxed">
+                        {renderLogRecord(record)}
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="flex w-full items-center">
+                  <a onClick={handleRefreshClick}>
+                    <span className="text-xs">{t("settings.diagnostics.logs.button.refresh.label")}</span>
+                  </a>
+                  {hasMore && (
+                    <>
+                      <Divider type="vertical" />
+                      <a onClick={handleLoadMoreClick}>
+                        <span className="text-xs">{t("settings.diagnostics.logs.button.load_more.label")}</span>
+                      </a>
+                    </>
+                  )}
+                </div>
               </div>
-              <div className="flex w-full items-center">
-                <a onClick={handleRefreshClick}>
-                  <span className="text-xs">{t("settings.diagnostics.logs.button.refresh.label")}</span>
-                </a>
-                {hasMore && (
-                  <>
-                    <Divider type="vertical" />
-                    <a onClick={handleLoadMoreClick}>
-                      <span className="text-xs">{t("settings.diagnostics.logs.button.load_more.label")}</span>
-                    </a>
-                  </>
-                )}
-              </div>
-            </div>
+            </Show.Default>
           </Show>
         </div>
       </div>

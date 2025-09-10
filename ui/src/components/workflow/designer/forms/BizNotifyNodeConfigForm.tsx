@@ -11,6 +11,7 @@ import AccessSelect from "@/components/access/AccessSelect";
 import NotificationProviderPicker from "@/components/provider/NotificationProviderPicker";
 import NotificationProviderSelect from "@/components/provider/NotificationProviderSelect";
 import Show from "@/components/Show";
+import Tips from "@/components/Tips";
 import { type AccessModel } from "@/domain/access";
 import { NOTIFICATION_PROVIDERS, notificationProvidersMap } from "@/domain/provider";
 import { type WorkflowNodeConfigForBizNotify, defaultNodeConfigForBizNotify } from "@/domain/workflow";
@@ -142,6 +143,10 @@ const BizNotifyNodeConfigForm = ({ node, ...props }: BizNotifyNodeConfigFormProp
 
             <Form.Item name="message" label={t("workflow_node.notify.form.message.label")} rules={[formRule]}>
               <Input.TextArea autoSize={{ minRows: 3, maxRows: 10 }} placeholder={t("workflow_node.notify.form.message.placeholder")} />
+            </Form.Item>
+
+            <Form.Item>
+              <Tips message={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.notify.form.template.guide") }}></span>} />
             </Form.Item>
           </div>
 

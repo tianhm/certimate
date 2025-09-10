@@ -14,6 +14,7 @@
 
   "workflow_run.nodata.description": "当前未找到任何运行历史。请先运行此工作流。",
 
+  "workflow_run.props.workflow": "工作流",
   "workflow_run.props.status": "状态",
   "workflow_run.props.status.pending": "等待运行",
   "workflow_run.props.status.processing": "运行中",

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	alialb "github.com/alibabacloud-go/alb-20200616/v2/client"
-	alicas "github.com/alibabacloud-go/cas-20200407/v3/client"
+	alicas "github.com/alibabacloud-go/cas-20200407/v4/client"
 	aliopen "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/samber/lo"

@@ -12,8 +12,11 @@ import (
 )
 
 /**
- * Result Variables:
- *   - node.skipped: boolean
+ * Inputs:
+ *   - ref: "certificate": string
+ *
+ * Variables:
+ *   - "node.skipped": boolean
  */
 type bizDeployNodeExecutor struct {
 	nodeExecutor
@@ -64,7 +67,11 @@ func (ne *bizDeployNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 			return execRes, nil
 		} else if reason != "" {
 			ne.logger.Info(fmt.Sprintf("re-deploy, because %s", reason))
+
+			execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyNodeSkipped, false, "boolean")
 		}
+	} else {
+		execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyNodeSkipped, false, "boolean")
 	}
 
 	// 读取部署提供商授权
@@ -77,10 +84,8 @@ func (ne *bizDeployNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 		}
 	}
 
-	// 初始化部署器
-	deployClient := certdeploy.NewClient(certdeploy.WithLogger(ne.logger))
-
 	// 部署证书
+	deployer := certdeploy.NewClient(certdeploy.WithLogger(ne.logger))
 	deployReq := &certdeploy.DeployCertificateRequest{
 		Provider:               nodeCfg.Provider,
 		ProviderAccessConfig:   providerAccessConfig,
@@ -88,14 +93,13 @@ func (ne *bizDeployNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 		Certificate:            inputCertificate.Certificate,
 		PrivateKey:             inputCertificate.PrivateKey,
 	}
-	if _, err := deployClient.DeployCertificate(execCtx.ctx, deployReq); err != nil {
+	if _, err := deployer.DeployCertificate(execCtx.ctx, deployReq); err != nil {
 		ne.logger.Warn("could not deploy certificate")
 		return execRes, err
 	}
 
 	// 节点输出
 	execRes.outputForced = true
-	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyNodeSkipped, false, "boolean")
 
 	ne.logger.Info("deployment completed")
 	return execRes, nil

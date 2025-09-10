@@ -15,8 +15,16 @@ import (
 	"github.com/certimate-go/certimate/pkg/logging"
 )
 
+type WorkflowExecution struct {
+	WorkflowId   string
+	WorkflowName string
+	RunId        string
+	RunTrigger   domain.WorkflowTriggerType
+	Graph        *Graph
+}
+
 type WorkflowEngine interface {
-	Invoke(ctx context.Context, workflowId string, runId string, graph *Graph) error
+	Invoke(ctx context.Context, execution WorkflowExecution) error
 
 	OnStart(callback func(ctx context.Context) error)
 	OnEnd(callback func(ctx context.Context) error)
@@ -46,22 +54,33 @@ type workflowEngine struct {
 
 var _ WorkflowEngine = (*workflowEngine)(nil)
 
-func (we *workflowEngine) Invoke(ctx context.Context, workflowId string, runId string, runGraph *Graph) error {
-	we.fireOnStartHooks(ctx)
-
+func (we *workflowEngine) Invoke(ctx context.Context, execution WorkflowExecution) error {
 	defer func() {
 		if r := recover(); r != nil {
 			we.fireOnErrorHooks(ctx, fmt.Errorf("workflow engine panic: %v", r))
 		}
 	}()
 
+	we.fireOnStartHooks(ctx)
+
+	wfIOs := newInOutManager()
+
+	wfVars := newVariableManager()
+	wfVars.Set(stateVarKeyWorkflowId, execution.WorkflowId, "string")
+	wfVars.Set(stateVarKeyWorkflowName, execution.WorkflowName, "string")
+	wfVars.Set(stateVarKeyRunId, execution.RunId, "string")
+	wfVars.Set(stateVarKeyRunTrigger, execution.RunTrigger, "string")
+	wfVars.Set(stateVarKeyErrorNodeId, "", "string")
+	wfVars.Set(stateVarKeyErrorNodeName, "", "string")
+	wfVars.Set(stateVarKeyErrorMessage, "", "string")
+
 	wfCtx := (&WorkflowContext{}).
-		SetExecutingWorkflow(workflowId, runId, runGraph).
+		SetExecutingWorkflow(execution.WorkflowId, execution.RunId, execution.Graph).
 		SetEngine(we).
-		SetVariablesManager(newVariableManager()).
-		SetInputsManager(newInOutManager()).
+		SetInputsManager(wfIOs).
+		SetVariablesManager(wfVars).
 		SetContext(ctx)
-	if err := we.executeBlocks(wfCtx, runGraph.Nodes); err != nil {
+	if err := we.executeBlocks(wfCtx, execution.Graph.Nodes); err != nil {
 		if !errors.Is(err, ErrTerminated) {
 			we.fireOnErrorHooks(ctx, err)
 			return err
@@ -131,6 +150,9 @@ func (we *workflowEngine) executeNode(wfCtx *WorkflowContext, node *Node) error 
 		executor.SetLogger(logger)
 	}
 
+	wfCtx.variables.SetScoped(node.Id, stateVarKeyNodeId, node.Id, "string")
+	wfCtx.variables.SetScoped(node.Id, stateVarKeyNodeName, node.Data.Name, "string")
+
 	// 节点已禁用，直接跳过执行
 	if node.Data.Disabled {
 		return nil
@@ -141,6 +163,12 @@ func (we *workflowEngine) executeNode(wfCtx *WorkflowContext, node *Node) error 
 	execCtx := newNodeExecutionContext(wfCtx, node)
 	execRes, err := executor.Execute(execCtx)
 	if err != nil && !errors.Is(err, ErrTerminated) {
+		if !errors.Is(err, ErrBlocksException) {
+			wfCtx.variables.Set(stateVarKeyErrorNodeId, node.Id, "string")
+			wfCtx.variables.Set(stateVarKeyErrorNodeName, node.Data.Name, "string")
+			wfCtx.variables.Set(stateVarKeyErrorMessage, err.Error(), "string")
+		}
+
 		we.fireOnNodeErrorHooks(wfCtx.ctx, node, err)
 		return err
 	}

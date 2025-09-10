@@ -3,6 +3,9 @@
 import (
 	"fmt"
 	"log/slog"
+	"regexp"
+	"strings"
+	"time"
 
 	"github.com/certimate-go/certimate/internal/notify"
 	"github.com/certimate-go/certimate/internal/repository"
@@ -22,8 +25,8 @@ func (ne *bizNotifyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 	ne.logger.Info("ready to send notification ...", slog.Any("config", nodeCfg))
 
 	// 检测是否可以跳过本次执行
-	if skippable := ne.checkCanSkip(execCtx); skippable {
-		ne.logger.Info(fmt.Sprintf("skip this notification, because all the previous nodes have been skipped"))
+	if skippable, reason := ne.checkCanSkip(execCtx); skippable {
+		ne.logger.Info(fmt.Sprintf("skip this application, because %s", reason))
 		return execRes, nil
 	}
 
@@ -37,18 +40,41 @@ func (ne *bizNotifyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 		}
 	}
 
-	// 初始化通知器
-	notifyClient := notify.NewClient(notify.WithLogger(ne.logger))
+	// 渲染通知模板
+	reMustache := regexp.MustCompile(`\{\{\s*(\$[^\s]+)\s*\}\}`)
+	reMustacheReplacer := func(match string) string {
+		mustache := strings.TrimSpace(match[2 : len(match)-2])
+		if mustache == "" {
+			return match
+		}
+
+		key := mustache[1:]
+		if key == "" {
+			return match
+		} else if key == "now" {
+			return time.Now().Format(time.RFC3339)
+		}
+
+		// TODO: 支持作用域变量
+		if state, ok := execCtx.variables.Get(key); ok {
+			return state.ValueString()
+		}
+
+		return match
+	}
+	subject := reMustache.ReplaceAllStringFunc(nodeCfg.Subject, reMustacheReplacer)
+	message := reMustache.ReplaceAllStringFunc(nodeCfg.Message, reMustacheReplacer)
 
 	// 推送通知
+	notifier := notify.NewClient(notify.WithLogger(ne.logger))
 	notifyReq := &notify.SendNotificationRequest{
 		Provider:               nodeCfg.Provider,
 		ProviderAccessConfig:   providerAccessConfig,
 		ProviderExtendedConfig: nodeCfg.ProviderConfig,
-		Subject:                nodeCfg.Subject,
-		Message:                nodeCfg.Message,
+		Subject:                subject,
+		Message:                message,
 	}
-	if _, err := notifyClient.SendNotification(execCtx.ctx, notifyReq); err != nil {
+	if _, err := notifier.SendNotification(execCtx.ctx, notifyReq); err != nil {
 		ne.logger.Warn("could not send notification")
 		return execRes, err
 	}
@@ -57,10 +83,10 @@ func (ne *bizNotifyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 	return execRes, nil
 }
 
-func (ne *bizNotifyNodeExecutor) checkCanSkip(execCtx *NodeExecutionContext) (_skip bool) {
+func (ne *bizNotifyNodeExecutor) checkCanSkip(execCtx *NodeExecutionContext) (_skip bool, _reason string) {
 	thisNodeCfg := execCtx.Node.Data.Config.AsBizNotify()
 	if !thisNodeCfg.SkipOnAllPrevSkipped {
-		return false
+		return false, ""
 	}
 
 	var total, skipped int32
@@ -72,7 +98,11 @@ func (ne *bizNotifyNodeExecutor) checkCanSkip(execCtx *NodeExecutionContext) (_s
 			}
 		}
 	}
-	return total > 0 && skipped == total
+	if total == 0 || skipped != total {
+		return false, ""
+	}
+
+	return true, "all the previous nodes have been skipped"
 }
 
 func newBizNotifyNodeExecutor() NodeExecutor {

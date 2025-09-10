@@ -72,7 +72,7 @@
   "workflow.detail.design.toolbar.horizontal_layout": "横向布局",
   "workflow.detail.design.toolbar.vertical_layout": "竖向布局",
   "workflow.detail.design.toolbar.minimap": "小地图",
-  "workflow.detail.design.toolbar.hand_mode": "触摸模式",
+  "workflow.detail.design.toolbar.drag_mode": "触摸模式",
   "workflow.detail.design.toolbar.pointer_mode": "指针模式",
   "workflow.detail.design.drawer.node_id.label": "节点 ID：",
   "workflow.detail.design.drawer.disabled.on.tooltip": "禁用",

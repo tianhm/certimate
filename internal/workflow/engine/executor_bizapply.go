@@ -35,13 +35,18 @@ func init() {
 }
 
 /**
- * Result Variables:
- *   - node.skipped: boolean
- *   - certificate.validity: boolean
- *   - certificate.daysLeft: number
+ * Outputs:
+ *   - ref: "certificate": string
  *
- * Result Outputs:
- *   - ref: certificate: string
+ * Variables:
+ *   - "node.skipped": boolean
+ *   - "certificate.domain": string
+ *   - "certificate.domains": string
+ *   - "certificate.notBefore": datetime
+ *   - "certificate.notAfter": datetime
+ *   - "certificate.hoursLeft": number
+ *   - "certificate.daysLeft": number
+ *   - "certificate.validity": boolean
  */
 type bizApplyNodeExecutor struct {
 	nodeExecutor
@@ -62,9 +67,8 @@ func (ne *bizApplyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 	if err != nil {
 		return execRes, err
 	} else if lastCertificate != nil {
-		execRes.AddOutput(stateIOTypeRef, "certificate", fmt.Sprintf("%s#%s", domain.CollectionNameCertificate, lastCertificate.Id), "string")
-		execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateValidity, time.Now().After(lastCertificate.ValidityNotAfter), "boolean")
-		execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateDaysLeft, int32(time.Until(lastCertificate.ValidityNotAfter).Hours()/24), "number")
+		ne.setOuputsOfResult(execCtx, execRes, lastCertificate, false)
+		ne.setVariablesOfResult(execCtx, execRes, lastCertificate)
 	}
 
 	// 检测是否可以跳过本次执行
@@ -73,12 +77,17 @@ func (ne *bizApplyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 
 		execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyNodeSkipped, true, "boolean")
 		return execRes, nil
-	} else if reason != "" {
-		ne.logger.Info(fmt.Sprintf("re-apply, because %s", reason))
 	} else {
-		ne.logger.Info("no found last issued certificate, begin to apply")
+		if reason != "" {
+			ne.logger.Info(fmt.Sprintf("re-apply, because %s", reason))
+		} else {
+			ne.logger.Info("no found last issued certificate, begin to apply")
+		}
+
+		execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyNodeSkipped, false, "boolean")
 	}
 
+	// 申请证书
 	obtainResp, err := ne.executeObtain(execCtx, &nodeCfg, lastCertificate)
 	if err != nil {
 		return execRes, err
@@ -112,17 +121,15 @@ func (ne *bizApplyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 		ne.logger.Info("certificate saved", slog.String("recordId", certificate.Id))
 	}
 
-	// 保存 ARI 记录
+	// 保存 ARI 替换状态
 	if lastCertificate != nil && obtainResp.ARIReplaced {
 		lastCertificate.ACMERenewed = true
 		ne.certificateRepo.Save(execCtx.ctx, lastCertificate)
 	}
 
 	// 节点输出
-	execRes.AddOutputWithPersistent(stateIOTypeRef, "certificate", fmt.Sprintf("%s#%s", domain.CollectionNameCertificate, certificate.Id), "string")
-	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyNodeSkipped, false, "boolean")
-	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateValidity, true, "boolean")
-	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateDaysLeft, int32(time.Until(certificate.ValidityNotAfter).Hours()/24), "number")
+	ne.setOuputsOfResult(execCtx, execRes, certificate, true)
+	ne.setVariablesOfResult(execCtx, execRes, certificate)
 
 	ne.logger.Info("application completed")
 	return execRes, nil
@@ -351,6 +358,53 @@ func (ne *bizApplyNodeExecutor) executeObtain(execCtx *NodeExecutionContext, nod
 	}
 
 	return obtainResp, nil
+}
+
+func (ne *bizApplyNodeExecutor) setOuputsOfResult(execCtx *NodeExecutionContext, execRes *NodeExecutionResult, certificate *domain.Certificate, persistent bool) {
+	if certificate != nil {
+		key := "certificate"
+		value := fmt.Sprintf("%s#%s", domain.CollectionNameCertificate, certificate.Id)
+		if persistent {
+			execRes.AddOutputWithPersistent(stateIOTypeRef, key, value, "string")
+		} else {
+			execRes.AddOutput(stateIOTypeRef, key, value, "string")
+		}
+	}
+}
+
+func (ne *bizApplyNodeExecutor) setVariablesOfResult(execCtx *NodeExecutionContext, execRes *NodeExecutionResult, certificate *domain.Certificate) {
+	var vDomain string
+	var vDomains string
+	var vNotBefore time.Time
+	var vNotAfter time.Time
+	var vHoursLeft int32
+	var vDaysLeft int32
+	var vValidity bool
+
+	if certificate != nil {
+		vDomain = strings.Split(certificate.SubjectAltNames, ";")[0]
+		vDomains = certificate.SubjectAltNames
+		vNotBefore = certificate.ValidityNotBefore
+		vNotAfter = certificate.ValidityNotAfter
+		vHoursLeft = int32(math.Floor(time.Until(certificate.ValidityNotAfter).Hours()))
+		vDaysLeft = int32(math.Floor(time.Until(certificate.ValidityNotAfter).Hours() / 24))
+		vValidity = certificate.ValidityNotAfter.After(time.Now())
+	}
+
+	execRes.AddVariable(stateVarKeyCertificateDomain, vDomain, "string")
+	execRes.AddVariable(stateVarKeyCertificateDomains, vDomains, "string")
+	execRes.AddVariable(stateVarKeyCertificateNotBefore, vNotBefore, "datetime")
+	execRes.AddVariable(stateVarKeyCertificateNotAfter, vNotAfter, "datetime")
+	execRes.AddVariable(stateVarKeyCertificateHoursLeft, vHoursLeft, "number")
+	execRes.AddVariable(stateVarKeyCertificateDaysLeft, vDaysLeft, "number")
+	execRes.AddVariable(stateVarKeyCertificateValidity, vValidity, "boolean")
+	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateDomain, vDomain, "string")
+	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateDomains, vDomains, "string")
+	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateNotBefore, vNotBefore, "datetime")
+	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateNotAfter, vNotAfter, "datetime")
+	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateHoursLeft, vHoursLeft, "number")
+	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateDaysLeft, vDaysLeft, "number")
+	execRes.AddVariableWithScope(execCtx.Node.Id, stateVarKeyCertificateValidity, vValidity, "boolean")
 }
 
 func newBizApplyNodeExecutor() NodeExecutor {

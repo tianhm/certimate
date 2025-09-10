@@ -5,6 +5,7 @@ import (
 	"slices"
 	"strconv"
 	"sync"
+	"time"
 )
 
 type VariableState struct {
@@ -22,8 +23,14 @@ func (s VariableState) ValueString() string {
 		return fmt.Sprintf("%d", s.Value)
 	case "boolean":
 		return strconv.FormatBool(s.Value.(bool))
+	case "datetime":
+		valueAsTime := s.Value.(time.Time)
+		if valueAsTime.IsZero() {
+			return "-"
+		}
+		return valueAsTime.Format(time.RFC3339)
 	default:
-		return fmt.Sprintf("%v", s.Value)
+		return fmt.Sprintf("[%s]%v", s.ValueType, s.Value)
 	}
 }
 
@@ -276,7 +283,21 @@ const (
 )
 
 const (
-	stateVarKeyNodeSkipped         = "node.skipped"         // ValueType: "boolean"
-	stateVarKeyCertificateValidity = "certificate.validity" // ValueType: "boolean"
-	stateVarKeyCertificateDaysLeft = "certificate.daysLeft" // ValueType: "number"
+	stateVarKeyWorkflowId           = "workflow.id"           // ValueType: "string"
+	stateVarKeyWorkflowName         = "workflow.name"         // ValueType: "string"
+	stateVarKeyRunId                = "run.id"                // ValueType: "string"
+	stateVarKeyRunTrigger           = "run.trigger"           // ValueType: "string"
+	stateVarKeyNodeId               = "node.id"               // ValueType: "string"
+	stateVarKeyNodeName             = "node.name"             // ValueType: "string"
+	stateVarKeyNodeSkipped          = "node.skipped"          // ValueType: "boolean"
+	stateVarKeyErrorNodeId          = "error.nodeId"          // ValueType: "string"
+	stateVarKeyErrorNodeName        = "error.nodeName"        // ValueType: "string"
+	stateVarKeyErrorMessage         = "error.message"         // ValueType: "string"
+	stateVarKeyCertificateDomain    = "certificate.domain"    // ValueType: "string"
+	stateVarKeyCertificateDomains   = "certificate.domains"   // ValueType: "string"
+	stateVarKeyCertificateNotBefore = "certificate.notBefore" // ValueType: "datetime"
+	stateVarKeyCertificateNotAfter  = "certificate.notAfter"  // ValueType: "datetime"
+	stateVarKeyCertificateHoursLeft = "certificate.hoursLeft" // ValueType: "number"
+	stateVarKeyCertificateDaysLeft  = "certificate.daysLeft"  // ValueType: "number"
+	stateVarKeyCertificateValidity  = "certificate.validity"  // ValueType: "boolean"
 )

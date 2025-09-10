@@ -1,8 +1,8 @@
 ﻿import { useTranslation } from "react-i18next";
 import { IconMoon, type IconProps, IconSun, IconSunMoon } from "@tabler/icons-react";
-
 import { Dropdown, type DropdownProps, Typography } from "antd";
 
+import Show from "@/components/Show";
 import { useBrowserTheme } from "@/hooks";
 import { mergeCls } from "@/utils/css";
 
@@ -54,7 +54,16 @@ export interface AppThemeIconProps extends IconProps {}
 const AppThemeIcon = (props: AppThemeIconProps) => {
   const { theme } = useBrowserTheme();
 
-  return theme === "dark" ? <IconMoon {...props} /> : <IconSun {...props} />;
+  return (
+    <Show>
+      <Show.Case when={theme === "dark"}>
+        <IconMoon {...props} />
+      </Show.Case>
+      <Show.Default>
+        <IconSun {...props} />
+      </Show.Default>
+    </Show>
+  );
 };
 
 export interface AppThemeLinkButtonProps {

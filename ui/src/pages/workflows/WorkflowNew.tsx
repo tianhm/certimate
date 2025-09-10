@@ -5,6 +5,7 @@ import { IconArrowRight, IconCode, IconSquarePlus2 } from "@tabler/icons-react";
 import { App, Button, Card, Spin, Typography } from "antd";
 import dayjs from "dayjs";
 
+import Show from "@/components/Show";
 import WorkflowGraphImportModal from "@/components/workflow/WorkflowGraphImportModal";
 import {
   WORKFLOW_NODE_TYPES,
@@ -61,12 +62,13 @@ const WorkflowNew = () => {
             title={
               <div className="flex w-full items-center justify-between gap-4 overflow-hidden transition-colors group-hover/card:text-primary">
                 <div className="flex-1 truncate">{name}</div>
-                <IconArrowRight className="opacity-0 transition-opacity group-hover/card:opacity-100" size="1.25em" />
+                <Show when={templatePending} fallback={<IconArrowRight className="opacity-0 transition-opacity group-hover/card:opacity-100" size="1.25em" />}>
+                  <Spin spinning={templateSelectKey === key} />
+                </Show>
               </div>
             }
             description={description}
           />
-          {templatePending && <Spin spinning={templateSelectKey === key} />}
         </div>
       </Card>
     );
@@ -114,7 +116,7 @@ const WorkflowNew = () => {
             notifyOnFailureNode.data.config = {
               ...notifyOnFailureNode.data.config,
               subject: "[Certimate] Workflow Failure Alert!",
-              message: "Your workflow run has failed. Please check the details.",
+              message: 'Your workflow "{{ $workflow.name }}" run has failed. Please check the details.',
             } as WorkflowNodeConfigForBizNotify;
 
             tryCatchNode.blocks!.at(0)!.blocks ??= [];
@@ -140,19 +142,21 @@ const WorkflowNew = () => {
             notifyOnExpiringSoonNode.data.config = {
               ...notifyOnExpiringSoonNode.data.config,
               subject: "[Certimate] Certificate Expiry Alert!",
-              message: "The certificate which you are monitoring will be expiring soon. Please pay attention to your website.",
+              message:
+                "The certificate which you are monitoring will be expiring soon. Please pay attention to your website. \r\nDomains: {{ $certificate.domains }} \r\nExpiration: {{ $certificate.notAfter }}({{ $certificate.daysLeft }} days left)",
             } as WorkflowNodeConfigForBizNotify;
 
             notifyOnExpiredNode.data.config = {
               ...notifyOnExpiredNode.data.config,
               subject: "[Certimate] Certificate Expiry Alert!",
-              message: "The certificate which you are monitoring has already expired. Please pay attention to your website.",
+              message:
+                "The certificate which you are monitoring has already expired. Please pay attention to your website. \r\nDomains: {{ $certificate.domains }} \r\nExpiration: {{ $certificate.notAfter }}",
             } as WorkflowNodeConfigForBizNotify;
 
             notifyOnFailureNode.data.config = {
               ...notifyOnFailureNode.data.config,
               subject: "[Certimate] Workflow Failure Alert!",
-              message: "Your workflow run has failed. Please check the details.",
+              message: 'Your workflow "{{ $workflow.name }}" run has failed. Please check the details.',
             } as WorkflowNodeConfigForBizNotify;
 
             tryCatchNode.blocks!.at(0)!.blocks ??= [];

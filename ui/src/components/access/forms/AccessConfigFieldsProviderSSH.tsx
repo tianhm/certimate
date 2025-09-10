@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import Show from "@/components/Show";
 import TextFileInput from "@/components/TextFileInput";
+import { mergeCls } from "@/utils/css";
 import { validDomainName, validIPv4Address, validIPv6Address, validPortNumber } from "@/utils/validators";
 
 import { useFormNestedFieldsContext } from "./_context";
@@ -86,116 +87,115 @@ const AccessConfigFormFieldsProviderSSH = ({ disabled }: { disabled?: boolean })
         <Form.List name={[parentNamePath, "jumpServers"]}>
           {(fields, { add, remove, move }) => (
             <div className="flex flex-col gap-2">
-              {fields?.length > 0 ? (
-                <Collapse
-                  items={fields.map(({ key, name: index }) => {
-                    const subfieldHost = fieldJumpServers?.[index]?.host;
-                    const subfieldPort = fieldJumpServers?.[index]?.post;
-                    const subfieldAuthMethod = fieldJumpServers?.[index]?.authMethod;
+              <Collapse
+                className={mergeCls({ hidden: !fields.length })}
+                items={fields?.map(({ key, name: index }) => {
+                  const subfieldHost = fieldJumpServers?.[index]?.host;
+                  const subfieldPort = fieldJumpServers?.[index]?.post;
+                  const subfieldAuthMethod = fieldJumpServers?.[index]?.authMethod;
 
-                    const subfieldHostAndPort =
-                      !!subfieldHost && !!subfieldPort
-                        ? `${subfieldHost}:${subfieldPort}`
-                        : subfieldHost
-                          ? subfieldHost
-                          : subfieldPort
-                            ? `:${subfieldPort}`
-                            : "unknown";
+                  const subfieldHostAndPort =
+                    !!subfieldHost && !!subfieldPort
+                      ? `${subfieldHost}:${subfieldPort}`
+                      : subfieldHost
+                        ? subfieldHost
+                        : subfieldPort
+                          ? `:${subfieldPort}`
+                          : "unknown";
 
-                    return {
-                      key: key,
-                      forceRender: true,
-                      label: (
-                        <span className="select-none">
-                          [{t("access.form.ssh_jump_servers.item.label")} {index + 1}] {subfieldHostAndPort}
-                        </span>
-                      ),
-                      extra: !disabled && (
-                        <div className="flex items-center justify-end">
-                          <Button
-                            icon={<IconCircleArrowUp size="1.25em" />}
-                            color="default"
-                            disabled={index === 0}
-                            size="small"
-                            type="text"
-                            onClick={(e) => {
-                              move(index, index - 1);
-                              e.stopPropagation();
-                            }}
-                          />
-                          <Button
-                            icon={<IconCircleArrowDown size="1.25em" />}
-                            color="default"
-                            disabled={index === fields.length - 1}
-                            size="small"
-                            type="text"
-                            onClick={(e) => {
-                              move(index, index + 1);
-                              e.stopPropagation();
-                            }}
-                          />
-                          <Button
-                            icon={<IconCircleMinus size="1.25em" />}
-                            color="default"
-                            size="small"
-                            type="text"
-                            onClick={(e) => {
-                              remove(index);
-                              e.stopPropagation();
-                            }}
-                          />
-                        </div>
-                      ),
-                      children: (
-                        <>
-                          <div className="flex space-x-2">
-                            <div className="w-2/3">
-                              <Form.Item name={[index, "host"]} label={t("access.form.ssh_host.label")} shouldUpdate rules={[formRule]}>
-                                <Input placeholder={t("access.form.ssh_host.placeholder")} />
-                              </Form.Item>
-                            </div>
-                            <div className="w-1/3">
-                              <Form.Item name={[index, "port"]} label={t("access.form.ssh_port.label")} shouldUpdate rules={[formRule]}>
-                                <InputNumber style={{ width: "100%" }} placeholder={t("access.form.ssh_port.placeholder")} min={1} max={65535} />
-                              </Form.Item>
-                            </div>
+                  return {
+                    key: key,
+                    forceRender: true,
+                    label: (
+                      <span className="select-none">
+                        [{t("access.form.ssh_jump_servers.item.label")} {index + 1}] {subfieldHostAndPort}
+                      </span>
+                    ),
+                    extra: !disabled && (
+                      <div className="flex items-center justify-end">
+                        <Button
+                          icon={<IconCircleArrowUp size="1.25em" />}
+                          color="default"
+                          disabled={index === 0}
+                          size="small"
+                          type="text"
+                          onClick={(e) => {
+                            move(index, index - 1);
+                            e.stopPropagation();
+                          }}
+                        />
+                        <Button
+                          icon={<IconCircleArrowDown size="1.25em" />}
+                          color="default"
+                          disabled={index === fields.length - 1}
+                          size="small"
+                          type="text"
+                          onClick={(e) => {
+                            move(index, index + 1);
+                            e.stopPropagation();
+                          }}
+                        />
+                        <Button
+                          icon={<IconCircleMinus size="1.25em" />}
+                          color="default"
+                          size="small"
+                          type="text"
+                          onClick={(e) => {
+                            remove(index);
+                            e.stopPropagation();
+                          }}
+                        />
+                      </div>
+                    ),
+                    children: (
+                      <>
+                        <div className="flex space-x-2">
+                          <div className="w-2/3">
+                            <Form.Item name={[index, "host"]} label={t("access.form.ssh_host.label")} shouldUpdate rules={[formRule]}>
+                              <Input placeholder={t("access.form.ssh_host.placeholder")} />
+                            </Form.Item>
                           </div>
+                          <div className="w-1/3">
+                            <Form.Item name={[index, "port"]} label={t("access.form.ssh_port.label")} shouldUpdate rules={[formRule]}>
+                              <InputNumber style={{ width: "100%" }} placeholder={t("access.form.ssh_port.placeholder")} min={1} max={65535} />
+                            </Form.Item>
+                          </div>
+                        </div>
 
-                          <Form.Item name={[index, "authMethod"]} label={t("access.form.ssh_auth_method.label")} shouldUpdate rules={[formRule]}>
-                            <Radio.Group
-                              options={[AUTH_METHOD_NONE, AUTH_METHOD_PASSWORD, AUTH_METHOD_KEY].map((s) => ({
-                                key: s,
-                                label: t(`access.form.ssh_auth_method.option.${s}.label`),
-                                value: s,
-                              }))}
-                            />
+                        <Form.Item name={[index, "authMethod"]} label={t("access.form.ssh_auth_method.label")} shouldUpdate rules={[formRule]}>
+                          <Radio.Group
+                            options={[AUTH_METHOD_NONE, AUTH_METHOD_PASSWORD, AUTH_METHOD_KEY].map((s) => ({
+                              key: s,
+                              label: t(`access.form.ssh_auth_method.option.${s}.label`),
+                              value: s,
+                            }))}
+                          />
+                        </Form.Item>
+
+                        <Form.Item name={[index, "username"]} label={t("access.form.ssh_username.label")} shouldUpdate rules={[formRule]}>
+                          <Input autoComplete="new-password" placeholder={t("access.form.ssh_username.placeholder")} />
+                        </Form.Item>
+
+                        <Show when={subfieldAuthMethod === AUTH_METHOD_PASSWORD}>
+                          <Form.Item name={[index, "password"]} label={t("access.form.ssh_password.label")} shouldUpdate rules={[formRule]}>
+                            <Input.Password allowClear autoComplete="new-password" placeholder={t("access.form.ssh_password.placeholder")} />
+                          </Form.Item>
+                        </Show>
+
+                        <Show when={subfieldAuthMethod === AUTH_METHOD_KEY}>
+                          <Form.Item name={[index, "key"]} label={t("access.form.ssh_key.label")} shouldUpdate rules={[formRule]}>
+                            <TextFileInput allowClear autoSize={{ minRows: 1, maxRows: 5 }} placeholder={t("access.form.ssh_key.placeholder")} />
                           </Form.Item>
 
-                          <Form.Item name={[index, "username"]} label={t("access.form.ssh_username.label")} shouldUpdate rules={[formRule]}>
-                            <Input autoComplete="new-password" placeholder={t("access.form.ssh_username.placeholder")} />
+                          <Form.Item name={[index, "keyPassphrase"]} label={t("access.form.ssh_key_passphrase.label")} shouldUpdate rules={[formRule]}>
+                            <Input.Password allowClear autoComplete="new-password" placeholder={t("access.form.ssh_key_passphrase.placeholder")} />
                           </Form.Item>
-
-                          <Show when={subfieldAuthMethod === AUTH_METHOD_PASSWORD}>
-                            <Form.Item name={[index, "password"]} label={t("access.form.ssh_password.label")} shouldUpdate rules={[formRule]}>
-                              <Input.Password allowClear autoComplete="new-password" placeholder={t("access.form.ssh_password.placeholder")} />
-                            </Form.Item>
-                          </Show>
-
-                          <Show when={subfieldAuthMethod === AUTH_METHOD_KEY}>
-                            <Form.Item name={[index, "key"]} label={t("access.form.ssh_key.label")} shouldUpdate rules={[formRule]}>
-                              <TextFileInput allowClear autoSize={{ minRows: 1, maxRows: 5 }} placeholder={t("access.form.ssh_key.placeholder")} />
-                            </Form.Item>
-
-                            <Form.Item name={[index, "keyPassphrase"]} label={t("access.form.ssh_key_passphrase.label")} shouldUpdate rules={[formRule]}>
-                              <Input.Password allowClear autoComplete="new-password" placeholder={t("access.form.ssh_key_passphrase.placeholder")} />
-                            </Form.Item>
-                          </Show>
-                        </>
-                      ),
-                    };
-                  })}
-                />
-              ) : null}
+                        </Show>
+                      </>
+                    ),
+                  };
+                })}
+              />
               <Button
                 className="w-full"
                 type="dashed"

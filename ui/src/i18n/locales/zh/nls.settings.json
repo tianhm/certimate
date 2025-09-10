@@ -57,5 +57,17 @@
   "settings.diagnostics.workflow_dispatcher.title": "工作流调度器",
   "settings.diagnostics.workflow_dispatcher.statistics.concurrency": "最大并发",
   "settings.diagnostics.workflow_dispatcher.statistics.pending": "等待运行",
-  "settings.diagnostics.workflow_dispatcher.statistics.processing": "运行中"
+  "settings.diagnostics.workflow_dispatcher.statistics.processing": "运行中",
+
+  "settings.about.tab": "关于",
+  "settings.about.version.new": "有新版本可更新",
+  "settings.about.socials.document": "文档",
+  "settings.about.socials.github": "GitHub",
+  "settings.about.socials.telegram": "Telegram",
+  "settings.about.socials.donate": "捐赠",
+  "settings.about.feedback.title": "帮助我们改进 Certimate",
+  "settings.about.feedback.subtitle": "告诉我们如何让 Certimate 为你更好地服务。",
+  "settings.about.feedback.button": "意见反馈",
+  "settings.about.contributors.title": "贡献者",
+  "settings.about.contributors.tips": "感谢所有贡献者对本项目做出的贡献。"
 }

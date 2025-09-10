@@ -306,7 +306,7 @@ const SettingsDiagnosticsWorkflowDispatcher = ({ className, style }: { className
   type Statistics = Awaited<ReturnType<typeof getWorkflowStats>>["data"];
   const [statistics, setStatistics] = useState<Statistics>();
 
-  const { loading } = useRequest(
+  const { loading, cancel } = useRequest(
     () => {
       return getWorkflowStats();
     },
@@ -317,6 +317,11 @@ const SettingsDiagnosticsWorkflowDispatcher = ({ className, style }: { className
       pollingWhenHidden: true,
       onSuccess: (res) => {
         setStatistics(res.data);
+      },
+      onError: () => {
+        if (!statistics) {
+          cancel();
+        }
       },
     }
   );

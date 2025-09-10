@@ -28,7 +28,7 @@ import { isBrowserHappy } from "@/utils/browser";
 const ConsoleLayout = () => {
   const navigate = useNavigate();
 
-  const { i18n, t } = useTranslation();
+  const { t } = useTranslation();
 
   const { token: themeToken } = theme.useToken();
 
@@ -40,11 +40,7 @@ const ConsoleLayout = () => {
   };
 
   const handleDocumentClick = () => {
-    if (i18n.language.startsWith("zh")) {
-      window.open(APP_DOCUMENT_URL, "_blank");
-    } else {
-      window.open(APP_DOCUMENT_URL + "/en/", "_blank");
-    }
+    window.open(APP_DOCUMENT_URL, "_blank");
   };
 
   const handleGitHubClick = () => {

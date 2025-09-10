@@ -9,6 +9,7 @@ import Dashboard from "@/pages/dashboard/Dashboard";
 import ErrorLayout from "@/pages/ErrorLayout";
 import Login from "@/pages/login/Login";
 import Settings from "@/pages/settings/Settings";
+import SettingsAbout from "@/pages/settings/SettingsAbout";
 import SettingsAccount from "@/pages/settings/SettingsAccount";
 import SettingsAppearance from "@/pages/settings/SettingsAppearance";
 import SettingsDiagnostics from "@/pages/settings/SettingsDiagnostics";
@@ -86,6 +87,10 @@ export const router = createHashRouter([
           {
             path: "/settings/diagnostics",
             element: <SettingsDiagnostics />,
+          },
+          {
+            path: "/settings/about",
+            element: <SettingsAbout />,
           },
         ],
       },

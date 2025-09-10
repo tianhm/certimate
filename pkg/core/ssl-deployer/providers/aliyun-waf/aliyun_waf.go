@@ -9,7 +9,7 @@ import (
 
 	aliopen "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	"github.com/alibabacloud-go/tea/tea"
-	aliwaf "github.com/alibabacloud-go/waf-openapi-20211001/v5/client"
+	aliwaf "github.com/alibabacloud-go/waf-openapi-20211001/v6/client"
 	"github.com/samber/lo"
 
 	"github.com/certimate-go/certimate/pkg/core"

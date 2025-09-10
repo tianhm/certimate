@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	aliopen "github.com/alibabacloud-go/darabonba-openapi/v2/client"
-	alinlb "github.com/alibabacloud-go/nlb-20220430/v2/client"
+	alinlb "github.com/alibabacloud-go/nlb-20220430/v4/client"
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/samber/lo"
 

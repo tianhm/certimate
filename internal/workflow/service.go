@@ -56,14 +56,19 @@ func (s *WorkflowService) InitSchedule(ctx context.Context) error {
 			var errs []error
 
 			err := app.GetScheduler().Add(fmt.Sprintf("workflow#%s", workflow.Id), workflow.TriggerCron, func() {
-				s.StartRun(context.Background(), &dtos.WorkflowStartRunReq{
+				_, err := s.StartRun(context.Background(), &dtos.WorkflowStartRunReq{
 					WorkflowId: workflow.Id,
 					RunTrigger: domain.WorkflowTriggerTypeScheduled,
 				})
+				if err != nil {
+					app.GetLogger().Error(fmt.Sprintf("failed to start scheduled run for workflow #%s", workflow.Id), slog.Any("error", err))
+				}
 			})
 			if err != nil {
 				app.GetLogger().Error(fmt.Sprintf("failed to register cron job for workflow #%s", workflow.Id), slog.Any("error", err))
 				errs = append(errs, err)
+			} else {
+				app.GetLogger().Info(fmt.Sprintf("registered cron job for workflow #%s", workflow.Id), slog.String("cron", workflow.TriggerCron))
 			}
 
 			if len(errs) > 0 {

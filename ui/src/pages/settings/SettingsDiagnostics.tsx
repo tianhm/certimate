@@ -217,10 +217,6 @@ const SettingsDiagnosticsCrons = ({ className, style }: { className?: string; st
     },
     {
       refreshDeps: [page, pageSize],
-      throttleWait: 1000,
-      throttleLeading: true,
-      pollingInterval: 3000,
-      pollingWhenHidden: true,
       onSuccess: (res) => {
         setListData(res.items);
         setListTotal(res.totalItems);

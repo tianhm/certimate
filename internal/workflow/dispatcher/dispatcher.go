@@ -325,9 +325,9 @@ func (wd *workflowDispatcher) tryExecuteAsync(task *taskInfo) {
 	})
 
 	// 执行工作流
-	wd.syslog.Info(fmt.Sprintf("workflow run #%s (work#%s) was started", task.RunId, task.WorkflowId))
+	wd.syslog.Info(fmt.Sprintf("workflow run #%s (work#%s) started", task.RunId, task.WorkflowId))
 	we.Invoke(task.ctx, workflowRun.WorkflowId, workflowRun.Id, workflowRun.Graph)
-	wd.syslog.Info(fmt.Sprintf("workflow run #%s (work#%s) was stopped", task.RunId, task.WorkflowId))
+	wd.syslog.Info(fmt.Sprintf("workflow run #%s (work#%s) stopped", task.RunId, task.WorkflowId))
 }
 
 func (wd *workflowDispatcher) tryNextAsync() {
@@ -349,7 +349,7 @@ func (wd *workflowDispatcher) tryNextAsync() {
 		}
 
 		if hasSameWorkflowTask {
-			wd.syslog.Warn(fmt.Sprintf("workflow run #%s is pending, because tasks that belonging to the same workflow already exists", pendingRunId))
+			wd.syslog.Warn(fmt.Sprintf("workflow run #%s is pending, because tasks that belonging to the same workflow #%s already exists", workflowRun.Id, workflowRun.WorkflowId))
 		} else if len(wd.processingTasks) >= wd.concurrency && wd.concurrency > 0 {
 			wd.syslog.Warn(fmt.Sprintf("workflow run #%s is pending, because the maximum concurrency (limit: %d) has been reached", pendingRunId, wd.concurrency))
 		} else {

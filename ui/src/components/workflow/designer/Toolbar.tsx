@@ -83,7 +83,7 @@ const Toolbar = ({
     <div className={className} style={style}>
       <div className="relative flex items-center gap-2">
         <Show when={showMouseState}>
-          <Tooltip title={isMouseFriendly ? t("workflow.detail.design.toolbar.hand_mode") : t("workflow.detail.design.toolbar.pointer_mode")}>
+          <Tooltip title={isMouseFriendly ? t("workflow.detail.design.toolbar.drag_mode") : t("workflow.detail.design.toolbar.pointer_mode")}>
             <Button
               ghost={isMouseFriendly}
               icon={<IconHandStop size={buttonIconSize} />}

@@ -72,7 +72,7 @@
   "workflow.detail.design.toolbar.horizontal_layout": "Horizontal Layout",
   "workflow.detail.design.toolbar.vertical_layout": "Vertical Layout",
   "workflow.detail.design.toolbar.minimap": "Minimap",
-  "workflow.detail.design.toolbar.hand_mode": "Hand mode",
+  "workflow.detail.design.toolbar.drag_mode": "Drag mode",
   "workflow.detail.design.toolbar.pointer_mode": "Pointer mode",
   "workflow.detail.design.drawer.node_id.label": "Node ID: ",
   "workflow.detail.design.drawer.disabled.on.tooltip": "Disable",

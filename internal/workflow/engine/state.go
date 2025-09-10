@@ -2,10 +2,8 @@
 
 import (
 	"fmt"
-	"regexp"
 	"slices"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 )
@@ -32,7 +30,7 @@ func (s VariableState) ValueString() string {
 		}
 		return valueAsTime.Format(time.RFC3339)
 	default:
-		return fmt.Sprintf("%v", s.Value)
+		return fmt.Sprintf("[%s]%v", s.ValueType, s.Value)
 	}
 }
 
@@ -49,8 +47,6 @@ type VariableManager interface {
 	TakeScoped(scope string, key string) (*VariableState, bool)
 	Remove(key string) bool
 	RemoveScoped(scope string, key string) bool
-
-	RenderTemplateString(template string) string
 }
 
 type variableManager struct {
@@ -151,35 +147,6 @@ func (m *variableManager) Remove(key string) bool {
 func (m *variableManager) RemoveScoped(scope string, key string) bool {
 	_, ok := m.TakeScoped(scope, key)
 	return ok
-}
-
-func (m *variableManager) RenderTemplateString(template string) string {
-	m.statesMtx.RLock()
-	defer m.statesMtx.RUnlock()
-
-	replaceFunc := func(match string) string {
-		mustache := strings.TrimSpace(match[2 : len(match)-2])
-		if mustache == "" {
-			return match
-		}
-
-		key := mustache[1:]
-		if key == "" {
-			return match
-		} else if key == "$now" {
-			return time.Now().Format(time.RFC3339)
-		}
-
-		// TODO: 支持作用域变量
-		if state, ok := m.Get(key); ok {
-			return state.ValueString()
-		}
-
-		return match
-	}
-
-	re := regexp.MustCompile(`\{\{\s*(\$[^\s]+)\s*\}\}`)
-	return re.ReplaceAllStringFunc(template, replaceFunc)
 }
 
 func newVariableManager() VariableManager {
@@ -316,9 +283,16 @@ const (
 )
 
 const (
+	stateVarKeyWorkflowId           = "workflow.id"           // ValueType: "string"
+	stateVarKeyWorkflowName         = "workflow.name"         // ValueType: "string"
+	stateVarKeyRunId                = "run.id"                // ValueType: "string"
+	stateVarKeyRunTrigger           = "run.trigger"           // ValueType: "string"
 	stateVarKeyNodeId               = "node.id"               // ValueType: "string"
 	stateVarKeyNodeName             = "node.name"             // ValueType: "string"
 	stateVarKeyNodeSkipped          = "node.skipped"          // ValueType: "boolean"
+	stateVarKeyErrorNodeId          = "error.nodeId"          // ValueType: "string"
+	stateVarKeyErrorNodeName        = "error.nodeName"        // ValueType: "string"
+	stateVarKeyErrorMessage         = "error.message"         // ValueType: "string"
 	stateVarKeyCertificateDomain    = "certificate.domain"    // ValueType: "string"
 	stateVarKeyCertificateDomains   = "certificate.domains"   // ValueType: "string"
 	stateVarKeyCertificateNotBefore = "certificate.notBefore" // ValueType: "datetime"

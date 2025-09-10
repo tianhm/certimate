@@ -3,6 +3,9 @@
 import (
 	"fmt"
 	"log/slog"
+	"regexp"
+	"strings"
+	"time"
 
 	"github.com/certimate-go/certimate/internal/notify"
 	"github.com/certimate-go/certimate/internal/repository"
@@ -37,14 +40,39 @@ func (ne *bizNotifyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 		}
 	}
 
+	// 渲染通知模板
+	reMustache := regexp.MustCompile(`\{\{\s*(\$[^\s]+)\s*\}\}`)
+	reMustacheReplacer := func(match string) string {
+		mustache := strings.TrimSpace(match[2 : len(match)-2])
+		if mustache == "" {
+			return match
+		}
+
+		key := mustache[1:]
+		if key == "" {
+			return match
+		} else if key == "now" {
+			return time.Now().Format(time.RFC3339)
+		}
+
+		// TODO: 支持作用域变量
+		if state, ok := execCtx.variables.Get(key); ok {
+			return state.ValueString()
+		}
+
+		return match
+	}
+	subject := reMustache.ReplaceAllStringFunc(nodeCfg.Subject, reMustacheReplacer)
+	message := reMustache.ReplaceAllStringFunc(nodeCfg.Message, reMustacheReplacer)
+
 	// 推送通知
 	notifier := notify.NewClient(notify.WithLogger(ne.logger))
 	notifyReq := &notify.SendNotificationRequest{
 		Provider:               nodeCfg.Provider,
 		ProviderAccessConfig:   providerAccessConfig,
 		ProviderExtendedConfig: nodeCfg.ProviderConfig,
-		Subject:                nodeCfg.Subject,
-		Message:                nodeCfg.Message,
+		Subject:                subject,
+		Message:                message,
 	}
 	if _, err := notifier.SendNotification(execCtx.ctx, notifyReq); err != nil {
 		ne.logger.Warn("could not send notification")

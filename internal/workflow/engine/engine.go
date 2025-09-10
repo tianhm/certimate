@@ -66,13 +66,13 @@ func (we *workflowEngine) Invoke(ctx context.Context, execution WorkflowExecutio
 	wfIOs := newInOutManager()
 
 	wfVars := newVariableManager()
-	wfVars.Set("workflow.id", execution.WorkflowId, "string")
-	wfVars.Set("workflow.name", execution.WorkflowName, "string")
-	wfVars.Set("run.id", execution.RunId, "string")
-	wfVars.Set("run.trigger", execution.RunTrigger, "string")
-	wfVars.Set("error.nodeId", "", "string")
-	wfVars.Set("error.nodeName", "", "string")
-	wfVars.Set("error.message", "", "string")
+	wfVars.Set(stateVarKeyWorkflowId, execution.WorkflowId, "string")
+	wfVars.Set(stateVarKeyWorkflowName, execution.WorkflowName, "string")
+	wfVars.Set(stateVarKeyRunId, execution.RunId, "string")
+	wfVars.Set(stateVarKeyRunTrigger, execution.RunTrigger, "string")
+	wfVars.Set(stateVarKeyErrorNodeId, "", "string")
+	wfVars.Set(stateVarKeyErrorNodeName, "", "string")
+	wfVars.Set(stateVarKeyErrorMessage, "", "string")
 
 	wfCtx := (&WorkflowContext{}).
 		SetExecutingWorkflow(execution.WorkflowId, execution.RunId, execution.Graph).
@@ -164,9 +164,9 @@ func (we *workflowEngine) executeNode(wfCtx *WorkflowContext, node *Node) error 
 	execRes, err := executor.Execute(execCtx)
 	if err != nil && !errors.Is(err, ErrTerminated) {
 		if !errors.Is(err, ErrBlocksException) {
-			wfCtx.variables.Set("error.nodeId", node.Id, "string")
-			wfCtx.variables.Set("error.nodeName", node.Data.Name, "string")
-			wfCtx.variables.Set("error.message", err.Error(), "string")
+			wfCtx.variables.Set(stateVarKeyErrorNodeId, node.Id, "string")
+			wfCtx.variables.Set(stateVarKeyErrorNodeName, node.Data.Name, "string")
+			wfCtx.variables.Set(stateVarKeyErrorMessage, err.Error(), "string")
 		}
 
 		we.fireOnNodeErrorHooks(wfCtx.ctx, node, err)

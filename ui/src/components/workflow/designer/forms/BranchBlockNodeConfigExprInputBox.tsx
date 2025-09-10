@@ -189,12 +189,16 @@ const BranchBlockNodeConfigExprInputBox = forwardRef<BranchBlockNodeConfigExprIn
           };
 
           group.options.push({
-            label: `${t("workflow.variables.type.certificate.label")} - ${t("workflow.variables.selector.validity.label")}`,
-            value: `${node.id}#certificate.validity#boolean`,
+            label: `${t("workflow.variables.type.certificate.label")} - ${t("workflow.variables.selector.hours_left.label")}`,
+            value: `${node.id}#certificate.hoursLeft#number`,
           });
           group.options.push({
             label: `${t("workflow.variables.type.certificate.label")} - ${t("workflow.variables.selector.days_left.label")}`,
             value: `${node.id}#certificate.daysLeft#number`,
+          });
+          group.options.push({
+            label: `${t("workflow.variables.type.certificate.label")} - ${t("workflow.variables.selector.validity.label")}`,
+            value: `${node.id}#certificate.validity#boolean`,
           });
 
           return group;

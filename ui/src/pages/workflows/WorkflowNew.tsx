@@ -116,7 +116,7 @@ const WorkflowNew = () => {
             notifyOnFailureNode.data.config = {
               ...notifyOnFailureNode.data.config,
               subject: "[Certimate] Workflow Failure Alert!",
-              message: "Your workflow run has failed. Please check the details.",
+              message: 'Your workflow "{{ $workflow.name }}" run has failed. Please check the details.',
             } as WorkflowNodeConfigForBizNotify;
 
             tryCatchNode.blocks!.at(0)!.blocks ??= [];
@@ -142,19 +142,21 @@ const WorkflowNew = () => {
             notifyOnExpiringSoonNode.data.config = {
               ...notifyOnExpiringSoonNode.data.config,
               subject: "[Certimate] Certificate Expiry Alert!",
-              message: "The certificate which you are monitoring will be expiring soon. Please pay attention to your website.",
+              message:
+                "The certificate which you are monitoring will be expiring soon. Please pay attention to your website. \r\nDomains: {{ $certificate.domains }} \r\nExpiration: {{ $certificate.notAfter }}({{ $certificate.daysLeft }} days left)",
             } as WorkflowNodeConfigForBizNotify;
 
             notifyOnExpiredNode.data.config = {
               ...notifyOnExpiredNode.data.config,
               subject: "[Certimate] Certificate Expiry Alert!",
-              message: "The certificate which you are monitoring has already expired. Please pay attention to your website.",
+              message:
+                "The certificate which you are monitoring has already expired. Please pay attention to your website. \r\nDomains: {{ $certificate.domains }} \r\nExpiration: {{ $certificate.notAfter }}",
             } as WorkflowNodeConfigForBizNotify;
 
             notifyOnFailureNode.data.config = {
               ...notifyOnFailureNode.data.config,
               subject: "[Certimate] Workflow Failure Alert!",
-              message: "Your workflow run has failed. Please check the details.",
+              message: 'Your workflow "{{ $workflow.name }}" run has failed. Please check the details.',
             } as WorkflowNodeConfigForBizNotify;
 
             tryCatchNode.blocks!.at(0)!.blocks ??= [];

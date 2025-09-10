@@ -4,7 +4,6 @@ import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
 import CodeInput from "@/components/CodeInput";
-import Tips from "@/components/Tips";
 
 import { useFormNestedFieldsContext } from "./_context";
 
@@ -46,10 +45,6 @@ const BizDeployNodeConfigFieldsProviderWebhook = () => {
           placeholder={t("workflow_node.deploy.form.webhook_data.placeholder")}
           onBlur={handleWebhookDataBlur}
         />
-      </Form.Item>
-
-      <Form.Item>
-        <Tips message={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.webhook_data.guide") }}></span>} />
       </Form.Item>
 
       <Form.Item name={[parentNamePath, "timeout"]} label={t("workflow_node.deploy.form.webhook_timeout.label")} rules={[formRule]}>

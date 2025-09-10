@@ -5,6 +5,7 @@ import { IconArrowRight, IconCode, IconSquarePlus2 } from "@tabler/icons-react";
 import { App, Button, Card, Spin, Typography } from "antd";
 import dayjs from "dayjs";
 
+import Show from "@/components/Show";
 import WorkflowGraphImportModal from "@/components/workflow/WorkflowGraphImportModal";
 import {
   WORKFLOW_NODE_TYPES,
@@ -61,12 +62,13 @@ const WorkflowNew = () => {
             title={
               <div className="flex w-full items-center justify-between gap-4 overflow-hidden transition-colors group-hover/card:text-primary">
                 <div className="flex-1 truncate">{name}</div>
-                <IconArrowRight className="opacity-0 transition-opacity group-hover/card:opacity-100" size="1.25em" />
+                <Show when={templatePending} fallback={<IconArrowRight className="opacity-0 transition-opacity group-hover/card:opacity-100" size="1.25em" />}>
+                  <Spin spinning={templateSelectKey === key} />
+                </Show>
               </div>
             }
             description={description}
           />
-          {templatePending && <Spin spinning={templateSelectKey === key} />}
         </div>
       </Card>
     );

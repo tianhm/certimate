@@ -2,6 +2,7 @@ import { startTransition, useCallback, useMemo, useState } from "react";
 import { type FlowNodeEntity } from "@flowgram.ai/fixed-layout-editor";
 import { useControllableValue } from "ahooks";
 
+import Show from "@/components/Show";
 import { useTriggerElement } from "@/hooks";
 
 import BizApplyNodeConfigDrawer from "./forms/BizApplyNodeConfigDrawer";
@@ -49,25 +50,35 @@ const NodeDrawer = ({ node, trigger, ...props }: NodeDrawerProps) => {
     <>
       {triggerEl}
 
-      {node?.flowNodeType === NodeType.Start ? (
-        <StartNodeConfigDrawer {...drawerProps} />
-      ) : node?.flowNodeType === NodeType.Delay ? (
-        <DelayNodeConfigDrawer {...drawerProps} />
-      ) : node?.flowNodeType === NodeType.BranchBlock ? (
-        <BranchBlockNodeConfigDrawer {...drawerProps} />
-      ) : node?.flowNodeType === NodeType.BizApply ? (
-        <BizApplyNodeConfigDrawer {...drawerProps} />
-      ) : node?.flowNodeType === NodeType.BizUpload ? (
-        <BizUploadNodeConfigDrawer {...drawerProps} />
-      ) : node?.flowNodeType === NodeType.BizMonitor ? (
-        <BizMonitorNodeConfigDrawer {...drawerProps} />
-      ) : node?.flowNodeType === NodeType.BizDeploy ? (
-        <BizDeployNodeConfigDrawer {...drawerProps} />
-      ) : node?.flowNodeType === NodeType.BizNotify ? (
-        <BizNotifyNodeConfigDrawer {...drawerProps} />
-      ) : (
-        <></>
-      )}
+      <Show>
+        <Show.Case when={node?.flowNodeType === NodeType.Start}>
+          <StartNodeConfigDrawer {...drawerProps} />
+        </Show.Case>
+        <Show.Case when={node?.flowNodeType === NodeType.Delay}>
+          <DelayNodeConfigDrawer {...drawerProps} />
+        </Show.Case>
+        <Show.Case when={node?.flowNodeType === NodeType.BranchBlock}>
+          <BranchBlockNodeConfigDrawer {...drawerProps} />
+        </Show.Case>
+        <Show.Case when={node?.flowNodeType === NodeType.BizApply}>
+          <BizApplyNodeConfigDrawer {...drawerProps} />
+        </Show.Case>
+        <Show.Case when={node?.flowNodeType === NodeType.BizUpload}>
+          <BizUploadNodeConfigDrawer {...drawerProps} />
+        </Show.Case>
+        <Show.Case when={node?.flowNodeType === NodeType.BizMonitor}>
+          <BizMonitorNodeConfigDrawer {...drawerProps} />
+        </Show.Case>
+        <Show.Case when={node?.flowNodeType === NodeType.BizDeploy}>
+          <BizDeployNodeConfigDrawer {...drawerProps} />
+        </Show.Case>
+        <Show.Case when={node?.flowNodeType === NodeType.BizNotify}>
+          <BizNotifyNodeConfigDrawer {...drawerProps} />
+        </Show.Case>
+        <Show.Default>
+          <></>
+        </Show.Default>
+      </Show>
     </>
   );
 };

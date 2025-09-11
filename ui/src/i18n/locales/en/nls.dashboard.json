@@ -2,7 +2,7 @@
   "dashboard.page.title": "Dashboard",
 
   "dashboard.statistics.all_certificates": "All certificates",
-  "dashboard.statistics.expire_soon_certificates": "Expiring soon certificates",
+  "dashboard.statistics.expiring_soon_certificates": "Expiring soon certificates",
   "dashboard.statistics.expired_certificates": "Expired certificates",
   "dashboard.statistics.all_workflows": "All workflows",
   "dashboard.statistics.enabled_workflows": "Active workflows",

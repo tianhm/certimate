@@ -2,7 +2,7 @@
   "dashboard.page.title": "仪表盘",
 
   "dashboard.statistics.all_certificates": "所有证书",
-  "dashboard.statistics.expire_soon_certificates": "即将过期证书",
+  "dashboard.statistics.expiring_soon_certificates": "即将过期证书",
   "dashboard.statistics.expired_certificates": "已过期证书",
   "dashboard.statistics.all_workflows": "所有工作流",
   "dashboard.statistics.enabled_workflows": "已启用工作流",

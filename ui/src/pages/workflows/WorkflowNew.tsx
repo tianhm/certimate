@@ -164,7 +164,7 @@ const WorkflowNew = () => {
             tryCatchNode.blocks!.at(1)!.blocks ??= [];
             tryCatchNode.blocks!.at(1)!.blocks!.unshift(notifyOnFailureNode);
 
-            conditionNode.blocks!.at(0)!.data.name = t("workflow_node.condition.default_name.template_certtest_on_expire_soon");
+            conditionNode.blocks!.at(0)!.data.name = t("workflow_node.condition.default_name.template_certtest_on_expiring_soon");
             conditionNode.blocks!.at(0)!.data.config = {
               ...conditionNode.blocks!.at(0)!.data.config,
               expression: {

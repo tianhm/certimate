@@ -373,7 +373,7 @@ const CertificateList = () => {
               <Segmented
                 options={[
                   { label: <span className="text-sm">{t("certificate.props.validity.filter.all")}</span>, value: "" },
-                  { label: <span className="text-sm">{t("certificate.props.validity.filter.expire_soon")}</span>, value: "expiringSoon" },
+                  { label: <span className="text-sm">{t("certificate.props.validity.filter.expiring_soon")}</span>, value: "expiringSoon" },
                   { label: <span className="text-sm">{t("certificate.props.validity.filter.expired")}</span>, value: "expired" },
                 ]}
                 size="large"

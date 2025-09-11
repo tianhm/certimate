@@ -64,7 +64,7 @@ const SettingsAbout = () => {
       <div className="mb-4">
         <Typography.Text type="secondary">{t("settings.about.contributors.tips")}</Typography.Text>
       </div>
-      <div className="mb-2">
+      <div className="mb-2 md:max-w-160">
         <img className="max-w-full" src="https://contrib.rocks/image?repo=certimate-go/certimate" alt="Contributors" />
       </div>
 

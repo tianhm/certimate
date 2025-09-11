@@ -171,7 +171,7 @@ const StatisticCards = ({ className, style }: { className?: string; style?: Reac
           <StatisticCard
             style={cardStylesFn("var(--color-warning)")}
             icon={<IconAlertHexagon size={48} />}
-            label={t("dashboard.statistics.expire_soon_certificates")}
+            label={t("dashboard.statistics.expiring_soon_certificates")}
             loading={loading}
             value={statistics?.certificateExpiringSoon ?? "-"}
             onClick={() => navigate("/certificates?state=expiringSoon")}

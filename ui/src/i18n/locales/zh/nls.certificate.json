@@ -22,7 +22,7 @@
   "certificate.props.validity.expired": "已过期",
   "certificate.props.validity.expiration": "{{date}} 过期",
   "certificate.props.validity.filter.all": "全部",
-  "certificate.props.validity.filter.expire_soon": "即将过期",
+  "certificate.props.validity.filter.expiring_soon": "即将过期",
   "certificate.props.validity.filter.expired": "已过期",
   "certificate.props.brand": "证书品牌",
   "certificate.props.source": "来源",

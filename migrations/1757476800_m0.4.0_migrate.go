@@ -140,7 +140,8 @@ func init() {
 						if access, err := app.FindRecordById("access", strings.Split(ca, "#")[1]); err != nil {
 							deleted = true
 						} else {
-							switch access.GetString("provider") {
+							provider := access.GetString("provider")
+							switch provider {
 							case "buypass":
 								record.Set("acmeDirUrl", "https://api.buypass.com/acme/directory")
 								changed = true
@@ -172,6 +173,22 @@ func init() {
 
 						case "letsencryptstaging":
 							record.Set("acmeDirUrl", "https://acme-staging-v02.api.letsencrypt.org/directory")
+							changed = true
+
+						case "buypass":
+							record.Set("acmeDirUrl", "https://api.buypass.com/acme/directory")
+							changed = true
+
+						case "googletrustservices":
+							record.Set("acmeDirUrl", "https://dv.acme-v02.api.pki.goog/directory")
+							changed = true
+
+						case "sslcom":
+							record.Set("acmeDirUrl", "https://acme.ssl.com/sslcom-dv-rsa")
+							changed = true
+
+						case "zerossl":
+							record.Set("acmeDirUrl", "https://acme.zerossl.com/v2/DV90")
 							changed = true
 						}
 					}

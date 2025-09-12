@@ -300,7 +300,11 @@ func init() {
 						}
 					],
 					"id": "012d7abbod1hwvr",
-					"indexes": [],
+					"indexes": [
+						"CREATE INDEX ` + "`" + `idx_dQiYzimY7m` + "`" + ` ON ` + "`" + `acme_accounts` + "`" + ` (` + "`" + `ca` + "`" + `)",
+						"CREATE INDEX ` + "`" + `idx_TjyqY6LAGa` + "`" + ` ON ` + "`" + `acme_accounts` + "`" + ` (\n  ` + "`" + `ca` + "`" + `,\n  ` + "`" + `acmeDirUrl` + "`" + `\n)",
+						"CREATE UNIQUE INDEX ` + "`" + `idx_G4brUDgxzc` + "`" + ` ON ` + "`" + `acme_accounts` + "`" + ` (\n  ` + "`" + `ca` + "`" + `,\n  ` + "`" + `acmeDirUrl` + "`" + `,\n  ` + "`" + `acmeAcctUrl` + "`" + `\n)"
+					],
 					"name": "acme_accounts",
 					"system": false,
 					"type": "base"
@@ -1219,6 +1223,8 @@ func init() {
 				"1751961600_upgrade.go",
 				"1753272000_v0.4.0_migrate.go",
 				"1755187200_cm0.4.0_migrate.go",
+				"1756296000_cm0.4.0_migrate.go",
+				"1757476800_cm0.4.0_initialize.go",
 			}
 			for _, name := range migrations {
 				app.DB().NewQuery("DELETE FROM _migrations WHERE file='" + name + "'").Execute()

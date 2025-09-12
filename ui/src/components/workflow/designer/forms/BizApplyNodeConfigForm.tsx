@@ -876,6 +876,16 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
       ),
     })
     .superRefine((values, ctx) => {
+      if (values.domains) {
+        if (values.challengeType === CHALLENGE_TYPE_HTTP01 && values.domains.includes("*")) {
+          ctx.addIssue({
+            code: "custom",
+            message: t("workflow_node.apply.form.domains.errmsg.no_wildcard_in_http01"),
+            path: ["domains"],
+          });
+        }
+      }
+
       if (values.provider) {
         switch (values.challengeType) {
           case CHALLENGE_TYPE_DNS01:

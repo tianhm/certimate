@@ -31,6 +31,7 @@
   "workflow_node.apply.form_anchor.strategy.title": "执行策略",
   "workflow_node.apply.form.domains.label": "域名",
   "workflow_node.apply.form.domains.placeholder": "请输入域名（多个值请用半角分号隔开）",
+  "workflow_node.apply.form.domains.errmsg.no_wildcard_in_http01": "HTTP-01 质询不支持签发泛域名证书。",
   "workflow_node.apply.form.domains.help": "提示：多域名请用半角分号隔开；泛域名表示形式为 <em>*.example.com</em>。",
   "workflow_node.apply.form.domains.help_no_wildcard": "提示：多域名请用半角分号隔开。",
   "workflow_node.apply.form.domains.multiple_input_modal.title": "修改域名",

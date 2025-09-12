@@ -31,6 +31,7 @@
   "workflow_node.apply.form_anchor.strategy.title": "Strategy settings",
   "workflow_node.apply.form.domains.label": "Domains",
   "workflow_node.apply.form.domains.placeholder": "Please enter domains (separated by semicolons)",
+  "workflow_node.apply.form.domains.errmsg.no_wildcard_in_http01": "HTTP-01 challenge does not support issuing wildcard certificates.",
   "workflow_node.apply.form.domains.help": "Notes: Multi-domains should be separated by semicolons. Wildcard domain should be written as <em>*.example.com</em>.",
   "workflow_node.apply.form.domains.help_no_wildcard": "Notes: Multi-domains should be separated by semicolons.",
   "workflow_node.apply.form.domains.multiple_input_modal.title": "Change domains",

@@ -5,6 +5,7 @@ on:
     tags:
       - "v[0-9]*-alpha*"
       - "v[0-9]*-beta*"
+      - "v[0-9]*-rc*"
   workflow_dispatch:
     inputs:
       tag:
@@ -61,6 +62,7 @@ jobs:
             registry.cn-shanghai.aliyuncs.com/certimate/certimate
           tags: |
             type=ref,event=tag,pattern={{version}}
+            type=raw,value=next
           flavor: |
             latest=false
 

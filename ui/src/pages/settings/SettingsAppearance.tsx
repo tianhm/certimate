@@ -75,7 +75,7 @@ const SettingsAppearanceLanguage = ({ className, style }: { className?: string; 
   const [localeChanged, setLocaleChanged] = useState(false);
 
   const handleChange = (value: string) => {
-    if (value !== i18n.language) {
+    if (value !== (i18n.resolvedLanguage ?? i18n.language)) {
       setLocaleChanged(true);
       i18n.changeLanguage(value);
     }
@@ -91,7 +91,7 @@ const SettingsAppearanceLanguage = ({ className, style }: { className?: string; 
               value: item.key,
               label: item.label,
             }))}
-            value={i18n.language}
+            value={i18n.resolvedLanguage ?? i18n.language}
             onChange={handleChange}
           />
         </Form.Item>

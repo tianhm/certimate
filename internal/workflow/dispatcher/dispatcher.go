@@ -102,25 +102,6 @@ func (wd *workflowDispatcher) Bootup(ctx context.Context) error {
 
 	wd.booted = true
 
-	ticker := time.NewTicker(1 * time.Minute)
-	go func() {
-		defer ticker.Stop()
-
-		for {
-			select {
-			case <-ticker.C:
-				// 无需准确获取，不用加锁
-				if len(wd.processingTasks) < wd.concurrency && len(wd.pendingRunQueue) > 0 {
-					wd.tryNextAsync()
-				}
-			default:
-				if !wd.booted {
-					return
-				}
-			}
-		}
-	}()
-
 	return nil
 }
 

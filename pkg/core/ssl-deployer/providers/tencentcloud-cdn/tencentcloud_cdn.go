@@ -86,10 +86,6 @@ func (d *SSLDeployerProvider) SetLogger(logger *slog.Logger) {
 }
 
 func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privkeyPEM string) (*core.SSLDeployResult, error) {
-	if d.config.Domain == "" {
-		return nil, errors.New("config `domain` is required")
-	}
-
 	// 上传证书
 	upres, err := d.sslManager.Upload(ctx, certPEM, privkeyPEM)
 	if err != nil {
@@ -103,11 +99,19 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	switch d.config.MatchPattern {
 	case "", MatchPatternExact:
 		{
+			if d.config.Domain == "" {
+				return nil, errors.New("config `domain` is required")
+			}
+
 			domains = append(domains, d.config.Domain)
 		}
 
 	case MatchPatternWildcard:
 		{
+			if d.config.Domain == "" {
+				return nil, errors.New("config `domain` is required")
+			}
+
 			if strings.HasPrefix(d.config.Domain, "*.") {
 				temp, err := d.getMatchedDomainsByWildcard(ctx, d.config.Domain)
 				if err != nil {

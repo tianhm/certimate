@@ -188,7 +188,7 @@ const BizNotifyNodeConfigForm = ({ node, ...props }: BizNotifyNodeConfigFormProp
                   }}
                 />
               </div>
-              <Form.Item name="providerAccessId" noStyle rules={[formRule]}>
+              <Form.Item name="providerAccessId" dependencies={["provider"]} noStyle rules={[formRule]}>
                 <AccessSelect
                   disabled={!fieldProvider}
                   placeholder={t("workflow_node.notify.form.provider_access.placeholder")}

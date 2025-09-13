@@ -584,7 +584,7 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
                   }}
                 />
               </div>
-              <Form.Item name="providerAccessId" rules={[formRule]} noStyle>
+              <Form.Item name="providerAccessId" dependencies={["provider"]} rules={[formRule]} noStyle>
                 <AccessSelect
                   disabled={!fieldProvider}
                   placeholder={t("workflow_node.deploy.form.provider_access.placeholder")}

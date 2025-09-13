@@ -287,6 +287,7 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
         <div id="parameters" data-anchor="parameters">
           <Form.Item
             name="domains"
+            dependencies={["challengeType"]}
             label={t("workflow_node.apply.form.domains.label")}
             extra={
               <span
@@ -340,6 +341,7 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
 
           <Form.Item
             name="provider"
+            dependencies={["challengeType"]}
             label={
               fieldChallengeType === CHALLENGE_TYPE_DNS01
                 ? t("workflow_node.apply.form.provider_dns01.label")
@@ -399,7 +401,7 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
                 }}
               />
             </div>
-            <Form.Item name="providerAccessId" rules={[formRule]} noStyle>
+            <Form.Item name="providerAccessId" dependencies={["challengeType", "provider"]} rules={[formRule]} noStyle>
               <AccessSelect
                 disabled={!fieldProvider}
                 placeholder={
@@ -480,7 +482,7 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
                 }}
               />
             </div>
-            <Form.Item name="caProviderAccessId" noStyle rules={[formRule]}>
+            <Form.Item name="caProviderAccessId" dependencies={["caProvider"]} noStyle rules={[formRule]}>
               <AccessSelect
                 disabled={!fieldCAProvider}
                 placeholder={t("workflow_node.apply.form.ca_provider_access.placeholder")}

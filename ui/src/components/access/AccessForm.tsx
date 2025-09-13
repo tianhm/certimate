@@ -401,7 +401,9 @@ const AccessForm = ({ className, style, disabled, initialValues, mode, usage, ..
         />
       </Form.Item>
 
-      <FormNestedFieldsContextProvider value={{ parentNamePath: "config" }}>{nestedProviderConfigFields}</FormNestedFieldsContextProvider>
+      <FormNestedFieldsContextProvider value={{ parentNamePath: "config" }}>
+        <>{nestedProviderConfigFields}</>
+      </FormNestedFieldsContextProvider>
     </Form>
   );
 };

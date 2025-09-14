@@ -35,18 +35,19 @@ const AccessNew = () => {
   };
 
   const handleSubmitClick = async () => {
+    let formValues: AccessModel;
+
     setFormPending(true);
     try {
-      await formInst.validateFields();
+      formValues = await formInst.validateFields();
+      formValues.reserve = providerUsage === "ca" ? "ca" : providerUsage === "notification" ? "notif" : void 0;
     } catch (err) {
       setFormPending(false);
       throw err;
     }
 
     try {
-      const values: AccessModel = formInst.getFieldsValue(true);
-      values.reserve = providerUsage === "ca" ? "ca" : providerUsage === "notification" ? "notif" : void 0;
-      await createAccess(values);
+      await createAccess(formValues);
 
       navigate(`/accesses?usage=${providerUsage}`, { replace: true });
     } catch (err) {

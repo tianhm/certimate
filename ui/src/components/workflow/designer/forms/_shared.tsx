@@ -80,9 +80,11 @@ export const NodeConfigDrawer = ({ children, afterClose, anchor, footer = true, 
       return;
     }
 
+    let formValues: Record<string, unknown>;
+
     setFormPending(true);
     try {
-      await formInst.validateFields();
+      formValues = await formInst.validateFields();
     } catch (err) {
       message.warning(t("common.errmsg.form_invalid"));
 
@@ -91,7 +93,7 @@ export const NodeConfigDrawer = ({ children, afterClose, anchor, footer = true, 
     }
 
     try {
-      getNodeForm(node)!.setValueIn("config", formInst.getFieldsValue(true));
+      getNodeForm(node)!.setValueIn("config", formValues);
       getNodeForm(node)!.validate();
 
       setOpen(false);

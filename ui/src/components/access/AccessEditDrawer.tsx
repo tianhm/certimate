@@ -53,9 +53,12 @@ const AccessEditDrawer = ({ afterClose, afterSubmit, mode, data, loading, trigge
   };
 
   const handleOkClick = async () => {
+    let formValues: AccessModel;
+
     setFormPending(true);
     try {
-      await formInst.validateFields();
+      formValues = await formInst.validateFields();
+      formValues.reserve = usage === "ca" ? "ca" : usage === "notification" ? "notif" : void 0;
     } catch (err) {
       message.warning(t("common.errmsg.form_invalid"));
 
@@ -64,26 +67,23 @@ const AccessEditDrawer = ({ afterClose, afterSubmit, mode, data, loading, trigge
     }
 
     try {
-      let values: AccessModel = formInst.getFieldsValue(true);
-      values.reserve = usage === "ca" ? "ca" : usage === "notification" ? "notif" : void 0;
-
       if (mode === "create") {
         if (data?.id) {
           throw "Invalid props: `data`";
         }
 
-        values = await createAccess(values);
+        formValues = await createAccess(formValues);
       } else if (mode === "edit") {
         if (!data?.id) {
           throw "Invalid props: `data`";
         }
 
-        values = await updateAccess({ ...data, ...values });
+        formValues = await updateAccess({ ...data, ...formValues });
       } else {
         throw "Invalid props: `action`";
       }
 
-      afterSubmit?.(values);
+      afterSubmit?.(formValues);
       setOpen(false);
     } catch (err) {
       notification.error({ message: t("common.text.request_error"), description: getErrMsg(err) });

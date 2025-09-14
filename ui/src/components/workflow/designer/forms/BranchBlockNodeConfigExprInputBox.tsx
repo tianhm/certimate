@@ -256,8 +256,8 @@ const BranchBlockNodeConfigExprInputBox = forwardRef<BranchBlockNodeConfigExprIn
     useImperativeHandle(ref, () => {
       return {
         validate: async () => {
-          await formInst.validateFields();
-          return formValuesToExpr(formInst.getFieldsValue());
+          const formValues = await formInst.validateFields();
+          return formValuesToExpr(formValues);
         },
       };
     });

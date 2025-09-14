@@ -55,7 +55,6 @@
 
   "workflow.detail.baseinfo.name.placeholder": "请输入工作流名称",
   "workflow.detail.baseinfo.description.placeholder": "请输入工作流描述",
-  "workflow.detail.design_legacy.tab": "流程编排（旧版）",
   "workflow.detail.design.tab": "流程编排",
   "workflow.detail.design.editor.placeholder": "请完成配置",
   "workflow.detail.design.editor.add_node": "添加节点",

@@ -27,7 +27,7 @@ body:
     attributes:
       label: 软件版本 / Release Version
       description: 请提供 Certimate 的具体版本（请不要填写 `latest` 之类的无效版本号）。 / Please provide the specific version of Certimate.
-      placeholder: (e.g. v1.0.0)
+      placeholder: (e.g. v1.0.0. `latest` is **NOT** a valid version!)
     validations:
       required: true
 

@@ -76,7 +76,10 @@ const AccessNew = () => {
             autoFocus
             gap="large"
             placeholder={t("access.form.provider.search.placeholder")}
-            showOptionTags={providerUsage == null || (providerUsage === "dns-hosting" ? { [ACCESS_USAGES.DNS]: true, [ACCESS_USAGES.HOSTING]: true } : false)}
+            showOptionTags={
+              providerUsage == null ||
+              (providerUsage === "dns-hosting" ? { ["builtin"]: true, [ACCESS_USAGES.DNS]: true, [ACCESS_USAGES.HOSTING]: true } : { ["builtin"]: true })
+            }
             showSearch
             onFilter={providerFilter}
             onSelect={handleProviderPick}

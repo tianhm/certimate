@@ -8,7 +8,7 @@ import { ACCESS_USAGES, type AccessProvider, type AccessUsageType, accessProvide
 import { type SharedSelectProps } from "./_shared";
 
 export interface AccessProviderSelectProps extends SharedSelectProps<AccessProvider> {
-  showOptionTags?: boolean | { [key in AccessUsageType]?: boolean };
+  showOptionTags?: boolean | { [key in AccessUsageType | "builtin"]?: boolean };
 }
 
 const AccessProviderSelect = ({ showOptionTags, onFilter, ...props }: AccessProviderSelectProps = { showOptionTags: true }) => {
@@ -27,6 +27,9 @@ const AccessProviderSelect = ({ showOptionTags, onFilter, ...props }: AccessProv
   }, [showOptionTags]);
   const showOptionTagForNotification = useMemo(() => {
     return typeof showOptionTags === "object" ? !!showOptionTags?.[ACCESS_USAGES.NOTIFICATION] : !!showOptionTags;
+  }, [showOptionTags]);
+  const showOptionTagForBuiltin = useMemo(() => {
+    return typeof showOptionTags === "object" ? !!showOptionTags?.["builtin"] : !!showOptionTags;
   }, [showOptionTags]);
 
   const options = useMemo<Array<{ key: string; value: string; label: string; data: AccessProvider }>>(() => {
@@ -58,7 +61,7 @@ const AccessProviderSelect = ({ showOptionTags, onFilter, ...props }: AccessProv
           </Typography.Text>
         </div>
         <div className="origin-right scale-75 whitespace-nowrap">
-          <Show when={provider.builtin}>
+          <Show when={showOptionTagForBuiltin && provider.builtin}>
             <Tag>{t("access.props.provider.builtin")}</Tag>
           </Show>
           <Show when={showOptionTagForDNS && provider.usages.includes(ACCESS_USAGES.DNS)}>

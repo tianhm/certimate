@@ -1,7 +1,7 @@
 ﻿import { useEffect, useLayoutEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { RouterProvider } from "react-router-dom";
-import { App, ConfigProvider, type ThemeConfig, theme } from "antd";
+import { Alert, App, ConfigProvider, type ThemeConfig, theme } from "antd";
 import { type Locale } from "antd/es/locale";
 import AntdLocaleEnUs from "antd/locale/en_US";
 import AntdLocaleZhCN from "antd/locale/zh_CN";
@@ -107,9 +107,11 @@ const RootApp = () => {
         },
       }}
     >
-      <App>
-        <RouterProvider router={router} />
-      </App>
+      <Alert.ErrorBoundary>
+        <App>
+          <RouterProvider router={router} />
+        </App>
+      </Alert.ErrorBoundary>
     </ConfigProvider>
   );
 };

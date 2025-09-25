@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"runtime/debug"
 	"sync"
 
 	"github.com/samber/lo"
@@ -58,6 +59,8 @@ func (we *workflowEngine) Invoke(ctx context.Context, execution WorkflowExecutio
 	defer func() {
 		if r := recover(); r != nil {
 			we.fireOnErrorHooks(ctx, fmt.Errorf("workflow engine panic: %v", r))
+			we.syslog.Error(fmt.Sprintf("workflow engine panic: %v", r), slog.String("workflowId", execution.WorkflowId), slog.String("runId", execution.RunId))
+			slog.Default().Error(fmt.Sprintf("workflow engine panic: %v, stack trace: %s", r, string(debug.Stack())), slog.String("workflowId", execution.WorkflowId), slog.String("runId", execution.RunId))
 		}
 	}()
 

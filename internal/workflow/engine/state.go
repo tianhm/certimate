@@ -18,7 +18,7 @@ type VariableState struct {
 func (s VariableState) ValueString() string {
 	switch s.ValueType {
 	case "string":
-		return s.Value.(string)
+		return fmt.Sprintf("%s", s.Value)
 	case "number":
 		return fmt.Sprintf("%d", s.Value)
 	case "boolean":

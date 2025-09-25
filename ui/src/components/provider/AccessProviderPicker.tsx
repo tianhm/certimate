@@ -10,7 +10,7 @@ import { mergeCls } from "@/utils/css";
 import { type SharedPickerProps, usePickerDataSource, usePickerWrapperCols } from "./_shared";
 
 export interface AccessProviderPickerProps extends SharedPickerProps<AccessProvider> {
-  showOptionTags?: boolean | { [key in AccessUsageType]?: boolean };
+  showOptionTags?: boolean | { [key in AccessUsageType | "builtin"]?: boolean };
 }
 
 const AccessProviderPicker = ({
@@ -38,9 +38,12 @@ const AccessProviderPicker = ({
   const showOptionTagForNotification = useMemo(() => {
     return typeof showOptionTags === "object" ? !!showOptionTags?.[ACCESS_USAGES.NOTIFICATION] : !!showOptionTags;
   }, [showOptionTags]);
+  const showOptionTagForBuiltin = useMemo(() => {
+    return typeof showOptionTags === "object" ? !!showOptionTags?.["builtin"] : !!showOptionTags;
+  }, [showOptionTags]);
   const showOptionTagAnyhow = useMemo(() => {
-    return showOptionTagForDNS || showOptionTagForHosting || showOptionTagForCA || showOptionTagForNotification;
-  }, [showOptionTagForDNS, showOptionTagForHosting, showOptionTagForCA, showOptionTagForNotification]);
+    return showOptionTagForDNS || showOptionTagForHosting || showOptionTagForCA || showOptionTagForNotification || showOptionTagForBuiltin;
+  }, [showOptionTagForDNS, showOptionTagForHosting, showOptionTagForCA, showOptionTagForNotification, showOptionTagForBuiltin]);
 
   const { wrapperElRef, cols } = usePickerWrapperCols(showOptionTagAnyhow ? 240 : 200);
 
@@ -85,7 +88,7 @@ const AccessProviderPicker = ({
               </div>
               <Show when={showOptionTagAnyhow}>
                 <div className="origin-top scale-80 whitespace-nowrap" style={{ marginInlineEnd: "-8px" }}>
-                  <Show when={provider.builtin}>
+                  <Show when={showOptionTagForBuiltin && provider.builtin}>
                     <Tag>{t("access.props.provider.builtin")}</Tag>
                   </Show>
                   <Show when={showOptionTagForDNS && provider.usages.includes(ACCESS_USAGES.DNS)}>

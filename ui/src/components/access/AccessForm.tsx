@@ -395,7 +395,9 @@ const AccessForm = ({ className, style, disabled, initialValues, mode, usage, ..
         <AccessProviderSelect
           disabled={mode !== "create"}
           placeholder={t("access.form.provider.placeholder")}
-          showOptionTags={usage == null || (usage === "dns-hosting" ? { [ACCESS_USAGES.DNS]: true, [ACCESS_USAGES.HOSTING]: true } : false)}
+          showOptionTags={
+            usage == null || (usage === "dns-hosting" ? { ["builtin"]: true, [ACCESS_USAGES.DNS]: true, [ACCESS_USAGES.HOSTING]: true } : { ["builtin"]: true })
+          }
           showSearch={!disabled}
           onFilter={providerFilter}
         />

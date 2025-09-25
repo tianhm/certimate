@@ -147,7 +147,10 @@ const AccessEditDrawer = ({ afterClose, afterSubmit, mode, data, loading, trigge
             autoFocus
             gap="large"
             placeholder={t("access.form.provider.search.placeholder")}
-            showOptionTags={usage == null || (usage === "dns-hosting" ? { [ACCESS_USAGES.DNS]: true, [ACCESS_USAGES.HOSTING]: true } : false)}
+            showOptionTags={
+              usage == null ||
+              (usage === "dns-hosting" ? { ["builtin"]: true, [ACCESS_USAGES.DNS]: true, [ACCESS_USAGES.HOSTING]: true } : { ["builtin"]: true })
+            }
             showSearch
             onFilter={providerFilter}
             onSelect={handleProviderPick}

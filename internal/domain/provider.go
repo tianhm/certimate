@@ -25,7 +25,6 @@ const (
 	AccessProviderTypeBaotaWAF            = AccessProviderType("baotawaf")
 	AccessProviderTypeBytePlus            = AccessProviderType("byteplus")
 	AccessProviderTypeBunny               = AccessProviderType("bunny")
-	AccessProviderTypeBuypass             = AccessProviderType("buypass")
 	AccessProviderTypeCacheFly            = AccessProviderType("cachefly")
 	AccessProviderTypeCdnfly              = AccessProviderType("cdnfly")
 	AccessProviderTypeCloudflare          = AccessProviderType("cloudflare")
@@ -109,7 +108,6 @@ NOTICE: If you add new constant, please keep ASCII order.
 const (
 	CAProviderTypeACMECA              = CAProviderType(AccessProviderTypeACMECA)
 	CAProviderTypeActalisSSL          = CAProviderType(AccessProviderTypeActalisSSL)
-	CAProviderTypeBuypass             = CAProviderType(AccessProviderTypeBuypass)
 	CAProviderTypeGlobalSignAtlas     = CAProviderType(AccessProviderTypeGlobalSignAtlas)
 	CAProviderTypeGoogleTrustServices = CAProviderType(AccessProviderTypeGoogleTrustServices)
 	CAProviderTypeLetsEncrypt         = CAProviderType(AccessProviderTypeLetsEncrypt)

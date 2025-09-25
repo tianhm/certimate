@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { EditorState, FlowLayoutDefault } from "@flowgram.ai/fixed-layout-editor";
-import { IconBrowserShare, IconCheck, IconDots, IconDownload, IconSettings2, IconTransferOut } from "@tabler/icons-react";
+import { IconBrowserShare, IconBug, IconCheck, IconDots, IconDownload, IconSettings2, IconTransferOut } from "@tabler/icons-react";
 import { useRequest } from "ahooks";
 import { Alert, App, Button, Card, Divider, Dropdown, Empty, Skeleton, Table, type TableProps, Tooltip, Typography, theme } from "antd";
 import dayjs from "dayjs";
@@ -83,6 +83,14 @@ const WorkflowRunDetail = ({ className, style, ...props }: WorkflowRunDetailProp
           }[mergedData.status] ?? ("info" as const)
         }
       />
+      {!!mergedData.error && (
+        <Alert
+          className="mt-1"
+          icon={<IconBug size="1em" color="var(--color-error)" />}
+          message={<div className="text-xs text-error">{mergedData.error}</div>}
+          showIcon
+        />
+      )}
 
       <div className="mt-8">
         <Typography.Title level={5}>{t("workflow_run.process")}</Typography.Title>
@@ -228,6 +236,9 @@ const WorkflowRunLogs = ({ runId, runStatus }: { runId: string; runStatus: strin
   const [showWhitespace, setShowWhitespace] = useState(true);
 
   const renderLogRecord = (record: Log) => {
+    let timestamp = dayjs(record.timestamp).format("YYYY-MM-DD HH:mm:ss");
+    timestamp = `[${timestamp}]`;
+
     let message = <>{record.message}</>;
     if (record.data != null && Object.keys(record.data).length > 0) {
       message = (
@@ -245,7 +256,7 @@ const WorkflowRunLogs = ({ runId, runStatus }: { runId: string; runStatus: strin
 
     return (
       <div className="flex space-x-2" style={{ wordBreak: "break-word" }}>
-        {showTimestamp ? <div className="font-mono whitespace-nowrap text-stone-400">[{dayjs(record.timestamp).format("YYYY-MM-DD HH:mm:ss")}]</div> : <></>}
+        {showTimestamp && <div className="font-mono whitespace-nowrap text-stone-400">{timestamp}</div>}
         <div
           className={mergeCls(
             "flex-1 font-mono",

@@ -53,7 +53,6 @@
   "provider.bunny.cdn": "Bunny - 内容分发网络 CDN",
   "provider.byteplus": "BytePlus",
   "provider.byteplus.cdn": "BytePlus - 内容分发网络 CDN",
-  "provider.buypass": "Buypass AS",
   "provider.cachefly": "CacheFly",
   "provider.cdnfly": "Cdnfly",
   "provider.cloudflare": "Cloudflare",

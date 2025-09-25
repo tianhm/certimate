@@ -30,7 +30,7 @@ const SettingsSSLProvider = () => {
 
       const settings = await getSettings<SSLProviderSettingsContent>(SETTINGS_NAMES.SSL_PROVIDER);
       setSettings(settings);
-      setProviderValue(settings.content?.provider);
+      setProviderValue(settings.content?.provider || CA_PROVIDERS.LETSENCRYPT);
 
       setLoading(false);
     };
@@ -42,7 +42,6 @@ const SettingsSSLProvider = () => {
     [CA_PROVIDERS.LETSENCRYPT, "provider.letsencrypt", "letsencrypt.org", "/imgs/providers/letsencrypt.svg"],
     [CA_PROVIDERS.LETSENCRYPTSTAGING, "provider.letsencryptstaging", "letsencrypt.org", "/imgs/providers/letsencrypt.svg"],
     [CA_PROVIDERS.ACTALISSSL, "provider.actalisssl", "actalis.com", "/imgs/providers/actalisssl.png"],
-    [CA_PROVIDERS.BUYPASS, "provider.buypass", "buypass.com", "/imgs/providers/buypass.png"],
     [CA_PROVIDERS.GLOBALSIGNATLAS, "provider.globalsignatlas", "atlas.globalsign.com", "/imgs/providers/globalsignatlas.png"],
     [CA_PROVIDERS.GOOGLETRUSTSERVICES, "provider.googletrustservices", "pki.goog", "/imgs/providers/google.svg"],
     [CA_PROVIDERS.SECTIGO, "provider.sectigo", "sectigo.com", "/imgs/providers/sectigo.svg"],
@@ -66,8 +65,6 @@ const SettingsSSLProvider = () => {
         return <InternalSettingsFormProviderLetsEncryptStaging />;
       case CA_PROVIDERS.ACTALISSSL:
         return <InternalSettingsFormProviderActalisSSL />;
-      case CA_PROVIDERS.BUYPASS:
-        return <InternalSettingsFormProviderBuypass />;
       case CA_PROVIDERS.GLOBALSIGNATLAS:
         return <InternalSettingsFormProviderGlobalSignAtlas />;
       case CA_PROVIDERS.GOOGLETRUSTSERVICES:
@@ -259,10 +256,6 @@ const InternalSettingsFormProviderActalisSSL = () => {
       <InternalSharedFormEabFields i18nKey="actalisssl" />
     </InternalSharedForm>
   );
-};
-
-const InternalSettingsFormProviderBuypass = () => {
-  return <InternalSharedForm provider={CA_PROVIDERS.BUYPASS} />;
 };
 
 const InternalSettingsFormProviderGlobalSignAtlas = () => {

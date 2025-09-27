@@ -90,7 +90,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	getUcdnDomainConfigReq := d.sdkClient.NewGetUcdnDomainConfigRequest()
 	getUcdnDomainConfigReq.DomainId = []string{d.config.DomainId}
 	if d.config.ProjectId != "" {
-		getUcdnDomainConfigReq.ProjectId = ucloud.String(d.config.ProjectId)
+		getUcdnDomainConfigReq.SetProjectId(d.config.ProjectId)
 	}
 	getUcdnDomainConfigResp, err := d.sdkClient.GetUcdnDomainConfig(getUcdnDomainConfigReq)
 	d.logger.Debug("sdk request 'ucdn.GetUcdnDomainConfig'", slog.Any("request", getUcdnDomainConfigReq), slog.Any("response", getUcdnDomainConfigResp))
@@ -112,7 +112,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	updateUcdnDomainHttpsConfigV2Req.CertName = ucloud.String(upres.CertName)
 	updateUcdnDomainHttpsConfigV2Req.CertType = ucloud.String("ussl")
 	if d.config.ProjectId != "" {
-		updateUcdnDomainHttpsConfigV2Req.ProjectId = ucloud.String(d.config.ProjectId)
+		updateUcdnDomainHttpsConfigV2Req.SetProjectId(d.config.ProjectId)
 	}
 	updateUcdnDomainHttpsConfigV2Resp, err := d.sdkClient.UpdateUcdnDomainHttpsConfigV2(updateUcdnDomainHttpsConfigV2Req)
 	d.logger.Debug("sdk request 'ucdn.UpdateUcdnDomainHttpsConfigV2'", slog.Any("request", updateUcdnDomainHttpsConfigV2Req), slog.Any("response", updateUcdnDomainHttpsConfigV2Resp))

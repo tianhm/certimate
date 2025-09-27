@@ -20,6 +20,7 @@ func init() {
 		provider, err := udnr.NewChallengeProvider(&udnr.ChallengeProviderConfig{
 			PrivateKey:            credentials.PrivateKey,
 			PublicKey:             credentials.PublicKey,
+			ProjectId:             credentials.ProjectId,
 			DnsPropagationTimeout: options.DnsPropagationTimeout,
 			DnsTTL:                options.DnsTTL,
 		})

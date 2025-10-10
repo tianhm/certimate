@@ -11,6 +11,7 @@ import (
 type ChallengeProviderConfig struct {
 	PrivateKey            string `json:"privateKey"`
 	PublicKey             string `json:"publicKey"`
+	ProjectId             string `json:"projectId,omitempty"`
 	DnsPropagationTimeout int32  `json:"dnsPropagationTimeout,omitempty"`
 	DnsTTL                int32  `json:"dnsTTL,omitempty"`
 }
@@ -23,6 +24,7 @@ func NewChallengeProvider(config *ChallengeProviderConfig) (core.ACMEChallenger,
 	providerConfig := internal.NewDefaultConfig()
 	providerConfig.PrivateKey = config.PrivateKey
 	providerConfig.PublicKey = config.PublicKey
+	providerConfig.ProjectId = config.ProjectId
 	if config.DnsTTL != 0 {
 		providerConfig.TTL = config.DnsTTL
 	}

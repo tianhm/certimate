@@ -19,6 +19,7 @@ const (
 
 	EnvPublicKey  = envNamespace + "PUBLIC_KEY"
 	EnvPrivateKey = envNamespace + "PRIVATE_KEY"
+	EnvProjectId  = envNamespace + "PROJECT_ID"
 
 	EnvTTL                = envNamespace + "TTL"
 	EnvPropagationTimeout = envNamespace + "PROPAGATION_TIMEOUT"
@@ -31,6 +32,7 @@ var _ challenge.ProviderTimeout = (*DNSProvider)(nil)
 type Config struct {
 	PrivateKey string
 	PublicKey  string
+	ProjectId  string
 
 	PropagationTimeout time.Duration
 	PollingInterval    time.Duration
@@ -53,7 +55,7 @@ func NewDefaultConfig() *Config {
 }
 
 func NewDNSProvider() (*DNSProvider, error) {
-	values, err := env.Get(EnvPrivateKey, EnvPublicKey)
+	values, err := env.Get(EnvPrivateKey, EnvPublicKey, EnvProjectId)
 	if err != nil {
 		return nil, fmt.Errorf("ucloud-udnr: %w", err)
 	}
@@ -61,6 +63,7 @@ func NewDNSProvider() (*DNSProvider, error) {
 	config := NewDefaultConfig()
 	config.PrivateKey = values[EnvPrivateKey]
 	config.PublicKey = values[EnvPublicKey]
+	config.ProjectId = values[EnvProjectId]
 
 	return NewDNSProviderConfig(config)
 }
@@ -98,6 +101,9 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 	udnrDomainDNSQueryReq := d.client.NewQueryDomainDNSRequest()
 	udnrDomainDNSQueryReq.Dn = ucloud.String(authZone)
+	if d.config.ProjectId != "" {
+		udnrDomainDNSQueryReq.SetProjectId(d.config.ProjectId)
+	}
 	if udnrDomainDNSQueryResp, err := d.client.QueryDomainDNS(udnrDomainDNSQueryReq); err != nil {
 		return fmt.Errorf("ucloud-udnr: %w", err)
 	} else {
@@ -108,6 +114,9 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 				udnrDomainDNSDeleteReq.DnsType = ucloud.String(record.DnsType)
 				udnrDomainDNSDeleteReq.RecordName = ucloud.String(record.RecordName)
 				udnrDomainDNSDeleteReq.Content = ucloud.String(record.Content)
+				if d.config.ProjectId != "" {
+					udnrDomainDNSDeleteReq.SetProjectId(d.config.ProjectId)
+				}
 				d.client.DeleteDomainDNS(udnrDomainDNSDeleteReq)
 				break
 			}
@@ -120,6 +129,9 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	udnrDomainDNSAddReq.RecordName = ucloud.String(subDomain)
 	udnrDomainDNSAddReq.Content = ucloud.String(info.Value)
 	udnrDomainDNSAddReq.TTL = ucloud.Int(int(d.config.TTL))
+	if d.config.ProjectId != "" {
+		udnrDomainDNSAddReq.SetProjectId(d.config.ProjectId)
+	}
 	if _, err := d.client.AddDomainDNS(udnrDomainDNSAddReq); err != nil {
 		return fmt.Errorf("ucloud-udnr: %w", err)
 	}
@@ -142,6 +154,9 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 	udnrDomainDNSQueryReq := d.client.NewQueryDomainDNSRequest()
 	udnrDomainDNSQueryReq.Dn = ucloud.String(authZone)
+	if d.config.ProjectId != "" {
+		udnrDomainDNSQueryReq.SetProjectId(d.config.ProjectId)
+	}
 	if udnrDomainDNSQueryResp, err := d.client.QueryDomainDNS(udnrDomainDNSQueryReq); err != nil {
 		return fmt.Errorf("ucloud-udnr: %w", err)
 	} else {
@@ -152,6 +167,9 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 				udnrDomainDNSDeleteReq.DnsType = ucloud.String(record.DnsType)
 				udnrDomainDNSDeleteReq.RecordName = ucloud.String(record.RecordName)
 				udnrDomainDNSDeleteReq.Content = ucloud.String(record.Content)
+				if d.config.ProjectId != "" {
+					udnrDomainDNSDeleteReq.SetProjectId(d.config.ProjectId)
+				}
 				d.client.DeleteDomainDNS(udnrDomainDNSDeleteReq)
 				break
 			}

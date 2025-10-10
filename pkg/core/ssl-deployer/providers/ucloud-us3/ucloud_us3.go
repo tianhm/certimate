@@ -99,7 +99,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	addUFileSSLCertReq.USSLId = ucloud.String(upres.CertId)
 	addUFileSSLCertReq.CertificateName = ucloud.String(upres.CertName)
 	if d.config.ProjectId != "" {
-		addUFileSSLCertReq.ProjectId = ucloud.String(d.config.ProjectId)
+		addUFileSSLCertReq.SetProjectId(d.config.ProjectId)
 	}
 	addUFileSSLCertResp, err := d.sdkClient.AddUFileSSLCert(addUFileSSLCertReq)
 	d.logger.Debug("sdk request 'us3.AddUFileSSLCert'", slog.Any("request", addUFileSSLCertReq), slog.Any("response", addUFileSSLCertResp))

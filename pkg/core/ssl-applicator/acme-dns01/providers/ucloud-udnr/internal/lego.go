@@ -94,10 +94,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		return fmt.Errorf("ucloud-udnr: could not find zone for domain %q: %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
-	if err != nil {
-		return fmt.Errorf("ucloud-udnr: %w", err)
-	}
+	recordName := dns01.UnFqdn(info.EffectiveFQDN)
 
 	udnrDomainDNSQueryReq := d.client.NewQueryDomainDNSRequest()
 	udnrDomainDNSQueryReq.Dn = ucloud.String(authZone)
@@ -108,7 +105,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		return fmt.Errorf("ucloud-udnr: %w", err)
 	} else {
 		for _, record := range udnrDomainDNSQueryResp.Data {
-			if record.DnsType == "TXT" && record.RecordName == subDomain {
+			if record.DnsType == "TXT" && record.RecordName == recordName {
 				udnrDomainDNSDeleteReq := d.client.NewDeleteDomainDNSRequest()
 				udnrDomainDNSDeleteReq.Dn = ucloud.String(authZone)
 				udnrDomainDNSDeleteReq.DnsType = ucloud.String(record.DnsType)
@@ -126,9 +123,9 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	udnrDomainDNSAddReq := d.client.NewAddDomainDNSRequest()
 	udnrDomainDNSAddReq.Dn = ucloud.String(authZone)
 	udnrDomainDNSAddReq.DnsType = ucloud.String("TXT")
-	udnrDomainDNSAddReq.RecordName = ucloud.String(subDomain)
+	udnrDomainDNSAddReq.RecordName = ucloud.String(recordName)
 	udnrDomainDNSAddReq.Content = ucloud.String(info.Value)
-	udnrDomainDNSAddReq.TTL = ucloud.Int(int(d.config.TTL))
+	udnrDomainDNSAddReq.TTL = ucloud.String(fmt.Sprintf("%d", d.config.TTL))
 	if d.config.ProjectId != "" {
 		udnrDomainDNSAddReq.SetProjectId(d.config.ProjectId)
 	}
@@ -147,10 +144,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		return fmt.Errorf("ucloud-udnr: could not find zone for domain %q: %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
-	if err != nil {
-		return fmt.Errorf("ucloud-udnr: %w", err)
-	}
+	recordName := dns01.UnFqdn(info.EffectiveFQDN)
 
 	udnrDomainDNSQueryReq := d.client.NewQueryDomainDNSRequest()
 	udnrDomainDNSQueryReq.Dn = ucloud.String(authZone)
@@ -161,7 +155,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		return fmt.Errorf("ucloud-udnr: %w", err)
 	} else {
 		for _, record := range udnrDomainDNSQueryResp.Data {
-			if record.DnsType == "TXT" && record.RecordName == subDomain {
+			if record.DnsType == "TXT" && record.RecordName == recordName {
 				udnrDomainDNSDeleteReq := d.client.NewDeleteDomainDNSRequest()
 				udnrDomainDNSDeleteReq.Dn = ucloud.String(authZone)
 				udnrDomainDNSDeleteReq.DnsType = ucloud.String(record.DnsType)

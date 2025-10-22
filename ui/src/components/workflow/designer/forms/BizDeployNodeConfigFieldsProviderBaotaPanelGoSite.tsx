@@ -1,13 +1,11 @@
 import { getI18n, useTranslation } from "react-i18next";
-import { Form, Switch } from "antd";
+import { Form, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
-import Tips from "@/components/Tips";
-
 import { useFormNestedFieldsContext } from "./_context";
 
-const BizDeployNodeConfigFieldsProviderBaotaPanelConsole = () => {
+const BizDeployNodeConfigFieldsProviderBaotaPanelGoSite = () => {
   const { i18n, t } = useTranslation();
 
   const { parentNamePath } = useFormNestedFieldsContext();
@@ -19,17 +17,14 @@ const BizDeployNodeConfigFieldsProviderBaotaPanelConsole = () => {
 
   return (
     <>
-      <Form.Item>
-        <Tips message={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.baotapanel_console.guide") }}></span>} />
-      </Form.Item>
-
       <Form.Item
-        name={[parentNamePath, "autoRestart"]}
-        initialValue={initialValues.autoRestart}
-        label={t("workflow_node.deploy.form.baotapanel_console_auto_restart.label")}
+        name={[parentNamePath, "siteName"]}
+        initialValue={initialValues.siteName}
+        label={t("workflow_node.deploy.form.baotapanelgo_site_name.label")}
         rules={[formRule]}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.baotapanelgo_site_name.tooltip") }}></span>}
       >
-        <Switch />
+        <Input placeholder={t("workflow_node.deploy.form.baotapanelgo_site_name.placeholder")} />
       </Form.Item>
     </>
   );
@@ -37,19 +32,19 @@ const BizDeployNodeConfigFieldsProviderBaotaPanelConsole = () => {
 
 const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   return {
-    autoRestart: true,
+    siteName: "",
   };
 };
 
 const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) => {
-  const { t: _ } = i18n;
+  const { t } = i18n;
 
   return z.object({
-    autoRestart: z.boolean().nullish(),
+    siteName: z.string().nonempty(t("workflow_node.deploy.form.baotapanelgo_site_name.placeholder")),
   });
 };
 
-const _default = Object.assign(BizDeployNodeConfigFieldsProviderBaotaPanelConsole, {
+const _default = Object.assign(BizDeployNodeConfigFieldsProviderBaotaPanelGoSite, {
   getInitialValues,
   getSchema,
 });

@@ -48,6 +48,8 @@ import BizDeployNodeConfigFieldsProviderBaiduCloudCDN from "./BizDeployNodeConfi
 import BizDeployNodeConfigFieldsProviderBaishanCDN from "./BizDeployNodeConfigFieldsProviderBaishanCDN";
 import BizDeployNodeConfigFieldsProviderBaotaPanelConsole from "./BizDeployNodeConfigFieldsProviderBaotaPanelConsole";
 import BizDeployNodeConfigFieldsProviderBaotaPanelSite from "./BizDeployNodeConfigFieldsProviderBaotaPanelSite";
+import BizDeployNodeConfigFieldsProviderBaotaPanelGoConsole from "./BizDeployNodeConfigFieldsProviderBaotaPanelGoConsole";
+import BizDeployNodeConfigFieldsProviderBaotaPanelGoSite from "./BizDeployNodeConfigFieldsProviderBaotaPanelGoSite";
 import BizDeployNodeConfigFieldsProviderBaotaWAFSite from "./BizDeployNodeConfigFieldsProviderBaotaWAFSite";
 import BizDeployNodeConfigFieldsProviderBunnyCDN from "./BizDeployNodeConfigFieldsProviderBunnyCDN";
 import BizDeployNodeConfigFieldsProviderBytePlusCDN from "./BizDeployNodeConfigFieldsProviderBytePlusCDN";
@@ -274,6 +276,12 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
       }
       case DEPLOYMENT_PROVIDERS.BAOTAPANEL_SITE: {
         return BizDeployNodeConfigFieldsProviderBaotaPanelSite;
+      }
+      case DEPLOYMENT_PROVIDERS.BAOTAPANELGO_CONSOLE: {
+        return BizDeployNodeConfigFieldsProviderBaotaPanelGoConsole;
+      }
+      case DEPLOYMENT_PROVIDERS.BAOTAPANELGO_SITE: {
+        return BizDeployNodeConfigFieldsProviderBaotaPanelGoSite;
       }
       case DEPLOYMENT_PROVIDERS.BAOTAWAF_SITE: {
         return BizDeployNodeConfigFieldsProviderBaotaWAFSite;

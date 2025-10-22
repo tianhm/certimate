@@ -23,6 +23,7 @@ import AccessConfigFieldsProviderAzure from "./forms/AccessConfigFieldsProviderA
 import AccessConfigFieldsProviderBaiduCloud from "./forms/AccessConfigFieldsProviderBaiduCloud";
 import AccessConfigFieldsProviderBaishan from "./forms/AccessConfigFieldsProviderBaishan";
 import AccessConfigFieldsProviderBaotaPanel from "./forms/AccessConfigFieldsProviderBaotaPanel";
+import AccessConfigFieldsProviderBaotaPanelGo from "./forms/AccessConfigFieldsProviderBaotaPanelGo";
 import AccessConfigFieldsProviderBaotaWAF from "./forms/AccessConfigFieldsProviderBaotaWAF";
 import AccessConfigFieldsProviderBookMyName from "./forms/AccessConfigFieldsProviderBookMyName";
 import AccessConfigFieldsProviderBunny from "./forms/AccessConfigFieldsProviderBunny";
@@ -173,6 +174,9 @@ const AccessForm = ({ className, style, disabled, initialValues, mode, usage, on
       }
       case ACCESS_PROVIDERS.BAOTAPANEL: {
         return <AccessConfigFieldsProviderBaotaPanel />;
+      }
+      case ACCESS_PROVIDERS.BAOTAPANELGO: {
+        return <AccessConfigFieldsProviderBaotaPanelGo />;
       }
       case ACCESS_PROVIDERS.BAOTAWAF: {
         return <AccessConfigFieldsProviderBaotaWAF />;

@@ -113,6 +113,7 @@
   "provider.lecdn": "LeCDN",
   "provider.letsencrypt": "Let's Encrypt",
   "provider.letsencryptstaging": "Let's Encrypt 测试环境",
+  "provider.linode": "Linode",
   "provider.local": "本地主机",
   "provider.mattermost": "Mattermost",
   "provider.namecheap": "Namecheap",

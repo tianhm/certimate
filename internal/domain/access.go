@@ -280,6 +280,10 @@ type AccessConfigForLeCDN struct {
 	AllowInsecureConnections bool   `json:"allowInsecureConnections,omitempty"`
 }
 
+type AccessConfigForLinode struct {
+	AccessToken string `json:"accessToken"`
+}
+
 type AccessConfigForMattermost struct {
 	ServerUrl string `json:"serverUrl"`
 	Username  string `json:"username"`

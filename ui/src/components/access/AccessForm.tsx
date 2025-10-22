@@ -59,6 +59,7 @@ import AccessConfigFieldsProviderKong from "./forms/AccessConfigFieldsProviderKo
 import AccessConfigFieldsProviderKubernetes from "./forms/AccessConfigFieldsProviderKubernetes";
 import AccessConfigFieldsProviderLarkBot from "./forms/AccessConfigFieldsProviderLarkBot";
 import AccessConfigFieldsProviderLeCDN from "./forms/AccessConfigFieldsProviderLeCDN";
+import AccessConfigFieldsProviderLinode from "./forms/AccessConfigFieldsProviderLinode";
 import AccessConfigFieldsProviderMattermost from "./forms/AccessConfigFieldsProviderMattermost";
 import AccessConfigFieldsProviderNamecheap from "./forms/AccessConfigFieldsProviderNamecheap";
 import AccessConfigFieldsProviderNameDotCom from "./forms/AccessConfigFieldsProviderNameDotCom";
@@ -280,6 +281,9 @@ const AccessForm = ({ className, style, disabled, initialValues, mode, usage, on
       }
       case ACCESS_PROVIDERS.LECDN: {
         return <AccessConfigFieldsProviderLeCDN />;
+      }
+      case ACCESS_PROVIDERS.LINODE: {
+        return <AccessConfigFieldsProviderLinode />;
       }
       case ACCESS_PROVIDERS.MATTERMOST: {
         return <AccessConfigFieldsProviderMattermost />;

@@ -60,10 +60,10 @@ const (
 	AccessProviderTypeKsyun               = AccessProviderType("ksyun") // 金山云（预留）
 	AccessProviderTypeKubernetes          = AccessProviderType("k8s")
 	AccessProviderTypeLarkBot             = AccessProviderType("larkbot")
+	AccessProviderTypeLeCDN               = AccessProviderType("lecdn")
 	AccessProviderTypeLetsEncrypt         = AccessProviderType("letsencrypt")
 	AccessProviderTypeLetsEncryptStaging  = AccessProviderType("letsencryptstaging")
-	AccessProviderTypeLeCDN               = AccessProviderType("lecdn")
-	AccessProviderTypeLinode              = AccessProviderType("linode") // Linode（预留）
+	AccessProviderTypeLinode              = AccessProviderType("linode")
 	AccessProviderTypeLocal               = AccessProviderType("local")
 	AccessProviderTypeMattermost          = AccessProviderType("mattermost")
 	AccessProviderTypeNamecheap           = AccessProviderType("namecheap")
@@ -167,6 +167,7 @@ const (
 	ACMEDns01ProviderTypeHuaweiCloudDNS    = ACMEDns01ProviderType(AccessProviderTypeHuaweiCloud + "-dns")
 	ACMEDns01ProviderTypeJDCloud           = ACMEDns01ProviderType(AccessProviderTypeJDCloud) // 兼容旧值，等同于 [ACMEDns01ProviderTypeJDCloudDNS]
 	ACMEDns01ProviderTypeJDCloudDNS        = ACMEDns01ProviderType(AccessProviderTypeJDCloud + "-dns")
+	ACMEDns01ProviderTypeLinode            = ACMEDns01ProviderType(AccessProviderTypeLinode)
 	ACMEDns01ProviderTypeNamecheap         = ACMEDns01ProviderType(AccessProviderTypeNamecheap)
 	ACMEDns01ProviderTypeNameDotCom        = ACMEDns01ProviderType(AccessProviderTypeNameDotCom)
 	ACMEDns01ProviderTypeNameSilo          = ACMEDns01ProviderType(AccessProviderTypeNameSilo)

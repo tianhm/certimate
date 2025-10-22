@@ -23,7 +23,7 @@ const (
 	AccessProviderTypeBaishan             = AccessProviderType("baishan")
 	AccessProviderTypeBaotaPanel          = AccessProviderType("baotapanel")
 	AccessProviderTypeBaotaWAF            = AccessProviderType("baotawaf")
-	AccessProviderTypeBookMyName          = AccessProviderType("bookmyname") // BookMyName（预留）
+	AccessProviderTypeBookMyName          = AccessProviderType("bookmyname")
 	AccessProviderTypeBunny               = AccessProviderType("bunny")
 	AccessProviderTypeBytePlus            = AccessProviderType("byteplus")
 	AccessProviderTypeCacheFly            = AccessProviderType("cachefly")
@@ -144,6 +144,7 @@ const (
 	ACMEDns01ProviderTypeAzureDNS          = ACMEDns01ProviderType(AccessProviderTypeAzure + "-dns")
 	ACMEDns01ProviderTypeBaiduCloud        = ACMEDns01ProviderType(AccessProviderTypeBaiduCloud) // 兼容旧值，等同于 [ACMEDns01ProviderTypeBaiduCloudDNS]
 	ACMEDns01ProviderTypeBaiduCloudDNS     = ACMEDns01ProviderType(AccessProviderTypeBaiduCloud + "-dns")
+	ACMEDns01ProviderTypeBookMyName        = ACMEDns01ProviderType(AccessProviderTypeBookMyName)
 	ACMEDns01ProviderTypeBunny             = ACMEDns01ProviderType(AccessProviderTypeBunny)
 	ACMEDns01ProviderTypeCloudflare        = ACMEDns01ProviderType(AccessProviderTypeCloudflare)
 	ACMEDns01ProviderTypeClouDNS           = ACMEDns01ProviderType(AccessProviderTypeClouDNS)

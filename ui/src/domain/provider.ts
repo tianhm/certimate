@@ -28,6 +28,7 @@ export const ACCESS_PROVIDERS = Object.freeze({
   BAISHAN: "baishan",
   BAOTAPANEL: "baotapanel",
   BAOTAWAF: "baotawaf",
+  BOOKMYNAME: "bookmyname",
   BUNNY: "bunny",
   BYTEPLUS: "byteplus",
   CACHEFLY: "cachefly",
@@ -164,6 +165,7 @@ export const accessProvidersMap: Map<AccessProvider["type"] | string, AccessProv
       [ACCESS_PROVIDERS.KONG, "provider.kong", "/imgs/providers/kong.png", [ACCESS_USAGES.HOSTING]],
       [ACCESS_PROVIDERS.PROXMOXVE, "provider.proxmoxve", "/imgs/providers/proxmoxve.svg", [ACCESS_USAGES.HOSTING]],
 
+      [ACCESS_PROVIDERS.BOOKMYNAME, "provider.bookmyname", "/imgs/providers/bookmyname.png", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.CLOUDFLARE, "provider.cloudflare", "/imgs/providers/cloudflare.svg", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.CLOUDNS, "provider.cloudns", "/imgs/providers/cloudns.png", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.CONSTELLIX, "provider.constellix", "/imgs/providers/constellix.png", [ACCESS_USAGES.DNS]],
@@ -292,6 +294,7 @@ export const ACME_DNS01_PROVIDERS = Object.freeze({
   AZURE_DNS: `${ACCESS_PROVIDERS.AZURE}-dns`,
   BAIDUCLOUD: `${ACCESS_PROVIDERS.BAIDUCLOUD}`, // 兼容旧值，等同于 `BAIDUCLOUD_DNS`
   BAIDUCLOUD_DNS: `${ACCESS_PROVIDERS.BAIDUCLOUD}-dns`,
+  BOOKMYNAME: `${ACCESS_PROVIDERS.BOOKMYNAME}`,
   BUNNY: `${ACCESS_PROVIDERS.BUNNY}`,
   CLOUDFLARE: `${ACCESS_PROVIDERS.CLOUDFLARE}`,
   CLOUDNS: `${ACCESS_PROVIDERS.CLOUDNS}`,
@@ -357,6 +360,7 @@ export const acmeDns01ProvidersMap: Map<ACMEDns01Provider["type"] | string, ACME
       [ACME_DNS01_PROVIDERS.JDCLOUD_DNS, "provider.jdcloud.dns"],
       [ACME_DNS01_PROVIDERS.AWS_ROUTE53, "provider.aws.route53"],
       [ACME_DNS01_PROVIDERS.AZURE_DNS, "provider.azure.dns"],
+      [ACME_DNS01_PROVIDERS.BOOKMYNAME, "provider.bookmyname"],
       [ACME_DNS01_PROVIDERS.BUNNY, "provider.bunny"],
       [ACME_DNS01_PROVIDERS.CLOUDFLARE, "provider.cloudflare"],
       [ACME_DNS01_PROVIDERS.CLOUDNS, "provider.cloudns"],

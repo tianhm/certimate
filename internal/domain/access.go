@@ -93,13 +93,18 @@ type AccessConfigForBaotaWAF struct {
 	AllowInsecureConnections bool   `json:"allowInsecureConnections,omitempty"`
 }
 
-type AccessConfigForBytePlus struct {
-	AccessKey string `json:"accessKey"`
-	SecretKey string `json:"secretKey"`
+type AccessConfigForBookMyName struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 type AccessConfigForBunny struct {
 	ApiKey string `json:"apiKey"`
+}
+
+type AccessConfigForBytePlus struct {
+	AccessKey string `json:"accessKey"`
+	SecretKey string `json:"secretKey"`
 }
 
 type AccessConfigForCacheFly struct {

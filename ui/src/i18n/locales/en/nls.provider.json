@@ -49,6 +49,7 @@
   "provider.baotawaf": "aaWAF (aka BaotaWAF)",
   "provider.baotawaf.console": "aaWAF (aka BaotaWAF) - Console itself",
   "provider.baotawaf.site": "aaWAF (aka BaotaWAF) - Website",
+  "provider.bookmyname": "BookMyName",
   "provider.bunny": "Bunny",
   "provider.bunny.cdn": "Bunny - CDN (Content Delivery Network)",
   "provider.byteplus": "BytePlus",

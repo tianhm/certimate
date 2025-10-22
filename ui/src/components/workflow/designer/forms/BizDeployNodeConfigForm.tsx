@@ -60,7 +60,6 @@ import BizDeployNodeConfigFieldsProviderCTCCCloudELB from "./BizDeployNodeConfig
 import BizDeployNodeConfigFieldsProviderCTCCCloudICDN from "./BizDeployNodeConfigFieldsProviderCTCCCloudICDN";
 import BizDeployNodeConfigFieldsProviderCTCCCloudLVDN from "./BizDeployNodeConfigFieldsProviderCTCCCloudLVDN";
 import BizDeployNodeConfigFieldsProviderDogeCloudCDN from "./BizDeployNodeConfigFieldsProviderDogeCloudCDN";
-import BizDeployNodeConfigFieldsProviderEdgioApplications from "./BizDeployNodeConfigFieldsProviderEdgioApplications";
 import BizDeployNodeConfigFieldsProviderFlexCDN from "./BizDeployNodeConfigFieldsProviderFlexCDN";
 import BizDeployNodeConfigFieldsProviderGcoreCDN from "./BizDeployNodeConfigFieldsProviderGcoreCDN";
 import BizDeployNodeConfigFieldsProviderGoEdge from "./BizDeployNodeConfigFieldsProviderGoEdge";
@@ -312,9 +311,6 @@ const BizDeployNodeConfigForm = ({ node, ...props }: BizDeployNodeConfigFormProp
       }
       case DEPLOYMENT_PROVIDERS.DOGECLOUD_CDN: {
         return BizDeployNodeConfigFieldsProviderDogeCloudCDN;
-      }
-      case DEPLOYMENT_PROVIDERS.EDGIO_APPLICATIONS: {
-        return BizDeployNodeConfigFieldsProviderEdgioApplications;
       }
       case DEPLOYMENT_PROVIDERS.FLEXCDN: {
         return BizDeployNodeConfigFieldsProviderFlexCDN;

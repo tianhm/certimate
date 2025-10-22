@@ -185,11 +185,6 @@ type AccessConfigForDynv6 struct {
 	HttpToken string `json:"httpToken"`
 }
 
-type AccessConfigForEdgio struct {
-	ClientId     string `json:"clientId"`
-	ClientSecret string `json:"clientSecret"`
-}
-
 type AccessConfigForEmail struct {
 	SmtpHost        string `json:"smtpHost"`
 	SmtpPort        int32  `json:"smtpPort"`

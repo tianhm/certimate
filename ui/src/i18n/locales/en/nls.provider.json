@@ -82,8 +82,6 @@
   "provider.dogecloud.cdn": "Doge Cloud - CDN (Content Delivery Network)",
   "provider.duckdns": "Duck DNS",
   "provider.dynv6": "dynv6",
-  "provider.edgio": "Edgio",
-  "provider.edgio.applications": "Edgio - Applications",
   "provider.email": "Email (SMTP)",
   "provider.fastly": "Fastly",
   "provider.flexcdn": "FlexCDN",

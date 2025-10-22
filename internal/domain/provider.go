@@ -43,7 +43,6 @@ const (
 	AccessProviderTypeDogeCloud           = AccessProviderType("dogecloud")
 	AccessProviderTypeDuckDNS             = AccessProviderType("duckdns")
 	AccessProviderTypeDynv6               = AccessProviderType("dynv6")
-	AccessProviderTypeEdgio               = AccessProviderType("edgio")
 	AccessProviderTypeEmail               = AccessProviderType("email")
 	AccessProviderTypeFastly              = AccessProviderType("fastly") // Fastly（预留）
 	AccessProviderTypeFlexCDN             = AccessProviderType("flexcdn")
@@ -261,7 +260,6 @@ const (
 	DeploymentProviderTypeCTCCCloudICDN         = DeploymentProviderType(AccessProviderTypeCTCCCloud + "-icdn")
 	DeploymentProviderTypeCTCCCloudLVDN         = DeploymentProviderType(AccessProviderTypeCTCCCloud + "-ldvn")
 	DeploymentProviderTypeDogeCloudCDN          = DeploymentProviderType(AccessProviderTypeDogeCloud + "-cdn")
-	DeploymentProviderTypeEdgioApplications     = DeploymentProviderType(AccessProviderTypeEdgio + "-applications")
 	DeploymentProviderTypeFlexCDN               = DeploymentProviderType(AccessProviderTypeFlexCDN)
 	DeploymentProviderTypeGcoreCDN              = DeploymentProviderType(AccessProviderTypeGcore + "-cdn")
 	DeploymentProviderTypeGoEdge                = DeploymentProviderType(AccessProviderTypeGoEdge)

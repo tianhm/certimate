@@ -43,7 +43,6 @@ import AccessConfigFieldsProviderDNSLA from "./forms/AccessConfigFieldsProviderD
 import AccessConfigFieldsProviderDogeCloud from "./forms/AccessConfigFieldsProviderDogeCloud";
 import AccessConfigFieldsProviderDuckDNS from "./forms/AccessConfigFieldsProviderDuckDNS";
 import AccessConfigFieldsProviderDynv6 from "./forms/AccessConfigFieldsProviderDynv6";
-import AccessConfigFieldsProviderEdgio from "./forms/AccessConfigFieldsProviderEdgio";
 import AccessConfigFieldsProviderEmail from "./forms/AccessConfigFieldsProviderEmail";
 import AccessConfigFieldsProviderFlexCDN from "./forms/AccessConfigFieldsProviderFlexCDN";
 import AccessConfigFieldsProviderGcore from "./forms/AccessConfigFieldsProviderGcore";
@@ -234,9 +233,6 @@ const AccessForm = ({ className, style, disabled, initialValues, mode, usage, on
       }
       case ACCESS_PROVIDERS.DYNV6: {
         return <AccessConfigFieldsProviderDynv6 />;
-      }
-      case ACCESS_PROVIDERS.EDGIO: {
-        return <AccessConfigFieldsProviderEdgio />;
       }
       case ACCESS_PROVIDERS.EMAIL: {
         return <AccessConfigFieldsProviderEmail />;

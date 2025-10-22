@@ -82,8 +82,6 @@
   "provider.dogecloud.cdn": "多吉云 - 内容分发网络 CDN",
   "provider.duckdns": "Duck DNS",
   "provider.dynv6": "dynv6",
-  "provider.edgio": "Edgio",
-  "provider.edgio.applications": "Edgio - Applications",
   "provider.email": "邮件（SMTP）",
   "provider.fastly": "Fastly",
   "provider.flexcdn": "FlexCDN",

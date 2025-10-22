@@ -138,6 +138,7 @@
   "provider.spaceship": "Spaceship",
   "provider.ssh": "Remote host (SSH)",
   "provider.sslcom": "SSL.com",
+  "provider.technitiumdns": "Technitium DNS",
   "provider.telegrambot": "Telegram Bot",
   "provider.tencentcloud": "Tencent Cloud",
   "provider.tencentcloud.cdn": "Tencent Cloud - CDN (Content Delivery Network)",

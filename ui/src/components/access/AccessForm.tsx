@@ -76,6 +76,7 @@ import AccessConfigFieldsProviderSlackBot from "./forms/AccessConfigFieldsProvid
 import AccessConfigFieldsProviderSpaceship from "./forms/AccessConfigFieldsProviderSpaceship";
 import AccessConfigFieldsProviderSSH from "./forms/AccessConfigFieldsProviderSSH";
 import AccessConfigFieldsProviderSSLCom from "./forms/AccessConfigFieldsProviderSSLCom";
+import AccessConfigFieldsProviderTechnitiumDNS from "./forms/AccessConfigFieldsProviderTechnitiumDNS";
 import AccessConfigFieldsProviderTelegramBot from "./forms/AccessConfigFieldsProviderTelegramBot";
 import AccessConfigFieldsProviderTencentCloud from "./forms/AccessConfigFieldsProviderTencentCloud";
 import AccessConfigFieldsProviderUCloud from "./forms/AccessConfigFieldsProviderUCloud";
@@ -322,14 +323,17 @@ const AccessForm = ({ className, style, disabled, initialValues, mode, usage, on
       case ACCESS_PROVIDERS.SPACESHIP: {
         return <AccessConfigFieldsProviderSpaceship />;
       }
+      case ACCESS_PROVIDERS.SSLCOM: {
+        return <AccessConfigFieldsProviderSSLCom />;
+      }
       case ACCESS_PROVIDERS.SSH: {
         return <AccessConfigFieldsProviderSSH disabled={disabled} />;
       }
+      case ACCESS_PROVIDERS.TECHNITIUMDNS: {
+        return <AccessConfigFieldsProviderTechnitiumDNS />;
+      }
       case ACCESS_PROVIDERS.TELEGRAMBOT: {
         return <AccessConfigFieldsProviderTelegramBot />;
-      }
-      case ACCESS_PROVIDERS.SSLCOM: {
-        return <AccessConfigFieldsProviderSSLCom />;
       }
       case ACCESS_PROVIDERS.TENCENTCLOUD: {
         return <AccessConfigFieldsProviderTencentCloud />;

@@ -83,6 +83,7 @@ export const ACCESS_PROVIDERS = Object.freeze({
   SPACESHIP: "spaceship",
   SSH: "ssh",
   SSLCOM: "sslcom",
+  TECHNITIUMDNS: "technitiumdns",
   TELEGRAMBOT: "telegrambot",
   TENCENTCLOUD: "tencentcloud",
   UCLOUD: "ucloud",
@@ -185,6 +186,7 @@ export const accessProvidersMap: Map<AccessProvider["type"] | string, AccessProv
       [ACCESS_PROVIDERS.CMCCCLOUD, "provider.cmcccloud", "/imgs/providers/cmcccloud.svg", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.WESTCN, "provider.westcn", "/imgs/providers/westcn.svg", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.POWERDNS, "provider.powerdns", "/imgs/providers/powerdns.svg", [ACCESS_USAGES.DNS]],
+      [ACCESS_PROVIDERS.TECHNITIUMDNS, "provider.technitiumdns", "/imgs/providers/technitiumdns.png", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.ACMEDNS, "provider.acmedns", "/imgs/providers/acmedns.png", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.ACMEHTTPREQ, "provider.acmehttpreq", "/imgs/providers/acmehttpreq.svg", [ACCESS_USAGES.DNS]],
 
@@ -320,6 +322,7 @@ export const ACME_DNS01_PROVIDERS = Object.freeze({
   RAINYUN: `${ACCESS_PROVIDERS.RAINYUN}`,
   SPACESHIP: `${ACCESS_PROVIDERS.SPACESHIP}`,
   UCLOUD_UDNR: `${ACCESS_PROVIDERS.UCLOUD}-udnr`,
+  TECHNITIUMDNS: `${ACCESS_PROVIDERS.TECHNITIUMDNS}`,
   TENCENTCLOUD: `${ACCESS_PROVIDERS.TENCENTCLOUD}`, // 兼容旧值，等同于 `TENCENTCLOUD_DNS`
   TENCENTCLOUD_DNS: `${ACCESS_PROVIDERS.TENCENTCLOUD}-dns`,
   TENCENTCLOUD_EO: `${ACCESS_PROVIDERS.TENCENTCLOUD}-eo`,
@@ -380,6 +383,7 @@ export const acmeDns01ProvidersMap: Map<ACMEDns01Provider["type"] | string, ACME
       [ACME_DNS01_PROVIDERS.UCLOUD_UDNR, "provider.ucloud.udnr"],
       [ACME_DNS01_PROVIDERS.WESTCN, "provider.westcn"],
       [ACME_DNS01_PROVIDERS.POWERDNS, "provider.powerdns"],
+      [ACME_DNS01_PROVIDERS.TECHNITIUMDNS, "provider.technitiumdns"],
       [ACME_DNS01_PROVIDERS.ACMEDNS, "provider.acmedns"],
       [ACME_DNS01_PROVIDERS.ACMEHTTPREQ, "provider.acmehttpreq"],
     ] satisfies Array<[ACMEDns01ProviderType, string]>

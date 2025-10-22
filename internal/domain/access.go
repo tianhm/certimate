@@ -379,6 +379,12 @@ type AccessConfigForSSLCom struct {
 	AccessConfigForACMEExternalAccountBinding
 }
 
+type AccessConfigForTechnitiumDNS struct {
+	ServerUrl                string `json:"serverUrl"`
+	ApiToken                 string `json:"apiToken"`
+	AllowInsecureConnections bool   `json:"allowInsecureConnections,omitempty"`
+}
+
 type AccessConfigForTelegramBot struct {
 	BotToken string `json:"botToken"`
 	ChatId   int64  `json:"chatId,omitempty"`

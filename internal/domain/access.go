@@ -242,6 +242,10 @@ type AccessConfigForHetzner struct {
 	ApiToken string `json:"apiToken"`
 }
 
+type AccessConfigForHostinger struct {
+	ApiToken string `json:"apiToken"`
+}
+
 type AccessConfigForHuaweiCloud struct {
 	AccessKeyId         string `json:"accessKeyId"`
 	SecretAccessKey     string `json:"secretAccessKey"`

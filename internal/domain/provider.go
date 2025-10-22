@@ -53,7 +53,7 @@ const (
 	AccessProviderTypeGlobalSignAtlas     = AccessProviderType("globalsignatlas")
 	AccessProviderTypeGoogleTrustServices = AccessProviderType("googletrustservices")
 	AccessProviderTypeHetzner             = AccessProviderType("hetzner")
-	AccessProviderTypeHostinger           = AccessProviderType("hostinger") // Hostinger（预留）
+	AccessProviderTypeHostinger           = AccessProviderType("hostinger")
 	AccessProviderTypeHuaweiCloud         = AccessProviderType("huaweicloud")
 	AccessProviderTypeJDCloud             = AccessProviderType("jdcloud")
 	AccessProviderTypeKong                = AccessProviderType("kong")
@@ -162,6 +162,7 @@ const (
 	ACMEDns01ProviderTypeGname             = ACMEDns01ProviderType(AccessProviderTypeGname)
 	ACMEDns01ProviderTypeGoDaddy           = ACMEDns01ProviderType(AccessProviderTypeGoDaddy)
 	ACMEDns01ProviderTypeHetzner           = ACMEDns01ProviderType(AccessProviderTypeHetzner)
+	ACMEDns01ProviderTypeHostinger         = ACMEDns01ProviderType(AccessProviderTypeHostinger)
 	ACMEDns01ProviderTypeHuaweiCloud       = ACMEDns01ProviderType(AccessProviderTypeHuaweiCloud) // 兼容旧值，等同于 [ACMEDns01ProviderTypeHuaweiCloudDNS]
 	ACMEDns01ProviderTypeHuaweiCloudDNS    = ACMEDns01ProviderType(AccessProviderTypeHuaweiCloud + "-dns")
 	ACMEDns01ProviderTypeJDCloud           = ACMEDns01ProviderType(AccessProviderTypeJDCloud) // 兼容旧值，等同于 [ACMEDns01ProviderTypeJDCloudDNS]

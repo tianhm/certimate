@@ -92,6 +92,7 @@
   "provider.goedge": "GoEdge",
   "provider.googletrustservices": "Google Trust Services",
   "provider.hetzner": "Hetzner",
+  "provider.hostinger": "Hostinger",
   "provider.huaweicloud": "华为云",
   "provider.huaweicloud.cdn": "华为云 - 内容分发网络 CDN",
   "provider.huaweicloud.dns": "华为云 - 云解析 DNS",

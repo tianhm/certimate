@@ -1,5 +1,5 @@
 import { getI18n, useTranslation } from "react-i18next";
-import { Form, Input, Select, InputNumber } from "antd";
+import { Form, Input, InputNumber, Select } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 

@@ -202,6 +202,15 @@ type AccessConfigForGcore struct {
 	ApiToken string `json:"apiToken"`
 }
 
+type AccessConfigForGlobalSectigo struct {
+	AccessConfigForACMEExternalAccountBinding
+	ValidationType string `json:"validationType"`
+}
+
+type AccessConfigForGlobalSignAtlas struct {
+	AccessConfigForACMEExternalAccountBinding
+}
+
 type AccessConfigForGname struct {
 	AppId  string `json:"appId"`
 	AppKey string `json:"appKey"`
@@ -218,10 +227,6 @@ type AccessConfigForGoEdge struct {
 	AccessKeyId              string `json:"accessKeyId"`
 	AccessKey                string `json:"accessKey"`
 	AllowInsecureConnections bool   `json:"allowInsecureConnections,omitempty"`
-}
-
-type AccessConfigForGlobalSignAtlas struct {
-	AccessConfigForACMEExternalAccountBinding
 }
 
 type AccessConfigForGoogleTrustServices struct {
@@ -335,15 +340,18 @@ type AccessConfigForRatPanel struct {
 	AllowInsecureConnections bool   `json:"allowInsecureConnections,omitempty"`
 }
 
+type AccessConfigForRFC2136 struct {
+	Host          string `json:"host"`
+	Port          int32  `json:"port"`
+	TsigAlgorithm string `json:"tsigAlgorithm,omitempty"`
+	TsigKey       string `json:"tsigKey,omitempty"`
+	TsigSecret    string `json:"tsigSecret,omitempty"`
+}
+
 type AccessConfigForSafeLine struct {
 	ServerUrl                string `json:"serverUrl"`
 	ApiToken                 string `json:"apiToken"`
 	AllowInsecureConnections bool   `json:"allowInsecureConnections,omitempty"`
-}
-
-type AccessConfigForGlobalSectigo struct {
-	AccessConfigForACMEExternalAccountBinding
-	ValidationType string `json:"validationType"`
 }
 
 type AccessConfigForSlackBot struct {

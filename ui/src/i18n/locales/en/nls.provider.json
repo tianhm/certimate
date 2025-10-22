@@ -132,6 +132,7 @@
   "provider.ratpanel": "RatPanel",
   "provider.ratpanel.console": "RatPanel - Console itself",
   "provider.ratpanel.site": "RatPanel - Website",
+  "provider.rfc2136": "RFC 2136: Dynamic DNS Updates",
   "provider.safeline": "SafeLine",
   "provider.sectigo": "Sectigo",
   "provider.slackbot": "Slack Bot",

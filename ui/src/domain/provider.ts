@@ -77,6 +77,7 @@ export const ACCESS_PROVIDERS = Object.freeze({
   QINIU: "qiniu",
   RAINYUN: "rainyun",
   RATPANEL: "ratpanel",
+  RFC2136: "rfc2136",
   SAFELINE: "safeline",
   SECTIGO: "sectigo",
   SLACKBOT: "slackbot",
@@ -187,6 +188,7 @@ export const accessProvidersMap: Map<AccessProvider["type"] | string, AccessProv
       [ACCESS_PROVIDERS.WESTCN, "provider.westcn", "/imgs/providers/westcn.svg", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.POWERDNS, "provider.powerdns", "/imgs/providers/powerdns.svg", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.TECHNITIUMDNS, "provider.technitiumdns", "/imgs/providers/technitiumdns.png", [ACCESS_USAGES.DNS]],
+      [ACCESS_PROVIDERS.RFC2136, "provider.rfc2136", "/imgs/providers/rfc.png", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.ACMEDNS, "provider.acmedns", "/imgs/providers/acmedns.png", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.ACMEHTTPREQ, "provider.acmehttpreq", "/imgs/providers/acmehttpreq.svg", [ACCESS_USAGES.DNS]],
 
@@ -320,6 +322,7 @@ export const ACME_DNS01_PROVIDERS = Object.freeze({
   PORKBUN: `${ACCESS_PROVIDERS.PORKBUN}`,
   POWERDNS: `${ACCESS_PROVIDERS.POWERDNS}`,
   RAINYUN: `${ACCESS_PROVIDERS.RAINYUN}`,
+  RFC2136: `${ACCESS_PROVIDERS.RFC2136}`,
   SPACESHIP: `${ACCESS_PROVIDERS.SPACESHIP}`,
   UCLOUD_UDNR: `${ACCESS_PROVIDERS.UCLOUD}-udnr`,
   TECHNITIUMDNS: `${ACCESS_PROVIDERS.TECHNITIUMDNS}`,
@@ -384,6 +387,7 @@ export const acmeDns01ProvidersMap: Map<ACMEDns01Provider["type"] | string, ACME
       [ACME_DNS01_PROVIDERS.WESTCN, "provider.westcn"],
       [ACME_DNS01_PROVIDERS.POWERDNS, "provider.powerdns"],
       [ACME_DNS01_PROVIDERS.TECHNITIUMDNS, "provider.technitiumdns"],
+      [ACME_DNS01_PROVIDERS.RFC2136, "provider.rfc2136"],
       [ACME_DNS01_PROVIDERS.ACMEDNS, "provider.acmedns"],
       [ACME_DNS01_PROVIDERS.ACMEHTTPREQ, "provider.acmehttpreq"],
     ] satisfies Array<[ACMEDns01ProviderType, string]>

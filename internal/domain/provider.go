@@ -79,7 +79,7 @@ const (
 	AccessProviderTypeQingCloud           = AccessProviderType("qingcloud") // 青云（预留）
 	AccessProviderTypeRainYun             = AccessProviderType("rainyun")
 	AccessProviderTypeRatPanel            = AccessProviderType("ratpanel")
-	AccessProviderTypeRFC2136             = AccessProviderType("rfc2136") // RFC2136（预留）
+	AccessProviderTypeRFC2136             = AccessProviderType("rfc2136")
 	AccessProviderTypeSafeLine            = AccessProviderType("safeline")
 	AccessProviderTypeSectigo             = AccessProviderType("sectigo")
 	AccessProviderTypeSlackBot            = AccessProviderType("slackbot")
@@ -174,6 +174,7 @@ const (
 	ACMEDns01ProviderTypePorkbun           = ACMEDns01ProviderType(AccessProviderTypePorkbun)
 	ACMEDns01ProviderTypePowerDNS          = ACMEDns01ProviderType(AccessProviderTypePowerDNS)
 	ACMEDns01ProviderTypeRainYun           = ACMEDns01ProviderType(AccessProviderTypeRainYun)
+	ACMEDns01ProviderTypeRFC2136           = ACMEDns01ProviderType(AccessProviderTypeRFC2136)
 	ACMEDns01ProviderTypeSpaceship         = ACMEDns01ProviderType(AccessProviderTypeSpaceship)
 	ACMEDns01ProviderTypeTechnitiumDNS     = ACMEDns01ProviderType(AccessProviderTypeTechnitiumDNS)
 	ACMEDns01ProviderTypeTencentCloud      = ACMEDns01ProviderType(AccessProviderTypeTencentCloud) // 兼容旧值，等同于 [ACMEDns01ProviderTypeTencentCloudDNS]

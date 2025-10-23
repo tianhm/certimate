@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { useFormNestedFieldsContext } from "./_context";
 
-const AccessConfigFormFieldsProviderGcore = () => {
+const AccessConfigFormFieldsProviderGandinet = () => {
   const { i18n, t } = useTranslation();
 
   const { parentNamePath } = useFormNestedFieldsContext();
@@ -18,13 +18,13 @@ const AccessConfigFormFieldsProviderGcore = () => {
   return (
     <>
       <Form.Item
-        name={[parentNamePath, "apiToken"]}
-        initialValue={initialValues.apiToken}
-        label={t("access.form.gcore_api_token.label")}
+        name={[parentNamePath, "personalAccessToken"]}
+        initialValue={initialValues.personalAccessToken}
+        label={t("access.form.gandinet_personal_access_token.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.gcore_api_token.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.gandinet_personal_access_token.tooltip") }}></span>}
       >
-        <Input.Password autoComplete="new-password" placeholder={t("access.form.gcore_api_token.placeholder")} />
+        <Input.Password autoComplete="new-password" placeholder={t("access.form.gandinet_personal_access_token.placeholder")} />
       </Form.Item>
     </>
   );
@@ -32,7 +32,7 @@ const AccessConfigFormFieldsProviderGcore = () => {
 
 const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   return {
-    apiToken: "",
+    personalAccessToken: "",
   };
 };
 
@@ -40,11 +40,11 @@ const getSchema = ({ i18n = getI18n() }: { i18n: ReturnType<typeof getI18n> }) =
   const { t } = i18n;
 
   return z.object({
-    apiToken: z.string().nonempty(t("access.form.gcore_api_token.placeholder")),
+    personalAccessToken: z.string().nonempty(t("access.form.gandinet_personal_access_token.placeholder")),
   });
 };
 
-const _default = Object.assign(AccessConfigFormFieldsProviderGcore, {
+const _default = Object.assign(AccessConfigFormFieldsProviderGandinet, {
   getInitialValues,
   getSchema,
 });

@@ -45,6 +45,7 @@ import AccessConfigFieldsProviderDuckDNS from "./forms/AccessConfigFieldsProvide
 import AccessConfigFieldsProviderDynv6 from "./forms/AccessConfigFieldsProviderDynv6";
 import AccessConfigFieldsProviderEmail from "./forms/AccessConfigFieldsProviderEmail";
 import AccessConfigFieldsProviderFlexCDN from "./forms/AccessConfigFieldsProviderFlexCDN";
+import AccessConfigFieldsProviderGandinet from "./forms/AccessConfigFieldsProviderGandinet";
 import AccessConfigFieldsProviderGcore from "./forms/AccessConfigFieldsProviderGcore";
 import AccessConfigFieldsProviderGlobalSignAtlas from "./forms/AccessConfigFieldsProviderGlobalSignAtlas";
 import AccessConfigFieldsProviderGname from "./forms/AccessConfigFieldsProviderGname";
@@ -240,6 +241,9 @@ const AccessForm = ({ className, style, disabled, initialValues, mode, usage, on
       }
       case ACCESS_PROVIDERS.FLEXCDN: {
         return <AccessConfigFieldsProviderFlexCDN />;
+      }
+      case ACCESS_PROVIDERS.GANDINET: {
+        return <AccessConfigFieldsProviderGandinet />;
       }
       case ACCESS_PROVIDERS.GCORE: {
         return <AccessConfigFieldsProviderGcore />;

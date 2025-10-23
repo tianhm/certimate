@@ -101,6 +101,7 @@
   "provider.huaweicloud.obs": "Huawei Cloud - OBS (Object Storage Service)",
   "provider.huaweicloud.scm_upload": "Huawei Cloud - Upload to SCM (SSL Certificate Manager)",
   "provider.huaweicloud.waf": "Huawei Cloud - WAF (Web Application Firewall)",
+  "provider.ionos": "IONOS",
   "provider.jdcloud": "JD Cloud",
   "provider.jdcloud.alb": "JD Cloud - ALB (Application Load Balancer)",
   "provider.jdcloud.cdn": "JD Cloud - CDN (Content Delivery Network)",

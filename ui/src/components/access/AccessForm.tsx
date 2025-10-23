@@ -54,6 +54,7 @@ import AccessConfigFieldsProviderGoogleTrustServices from "./forms/AccessConfigF
 import AccessConfigFieldsProviderHetzner from "./forms/AccessConfigFieldsProviderHetzner";
 import AccessConfigFieldsProviderHostinger from "./forms/AccessConfigFieldsProviderHostinger";
 import AccessConfigFieldsProviderHuaweiCloud from "./forms/AccessConfigFieldsProviderHuaweiCloud";
+import AccessConfigFieldsProviderIONOS from "./forms/AccessConfigFieldsProviderIONOS";
 import AccessConfigFieldsProviderJDCloud from "./forms/AccessConfigFieldsProviderJDCloud";
 import AccessConfigFieldsProviderKong from "./forms/AccessConfigFieldsProviderKong";
 import AccessConfigFieldsProviderKubernetes from "./forms/AccessConfigFieldsProviderKubernetes";
@@ -266,6 +267,9 @@ const AccessForm = ({ className, style, disabled, initialValues, mode, usage, on
       }
       case ACCESS_PROVIDERS.HUAWEICLOUD: {
         return <AccessConfigFieldsProviderHuaweiCloud />;
+      }
+      case ACCESS_PROVIDERS.IONOS: {
+        return <AccessConfigFieldsProviderIONOS />;
       }
       case ACCESS_PROVIDERS.JDCLOUD: {
         return <AccessConfigFieldsProviderJDCloud />;

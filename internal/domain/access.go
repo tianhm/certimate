@@ -253,6 +253,11 @@ type AccessConfigForHuaweiCloud struct {
 	EnterpriseProjectId string `json:"enterpriseProjectId,omitempty"`
 }
 
+type AccessConfigForIONOS struct {
+	ApiKeyPublicPrefix string `json:"apiKeyPublicPrefix"`
+	ApiKeySecret       string `json:"apiKeySecret"`
+}
+
 type AccessConfigForJDCloud struct {
 	AccessKeyId     string `json:"accessKeyId"`
 	AccessKeySecret string `json:"accessKeySecret"`

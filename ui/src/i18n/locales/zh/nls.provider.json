@@ -101,6 +101,7 @@
   "provider.huaweicloud.obs": "华为云 - 对象储存服务 OBS",
   "provider.huaweicloud.scm_upload": "华为云 - 上传到云证书管理服务 SCM",
   "provider.huaweicloud.waf": "华为云 - Web 应用防火墙 WAF",
+  "provider.ionos": "IONOS",
   "provider.jdcloud": "京东云",
   "provider.jdcloud.alb": "京东云 - 应用负载均衡 ALB",
   "provider.jdcloud.cdn": "京东云 - 内容分发网络 CDN",

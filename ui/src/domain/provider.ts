@@ -58,6 +58,7 @@ export const ACCESS_PROVIDERS = Object.freeze({
   HETZNER: "hetzner",
   HOSTINGER: "hostinger",
   HUAWEICLOUD: "huaweicloud",
+  IONOS: "ionos",
   JDCLOUD: "jdcloud",
   KONG: "kong",
   KUBERNETES: "k8s",
@@ -180,6 +181,7 @@ export const accessProvidersMap: Map<AccessProvider["type"] | string, AccessProv
       [ACCESS_PROVIDERS.GODADDY, "provider.godaddy", "/imgs/providers/godaddy.svg", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.HETZNER, "provider.hetzner", "/imgs/providers/hetzner.svg", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.HOSTINGER, "provider.hostinger", "/imgs/providers/hostinger.svg", [ACCESS_USAGES.DNS]],
+      [ACCESS_PROVIDERS.IONOS, "provider.ionos", "/imgs/providers/ionos.svg", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.LINODE, "provider.linode", "/imgs/providers/linode.svg", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.NAMECHEAP, "provider.namecheap", "/imgs/providers/namecheap.svg", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.NAMEDOTCOM, "provider.namedotcom", "/imgs/providers/namedotcom.svg", [ACCESS_USAGES.DNS]],
@@ -319,6 +321,7 @@ export const ACME_DNS01_PROVIDERS = Object.freeze({
   HOSTINGER: `${ACCESS_PROVIDERS.HOSTINGER}`,
   HUAWEICLOUD: `${ACCESS_PROVIDERS.HUAWEICLOUD}`, // 兼容旧值，等同于 `HUAWEICLOUD_DNS`
   HUAWEICLOUD_DNS: `${ACCESS_PROVIDERS.HUAWEICLOUD}-dns`,
+  IONOS: `${ACCESS_PROVIDERS.IONOS}`,
   JDCLOUD: `${ACCESS_PROVIDERS.JDCLOUD}`, // 兼容旧值，等同于 `JDCLOUD_DNS`
   JDCLOUD_DNS: `${ACCESS_PROVIDERS.JDCLOUD}-dns`,
   LINODE: `${ACCESS_PROVIDERS.LINODE}`,
@@ -381,6 +384,7 @@ export const acmeDns01ProvidersMap: Map<ACMEDns01Provider["type"] | string, ACME
       [ACME_DNS01_PROVIDERS.GODADDY, "provider.godaddy"],
       [ACME_DNS01_PROVIDERS.HETZNER, "provider.hetzner"],
       [ACME_DNS01_PROVIDERS.HOSTINGER, "provider.hostinger"],
+      [ACME_DNS01_PROVIDERS.IONOS, "provider.ionos"],
       [ACME_DNS01_PROVIDERS.LINODE, "provider.linode"],
       [ACME_DNS01_PROVIDERS.NAMECHEAP, "provider.namecheap"],
       [ACME_DNS01_PROVIDERS.NAMEDOTCOM, "provider.namedotcom"],

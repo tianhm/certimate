@@ -55,6 +55,7 @@ const (
 	AccessProviderTypeHetzner             = AccessProviderType("hetzner")
 	AccessProviderTypeHostinger           = AccessProviderType("hostinger")
 	AccessProviderTypeHuaweiCloud         = AccessProviderType("huaweicloud")
+	AccessProviderTypeIONOS               = AccessProviderType("ionos")
 	AccessProviderTypeJDCloud             = AccessProviderType("jdcloud")
 	AccessProviderTypeKong                = AccessProviderType("kong")
 	AccessProviderTypeKsyun               = AccessProviderType("ksyun") // 金山云（预留）
@@ -165,6 +166,7 @@ const (
 	ACMEDns01ProviderTypeHostinger         = ACMEDns01ProviderType(AccessProviderTypeHostinger)
 	ACMEDns01ProviderTypeHuaweiCloud       = ACMEDns01ProviderType(AccessProviderTypeHuaweiCloud) // 兼容旧值，等同于 [ACMEDns01ProviderTypeHuaweiCloudDNS]
 	ACMEDns01ProviderTypeHuaweiCloudDNS    = ACMEDns01ProviderType(AccessProviderTypeHuaweiCloud + "-dns")
+	ACMEDns01ProviderTypeIONOS             = ACMEDns01ProviderType(AccessProviderTypeIONOS)
 	ACMEDns01ProviderTypeJDCloud           = ACMEDns01ProviderType(AccessProviderTypeJDCloud) // 兼容旧值，等同于 [ACMEDns01ProviderTypeJDCloudDNS]
 	ACMEDns01ProviderTypeJDCloudDNS        = ACMEDns01ProviderType(AccessProviderTypeJDCloud + "-dns")
 	ACMEDns01ProviderTypeLinode            = ACMEDns01ProviderType(AccessProviderTypeLinode)

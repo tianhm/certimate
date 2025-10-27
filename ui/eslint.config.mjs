@@ -120,7 +120,7 @@ export default defineConfig(
   // React
   {
     name: "react",
-    extends: [reactHooksPlugin.configs["recommended-latest"], reactRefreshPlugin.configs["vite"]],
+    extends: [reactHooksPlugin.configs.flat["recommended"], reactRefreshPlugin.configs["vite"]],
     rules: {
       "react-refresh/only-export-components": [
         "warn",

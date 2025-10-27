@@ -302,7 +302,7 @@ const AccessList = () => {
         return draft;
       });
     getAccess(access.id).then((data) => {
-      createDrawer.open({ data: copier(data), loading: true });
+      createDrawer.open({ data: copier(data) });
     });
   };
 

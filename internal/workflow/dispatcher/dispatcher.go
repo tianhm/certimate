@@ -206,7 +206,7 @@ func (wd *workflowDispatcher) tryExecuteAsync(task *taskInfo) {
 	defer func() {
 		if r := recover(); r != nil {
 			wd.syslog.Error(fmt.Sprintf("workflow dispatcher panic: %v", r), slog.String("workflowId", task.WorkflowId), slog.String("runId", task.RunId))
-			slog.Default().Error(fmt.Sprintf("workflow dispatcher panic: %v, stack trace: %s", r, string(debug.Stack())), slog.String("workflowId", task.WorkflowId), slog.String("runId", task.RunId))
+			slog.Error(fmt.Sprintf("workflow dispatcher panic: %v, stack trace: %s", r, string(debug.Stack())), slog.String("workflowId", task.WorkflowId), slog.String("runId", task.RunId))
 
 			if workflowRun != nil {
 				workflowRun.Status = domain.WorkflowRunStatusTypeFailed

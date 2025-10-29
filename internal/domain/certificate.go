@@ -30,7 +30,8 @@ type Certificate struct {
 	ACMEAcctUrl       string                      `json:"acmeAcctUrl" db:"acmeAcctUrl"`
 	ACMECertUrl       string                      `json:"acmeCertUrl" db:"acmeCertUrl"`
 	ACMECertStableUrl string                      `json:"acmeCertStableUrl" db:"acmeCertStableUrl"`
-	ACMERenewed       bool                        `json:"acmeRenewed" db:"acmeRenewed"`
+	IsRenewed         bool                        `json:"isRenewed" db:"isRenewed"`
+	IsRevoked         bool                        `json:"isRevoked" db:"isRevoked"`
 	WorkflowId        string                      `json:"workflowId" db:"workflowRef"`
 	WorkflowRunId     string                      `json:"workflowRunId" db:"workflowRunRef"`
 	WorkflowNodeId    string                      `json:"workflowNodeId" db:"workflowNodeId"`

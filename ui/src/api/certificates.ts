@@ -27,6 +27,23 @@ export const archive = async (certificateId: string, format?: CertificateFormatT
   return resp;
 };
 
+export const revoke = async (certificateId: string) => {
+  const pb = getPocketBase();
+
+  const resp = await pb.send<BaseResponse<ArchiveRespData>>(`/api/certificates/${encodeURIComponent(certificateId)}/revoke`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (resp.code != 0) {
+    throw new ClientResponseError({ status: resp.code, response: resp, data: {} });
+  }
+
+  return resp;
+};
+
 type ValidateCertificateResp = {
   isValid: boolean;
   domains: string;

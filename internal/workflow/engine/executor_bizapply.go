@@ -122,7 +122,7 @@ func (ne *bizApplyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 
 	// 保存 ARI 替换状态
 	if lastCertificate != nil && obtainResp.ARIReplaced {
-		lastCertificate.ACMERenewed = true
+		lastCertificate.IsRenewed = true
 		ne.certificateRepo.Save(execCtx.ctx, lastCertificate)
 	}
 
@@ -279,7 +279,7 @@ func (ne *bizApplyNodeExecutor) executeObtain(execCtx *NodeExecutionContext, nod
 		ACMEProfile: nodeCfg.ACMEProfile,
 		ARIReplacesAcctUrl: lo.If(lastCertificate == nil, "").
 			ElseF(func() string {
-				if lastCertificate.ACMERenewed {
+				if lastCertificate.IsRenewed {
 					return ""
 				}
 
@@ -287,7 +287,7 @@ func (ne *bizApplyNodeExecutor) executeObtain(execCtx *NodeExecutionContext, nod
 			}),
 		ARIReplacesCertId: lo.If(lastCertificate == nil, "").
 			ElseF(func() string {
-				if lastCertificate.ACMERenewed {
+				if lastCertificate.IsRenewed {
 					return ""
 				}
 

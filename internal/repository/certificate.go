@@ -129,7 +129,8 @@ func (r *CertificateRepository) Save(ctx context.Context, certificate *domain.Ce
 	record.Set("acmeAcctUrl", certificate.ACMEAcctUrl)
 	record.Set("acmeCertUrl", certificate.ACMECertUrl)
 	record.Set("acmeCertStableUrl", certificate.ACMECertStableUrl)
-	record.Set("acmeRenewed", certificate.ACMERenewed)
+	record.Set("isRenewed", certificate.IsRenewed)
+	record.Set("isRevoked", certificate.IsRevoked)
 	record.Set("workflowRef", certificate.WorkflowId)
 	record.Set("workflowRunRef", certificate.WorkflowRunId)
 	record.Set("workflowNodeId", certificate.WorkflowNodeId)
@@ -190,7 +191,8 @@ func (r *CertificateRepository) castRecordToModel(record *core.Record) (*domain.
 		ACMEAcctUrl:       record.GetString("acmeAcctUrl"),
 		ACMECertUrl:       record.GetString("acmeCertUrl"),
 		ACMECertStableUrl: record.GetString("acmeCertStableUrl"),
-		ACMERenewed:       record.GetBool("acmeRenewed"),
+		IsRenewed:         record.GetBool("isRenewed"),
+		IsRevoked:         record.GetBool("isRevoked"),
 		WorkflowId:        record.GetString("workflowRef"),
 		WorkflowRunId:     record.GetString("workflowRunRef"),
 		WorkflowNodeId:    record.GetString("workflowNodeId"),

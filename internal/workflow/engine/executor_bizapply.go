@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-acme/lego/v4/certcrypto"
 	legocertifier "github.com/go-acme/lego/v4/certificate"
 	"github.com/go-acme/lego/v4/lego"
 	legolog "github.com/go-acme/lego/v4/log"
@@ -300,7 +299,7 @@ func (ne *bizApplyNodeExecutor) executeObtain(execCtx *NodeExecutionContext, nod
 					return ""
 				}
 
-				oldCertX509, err := certcrypto.ParsePEMCertificate([]byte(lastCertificate.Certificate))
+				oldCertX509, err := xcert.ParseCertificateFromPEM(lastCertificate.Certificate)
 				if err != nil {
 					return ""
 				}

@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-acme/lego/v4/certcrypto"
 	"github.com/go-resty/resty/v2"
 
 	"github.com/certimate-go/certimate/internal/domain"
@@ -127,7 +126,7 @@ func (ne *bizUploadNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 	}
 
 	// 验证证书
-	certX509, err := certcrypto.ParsePEMCertificate([]byte(certPEM))
+	certX509, err := xcert.ParseCertificateFromPEM(certPEM)
 	if err != nil {
 		return execRes, err
 	} else if certX509.NotAfter.Before(time.Now()) {
@@ -135,7 +134,7 @@ func (ne *bizUploadNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 	}
 
 	// 验证私钥
-	privkey, err := certcrypto.ParsePEMPrivateKey([]byte(privkeyPEM))
+	privkey, err := xcert.ParsePrivateKeyFromPEM(privkeyPEM)
 	if err != nil {
 		return nil, err
 	} else {

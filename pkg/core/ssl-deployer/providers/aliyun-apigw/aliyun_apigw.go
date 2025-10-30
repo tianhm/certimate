@@ -28,7 +28,7 @@ type SSLDeployerProviderConfig struct {
 	// 阿里云地域。
 	Region string `json:"region"`
 	// 服务类型。
-	ServiceType ServiceType `json:"serviceType"`
+	ServiceType string `json:"serviceType"`
 	// API 网关 ID。
 	// 服务类型为 [SERVICE_TYPE_CLOUDNATIVE] 时必填。
 	GatewayId string `json:"gatewayId,omitempty"`

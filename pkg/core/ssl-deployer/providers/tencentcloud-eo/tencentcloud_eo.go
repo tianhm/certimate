@@ -27,7 +27,7 @@ type SSLDeployerProviderConfig struct {
 	// 站点 ID。
 	ZoneId string `json:"zoneId"`
 	// 域名匹配模式。
-	// 零值时默认值 [MatchPatternExact]。
+	// 零值时默认值 [MATCH_PATTERN_EXACT]。
 	MatchPattern string `json:"matchPattern,omitempty"`
 	// 加速域名列表（支持泛域名）。
 	Domains []string `json:"domains"`
@@ -99,7 +99,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 
 	var domains []string
 	switch d.config.MatchPattern {
-	case "", MatchPatternExact:
+	case "", MATCH_PATTERN_EXACT:
 		{
 			if len(d.config.Domains) == 0 {
 				return nil, errors.New("config `domains` is required")
@@ -108,7 +108,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			domains = d.config.Domains
 		}
 
-	case MatchPatternWildcard:
+	case MATCH_PATTERN_WILDCARD:
 		{
 			if len(d.config.Domains) == 0 {
 				return nil, errors.New("config `domains` is required")

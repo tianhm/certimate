@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-acme/lego/v4/certcrypto"
 	"github.com/pocketbase/dbx"
 
 	"github.com/certimate-go/certimate/internal/app"
@@ -181,7 +180,7 @@ func (s *CertificateService) ValidateCertificate(ctx context.Context, req *dtos.
 }
 
 func (s *CertificateService) ValidatePrivateKey(ctx context.Context, req *dtos.CertificateValidatePrivateKeyReq) (*dtos.CertificateValidatePrivateKeyResp, error) {
-	_, err := certcrypto.ParsePEMPrivateKey([]byte(req.PrivateKey))
+	_, err := xcert.ParsePrivateKeyFromPEM(req.PrivateKey)
 	if err != nil {
 		return nil, err
 	}

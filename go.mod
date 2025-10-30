@@ -31,11 +31,9 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.55.2
 	github.com/aws/aws-sdk-go-v2/service/iam v1.49.0
 	github.com/baidubce/bce-sdk-go v0.9.250
-	github.com/blinkbean/dingtalk v1.1.3
 	github.com/byteplus-sdk/byteplus-sdk-golang v1.0.58
 	github.com/go-acme/lego/v4 v4.27.0
 	github.com/go-cmd/cmd v1.4.3
-	github.com/go-lark/lark v1.16.0
 	github.com/go-resty/resty/v2 v2.16.5
 	github.com/go-viper/mapstructure/v2 v2.4.0
 	github.com/huaweicloud/huaweicloud-sdk-go-v3 v0.1.172

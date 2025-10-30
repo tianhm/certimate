@@ -212,7 +212,9 @@ func (d *SSLDeployerProvider) updateListenerCertificate(ctx context.Context, clo
 }
 
 func createSDKClient(accessKeyId, accessKeySecret, region string) (*veclb.CLB, error) {
-	config := ve.NewConfig().WithRegion(region).WithAkSk(accessKeyId, accessKeySecret)
+	config := ve.NewConfig().
+		WithAkSk(accessKeyId, accessKeySecret).
+		WithRegion(region)
 
 	session, err := vesession.NewSession(config)
 	if err != nil {

@@ -2,11 +2,15 @@ package larkbot
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
 	"net/url"
+	"time"
 
 	"github.com/go-resty/resty/v2"
 
@@ -16,6 +20,8 @@ import (
 type NotifierProviderConfig struct {
 	// 飞书机器人 Webhook 地址。
 	WebhookUrl string `json:"webhookUrl"`
+	// 飞书机器人的 Secret。
+	Secret string `json:"secret"`
 }
 
 type NotifierProvider struct {
@@ -62,6 +68,23 @@ func (n *NotifierProvider) Notify(ctx context.Context, subject string, message s
 		}
 	}
 
+	payload := map[string]any{
+		"msg_type": "text",
+		"content": map[string]string{
+			"text": subject + "\n\n" + message,
+		},
+	}
+	if n.config.Secret != "" {
+		timestamp := fmt.Sprintf("%d", time.Now().UnixMilli())
+
+		h := hmac.New(sha256.New, []byte(n.config.Secret))
+		h.Write([]byte(fmt.Sprintf("%s\n%s", timestamp, n.config.Secret)))
+		sign := base64.StdEncoding.EncodeToString(h.Sum(nil))
+
+		payload["timestamp"] = timestamp
+		payload["sign"] = sign
+	}
+
 	// REF: https://open.feishu.cn/document/client-docs/bot-v3/add-custom-bot
 	// REF: https://open.larksuite.com/document/client-docs/bot-v3/add-custom-bot
 	var result struct {
@@ -70,12 +93,7 @@ func (n *NotifierProvider) Notify(ctx context.Context, subject string, message s
 	}
 	req := n.httpClient.R().
 		SetContext(ctx).
-		SetBody(map[string]any{
-			"msg_type": "text",
-			"content": map[string]string{
-				"text": subject + "\n\n" + message,
-			},
-		})
+		SetBody(payload)
 	resp, err := req.Post(webhookUrl.String())
 	if err != nil {
 		return nil, fmt.Errorf("lark api error: failed to send request: %w", err)

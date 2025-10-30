@@ -26,7 +26,7 @@ require (
 	github.com/alibabacloud-go/tea v1.3.13
 	github.com/alibabacloud-go/vod-20170321/v4 v4.10.0
 	github.com/alibabacloud-go/waf-openapi-20211001/v6 v6.6.0
-	github.com/aliyun/aliyun-oss-go-sdk v3.0.2+incompatible
+	github.com/aliyun/alibabacloud-oss-go-sdk-v2 v1.3.0
 	github.com/aws/aws-sdk-go-v2/service/acm v1.37.6
 	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.55.2
 	github.com/aws/aws-sdk-go-v2/service/iam v1.49.0

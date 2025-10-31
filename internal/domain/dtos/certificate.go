@@ -10,6 +10,12 @@ type CertificateArchiveFileResp struct {
 	FileFormat string `json:"fileFormat"`
 }
 
+type CertificateRevokeReq struct {
+	CertificateId string `json:"-"`
+}
+
+type CertificateRevokeResp struct{}
+
 type CertificateValidateCertificateReq struct {
 	Certificate string `json:"certificate"`
 }

@@ -1,7 +1,7 @@
 import { memo, useEffect, useMemo, useState } from "react";
 import { getI18n, useTranslation } from "react-i18next";
 import { Link } from "react-router";
-import { type FlowNodeEntity, getNodeForm } from "@flowgram.ai/fixed-layout-editor";
+import { type FlowNodeEntity } from "@flowgram.ai/fixed-layout-editor";
 import { IconChevronRight, IconCircleMinus, IconPlus } from "@tabler/icons-react";
 import { useControllableValue, useMount } from "ahooks";
 import {
@@ -33,7 +33,7 @@ import CAProviderSelect from "@/components/provider/CAProviderSelect";
 import Show from "@/components/Show";
 import TextFileInput from "@/components/TextFileInput";
 import { type AccessModel } from "@/domain/access";
-import { ACME_DNS01_PROVIDERS, ACME_HTTP01_PROVIDERS, acmeDns01ProvidersMap, acmeHttp01ProvidersMap, caProvidersMap } from "@/domain/provider";
+import { acmeDns01ProvidersMap, acmeHttp01ProvidersMap, caProvidersMap } from "@/domain/provider";
 import { type WorkflowNodeConfigForBizApply, defaultNodeConfigForBizApply } from "@/domain/workflow";
 import { useAntdForm, useZustandShallowSelector } from "@/hooks";
 import { useAccessesStore } from "@/stores/access";
@@ -42,13 +42,7 @@ import { getErrMsg } from "@/utils/error";
 import { validDomainName, validIPv4Address, validIPv6Address } from "@/utils/validators";
 
 import { FormNestedFieldsContextProvider, NodeFormContextProvider } from "./_context";
-import BizApplyNodeConfigFieldsProviderAliyunESA from "./BizApplyNodeConfigFieldsProviderAliyunESA";
-import BizApplyNodeConfigFieldsProviderAWSRoute53 from "./BizApplyNodeConfigFieldsProviderAWSRoute53";
-import BizApplyNodeConfigFieldsProviderHuaweiCloudDNS from "./BizApplyNodeConfigFieldsProviderHuaweiCloudDNS";
-import BizApplyNodeConfigFieldsProviderJDCloudDNS from "./BizApplyNodeConfigFieldsProviderJDCloudDNS";
-import BizApplyNodeConfigFieldsProviderLocal from "./BizApplyNodeConfigFieldsProviderLocal";
-import BizApplyNodeConfigFieldsProviderSSH from "./BizApplyNodeConfigFieldsProviderSSH";
-import BizApplyNodeConfigFieldsProviderTencentCloudEO from "./BizApplyNodeConfigFieldsProviderTencentCloudEO";
+import BizApplyNodeConfigFieldsProvider from "./BizApplyNodeConfigFieldsProvider";
 import { NodeType } from "../nodes/typings";
 
 const MULTIPLE_INPUT_SEPARATOR = ";";
@@ -85,25 +79,28 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
   };
 
   const initialValues = useMemo(() => {
-    return getNodeForm(node)?.getValueIn("config") as WorkflowNodeConfigForBizApply | undefined;
+    return node.form?.getValueIn("config") as WorkflowNodeConfigForBizApply | undefined;
   }, [node]);
 
   const formSchema = getSchema({ i18n });
+  type FormSchema = z.infer<typeof formSchema>;
   const formRule = createSchemaFieldRule(formSchema);
-  const { form: formInst, formProps } = useAntdForm<z.infer<typeof formSchema>>({
+  const { form: formInst, formProps } = useAntdForm<FormSchema>({
     form: props.form,
     name: "workflowNodeBizApplyConfigForm",
     initialValues: initialValues ?? getInitialValues(),
   });
 
-  const fieldChallengeType = Form.useWatch<string>("challengeType", { form: formInst, preserve: true });
+  const fieldChallengeType = Form.useWatch<FormSchema["challengeType"]>("challengeType", { form: formInst, preserve: true });
   const fieldProvider = Form.useWatch<string>("provider", { form: formInst, preserve: true });
   const fieldProviderAccessId = Form.useWatch<string>("providerAccessId", { form: formInst, preserve: true });
   const fieldKeySource = Form.useWatch<string>("keySource", { form: formInst, preserve: true });
   const fieldCAProvider = Form.useWatch<string>("caProvider", { form: formInst, preserve: true });
   const fieldCAProviderAccessId = Form.useWatch<string>("caProviderAccessId", { form: formInst, preserve: true });
 
-  const resetFieldIfInvalid = (field: keyof z.infer<typeof formSchema>) => {
+  const renderNestedFieldProviderComponent = BizApplyNodeConfigFieldsProvider.useComponent(fieldChallengeType, fieldProvider, {});
+
+  const resetFieldIfInvalid = (field: keyof FormSchema) => {
     const fieldSchame = formSchema.pick({ [field]: true });
     const fieldValue = formInst.getFieldValue(field);
     if (!fieldSchame.safeParse({ [field]: fieldValue }).success) {
@@ -111,61 +108,14 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
     }
   };
 
-  const NestedProviderConfigFields = useMemo(() => {
-    /*
-      注意：如果追加新的子组件，请保持以 ASCII 排序。
-      NOTICE: If you add new child component, please keep ASCII order.
-      */
-    switch (fieldChallengeType) {
-      case CHALLENGE_TYPE_DNS01:
-        {
-          switch (fieldProvider) {
-            case ACME_DNS01_PROVIDERS.ALIYUN_ESA: {
-              return BizApplyNodeConfigFieldsProviderAliyunESA;
-            }
-            case ACME_DNS01_PROVIDERS.AWS:
-            case ACME_DNS01_PROVIDERS.AWS_ROUTE53: {
-              return BizApplyNodeConfigFieldsProviderAWSRoute53;
-            }
-            case ACME_DNS01_PROVIDERS.HUAWEICLOUD:
-            case ACME_DNS01_PROVIDERS.HUAWEICLOUD_DNS: {
-              return BizApplyNodeConfigFieldsProviderHuaweiCloudDNS;
-            }
-            case ACME_DNS01_PROVIDERS.JDCLOUD:
-            case ACME_DNS01_PROVIDERS.JDCLOUD_DNS: {
-              return BizApplyNodeConfigFieldsProviderJDCloudDNS;
-            }
-            case ACME_DNS01_PROVIDERS.TENCENTCLOUD_EO: {
-              return BizApplyNodeConfigFieldsProviderTencentCloudEO;
-            }
-          }
-        }
-        break;
-
-      case CHALLENGE_TYPE_HTTP01:
-        switch (fieldProvider) {
-          case ACME_HTTP01_PROVIDERS.LOCAL: {
-            return BizApplyNodeConfigFieldsProviderLocal;
-          }
-          case ACME_HTTP01_PROVIDERS.SSH: {
-            return BizApplyNodeConfigFieldsProviderSSH;
-          }
-        }
-        break;
-    }
-  }, [fieldChallengeType, fieldProvider]);
-
-  const [showProviderAccess, setShowProviderAccess] = useState(false);
-  useEffect(() => {
+  const showProviderAccess = useMemo(() => {
     // 内置的质询提供商（如本地主机）无需显示授权信息字段
     switch (fieldChallengeType) {
       case CHALLENGE_TYPE_DNS01:
         {
           if (fieldProvider) {
             const provider = acmeDns01ProvidersMap.get(fieldProvider);
-            setShowProviderAccess(!provider?.builtin);
-          } else {
-            setShowProviderAccess(false);
+            return !provider?.builtin;
           }
         }
         break;
@@ -174,30 +124,23 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
         {
           if (fieldProvider) {
             const provider = acmeHttp01ProvidersMap.get(fieldProvider);
-            setShowProviderAccess(!provider?.builtin);
-          } else {
-            setShowProviderAccess(false);
+            return !provider?.builtin;
           }
         }
         break;
-
-      default:
-        {
-          setShowProviderAccess(false);
-        }
-        break;
     }
+
+    return false;
   }, [fieldChallengeType, fieldProvider]);
 
-  const [showCAProviderAccess, setShowCAProviderAccess] = useState(false);
-  useEffect(() => {
+  const showCAProviderAccess = useMemo(() => {
     // 内置的 CA 提供商（如 Let's Encrypt）无需显示授权信息字段
     if (fieldCAProvider) {
       const provider = caProvidersMap.get(fieldCAProvider);
-      setShowCAProviderAccess(!provider?.builtin);
-    } else {
-      setShowCAProviderAccess(false);
+      return !provider?.builtin;
     }
+
+    return false;
   }, [fieldCAProvider]);
 
   useEffect(() => {
@@ -460,7 +403,7 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
           </Form.Item>
 
           <FormNestedFieldsContextProvider value={{ parentNamePath: "providerConfig" }}>
-            {NestedProviderConfigFields && <NestedProviderConfigFields />}
+            {renderNestedFieldProviderComponent && <>{renderNestedFieldProviderComponent}</>}
           </FormNestedFieldsContextProvider>
         </div>
 
@@ -700,7 +643,7 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
               <Form.Item name="skipBeforeExpiryDays" noStyle rules={[formRule]}>
                 <InputNumber
                   className="w-24"
-                  min={1}
+                  min={0}
                   max={365}
                   placeholder={t("workflow_node.apply.form.skip_before_expiry_days.placeholder")}
                   addonAfter={t("workflow_node.apply.form.skip_before_expiry_days.unit")}
@@ -894,7 +837,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
           .every((e) => validDomainName(e, { allowWildcard: true }));
       }, t("common.errmsg.domain_invalid")),
       contactEmail: z.email(t("common.errmsg.email_invalid")),
-      challengeType: z.string(t("workflow_node.apply.form.challenge_type.placeholder")).nonempty(t("workflow_node.apply.form.challenge_type.placeholder")),
+      challengeType: z.enum([CHALLENGE_TYPE_DNS01, CHALLENGE_TYPE_HTTP01], t("workflow_node.apply.form.challenge_type.placeholder")),
       provider: z.string(t("workflow_node.apply.form.provider.placeholder")).nonempty(t("workflow_node.apply.form.provider.placeholder")),
       providerAccessId: z.string(t("workflow_node.apply.form.provider_access.placeholder")).nullish(),
       providerConfig: z.any().nullish(),
@@ -944,13 +887,10 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
       acmeProfile: z.string().nullish(),
       disableFollowCNAME: z.boolean().nullish(),
       disableARI: z.boolean().nullish(),
-      skipBeforeExpiryDays: z.preprocess(
-        (v) => Number(v),
-        z
-          .number()
-          .int(t("workflow_node.apply.form.skip_before_expiry_days.placeholder"))
-          .gte(1, t("workflow_node.apply.form.skip_before_expiry_days.placeholder"))
-      ),
+      skipBeforeExpiryDays: z.coerce
+        .number()
+        .int(t("workflow_node.apply.form.skip_before_expiry_days.placeholder"))
+        .nonnegative(t("workflow_node.apply.form.skip_before_expiry_days.placeholder")),
     })
     .superRefine((values, ctx) => {
       if (values.domains) {

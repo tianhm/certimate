@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { useFormNestedFieldsContext } from "./_context";
 
-const AccessConfigFormFieldsProviderNS1 = () => {
+const AccessConfigFormFieldsProviderHostingde = () => {
   const { i18n, t } = useTranslation();
 
   const { parentNamePath } = useFormNestedFieldsContext();
@@ -20,11 +20,11 @@ const AccessConfigFormFieldsProviderNS1 = () => {
       <Form.Item
         name={[parentNamePath, "apiKey"]}
         initialValue={initialValues.apiKey}
-        label={t("access.form.ns1_api_key.label")}
+        label={t("access.form.hostingde_api_key.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.ns1_api_key.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.hostingde_api_key.tooltip") }}></span>}
       >
-        <Input.Password autoComplete="new-password" placeholder={t("access.form.ns1_api_key.placeholder")} />
+        <Input.Password autoComplete="new-password" placeholder={t("access.form.hostingde_api_key.placeholder")} />
       </Form.Item>
     </>
   );
@@ -40,11 +40,11 @@ const getSchema = ({ i18n = getI18n() }: { i18n: ReturnType<typeof getI18n> }) =
   const { t } = i18n;
 
   return z.object({
-    apiKey: z.string().nonempty(t("access.form.ns1_api_key.placeholder")),
+    apiKey: z.string().nonempty(t("access.form.hostingde_api_key.placeholder")),
   });
 };
 
-const _default = Object.assign(AccessConfigFormFieldsProviderNS1, {
+const _default = Object.assign(AccessConfigFormFieldsProviderHostingde, {
   getInitialValues,
   getSchema,
 });

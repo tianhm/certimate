@@ -26,6 +26,7 @@ type Certificate struct {
 	KeyAlgorithm      CertificateKeyAlgorithmType `json:"keyAlgorithm" db:"keyAlgorithm"`
 	ValidityNotBefore time.Time                   `json:"validityNotBefore" db:"validityNotBefore"`
 	ValidityNotAfter  time.Time                   `json:"validityNotAfter" db:"validityNotAfter"`
+	ValidityInterval  int32                       `json:"validityInterval" db:"validityInterval"`
 	ACMEAcctUrl       string                      `json:"acmeAcctUrl" db:"acmeAcctUrl"`
 	ACMECertUrl       string                      `json:"acmeCertUrl" db:"acmeCertUrl"`
 	ACMECertStableUrl string                      `json:"acmeCertStableUrl" db:"acmeCertStableUrl"`
@@ -43,6 +44,7 @@ func (c *Certificate) PopulateFromX509(certX509 *x509.Certificate) *Certificate 
 	c.IssuerOrg = strings.Join(certX509.Issuer.Organization, ";")
 	c.ValidityNotBefore = certX509.NotBefore
 	c.ValidityNotAfter = certX509.NotAfter
+	c.ValidityInterval = int32(certX509.NotAfter.Sub(certX509.NotBefore).Seconds())
 
 	keyAlgorithm, keySize, _ := xcryptokey.GetPublicKeyAlgorithm(certX509.PublicKey)
 	switch keyAlgorithm {

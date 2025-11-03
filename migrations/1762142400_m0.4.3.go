@@ -14,9 +14,25 @@ func init() {
 		// update collection `certificate`
 		//   - rename field `acmeRenewed` to `isRenewed`
 		//   - add field `isRevoked`
+		//   - add field `validityInterval`
 		{
 			collection, err := app.FindCollectionByNameOrId("4szxr9x43tpj6np")
 			if err != nil {
+				return err
+			}
+
+			if err := collection.Fields.AddMarshaledJSONAt(10, []byte(`{
+				"hidden": false,
+				"id": "number2453290051",
+				"max": null,
+				"min": null,
+				"name": "validityInterval",
+				"onlyInt": false,
+				"presentable": false,
+				"required": false,
+				"system": false,
+				"type": "number"
+			}`)); err != nil {
 				return err
 			}
 
@@ -45,6 +61,10 @@ func init() {
 			}
 
 			if err := app.Save(collection); err != nil {
+				return err
+			}
+
+			if _, err := app.DB().NewQuery("UPDATE certificate SET validityInterval = (STRFTIME('%s', validityNotAfter) - STRFTIME('%s', validityNotBefore))").Execute(); err != nil {
 				return err
 			}
 		}

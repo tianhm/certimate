@@ -126,6 +126,7 @@ func (r *CertificateRepository) Save(ctx context.Context, certificate *domain.Ce
 	record.Set("keyAlgorithm", string(certificate.KeyAlgorithm))
 	record.Set("validityNotBefore", certificate.ValidityNotBefore)
 	record.Set("validityNotAfter", certificate.ValidityNotAfter)
+	record.Set("validityInterval", certificate.ValidityInterval)
 	record.Set("acmeAcctUrl", certificate.ACMEAcctUrl)
 	record.Set("acmeCertUrl", certificate.ACMECertUrl)
 	record.Set("acmeCertStableUrl", certificate.ACMECertStableUrl)
@@ -188,6 +189,7 @@ func (r *CertificateRepository) castRecordToModel(record *core.Record) (*domain.
 		KeyAlgorithm:      domain.CertificateKeyAlgorithmType(record.GetString("keyAlgorithm")),
 		ValidityNotBefore: record.GetDateTime("validityNotBefore").Time(),
 		ValidityNotAfter:  record.GetDateTime("validityNotAfter").Time(),
+		ValidityInterval:  int32(record.GetInt("validityInterval")),
 		ACMEAcctUrl:       record.GetString("acmeAcctUrl"),
 		ACMECertUrl:       record.GetString("acmeCertUrl"),
 		ACMECertStableUrl: record.GetString("acmeCertStableUrl"),

@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
+	"crypto/x509"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -16,6 +17,7 @@ import (
 	"github.com/certimate-go/certimate/internal/domain"
 	"github.com/certimate-go/certimate/internal/domain/dtos"
 	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
+	xcryptokey "github.com/certimate-go/certimate/pkg/utils/crypto/key"
 )
 
 type CertificateService struct {
@@ -230,13 +232,25 @@ func (s *CertificateService) ValidateCertificate(ctx context.Context, req *dtos.
 }
 
 func (s *CertificateService) ValidatePrivateKey(ctx context.Context, req *dtos.CertificateValidatePrivateKeyReq) (*dtos.CertificateValidatePrivateKeyResp, error) {
-	_, err := xcert.ParsePrivateKeyFromPEM(req.PrivateKey)
+	privkey, err := xcert.ParsePrivateKeyFromPEM(req.PrivateKey)
 	if err != nil {
 		return nil, err
 	}
 
+	var keyAlgorithmString string
+	keyAlgorithm, keySize, _ := xcryptokey.GetPrivateKeyAlgorithm(privkey)
+	switch keyAlgorithm {
+	case x509.RSA:
+		keyAlgorithmString = fmt.Sprintf("RSA%d", keySize)
+	case x509.ECDSA:
+		keyAlgorithmString = fmt.Sprintf("EC%d", keySize)
+	case x509.Ed25519:
+		keyAlgorithmString = "ED25519"
+	}
+
 	return &dtos.CertificateValidatePrivateKeyResp{
-		IsValid: true,
+		IsValid:      keyAlgorithmString != "",
+		KeyAlgorithm: keyAlgorithmString,
 	}, nil
 }
 

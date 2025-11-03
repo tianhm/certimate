@@ -15,7 +15,7 @@ import (
 
 	"github.com/certimate-go/certimate/pkg/core"
 	sslmgrsp "github.com/certimate-go/certimate/pkg/core/ssl-manager/providers/tencentcloud-ssl"
-	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
+	xcerthostname "github.com/certimate-go/certimate/pkg/utils/cert/hostname"
 )
 
 type SSLDeployerProviderConfig struct {
@@ -196,7 +196,7 @@ func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, w
 
 		if describeDomainsResp.Response.Domains != nil {
 			for _, domain := range describeDomainsResp.Response.Domains {
-				if lo.FromPtr(domain.Product) == "cdn" && xcert.MatchHostname(wildcardDomain, lo.FromPtr(domain.Domain)) {
+				if lo.FromPtr(domain.Product) == "cdn" && xcerthostname.IsMatch(wildcardDomain, lo.FromPtr(domain.Domain)) {
 					domains = append(domains, *domain.Domain)
 				}
 			}

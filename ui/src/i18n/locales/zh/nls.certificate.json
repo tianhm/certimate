@@ -35,7 +35,7 @@
   "certificate.props.certificate": "证书内容",
   "certificate.props.private_key": "私钥内容",
   "certificate.props.serial_number": "证书序列号",
-  "certificate.props.key_algorithm": "证书算法",
+  "certificate.props.key_algorithm": "私钥算法",
   "certificate.props.issuer": "颁发者",
   "certificate.props.created_at": "创建时间",
   "certificate.props.updated_at": "更新时间"

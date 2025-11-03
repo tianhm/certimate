@@ -8,8 +8,46 @@ import (
 
 func init() {
 	m.Register(func(app core.App) error {
-		tracer := NewTracer("v0.4.1")
+		tracer := NewTracer("v0.4.3")
 		tracer.Printf("go ...")
+
+		// update collection `certificate`
+		//   - rename field `acmeRenewed` to `isRenewed`
+		//   - add field `isRevoked`
+		{
+			collection, err := app.FindCollectionByNameOrId("4szxr9x43tpj6np")
+			if err != nil {
+				return err
+			}
+
+			if err := collection.Fields.AddMarshaledJSONAt(14, []byte(`{
+				"hidden": false,
+				"id": "bool810050391",
+				"name": "isRenewed",
+				"presentable": false,
+				"required": false,
+				"system": false,
+				"type": "bool"
+			}`)); err != nil {
+				return err
+			}
+
+			if err := collection.Fields.AddMarshaledJSONAt(15, []byte(`{
+				"hidden": false,
+				"id": "bool3680845581",
+				"name": "isRevoked",
+				"presentable": false,
+				"required": false,
+				"system": false,
+				"type": "bool"
+			}`)); err != nil {
+				return err
+			}
+
+			if err := app.Save(collection); err != nil {
+				return err
+			}
+		}
 
 		// adapt to new workflow data structure
 		{
@@ -25,12 +63,23 @@ func init() {
 			deepMigrateNode = func(node *dWorkflowNode) (*dWorkflowNode, bool) {
 				migrated := false
 
-				if node.Type == "bizDeploy" {
+				if node.Type == "bizApply" {
 					if node.Data != nil {
 						if _, ok := node.Data["config"]; ok {
 							nodeCfg := node.Data["config"].(map[string]any)
-							if nodeCfg["provider"] == "local" && nodeCfg["providerAccessId"] != nil {
-								delete(nodeCfg, "providerAccessId")
+							if nodeCfg["keySource"] == nil || nodeCfg["keySource"] == "" {
+								nodeCfg["keySource"] = "auto"
+								node.Data["config"] = nodeCfg
+								migrated = true
+							}
+						}
+					}
+				} else if node.Type == "bizUpload" {
+					if node.Data != nil {
+						if _, ok := node.Data["config"]; ok {
+							nodeCfg := node.Data["config"].(map[string]any)
+							if nodeCfg["source"] == nil || nodeCfg["source"] == "" {
+								nodeCfg["source"] = "form"
 								node.Data["config"] = nodeCfg
 								migrated = true
 							}
@@ -61,7 +110,7 @@ func init() {
 			}
 
 			// update collection `workflow`
-			//   - fix #982
+			//   - migrate field `graphDraft` / `graphContent`
 			{
 				collection, err := app.FindCollectionByNameOrId("tovyif5ax6j62ur")
 				if err != nil {
@@ -103,6 +152,48 @@ func init() {
 							if newNodes, migrated := deepMigrateNodes(nodes); migrated {
 								graphContent["nodes"] = newNodes
 								record.Set("graphContent", graphContent)
+								changed = true
+							}
+						}
+					}
+
+					if changed {
+						if err := app.Save(record); err != nil {
+							return err
+						}
+
+						tracer.Printf("record #%s in collection '%s' updated", record.Id, collection.Name)
+					}
+				}
+			}
+
+			// update collection `workflow_run`
+			//   - migrate field `graph`
+			{
+				collection, err := app.FindCollectionByNameOrId("qjp8lygssgwyqyz")
+				if err != nil {
+					return err
+				}
+
+				records, err := app.FindAllRecords(collection)
+				if err != nil {
+					return err
+				}
+
+				for _, record := range records {
+					changed := false
+
+					graph := make(map[string]any)
+					if err := record.UnmarshalJSONField("graph", &graph); err == nil {
+						if _, ok := graph["nodes"]; ok {
+							nodes := make([]*dWorkflowNode, 0)
+							if err := mapstructure.Decode(graph["nodes"], &nodes); err != nil {
+								return err
+							}
+
+							if newNodes, migrated := deepMigrateNodes(nodes); migrated {
+								graph["nodes"] = newNodes
+								record.Set("graph", graph)
 								changed = true
 							}
 						}

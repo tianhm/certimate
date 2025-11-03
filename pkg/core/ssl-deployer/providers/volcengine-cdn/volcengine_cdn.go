@@ -13,7 +13,7 @@ import (
 
 	"github.com/certimate-go/certimate/pkg/core"
 	sslmgrsp "github.com/certimate-go/certimate/pkg/core/ssl-manager/providers/volcengine-cdn"
-	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
+	xcerthostname "github.com/certimate-go/certimate/pkg/utils/cert/hostname"
 )
 
 type SSLDeployerProviderConfig struct {
@@ -180,7 +180,7 @@ func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, w
 
 		if listCdnDomainsResp.Data != nil {
 			for _, domain := range listCdnDomainsResp.Data {
-				if xcert.MatchHostname(wildcardDomain, ve.StringValue(domain.Domain)) {
+				if xcerthostname.IsMatch(wildcardDomain, ve.StringValue(domain.Domain)) {
 					domains = append(domains, ve.StringValue(domain.Domain))
 				}
 			}

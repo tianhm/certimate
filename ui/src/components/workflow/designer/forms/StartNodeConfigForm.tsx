@@ -125,7 +125,7 @@ const getAnchorItems = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n
 const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   return {
     trigger: WORKFLOW_TRIGGERS.MANUAL,
-    ...defaultNodeConfigForStart(),
+    ...(defaultNodeConfigForStart() as Nullish<z.infer<ReturnType<typeof getSchema>>>),
   };
 };
 

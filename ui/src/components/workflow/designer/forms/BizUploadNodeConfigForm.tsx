@@ -185,10 +185,9 @@ const getAnchorItems = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n
 
 const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   return {
-    source: UPLOAD_SOURCE_FORM,
     certificate: "",
     privateKey: "",
-    ...defaultNodeConfigForBizUpload(),
+    ...(defaultNodeConfigForBizUpload() as Nullish<z.infer<ReturnType<typeof getSchema>>>),
   };
 };
 
@@ -197,7 +196,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
 
   return z
     .object({
-      source: z.string(t("workflow_node.upload.form.source.placeholder")).nonempty(t("workflow_node.upload.form.source.placeholder")),
+      source: z.enum([UPLOAD_SOURCE_FORM, UPLOAD_SOURCE_LOCAL, UPLOAD_SOURCE_URL], t("workflow_node.upload.form.source.placeholder")),
       certificate: z.string().max(20480, t("common.errmsg.string_max", { max: 20480 })),
       privateKey: z.string().max(20480, t("common.errmsg.string_max", { max: 20480 })),
       domains: z.string().nullish(),

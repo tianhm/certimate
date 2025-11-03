@@ -30,5 +30,6 @@ type CertificateValidatePrivateKeyReq struct {
 }
 
 type CertificateValidatePrivateKeyResp struct {
-	IsValid bool `json:"isValid"`
+	IsValid      bool   `json:"isValid"`
+	KeyAlgorithm string `json:"keyAlgorithm,omitempty"`
 }

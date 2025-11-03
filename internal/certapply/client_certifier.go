@@ -2,6 +2,7 @@
 
 import (
 	"context"
+	"crypto"
 	"errors"
 	"fmt"
 	"os"
@@ -22,9 +23,10 @@ import (
 )
 
 type ObtainCertificateRequest struct {
-	Domains    []string
-	KeyType    certcrypto.KeyType
-	ValidityTo time.Time
+	Domains        []string
+	PrivateKeyType certcrypto.KeyType
+	PrivateKeyPEM  string
+	ValidityTo     time.Time
 
 	// 提供商相关
 	ChallengeType          string
@@ -150,8 +152,19 @@ func (c *ACMEClient) sendObtainCertificateRequest(request *ObtainCertificateRequ
 		return nil, fmt.Errorf("unsupported challenge type: '%s'", request.ChallengeType)
 	}
 
+	var privkey crypto.PrivateKey
+	if request.PrivateKeyPEM != "" {
+		pk, err := certcrypto.ParsePEMPrivateKey([]byte(request.PrivateKeyPEM))
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse private key: %w", err)
+		}
+
+		privkey = pk
+	}
+
 	req := certificate.ObtainRequest{
 		Domains:        request.Domains,
+		PrivateKey:     privkey,
 		Bundle:         true,
 		Profile:        request.ACMEProfile,
 		NotAfter:       request.ValidityTo,

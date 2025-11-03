@@ -14,7 +14,7 @@ import (
 
 	"github.com/certimate-go/certimate/pkg/core"
 	sslmgrsp "github.com/certimate-go/certimate/pkg/core/ssl-manager/providers/tencentcloud-ssl"
-	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
+	xcerthostname "github.com/certimate-go/certimate/pkg/utils/cert/hostname"
 )
 
 type SSLDeployerProviderConfig struct {
@@ -121,7 +121,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 
 			domains = lo.Filter(domainsInZone, func(domain string, _ int) bool {
 				for _, configDomain := range d.config.Domains {
-					if xcert.MatchHostname(configDomain, domain) {
+					if xcerthostname.IsMatch(configDomain, domain) {
 						return true
 					}
 				}

@@ -243,7 +243,7 @@ const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   return {
     subject: "",
     message: "",
-    ...defaultNodeConfigForBizNotify(),
+    ...(defaultNodeConfigForBizNotify() as Nullish<z.infer<ReturnType<typeof getSchema>>>),
   };
 };
 

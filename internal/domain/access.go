@@ -247,6 +247,10 @@ type AccessConfigForHetzner struct {
 	ApiToken string `json:"apiToken"`
 }
 
+type AccessConfigForHostingde struct {
+	ApiKey string `json:"apiKey"`
+}
+
 type AccessConfigForHostinger struct {
 	ApiToken string `json:"apiToken"`
 }

@@ -53,6 +53,7 @@ import AccessConfigFieldsProviderGoDaddy from "./forms/AccessConfigFieldsProvide
 import AccessConfigFieldsProviderGoEdge from "./forms/AccessConfigFieldsProviderGoEdge";
 import AccessConfigFieldsProviderGoogleTrustServices from "./forms/AccessConfigFieldsProviderGoogleTrustServices";
 import AccessConfigFieldsProviderHetzner from "./forms/AccessConfigFieldsProviderHetzner";
+import AccessConfigFieldsProviderHostingde from "./forms/AccessConfigFieldsProviderHostingde";
 import AccessConfigFieldsProviderHostinger from "./forms/AccessConfigFieldsProviderHostinger";
 import AccessConfigFieldsProviderHuaweiCloud from "./forms/AccessConfigFieldsProviderHuaweiCloud";
 import AccessConfigFieldsProviderIONOS from "./forms/AccessConfigFieldsProviderIONOS";
@@ -265,6 +266,9 @@ const AccessForm = ({ className, style, disabled, initialValues, mode, usage, on
       }
       case ACCESS_PROVIDERS.HETZNER: {
         return <AccessConfigFieldsProviderHetzner />;
+      }
+      case ACCESS_PROVIDERS.HOSTINGDE: {
+        return <AccessConfigFieldsProviderHostingde />;
       }
       case ACCESS_PROVIDERS.HOSTINGER: {
         return <AccessConfigFieldsProviderHostinger />;

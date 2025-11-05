@@ -128,6 +128,7 @@ require (
 	github.com/nrdcg/desec v0.11.1 // indirect
 	github.com/nrdcg/goacmedns v0.2.0 // indirect
 	github.com/nrdcg/porkbun v0.4.0 // indirect
+	github.com/ovh/go-ovh v1.9.0 // indirect
 	github.com/peterhellberg/link v1.2.0 // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/qiniu/dyn v1.3.0 // indirect

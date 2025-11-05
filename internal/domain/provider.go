@@ -79,7 +79,7 @@ const (
 	AccessProviderTypeNetcup              = AccessProviderType("netcup")
 	AccessProviderTypeNetlify             = AccessProviderType("netlify")
 	AccessProviderTypeNS1                 = AccessProviderType("ns1")
-	AccessProviderTypeOVHcloud            = AccessProviderType("ovhcloud") // OVHcloud（预留）
+	AccessProviderTypeOVHcloud            = AccessProviderType("ovhcloud")
 	AccessProviderTypePorkbun             = AccessProviderType("porkbun")
 	AccessProviderTypePowerDNS            = AccessProviderType("powerdns")
 	AccessProviderTypeProxmoxVE           = AccessProviderType("proxmoxve")

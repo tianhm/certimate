@@ -351,6 +351,16 @@ type AccessConfigForNS1 struct {
 	ApiKey string `json:"apiKey"`
 }
 
+type AccessConfigForOVHcloud struct {
+	Endpoint          string `json:"endpoint"`
+	AuthMethod        string `json:"authMethod"`
+	ApplicationKey    string `json:"applicationKey,omitempty"`
+	ApplicationSecret string `json:"applicationSecret,omitempty"`
+	ConsumerKey       string `json:"consumerKey,omitempty"`
+	ClientId          string `json:"clientId,omitempty"`
+	ClientSecret      string `json:"clientSecret,omitempty"`
+}
+
 type AccessConfigForPorkbun struct {
 	ApiKey       string `json:"apiKey"`
 	SecretApiKey string `json:"secretApiKey"`
@@ -412,16 +422,16 @@ type AccessConfigForSpaceship struct {
 type AccessConfigForSSH struct {
 	Host          string `json:"host"`
 	Port          int32  `json:"port"`
-	AuthMethod    string `json:"authMethod,omitempty"`
-	Username      string `json:"username,omitempty"`
+	AuthMethod    string `json:"authMethod"`
+	Username      string `json:"username"`
 	Password      string `json:"password,omitempty"`
 	Key           string `json:"key,omitempty"`
 	KeyPassphrase string `json:"keyPassphrase,omitempty"`
 	JumpServers   []struct {
 		Host          string `json:"host"`
 		Port          int32  `json:"port"`
-		AuthMethod    string `json:"authMethod,omitempty"`
-		Username      string `json:"username,omitempty"`
+		AuthMethod    string `json:"authMethod"`
+		Username      string `json:"username"`
 		Password      string `json:"password,omitempty"`
 		Key           string `json:"key,omitempty"`
 		KeyPassphrase string `json:"keyPassphrase,omitempty"`

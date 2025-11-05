@@ -65,6 +65,7 @@ import AccessConfigFieldsProviderNameSilo from "./AccessConfigFieldsProviderName
 import AccessConfigFieldsProviderNetcup from "./AccessConfigFieldsProviderNetcup";
 import AccessConfigFieldsProviderNetlify from "./AccessConfigFieldsProviderNetlify";
 import AccessConfigFieldsProviderNS1 from "./AccessConfigFieldsProviderNS1";
+import AccessConfigFieldsProviderOVHcloud from "./AccessConfigFieldsProviderOVHcloud";
 import AccessConfigFieldsProviderPorkbun from "./AccessConfigFieldsProviderPorkbun";
 import AccessConfigFieldsProviderPowerDNS from "./AccessConfigFieldsProviderPowerDNS";
 import AccessConfigFieldsProviderProxmoxVE from "./AccessConfigFieldsProviderProxmoxVE";
@@ -161,6 +162,7 @@ const providerComponentMap: Partial<Record<AccessProviderType, React.ComponentTy
   [ACCESS_PROVIDERS.NETCUP]: AccessConfigFieldsProviderNetcup,
   [ACCESS_PROVIDERS.NETLIFY]: AccessConfigFieldsProviderNetlify,
   [ACCESS_PROVIDERS.NS1]: AccessConfigFieldsProviderNS1,
+  [ACCESS_PROVIDERS.OVHCLOUD]: AccessConfigFieldsProviderOVHcloud,
   [ACCESS_PROVIDERS.PORKBUN]: AccessConfigFieldsProviderPorkbun,
   [ACCESS_PROVIDERS.POWERDNS]: AccessConfigFieldsProviderPowerDNS,
   [ACCESS_PROVIDERS.PROXMOXVE]: AccessConfigFieldsProviderProxmoxVE,

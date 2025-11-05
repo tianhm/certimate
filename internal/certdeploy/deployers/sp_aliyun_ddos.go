@@ -5,18 +5,18 @@ import (
 
 	"github.com/certimate-go/certimate/internal/domain"
 	"github.com/certimate-go/certimate/pkg/core"
-	aliyunddos "github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/aliyun-ddos"
+	aliyunddospro "github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/aliyun-ddospro"
 	xmaps "github.com/certimate-go/certimate/pkg/utils/maps"
 )
 
 func init() {
-	if err := Registries.Register(domain.DeploymentProviderTypeAliyunDDoS, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
+	if err := Registries.Register(domain.DeploymentProviderTypeAliyunDDoSPro, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
 		credentials := domain.AccessConfigForAliyun{}
 		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
-		provider, err := aliyunddos.NewSSLDeployerProvider(&aliyunddos.SSLDeployerProviderConfig{
+		provider, err := aliyunddospro.NewSSLDeployerProvider(&aliyunddospro.SSLDeployerProviderConfig{
 			AccessKeyId:     credentials.AccessKeyId,
 			AccessKeySecret: credentials.AccessKeySecret,
 			ResourceGroupId: credentials.ResourceGroupId,

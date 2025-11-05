@@ -22,21 +22,21 @@ const BizDeployNodeConfigFieldsProviderAliyunDDoS = () => {
       <Form.Item
         name={[parentNamePath, "region"]}
         initialValue={initialValues.region}
-        label={t("workflow_node.deploy.form.aliyun_ddos_region.label")}
+        label={t("workflow_node.deploy.form.aliyun_ddospro_region.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.aliyun_ddos_region.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.aliyun_ddospro_region.tooltip") }}></span>}
       >
-        <Input placeholder={t("workflow_node.deploy.form.aliyun_ddos_region.placeholder")} />
+        <Input placeholder={t("workflow_node.deploy.form.aliyun_ddospro_region.placeholder")} />
       </Form.Item>
 
       <Form.Item
         name={[parentNamePath, "domain"]}
         initialValue={initialValues.domain}
-        label={t("workflow_node.deploy.form.aliyun_ddos_domain.label")}
+        label={t("workflow_node.deploy.form.aliyun_ddospro_domain.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.aliyun_ddos_domain.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.aliyun_ddospro_domain.tooltip") }}></span>}
       >
-        <Input placeholder={t("workflow_node.deploy.form.aliyun_ddos_domain.placeholder")} />
+        <Input placeholder={t("workflow_node.deploy.form.aliyun_ddospro_domain.placeholder")} />
       </Form.Item>
     </>
   );
@@ -53,7 +53,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
   const { t } = i18n;
 
   return z.object({
-    region: z.string().nonempty(t("workflow_node.deploy.form.aliyun_ddos_region.placeholder")),
+    region: z.string().nonempty(t("workflow_node.deploy.form.aliyun_ddospro_region.placeholder")),
     domain: z.string().refine((v) => validDomainName(v, { allowWildcard: true }), t("common.errmsg.domain_invalid")),
   });
 };

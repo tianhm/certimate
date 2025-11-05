@@ -1,4 +1,4 @@
-package aliyunddos_test
+package aliyunddospro_test
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	provider "github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/aliyun-ddos"
+	provider "github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/aliyun-ddospro"
 )
 
 var (
@@ -21,7 +21,7 @@ var (
 )
 
 func init() {
-	argsPrefix := "CERTIMATE_SSLDEPLOYER_ALIYUNDDOS_"
+	argsPrefix := "CERTIMATE_SSLDEPLOYER_ALIYUNDDOSPRO_"
 
 	flag.StringVar(&fInputCertPath, argsPrefix+"INPUTCERTPATH", "", "")
 	flag.StringVar(&fInputKeyPath, argsPrefix+"INPUTKEYPATH", "", "")
@@ -34,13 +34,13 @@ func init() {
 /*
 Shell command to run this test:
 
-	go test -v ./aliyun_ddos_test.go -args \
-	--CERTIMATE_SSLDEPLOYER_ALIYUNDDOS_INPUTCERTPATH="/path/to/your-input-cert.pem" \
-	--CERTIMATE_SSLDEPLOYER_ALIYUNDDOS_INPUTKEYPATH="/path/to/your-input-key.pem" \
-	--CERTIMATE_SSLDEPLOYER_ALIYUNDDOS_ACCESSKEYID="your-access-key-id" \
-	--CERTIMATE_SSLDEPLOYER_ALIYUNDDOS_ACCESSKEYSECRET="your-access-key-secret" \
-	--CERTIMATE_SSLDEPLOYER_ALIYUNDDOS_REGION="cn-hangzhou" \
-	--CERTIMATE_SSLDEPLOYER_ALIYUNDDOS_DOMAIN="example.com"
+	go test -v ./aliyun_ddospro_test.go -args \
+	--CERTIMATE_SSLDEPLOYER_ALIYUNDDOSPRO_INPUTCERTPATH="/path/to/your-input-cert.pem" \
+	--CERTIMATE_SSLDEPLOYER_ALIYUNDDOSPRO_INPUTKEYPATH="/path/to/your-input-key.pem" \
+	--CERTIMATE_SSLDEPLOYER_ALIYUNDDOSPRO_ACCESSKEYID="your-access-key-id" \
+	--CERTIMATE_SSLDEPLOYER_ALIYUNDDOSPRO_ACCESSKEYSECRET="your-access-key-secret" \
+	--CERTIMATE_SSLDEPLOYER_ALIYUNDDOSPRO_REGION="cn-hangzhou" \
+	--CERTIMATE_SSLDEPLOYER_ALIYUNDDOSPRO_DOMAIN="example.com"
 */
 func TestDeploy(t *testing.T) {
 	flag.Parse()

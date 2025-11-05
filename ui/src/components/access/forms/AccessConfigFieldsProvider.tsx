@@ -35,6 +35,7 @@ import AccessConfigFieldsProviderDNSLA from "./AccessConfigFieldsProviderDNSLA";
 import AccessConfigFieldsProviderDNSMadeEasy from "./AccessConfigFieldsProviderDNSMadeEasy";
 import AccessConfigFieldsProviderDogeCloud from "./AccessConfigFieldsProviderDogeCloud";
 import AccessConfigFieldsProviderDuckDNS from "./AccessConfigFieldsProviderDuckDNS";
+import AccessConfigFieldsProviderDynu from "./AccessConfigFieldsProviderDynu";
 import AccessConfigFieldsProviderDynv6 from "./AccessConfigFieldsProviderDynv6";
 import AccessConfigFieldsProviderEmail from "./AccessConfigFieldsProviderEmail";
 import AccessConfigFieldsProviderFlexCDN from "./AccessConfigFieldsProviderFlexCDN";
@@ -129,6 +130,7 @@ const providerComponentMap: Partial<Record<AccessProviderType, React.ComponentTy
   [ACCESS_PROVIDERS.DNSMADEEASY]: AccessConfigFieldsProviderDNSMadeEasy,
   [ACCESS_PROVIDERS.DOGECLOUD]: AccessConfigFieldsProviderDogeCloud,
   [ACCESS_PROVIDERS.DUCKDNS]: AccessConfigFieldsProviderDuckDNS,
+  [ACCESS_PROVIDERS.DYNU]: AccessConfigFieldsProviderDynu,
   [ACCESS_PROVIDERS.DYNV6]: AccessConfigFieldsProviderDynv6,
   [ACCESS_PROVIDERS.EMAIL]: AccessConfigFieldsProviderEmail,
   [ACCESS_PROVIDERS.FLEXCDN]: AccessConfigFieldsProviderFlexCDN,

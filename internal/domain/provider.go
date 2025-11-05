@@ -44,7 +44,7 @@ const (
 	AccessProviderTypeDNSMadeEasy         = AccessProviderType("dnsmadeeasy")
 	AccessProviderTypeDogeCloud           = AccessProviderType("dogecloud")
 	AccessProviderTypeDuckDNS             = AccessProviderType("duckdns")
-	AccessProviderTypeDynu                = AccessProviderType("dynu") // Dynu（预留）
+	AccessProviderTypeDynu                = AccessProviderType("dynu")
 	AccessProviderTypeDynv6               = AccessProviderType("dynv6")
 	AccessProviderTypeEmail               = AccessProviderType("email")
 	AccessProviderTypeFastly              = AccessProviderType("fastly") // Fastly（预留）

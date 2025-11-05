@@ -190,6 +190,10 @@ type AccessConfigForDuckDNS struct {
 	Token string `json:"token"`
 }
 
+type AccessConfigForDynu struct {
+	ApiKey string `json:"apiKey"`
+}
+
 type AccessConfigForDynv6 struct {
 	HttpToken string `json:"httpToken"`
 }

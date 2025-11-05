@@ -57,7 +57,7 @@ export const ACCESS_PROVIDERS = Object.freeze({
   GOEDGE: "goedge",
   GOOGLETRUSTSERVICES: "googletrustservices",
   HETZNER: "hetzner",
-  HOSTINGDE: "hostingDE",
+  HOSTINGDE: "hostingde",
   HOSTINGER: "hostinger",
   HUAWEICLOUD: "huaweicloud",
   IONOS: "ionos",

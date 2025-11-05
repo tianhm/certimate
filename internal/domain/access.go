@@ -60,6 +60,10 @@ type AccessConfigForAPISIX struct {
 	AllowInsecureConnections bool   `json:"allowInsecureConnections,omitempty"`
 }
 
+type AccessConfigForArvanCloud struct {
+	ApiKey string `json:"apiKey"`
+}
+
 type AccessConfigForAWS struct {
 	AccessKeyId     string `json:"accessKeyId"`
 	SecretAccessKey string `json:"secretAccessKey"`

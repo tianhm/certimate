@@ -9,6 +9,7 @@ import AccessConfigFieldsProviderACMEHttpReq from "./AccessConfigFieldsProviderA
 import AccessConfigFieldsProviderActalisSSL from "./AccessConfigFieldsProviderActalisSSL";
 import AccessConfigFieldsProviderAliyun from "./AccessConfigFieldsProviderAliyun";
 import AccessConfigFieldsProviderAPISIX from "./AccessConfigFieldsProviderAPISIX";
+import AccessConfigFieldsProviderArvanCloud from "./AccessConfigFieldsProviderArvanCloud";
 import AccessConfigFieldsProviderAWS from "./AccessConfigFieldsProviderAWS";
 import AccessConfigFieldsProviderAzure from "./AccessConfigFieldsProviderAzure";
 import AccessConfigFieldsProviderBaiduCloud from "./AccessConfigFieldsProviderBaiduCloud";
@@ -101,6 +102,7 @@ const providerComponentMap: Partial<Record<AccessProviderType, React.ComponentTy
   [ACCESS_PROVIDERS.ACTALISSSL]: AccessConfigFieldsProviderActalisSSL,
   [ACCESS_PROVIDERS.ALIYUN]: AccessConfigFieldsProviderAliyun,
   [ACCESS_PROVIDERS.APISIX]: AccessConfigFieldsProviderAPISIX,
+  [ACCESS_PROVIDERS.ARVANCLOUD]: AccessConfigFieldsProviderArvanCloud,
   [ACCESS_PROVIDERS.AWS]: AccessConfigFieldsProviderAWS,
   [ACCESS_PROVIDERS.AZURE]: AccessConfigFieldsProviderAzure,
   [ACCESS_PROVIDERS.BAIDUCLOUD]: AccessConfigFieldsProviderBaiduCloud,

@@ -17,6 +17,7 @@ const (
 	AccessProviderTypeAkamai              = AccessProviderType("akamai") // Akamai（预留）
 	AccessProviderTypeAliyun              = AccessProviderType("aliyun")
 	AccessProviderTypeAPISIX              = AccessProviderType("apisix")
+	AccessProviderTypeArvanCloud          = AccessProviderType("arvancloud")
 	AccessProviderTypeAWS                 = AccessProviderType("aws")
 	AccessProviderTypeAzure               = AccessProviderType("azure")
 	AccessProviderTypeBaiduCloud          = AccessProviderType("baiducloud")
@@ -40,8 +41,10 @@ const (
 	AccessProviderTypeDingTalkBot         = AccessProviderType("dingtalkbot")
 	AccessProviderTypeDiscordBot          = AccessProviderType("discordbot")
 	AccessProviderTypeDNSLA               = AccessProviderType("dnsla")
+	AccessProviderTypeDNSMadeEasy         = AccessProviderType("dnsmadeeasy") // DNS Made Easy（预留）
 	AccessProviderTypeDogeCloud           = AccessProviderType("dogecloud")
 	AccessProviderTypeDuckDNS             = AccessProviderType("duckdns")
+	AccessProviderTypeDynu                = AccessProviderType("dynu") // Dynu（预留）
 	AccessProviderTypeDynv6               = AccessProviderType("dynv6")
 	AccessProviderTypeEmail               = AccessProviderType("email")
 	AccessProviderTypeFastly              = AccessProviderType("fastly") // Fastly（预留）
@@ -57,6 +60,7 @@ const (
 	AccessProviderTypeHostingde           = AccessProviderType("hostingde")
 	AccessProviderTypeHostinger           = AccessProviderType("hostinger")
 	AccessProviderTypeHuaweiCloud         = AccessProviderType("huaweicloud")
+	AccessProviderTypeInfomaniak          = AccessProviderType("infomaniak") // Infomaniak（预留）
 	AccessProviderTypeIONOS               = AccessProviderType("ionos")
 	AccessProviderTypeJDCloud             = AccessProviderType("jdcloud")
 	AccessProviderTypeKong                = AccessProviderType("kong")
@@ -75,6 +79,7 @@ const (
 	AccessProviderTypeNetcup              = AccessProviderType("netcup")
 	AccessProviderTypeNetlify             = AccessProviderType("netlify")
 	AccessProviderTypeNS1                 = AccessProviderType("ns1")
+	AccessProviderTypeOVHcloud            = AccessProviderType("ovhcloud") // OVHcloud（预留）
 	AccessProviderTypePorkbun             = AccessProviderType("porkbun")
 	AccessProviderTypePowerDNS            = AccessProviderType("powerdns")
 	AccessProviderTypeProxmoxVE           = AccessProviderType("proxmoxve")
@@ -141,6 +146,7 @@ const (
 	ACMEDns01ProviderTypeAliyun            = ACMEDns01ProviderType(AccessProviderTypeAliyun) // 兼容旧值，等同于 [ACMEDns01ProviderTypeAliyunDNS]
 	ACMEDns01ProviderTypeAliyunDNS         = ACMEDns01ProviderType(AccessProviderTypeAliyun + "-dns")
 	ACMEDns01ProviderTypeAliyunESA         = ACMEDns01ProviderType(AccessProviderTypeAliyun + "-esa")
+	ACMEDns01ProviderTypeArvanCloud        = ACMEDns01ProviderType(AccessProviderTypeArvanCloud)
 	ACMEDns01ProviderTypeAWS               = ACMEDns01ProviderType(AccessProviderTypeAWS) // 兼容旧值，等同于 [ACMEDns01ProviderTypeAWSRoute53]
 	ACMEDns01ProviderTypeAWSRoute53        = ACMEDns01ProviderType(AccessProviderTypeAWS + "-route53")
 	ACMEDns01ProviderTypeAzure             = ACMEDns01ProviderType(AccessProviderTypeAzure) // 兼容旧值，等同于 [ACMEDns01ProviderTypeAzure]
@@ -159,7 +165,9 @@ const (
 	ACMEDns01ProviderTypeDeSEC             = ACMEDns01ProviderType(AccessProviderTypeDeSEC)
 	ACMEDns01ProviderTypeDigitalOcean      = ACMEDns01ProviderType(AccessProviderTypeDigitalOcean)
 	ACMEDns01ProviderTypeDNSLA             = ACMEDns01ProviderType(AccessProviderTypeDNSLA)
+	ACMEDns01ProviderTypeDNSMadeEasy       = ACMEDns01ProviderType(AccessProviderTypeDNSMadeEasy)
 	ACMEDns01ProviderTypeDuckDNS           = ACMEDns01ProviderType(AccessProviderTypeDuckDNS)
+	ACMEDns01ProviderTypeDynu              = ACMEDns01ProviderType(AccessProviderTypeDynu)
 	ACMEDns01ProviderTypeDynv6             = ACMEDns01ProviderType(AccessProviderTypeDynv6)
 	ACMEDns01ProviderTypeGandinet          = ACMEDns01ProviderType(AccessProviderTypeGandinet)
 	ACMEDns01ProviderTypeGcore             = ACMEDns01ProviderType(AccessProviderTypeGcore)
@@ -170,6 +178,7 @@ const (
 	ACMEDns01ProviderTypeHostinger         = ACMEDns01ProviderType(AccessProviderTypeHostinger)
 	ACMEDns01ProviderTypeHuaweiCloud       = ACMEDns01ProviderType(AccessProviderTypeHuaweiCloud) // 兼容旧值，等同于 [ACMEDns01ProviderTypeHuaweiCloudDNS]
 	ACMEDns01ProviderTypeHuaweiCloudDNS    = ACMEDns01ProviderType(AccessProviderTypeHuaweiCloud + "-dns")
+	ACMEDns01ProviderTypeInfomaniak        = ACMEDns01ProviderType(AccessProviderTypeInfomaniak)
 	ACMEDns01ProviderTypeIONOS             = ACMEDns01ProviderType(AccessProviderTypeIONOS)
 	ACMEDns01ProviderTypeJDCloud           = ACMEDns01ProviderType(AccessProviderTypeJDCloud) // 兼容旧值，等同于 [ACMEDns01ProviderTypeJDCloudDNS]
 	ACMEDns01ProviderTypeJDCloudDNS        = ACMEDns01ProviderType(AccessProviderTypeJDCloud + "-dns")
@@ -180,6 +189,7 @@ const (
 	ACMEDns01ProviderTypeNetcup            = ACMEDns01ProviderType(AccessProviderTypeNetcup)
 	ACMEDns01ProviderTypeNetlify           = ACMEDns01ProviderType(AccessProviderTypeNetlify)
 	ACMEDns01ProviderTypeNS1               = ACMEDns01ProviderType(AccessProviderTypeNS1)
+	ACMEDns01ProviderTypeOVHcloud          = ACMEDns01ProviderType(AccessProviderTypeOVHcloud)
 	ACMEDns01ProviderTypePorkbun           = ACMEDns01ProviderType(AccessProviderTypePorkbun)
 	ACMEDns01ProviderTypePowerDNS          = ACMEDns01ProviderType(AccessProviderTypePowerDNS)
 	ACMEDns01ProviderTypeRainYun           = ACMEDns01ProviderType(AccessProviderTypeRainYun)

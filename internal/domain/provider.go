@@ -41,7 +41,7 @@ const (
 	AccessProviderTypeDingTalkBot         = AccessProviderType("dingtalkbot")
 	AccessProviderTypeDiscordBot          = AccessProviderType("discordbot")
 	AccessProviderTypeDNSLA               = AccessProviderType("dnsla")
-	AccessProviderTypeDNSMadeEasy         = AccessProviderType("dnsmadeeasy") // DNS Made Easy（预留）
+	AccessProviderTypeDNSMadeEasy         = AccessProviderType("dnsmadeeasy")
 	AccessProviderTypeDogeCloud           = AccessProviderType("dogecloud")
 	AccessProviderTypeDuckDNS             = AccessProviderType("duckdns")
 	AccessProviderTypeDynu                = AccessProviderType("dynu") // Dynu（预留）

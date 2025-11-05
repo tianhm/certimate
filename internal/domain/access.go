@@ -176,6 +176,11 @@ type AccessConfigForDNSLA struct {
 	ApiSecret string `json:"apiSecret"`
 }
 
+type AccessConfigForDNSMadeEasy struct {
+	ApiKey    string `json:"apiKey"`
+	ApiSecret string `json:"apiSecret"`
+}
+
 type AccessConfigForDogeCloud struct {
 	AccessKey string `json:"accessKey"`
 	SecretKey string `json:"secretKey"`

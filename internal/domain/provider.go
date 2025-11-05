@@ -60,7 +60,7 @@ const (
 	AccessProviderTypeHostingde           = AccessProviderType("hostingde")
 	AccessProviderTypeHostinger           = AccessProviderType("hostinger")
 	AccessProviderTypeHuaweiCloud         = AccessProviderType("huaweicloud")
-	AccessProviderTypeInfomaniak          = AccessProviderType("infomaniak") // Infomaniak（预留）
+	AccessProviderTypeInfomaniak          = AccessProviderType("infomaniak")
 	AccessProviderTypeIONOS               = AccessProviderType("ionos")
 	AccessProviderTypeJDCloud             = AccessProviderType("jdcloud")
 	AccessProviderTypeKong                = AccessProviderType("kong")

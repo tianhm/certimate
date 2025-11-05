@@ -274,6 +274,10 @@ type AccessConfigForHuaweiCloud struct {
 	EnterpriseProjectId string `json:"enterpriseProjectId,omitempty"`
 }
 
+type AccessConfigForInfomaniak struct {
+	AccessToken string `json:"accessToken"`
+}
+
 type AccessConfigForIONOS struct {
 	ApiKeyPublicPrefix string `json:"apiKeyPublicPrefix"`
 	ApiKeySecret       string `json:"apiKeySecret"`

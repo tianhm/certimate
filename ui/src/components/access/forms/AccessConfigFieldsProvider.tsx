@@ -50,6 +50,7 @@ import AccessConfigFieldsProviderHetzner from "./AccessConfigFieldsProviderHetzn
 import AccessConfigFieldsProviderHostingde from "./AccessConfigFieldsProviderHostingde";
 import AccessConfigFieldsProviderHostinger from "./AccessConfigFieldsProviderHostinger";
 import AccessConfigFieldsProviderHuaweiCloud from "./AccessConfigFieldsProviderHuaweiCloud";
+import AccessConfigFieldsProviderInfomaniak from "./AccessConfigFieldsProviderInfomaniak";
 import AccessConfigFieldsProviderIONOS from "./AccessConfigFieldsProviderIONOS";
 import AccessConfigFieldsProviderJDCloud from "./AccessConfigFieldsProviderJDCloud";
 import AccessConfigFieldsProviderKong from "./AccessConfigFieldsProviderKong";
@@ -151,6 +152,7 @@ const providerComponentMap: Partial<Record<AccessProviderType, React.ComponentTy
   [ACCESS_PROVIDERS.KUBERNETES]: AccessConfigFieldsProviderKubernetes,
   [ACCESS_PROVIDERS.LARKBOT]: AccessConfigFieldsProviderLarkBot,
   [ACCESS_PROVIDERS.LECDN]: AccessConfigFieldsProviderLeCDN,
+  [ACCESS_PROVIDERS.INFOMANIAK]: AccessConfigFieldsProviderInfomaniak,
   [ACCESS_PROVIDERS.LINODE]: AccessConfigFieldsProviderLinode,
   [ACCESS_PROVIDERS.MATTERMOST]: AccessConfigFieldsProviderMattermost,
   [ACCESS_PROVIDERS.NAMECHEAP]: AccessConfigFieldsProviderNamecheap,

@@ -54,6 +54,7 @@ import AccessConfigFieldsProviderInfomaniak from "./AccessConfigFieldsProviderIn
 import AccessConfigFieldsProviderIONOS from "./AccessConfigFieldsProviderIONOS";
 import AccessConfigFieldsProviderJDCloud from "./AccessConfigFieldsProviderJDCloud";
 import AccessConfigFieldsProviderKong from "./AccessConfigFieldsProviderKong";
+import AccessConfigFieldsProviderKsyun from "./AccessConfigFieldsProviderKsyun";
 import AccessConfigFieldsProviderKubernetes from "./AccessConfigFieldsProviderKubernetes";
 import AccessConfigFieldsProviderLarkBot from "./AccessConfigFieldsProviderLarkBot";
 import AccessConfigFieldsProviderLeCDN from "./AccessConfigFieldsProviderLeCDN";
@@ -151,6 +152,7 @@ const providerComponentMap: Partial<Record<AccessProviderType, React.ComponentTy
   [ACCESS_PROVIDERS.JDCLOUD]: AccessConfigFieldsProviderJDCloud,
   [ACCESS_PROVIDERS.KONG]: AccessConfigFieldsProviderKong,
   [ACCESS_PROVIDERS.KUBERNETES]: AccessConfigFieldsProviderKubernetes,
+  [ACCESS_PROVIDERS.KSYUN]: AccessConfigFieldsProviderKsyun,
   [ACCESS_PROVIDERS.LARKBOT]: AccessConfigFieldsProviderLarkBot,
   [ACCESS_PROVIDERS.LECDN]: AccessConfigFieldsProviderLeCDN,
   [ACCESS_PROVIDERS.INFOMANIAK]: AccessConfigFieldsProviderInfomaniak,

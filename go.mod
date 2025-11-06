@@ -9,6 +9,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.13.0
 	github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates v1.4.0
 	github.com/G-Core/gcorelabscdn-go v1.0.35
+	github.com/KscSDK/ksc-sdk-go v0.14.0
 	github.com/alibabacloud-go/alb-20200616/v2 v2.2.9
 	github.com/alibabacloud-go/apig-20240327/v5 v5.0.1
 	github.com/alibabacloud-go/cas-20200407/v4 v4.0.3
@@ -27,6 +28,7 @@ require (
 	github.com/alibabacloud-go/vod-20170321/v4 v4.10.0
 	github.com/alibabacloud-go/waf-openapi-20211001/v6 v6.7.0
 	github.com/aliyun/alibabacloud-oss-go-sdk-v2 v1.3.0
+	github.com/aws/aws-sdk-go v1.40.45
 	github.com/aws/aws-sdk-go-v2/service/acm v1.37.10
 	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.55.3
 	github.com/aws/aws-sdk-go-v2/service/iam v1.49.1

@@ -117,6 +117,8 @@
   "provider.kong": "Kong",
   "provider.kubernetes": "Kubernetes",
   "provider.kubernetes.secret": "Kubernetes - Secret",
+  "provider.ksyun": "Kingsoft Cloud",
+  "provider.ksyun.cdn": "Kingsoft Cloud - CDN (Content Delivery Network)",
   "provider.larkbot": "Lark Bot",
   "provider.lecdn": "LeCDN",
   "provider.letsencrypt": "Let's Encrypt",

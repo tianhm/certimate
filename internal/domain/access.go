@@ -298,6 +298,11 @@ type AccessConfigForKubernetes struct {
 	KubeConfig string `json:"kubeConfig,omitempty"`
 }
 
+type AccessConfigForKsyun struct {
+	AccessKeyId     string `json:"accessKeyId"`
+	SecretAccessKey string `json:"secretAccessKey"`
+}
+
 type AccessConfigForLarkBot struct {
 	WebhookUrl string `json:"webhookUrl"`
 	Secret     string `json:"secret,omitempty"`

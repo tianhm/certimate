@@ -64,7 +64,7 @@ const (
 	AccessProviderTypeIONOS               = AccessProviderType("ionos")
 	AccessProviderTypeJDCloud             = AccessProviderType("jdcloud")
 	AccessProviderTypeKong                = AccessProviderType("kong")
-	AccessProviderTypeKsyun               = AccessProviderType("ksyun") // 金山云（预留）
+	AccessProviderTypeKsyun               = AccessProviderType("ksyun")
 	AccessProviderTypeKubernetes          = AccessProviderType("k8s")
 	AccessProviderTypeLarkBot             = AccessProviderType("larkbot")
 	AccessProviderTypeLeCDN               = AccessProviderType("lecdn")
@@ -290,6 +290,7 @@ const (
 	DeploymentProviderTypeJDCloudVOD            = DeploymentProviderType(AccessProviderTypeJDCloud + "-vod")
 	DeploymentProviderTypeKong                  = DeploymentProviderType(AccessProviderTypeKong)
 	DeploymentProviderTypeKubernetesSecret      = DeploymentProviderType(AccessProviderTypeKubernetes + "-secret")
+	DeploymentProviderTypeKsyunCDN              = DeploymentProviderType(AccessProviderTypeKsyun + "-cdn")
 	DeploymentProviderTypeLeCDN                 = DeploymentProviderType(AccessProviderTypeLeCDN)
 	DeploymentProviderTypeLocal                 = DeploymentProviderType(AccessProviderTypeLocal)
 	DeploymentProviderTypeNetlifySite           = DeploymentProviderType(AccessProviderTypeNetlify + "-site")

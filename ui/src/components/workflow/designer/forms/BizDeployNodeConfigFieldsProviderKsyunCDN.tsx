@@ -7,7 +7,7 @@ import { validDomainName } from "@/utils/validators";
 
 import { useFormNestedFieldsContext } from "./_context";
 
-const BizDeployNodeConfigFieldsProviderAliyunDDoS = () => {
+const BizDeployNodeConfigFieldsProviderKsyunCDN = () => {
   const { i18n, t } = useTranslation();
 
   const { parentNamePath } = useFormNestedFieldsContext();
@@ -20,23 +20,23 @@ const BizDeployNodeConfigFieldsProviderAliyunDDoS = () => {
   return (
     <>
       <Form.Item
-        name={[parentNamePath, "region"]}
-        initialValue={initialValues.region}
-        label={t("workflow_node.deploy.form.aliyun_ddospro_region.label")}
+        name={[parentNamePath, "domain"]}
+        initialValue={initialValues.domain}
+        label={t("workflow_node.deploy.form.ksyun_cdn_domain.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.aliyun_ddospro_region.tooltip") }}></span>}
       >
-        <Input placeholder={t("workflow_node.deploy.form.aliyun_ddospro_region.placeholder")} />
+        <Input placeholder={t("workflow_node.deploy.form.ksyun_cdn_domain.placeholder")} />
       </Form.Item>
 
       <Form.Item
-        name={[parentNamePath, "domain"]}
-        initialValue={initialValues.domain}
-        label={t("workflow_node.deploy.form.aliyun_ddospro_domain.label")}
+        name={[parentNamePath, "certificateId"]}
+        initialValue={initialValues.certificateId}
+        label={t("workflow_node.deploy.form.ksyun_cdn_certificate_id.label")}
+        extra={t("workflow_node.deploy.form.ksyun_cdn_certificate_id.help")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.aliyun_ddospro_domain.tooltip") }}></span>}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.ksyun_cdn_certificate_id.tooltip") }}></span>}
       >
-        <Input placeholder={t("workflow_node.deploy.form.aliyun_ddospro_domain.placeholder")} />
+        <Input allowClear placeholder={t("workflow_node.deploy.form.ksyun_cdn_certificate_id.placeholder")} />
       </Form.Item>
     </>
   );
@@ -44,7 +44,6 @@ const BizDeployNodeConfigFieldsProviderAliyunDDoS = () => {
 
 const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   return {
-    region: "",
     domain: "",
   };
 };
@@ -53,12 +52,12 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
   const { t } = i18n;
 
   return z.object({
-    region: z.string().nonempty(t("workflow_node.deploy.form.aliyun_ddospro_region.placeholder")),
     domain: z.string().refine((v) => validDomainName(v, { allowWildcard: true }), t("common.errmsg.domain_invalid")),
+    certificateId: z.string().nullish(),
   });
 };
 
-const _default = Object.assign(BizDeployNodeConfigFieldsProviderAliyunDDoS, {
+const _default = Object.assign(BizDeployNodeConfigFieldsProviderKsyunCDN, {
   getInitialValues,
   getSchema,
 });

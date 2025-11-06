@@ -237,20 +237,20 @@ func (s *CertificateService) ValidatePrivateKey(ctx context.Context, req *dtos.C
 		return nil, err
 	}
 
-	var keyAlgorithmString string
-	keyAlgorithm, keySize, _ := xcryptokey.GetPrivateKeyAlgorithm(privkey)
-	switch keyAlgorithm {
+	var keyAlgorithm string
+	privkeyAlg, privkeySize, _ := xcryptokey.GetPrivateKeyAlgorithm(privkey)
+	switch privkeyAlg {
 	case x509.RSA:
-		keyAlgorithmString = fmt.Sprintf("RSA%d", keySize)
+		keyAlgorithm = fmt.Sprintf("RSA%d", privkeySize)
 	case x509.ECDSA:
-		keyAlgorithmString = fmt.Sprintf("EC%d", keySize)
+		keyAlgorithm = fmt.Sprintf("EC%d", privkeySize)
 	case x509.Ed25519:
-		keyAlgorithmString = "ED25519"
+		keyAlgorithm = "ED25519"
 	}
 
 	return &dtos.CertificateValidatePrivateKeyResp{
-		IsValid:      keyAlgorithmString != "",
-		KeyAlgorithm: keyAlgorithmString,
+		IsValid:      true,
+		KeyAlgorithm: keyAlgorithm,
 	}, nil
 }
 

@@ -47,7 +47,8 @@ type ObtainCertificateRequest struct {
 	HttpDelayWait int32
 
 	// ACME 相关
-	ACMEProfile string
+	PreferredChain string
+	ACMEProfile    string
 
 	// ARI 相关
 	ARIReplacesAcctUrl string
@@ -166,6 +167,7 @@ func (c *ACMEClient) sendObtainCertificateRequest(request *ObtainCertificateRequ
 		Domains:        request.Domains,
 		PrivateKey:     privkey,
 		Bundle:         true,
+		PreferredChain: request.PreferredChain,
 		Profile:        request.ACMEProfile,
 		NotAfter:       request.ValidityTo,
 		ReplacesCertID: lo.If(request.ARIReplacesAcctUrl == c.account.ACMEAcctUrl, request.ARIReplacesCertId).Else(""),

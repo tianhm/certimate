@@ -13,12 +13,7 @@ import Empty from "@/components/Empty";
 import Show from "@/components/Show";
 import { CERTIFICATE_SOURCES, type CertificateModel } from "@/domain/certificate";
 import { useAppSettings } from "@/hooks";
-import {
-  get as getCertificate,
-  list as listCertificates,
-  type ListRequest as listCertificatesRequest,
-  remove as removeCertificate,
-} from "@/repository/certificate";
+import { get as getCertificate, list as listCertificates, remove as removeCertificate } from "@/repository/certificate";
 import { getErrMsg } from "@/utils/error";
 
 const CertificateList = () => {
@@ -244,7 +239,7 @@ const CertificateList = () => {
 
       return listCertificates({
         keyword: filters["keyword"] as string,
-        state: filters["state"] as listCertificatesRequest["state"],
+        state: filters["state"] as Parameters<typeof listCertificates>[0]["state"],
         sort: sort,
         page: page,
         perPage: pageSize,

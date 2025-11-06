@@ -1,4 +1,4 @@
-package aliyunddos
+package aliyunddospro
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	aliopen "github.com/alibabacloud-go/darabonba-openapi/v2/client"
-	aliddos "github.com/alibabacloud-go/ddoscoo-20200101/v4/client"
+	aliddoscoo "github.com/alibabacloud-go/ddoscoo-20200101/v4/client"
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/samber/lo"
 
@@ -33,7 +33,7 @@ type SSLDeployerProviderConfig struct {
 type SSLDeployerProvider struct {
 	config     *SSLDeployerProviderConfig
 	logger     *slog.Logger
-	sdkClient  *aliddos.Client
+	sdkClient  *aliddoscoo.Client
 	sslManager core.SSLManager
 }
 
@@ -95,7 +95,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	// 为网站业务转发规则关联 SSL 证书
 	// REF: https://help.aliyun.com/zh/anti-ddos/anti-ddos-pro-and-premium/developer-reference/api-ddoscoo-2020-01-01-associatewebcert
 	certId, _ := strconv.ParseInt(upres.CertId, 10, 32)
-	associateWebCertReq := &aliddos.AssociateWebCertRequest{
+	associateWebCertReq := &aliddoscoo.AssociateWebCertRequest{
 		Domain: tea.String(d.config.Domain),
 		CertId: tea.Int32(int32(certId)),
 	}
@@ -108,7 +108,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	return &core.SSLDeployResult{}, nil
 }
 
-func createSDKClient(accessKeyId, accessKeySecret, region string) (*aliddos.Client, error) {
+func createSDKClient(accessKeyId, accessKeySecret, region string) (*aliddoscoo.Client, error) {
 	// 接入点一览 https://api.aliyun.com/product/ddoscoo
 	var endpoint string
 	switch region {
@@ -124,7 +124,7 @@ func createSDKClient(accessKeyId, accessKeySecret, region string) (*aliddos.Clie
 		Endpoint:        tea.String(endpoint),
 	}
 
-	client, err := aliddos.NewClient(config)
+	client, err := aliddoscoo.NewClient(config)
 	if err != nil {
 		return nil, err
 	}

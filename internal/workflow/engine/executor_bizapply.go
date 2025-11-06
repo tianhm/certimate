@@ -1,6 +1,7 @@
 ﻿package engine
 
 import (
+	"crypto/x509"
 	"fmt"
 	"log/slog"
 	"maps"
@@ -22,6 +23,7 @@ import (
 	"github.com/certimate-go/certimate/internal/repository"
 	"github.com/certimate-go/certimate/internal/tools/mproc"
 	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
+	xcryptokey "github.com/certimate-go/certimate/pkg/utils/crypto/key"
 )
 
 var useMultiProc = true
@@ -215,8 +217,32 @@ func (ne *bizApplyNodeExecutor) executeObtain(execCtx *NodeExecutionContext, nod
 	if err != nil {
 		return nil, err
 	} else {
-		if nodeCfg.KeySource == BizApplyKeySourceReuse && lastCertificate != nil {
-			legoKeyType, _ = lastCertificate.KeyAlgorithm.KeyType()
+		switch nodeCfg.KeySource {
+		case BizApplyKeySourceAuto:
+			break
+		case BizApplyKeySourceReuse:
+			if lastCertificate != nil {
+				legoKeyType, _ = lastCertificate.KeyAlgorithm.KeyType()
+			}
+		case BizApplyKeySourceCustom:
+			privkey, err := xcert.ParsePrivateKeyFromPEM(nodeCfg.KeyContent)
+			if err != nil {
+				return nil, fmt.Errorf("could not parse custom private key: %w", err)
+			} else {
+				privkeyAlg, privkeySize, _ := xcryptokey.GetPrivateKeyAlgorithm(privkey)
+				switch privkeyAlg {
+				case x509.RSA:
+					if nodeCfg.KeyAlgorithm != fmt.Sprintf("RSA%d", privkeySize) {
+						return nil, fmt.Errorf("could not parse custom private key: unsupported algorithm or key size")
+					}
+				case x509.ECDSA:
+					if nodeCfg.KeyAlgorithm != fmt.Sprintf("EC%d", privkeySize) {
+						return nil, fmt.Errorf("could not parse custom private key: unsupported algorithm or key size")
+					}
+				default:
+					return nil, fmt.Errorf("could not parse custom private key: unsupported algorithm")
+				}
+			}
 		}
 	}
 

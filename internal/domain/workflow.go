@@ -153,6 +153,7 @@ func (c WorkflowNodeConfig) AsBizApply() WorkflowNodeConfigForBizApply {
 		CAProviderAccessId:    xmaps.GetString(c, "caProviderAccessId"),
 		CAProviderConfig:      xmaps.GetKVMapAny(c, "caProviderConfig"),
 		ValidityLifetime:      xmaps.GetString(c, "validityLifetime"),
+		PreferredChain:        xmaps.GetString(c, "preferredChain"),
 		ACMEProfile:           xmaps.GetString(c, "acmeProfile"),
 		Nameservers:           nameservers,
 		DnsPropagationWait:    xmaps.GetInt32(c, "dnsPropagationWait"),
@@ -226,6 +227,7 @@ type WorkflowNodeConfigForBizApply struct {
 	KeyAlgorithm          string         `json:"keyAlgorithm,omitempty"`          // 私钥算法
 	KeyContent            string         `json:"keyContent,omitempty"`            // 私钥内容
 	ValidityLifetime      string         `json:"validityLifetime,omitempty"`      // 有效期，形如 "30d"、"6h"
+	PreferredChain        string         `json:"preferredChain,omitempty"`        // 首选证书链
 	ACMEProfile           string         `json:"acmeProfile,omitempty"`           // ACME Profiles Extension
 	Nameservers           []string       `json:"nameservers,omitempty"`           // DNS 服务器列表，以半角分号分隔
 	DnsPropagationWait    int32          `json:"dnsPropagationWait,omitempty"`    // DNS 传播等待时间，等同于 lego 的 `--dns-propagation-wait` 参数

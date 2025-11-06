@@ -327,6 +327,7 @@ func (ne *bizApplyNodeExecutor) executeObtain(execCtx *NodeExecutionContext, nod
 		DnsPropagationTimeout:  nodeCfg.DnsPropagationTimeout,
 		DnsTTL:                 nodeCfg.DnsTTL,
 		HttpDelayWait:          nodeCfg.HttpDelayWait,
+		PreferredChain:         nodeCfg.PreferredChain,
 		ACMEProfile:            nodeCfg.ACMEProfile,
 		ARIReplacesAcctUrl: lo.
 			If(lastCertificate == nil, "").

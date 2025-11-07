@@ -402,7 +402,7 @@ type AccessConfigForRainYun struct {
 
 type AccessConfigForRatPanel struct {
 	ServerUrl                string `json:"serverUrl"`
-	AccessTokenId            int32  `json:"accessTokenId"`
+	AccessTokenId            int64  `json:"accessTokenId"`
 	AccessToken              string `json:"accessToken"`
 	AllowInsecureConnections bool   `json:"allowInsecureConnections,omitempty"`
 }
@@ -462,7 +462,7 @@ type AccessConfigForTechnitiumDNS struct {
 
 type AccessConfigForTelegramBot struct {
 	BotToken string `json:"botToken"`
-	ChatId   int64  `json:"chatId,omitempty"`
+	ChatId   string `json:"chatId,omitempty"`
 }
 
 type AccessConfigForTencentCloud struct {

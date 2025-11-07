@@ -22,8 +22,8 @@ func init() {
 			ClientToken:           credentials.ClientToken,
 			ClientSecret:          credentials.ClientSecret,
 			AccessToken:           credentials.AccessToken,
-			DnsPropagationTimeout: int(options.DnsPropagationTimeout),
-			DnsTTL:                int(options.DnsTTL),
+			DnsPropagationTimeout: options.DnsPropagationTimeout,
+			DnsTTL:                options.DnsTTL,
 		})
 		return provider, err
 	}); err != nil {

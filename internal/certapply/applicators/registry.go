@@ -12,9 +12,9 @@ type ProviderFactoryFunc func(options *ProviderFactoryOptions) (core.ACMEChallen
 type ProviderFactoryOptions struct {
 	ProviderAccessConfig   map[string]any
 	ProviderExtendedConfig map[string]any
-	DnsPropagationWait     int32
-	DnsPropagationTimeout  int32
-	DnsTTL                 int32
+	DnsPropagationWait     int
+	DnsPropagationTimeout  int
+	DnsTTL                 int
 }
 
 type Registry[T comparable] interface {

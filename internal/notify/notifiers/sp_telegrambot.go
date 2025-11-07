@@ -18,7 +18,7 @@ func init() {
 
 		provider, err := telegrambot.NewNotifierProvider(&telegrambot.NotifierProviderConfig{
 			BotToken: credentials.BotToken,
-			ChatId:   xmaps.GetOrDefaultInt64(options.ProviderExtendedConfig, "chatId", credentials.ChatId),
+			ChatId:   xmaps.GetOrDefaultString(options.ProviderExtendedConfig, "chatId", credentials.ChatId),
 		})
 		return provider, err
 	}); err != nil {

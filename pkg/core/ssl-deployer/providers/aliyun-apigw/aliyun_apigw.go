@@ -196,7 +196,7 @@ func (d *SSLDeployerProvider) deployToCloudNative(ctx context.Context, certPEM s
 	// REF: https://help.aliyun.com/zh/api-gateway/cloud-native-api-gateway/developer-reference/api-apig-2024-03-27-getdomain
 	getDomainReq := &aliapig.GetDomainRequest{}
 	getDomainResp, err := d.sdkClients.CloudNativeAPIGateway.GetDomain(tea.String(domainId), getDomainReq)
-	d.logger.Debug("sdk request 'apig.GetDomain'", slog.Any("domainId", domainId), slog.Any("request", getDomainReq), slog.Any("response", getDomainResp))
+	d.logger.Debug("sdk request 'apig.GetDomain'", slog.String("domainId", domainId), slog.Any("request", getDomainReq), slog.Any("response", getDomainResp))
 	if err != nil {
 		return fmt.Errorf("failed to execute sdk request 'apig.GetDomain': %w", err)
 	}
@@ -222,7 +222,7 @@ func (d *SSLDeployerProvider) deployToCloudNative(ctx context.Context, certPEM s
 		CertIdentifier:        tea.String(upres.ExtendedData["CertIdentifier"].(string)),
 	}
 	updateDomainResp, err := d.sdkClients.CloudNativeAPIGateway.UpdateDomain(tea.String(domainId), updateDomainReq)
-	d.logger.Debug("sdk request 'apig.UpdateDomain'", slog.Any("domainId", domainId), slog.Any("request", updateDomainReq), slog.Any("response", updateDomainResp))
+	d.logger.Debug("sdk request 'apig.UpdateDomain'", slog.String("domainId", domainId), slog.Any("request", updateDomainReq), slog.Any("response", updateDomainResp))
 	if err != nil {
 		return fmt.Errorf("failed to execute sdk request 'apig.UpdateDomain': %w", err)
 	}

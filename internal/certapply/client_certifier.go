@@ -39,12 +39,12 @@ type ObtainCertificateRequest struct {
 	Nameservers        []string
 
 	// DNS-01 质询相关
-	DnsPropagationWait    int32
-	DnsPropagationTimeout int32
-	DnsTTL                int32
+	DnsPropagationWait    int
+	DnsPropagationTimeout int
+	DnsTTL                int
 
 	// HTTP-01 质询相关
-	HttpDelayWait int32
+	HttpDelayWait int
 
 	// ACME 相关
 	PreferredChain string

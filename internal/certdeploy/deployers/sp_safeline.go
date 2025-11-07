@@ -21,7 +21,7 @@ func init() {
 			ApiToken:                 credentials.ApiToken,
 			AllowInsecureConnections: credentials.AllowInsecureConnections,
 			ResourceType:             xmaps.GetString(options.ProviderExtendedConfig, "resourceType"),
-			CertificateId:            xmaps.GetInt32(options.ProviderExtendedConfig, "certificateId"),
+			CertificateId:            xmaps.GetInt64(options.ProviderExtendedConfig, "certificateId"),
 		})
 		return provider, err
 	}); err != nil {

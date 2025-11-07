@@ -653,7 +653,7 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
               <Form.Item name="skipBeforeExpiryDays" noStyle rules={[formRule]}>
                 <InputNumber
                   className="w-24"
-                  min={0}
+                  min={1}
                   max={365}
                   placeholder={t("workflow_node.apply.form.skip_before_expiry_days.placeholder")}
                   addonAfter={t("workflow_node.apply.form.skip_before_expiry_days.unit")}
@@ -901,7 +901,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
       skipBeforeExpiryDays: z.coerce
         .number()
         .int(t("workflow_node.apply.form.skip_before_expiry_days.placeholder"))
-        .nonnegative(t("workflow_node.apply.form.skip_before_expiry_days.placeholder")),
+        .positive(t("workflow_node.apply.form.skip_before_expiry_days.placeholder")),
     })
     .superRefine((values, ctx) => {
       if (values.domains) {

@@ -8,7 +8,7 @@
   "provider.actalisssl": "Actalis SSL",
   "provider.akamai": "Akamai",
   "provider.akamai.cdn": "Akamai - 内容分发网络 CDN",
-  "provider.akamai.edgedns": "Akamai - Edge DNS",
+  "provider.akamai.edgedns": "Akamai - EdgeDNS",
   "provider.aliyun": "阿里云",
   "provider.aliyun.alb": "阿里云 - 应用型负载均衡 ALB",
   "provider.aliyun.apigw": "阿里云 - API 网关",

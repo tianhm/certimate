@@ -30,6 +30,18 @@ func init() {
 			}
 		}
 
+		// update collection `settings`
+		//   - modify field `content` schema of `persistence`
+		{
+			if _, err := app.DB().NewQuery("UPDATE settings SET content = REPLACE(content, '\"expiredCertificatesMaxDaysRetention\"', '\"certificatesRetentionMaxDays\"') WHERE name = 'persistence'").Execute(); err != nil {
+				return err
+			}
+
+			if _, err := app.DB().NewQuery("UPDATE settings SET content = REPLACE(content, '\"workflowRunsMaxDaysRetention\"', '\"workflowRunsRetentionMaxDays\"') WHERE name = 'persistence'").Execute(); err != nil {
+				return err
+			}
+		}
+
 		tracer.Printf("done")
 		return nil
 	}, func(app core.App) error {

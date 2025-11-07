@@ -12,8 +12,10 @@ import CertificateDetailDrawer from "@/components/certificate/CertificateDetailD
 import Empty from "@/components/Empty";
 import Show from "@/components/Show";
 import { CERTIFICATE_SOURCES, type CertificateModel } from "@/domain/certificate";
+import { SETTINGS_NAMES } from "@/domain/settings";
 import { useAppSettings } from "@/hooks";
 import { get as getCertificate, list as listCertificates, remove as removeCertificate } from "@/repository/certificate";
+import { get as getSettings } from "@/repository/settings";
 import { getErrMsg } from "@/utils/error";
 
 const CertificateList = () => {
@@ -27,6 +29,8 @@ const CertificateList = () => {
   const { message, modal, notification } = App.useApp();
 
   const { appSettings: globalAppSettings } = useAppSettings();
+
+  const [expiryThreshold, setExpiryThreshold] = useState(0);
 
   const [filters, setFilters] = useState<Record<string, unknown>>(() => {
     return {
@@ -64,7 +68,7 @@ const CertificateList = () => {
         return (
           <div className="flex max-w-full flex-col gap-1 truncate">
             {!isRevoked && !isExpired ? (
-              leftDays >= 20 ? (
+              leftDays >= expiryThreshold ? (
                 <Typography.Text ellipsis type="success">
                   <span className="mr-2 inline-block size-2 rounded-full bg-success leading-2">&nbsp;</span>
                   {t("certificate.props.validity.left_days", { left: leftDays, total })}
@@ -240,6 +244,7 @@ const CertificateList = () => {
       return listCertificates({
         keyword: filters["keyword"] as string,
         state: filters["state"] as Parameters<typeof listCertificates>[0]["state"],
+        stateThreshold: expiryThreshold,
         sort: sort,
         page: page,
         perPage: pageSize,
@@ -247,7 +252,7 @@ const CertificateList = () => {
     },
     {
       refreshDeps: [filters, sorter, page, pageSize],
-      onBefore: () => {
+      onBefore: async () => {
         setSearchParams((prev) => {
           if (filters["keyword"]) {
             prev.set("keyword", filters["keyword"] as string);
@@ -266,6 +271,11 @@ const CertificateList = () => {
 
           return prev;
         });
+
+        if (expiryThreshold === 0) {
+          const settings = await getSettings(SETTINGS_NAMES.PERSISTENCE);
+          setExpiryThreshold(settings?.content?.certificatesWarningDaysBeforeExpire ?? 0);
+        }
       },
       onSuccess: (res) => {
         setTableData(res.items);

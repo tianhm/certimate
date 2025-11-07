@@ -25,12 +25,14 @@ const _expandFields = ["expand.workflowRef.id", "expand.workflowRef.name", "expa
 export const list = async ({
   keyword,
   state,
+  stateThreshold,
   sort = "-created",
   page = 1,
   perPage = 10,
 }: {
   keyword?: string;
   state?: "expiringSoon" | "expired";
+  stateThreshold?: number;
   sort?: string;
   page?: number;
   perPage?: number;
@@ -42,9 +44,11 @@ export const list = async ({
     filters.push(pb.filter("(id={:keyword} || serialNumber={:keyword} || subjectAltNames~{:keyword})", { keyword: keyword }));
   }
   if (state === "expiringSoon") {
-    filters.push(pb.filter("validityNotAfter<{:expiredAt} && validityNotAfter>@now", { expiredAt: dayjs().add(20, "d").toDate() }));
+    filters.push(pb.filter("validityNotAfter<={:expiredAt}", { expiredAt: dayjs().add(stateThreshold!, "d").toDate() }));
+    filters.push(pb.filter("validityNotAfter>@now"));
+    filters.push(pb.filter("isRevoked=0"));
   } else if (state === "expired") {
-    filters.push(pb.filter("validityNotAfter<={:expiredAt}", { expiredAt: new Date() }));
+    filters.push(pb.filter("validityNotAfter<=@now"));
   }
 
   return pb.collection(COLLECTION_NAME_CERTIFICATE).getList<CertificateModel>(page, perPage, {

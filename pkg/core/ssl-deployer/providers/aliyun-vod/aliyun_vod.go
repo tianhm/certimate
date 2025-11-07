@@ -96,7 +96,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	setVodDomainSSLCertificateReq := &alivod.SetVodDomainSSLCertificateRequest{
 		DomainName: tea.String(d.config.Domain),
 		CertType:   tea.String("cas"),
-		CertId:     tea.Int64(int64(certId)),
+		CertId:     tea.Int64(certId),
 		CertName:   tea.String(upres.CertName),
 		CertRegion: lo.
 			If(d.config.Region == "" || strings.HasPrefix(d.config.Region, "cn-"), tea.String("cn-hangzhou")).

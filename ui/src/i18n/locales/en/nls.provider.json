@@ -8,7 +8,7 @@
   "provider.actalisssl": "Actalis SSL",
   "provider.akamai": "Akamai",
   "provider.akamai.cdn": "Akamai - CDN (Content Delivery Network)",
-  "provider.akamai.edgedns": "Akamai - Edge DNS",
+  "provider.akamai.edgedns": "Akamai - EdgeDNS",
   "provider.aliyun": "Alibaba Cloud",
   "provider.aliyun.alb": "Alibaba Cloud - ALB (Application Load Balancer)",
   "provider.aliyun.apigw": "Alibaba Cloud - API Gateway",

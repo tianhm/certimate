@@ -100,13 +100,6 @@ func (ne *bizApplyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 		return execRes, err
 	}
 
-	// 解析证书
-	certX509, err := xcert.ParseCertificateFromPEM(obtainResp.FullChainCertificate)
-	if err != nil {
-		ne.logger.Warn("could not parse certificate, may be the CA responded error")
-		return execRes, err
-	}
-
 	// 保存证书实体
 	certificate := &domain.Certificate{
 		Source:            domain.CertificateSourceTypeRequest,
@@ -120,7 +113,7 @@ func (ne *bizApplyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 		WorkflowRunId:     execCtx.RunId,
 		WorkflowNodeId:    execCtx.Node.Id,
 	}
-	certificate.PopulateFromX509(certX509)
+	certificate.PopulateFromPEM(obtainResp.FullChainCertificate, obtainResp.PrivateKey)
 	if certificate, err := ne.certificateRepo.Save(execCtx.ctx, certificate); err != nil {
 		ne.logger.Warn("could not save certificate")
 		return execRes, err
@@ -308,7 +301,7 @@ func (ne *bizApplyNodeExecutor) executeObtain(execCtx *NodeExecutionContext, nod
 				}
 				return ""
 			}),
-		ValidityTo: lo.
+		ValidityNotAfter: lo.
 			If(nodeCfg.ValidityLifetime == "", time.Time{}).
 			ElseF(func() time.Time {
 				duration, err := str2duration.ParseDuration(nodeCfg.ValidityLifetime)

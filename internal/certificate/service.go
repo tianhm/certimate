@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -255,17 +256,21 @@ func (s *CertificateService) ValidatePrivateKey(ctx context.Context, req *dtos.C
 }
 
 func (s *CertificateService) cleanupExpiredCertificates(ctx context.Context) error {
-	settings, err := s.settingsRepo.GetByName(ctx, "persistence")
+	settings, err := s.settingsRepo.GetByName(ctx, domain.SettingsNamePersistence)
 	if err != nil {
+		if errors.Is(err, domain.ErrRecordNotFound) {
+			return nil
+		}
+
 		app.GetLogger().Error("failed to get persistence settings", slog.Any("error", err))
 		return err
 	}
 
 	persistenceSettings := settings.Content.AsPersistence()
-	if persistenceSettings.ExpiredCertificatesMaxDaysRetention != 0 {
+	if persistenceSettings.CertificatesRetentionMaxDays != 0 {
 		ret, err := s.certificateRepo.DeleteWhere(
 			context.Background(),
-			dbx.NewExp(fmt.Sprintf("validityNotAfter<DATETIME('now', '-%d days')", persistenceSettings.ExpiredCertificatesMaxDaysRetention)),
+			dbx.NewExp(fmt.Sprintf("validityNotAfter<DATETIME('now', '-%d days')", persistenceSettings.CertificatesRetentionMaxDays)),
 		)
 		if err != nil {
 			app.GetLogger().Error("failed to delete expired certificates", slog.Any("error", err))

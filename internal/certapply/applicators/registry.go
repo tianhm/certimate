@@ -20,6 +20,8 @@ type ProviderFactoryOptions struct {
 type Registry[T comparable] interface {
 	Register(T, ProviderFactoryFunc) error
 	RegisterAlias(T, T) error
+	MustRegister(T, ProviderFactoryFunc)
+	MustRegisterAlias(T, T)
 	Get(T) (ProviderFactoryFunc, error)
 }
 
@@ -48,6 +50,18 @@ func (r *registry[T]) RegisterAlias(name T, alias T) error {
 	}
 
 	return nil
+}
+
+func (r *registry[T]) MustRegister(name T, factory ProviderFactoryFunc) {
+	if err := r.Register(name, factory); err != nil {
+		panic(err)
+	}
+}
+
+func (r *registry[T]) MustRegisterAlias(name T, alias T) {
+	if err := r.RegisterAlias(name, alias); err != nil {
+		panic(err)
+	}
 }
 
 func (r *registry[T]) Get(name T) (ProviderFactoryFunc, error) {

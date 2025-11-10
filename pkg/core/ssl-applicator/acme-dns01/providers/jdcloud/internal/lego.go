@@ -78,7 +78,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 	clientConfig := &client.Config
 	clientConfig.SetTimeout(config.HTTPTimeout)
 	client.SetConfig(clientConfig)
-	client.SetLogger(jdcore.NewDefaultLogger(jdcore.LogWarn))
+	client.DisableLogger()
 
 	return &DNSProvider{
 		client: client,

@@ -41,7 +41,7 @@ type Config struct {
 }
 
 type DNSProvider struct {
-	client *aliesa.Client
+	client *EsaClient
 	config *Config
 
 	siteIDs    map[string]int64
@@ -76,7 +76,7 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 		return nil, errors.New("alicloud-esa: the configuration of the DNS provider is nil")
 	}
 
-	client, err := aliesa.NewClient(&aliopen.Config{
+	client, err := NewEsaClient(&aliopen.Config{
 		AccessKeyId:     tea.String(config.SecretID),
 		AccessKeySecret: tea.String(config.SecretKey),
 		Endpoint:        tea.String(fmt.Sprintf("esa.%s.aliyuncs.com", config.RegionID)),

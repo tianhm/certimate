@@ -5,15 +5,16 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"strconv"
 	"strings"
 
 	aliopen "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	aliddoscoo "github.com/alibabacloud-go/ddoscoo-20200101/v4/client"
+	"github.com/alibabacloud-go/tea/dara"
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/samber/lo"
 
 	"github.com/certimate-go/certimate/pkg/core"
+	"github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/aliyun-ddospro/internal"
 	sslmgrsp "github.com/certimate-go/certimate/pkg/core/ssl-manager/providers/aliyun-cas"
 )
 
@@ -33,7 +34,7 @@ type SSLDeployerProviderConfig struct {
 type SSLDeployerProvider struct {
 	config     *SSLDeployerProviderConfig
 	logger     *slog.Logger
-	sdkClient  *aliddoscoo.Client
+	sdkClient  *internal.DdoscooClient
 	sslManager core.SSLManager
 }
 
@@ -94,12 +95,11 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 
 	// 为网站业务转发规则关联 SSL 证书
 	// REF: https://help.aliyun.com/zh/anti-ddos/anti-ddos-pro-and-premium/developer-reference/api-ddoscoo-2020-01-01-associatewebcert
-	certId, _ := strconv.ParseInt(upres.CertId, 10, 32)
 	associateWebCertReq := &aliddoscoo.AssociateWebCertRequest{
-		Domain: tea.String(d.config.Domain),
-		CertId: tea.Int32(int32(certId)),
+		Domain:         tea.String(d.config.Domain),
+		CertIdentifier: tea.String(upres.ExtendedData["CertIdentifier"].(string)),
 	}
-	associateWebCertResp, err := d.sdkClient.AssociateWebCert(associateWebCertReq)
+	associateWebCertResp, err := d.sdkClient.AssociateWebCertWithContext(context.TODO(), associateWebCertReq, &dara.RuntimeOptions{})
 	d.logger.Debug("sdk request 'dcdn.AssociateWebCert'", slog.Any("request", associateWebCertReq), slog.Any("response", associateWebCertResp))
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute sdk request 'dcdn.AssociateWebCert': %w", err)
@@ -108,7 +108,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	return &core.SSLDeployResult{}, nil
 }
 
-func createSDKClient(accessKeyId, accessKeySecret, region string) (*aliddoscoo.Client, error) {
+func createSDKClient(accessKeyId, accessKeySecret, region string) (*internal.DdoscooClient, error) {
 	// 接入点一览 https://api.aliyun.com/product/ddoscoo
 	var endpoint string
 	switch region {
@@ -124,7 +124,7 @@ func createSDKClient(accessKeyId, accessKeySecret, region string) (*aliddoscoo.C
 		Endpoint:        tea.String(endpoint),
 	}
 
-	client, err := aliddoscoo.NewClient(config)
+	client, err := internal.NewDdoscooClient(config)
 	if err != nil {
 		return nil, err
 	}

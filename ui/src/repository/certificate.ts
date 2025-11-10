@@ -55,7 +55,7 @@ export const list = async ({
     expand: ["workflowRef"].join(","),
     fields: [..._commonFields, ..._expandFields].join(","),
     filter: filters.join(" && "),
-    sort: sort,
+    sort: sort || "-created",
     requestKey: null,
   });
 };

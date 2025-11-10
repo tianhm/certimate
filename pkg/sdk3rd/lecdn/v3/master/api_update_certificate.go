@@ -1,4 +1,4 @@
-package masterv3
+package master
 
 import (
 	"context"

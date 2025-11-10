@@ -3,14 +3,13 @@ package internal
 import (
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	bcedns "github.com/baidubce/bce-sdk-go/services/dns"
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
 	"github.com/go-acme/lego/v4/platform/config/env"
-	"github.com/google/uuid"
+	"github.com/pocketbase/pocketbase/tools/security"
 	"github.com/samber/lo"
 )
 
@@ -172,7 +171,7 @@ func (d *DNSProvider) addOrUpdateDNSRecord(zoneName, subDomain, value string) er
 			Value: value,
 			Ttl:   lo.ToPtr(int32(d.config.TTL)),
 		}
-		err := d.client.CreateRecord(zoneName, request, d.generateClientToken())
+		err := d.client.CreateRecord(zoneName, request, security.RandomString(32))
 		return err
 	} else {
 		request := &bcedns.UpdateRecordRequest{
@@ -181,7 +180,7 @@ func (d *DNSProvider) addOrUpdateDNSRecord(zoneName, subDomain, value string) er
 			Value: value,
 			Ttl:   lo.ToPtr(int32(d.config.TTL)),
 		}
-		err := d.client.UpdateRecord(zoneName, record.Id, request, d.generateClientToken())
+		err := d.client.UpdateRecord(zoneName, record.Id, request, security.RandomString(32))
 		return err
 	}
 }
@@ -195,11 +194,7 @@ func (d *DNSProvider) removeDNSRecord(zoneName, subDomain string) error {
 	if record == nil {
 		return nil
 	} else {
-		err = d.client.DeleteRecord(zoneName, record.Id, d.generateClientToken())
+		err = d.client.DeleteRecord(zoneName, record.Id, security.RandomString(32))
 		return err
 	}
-}
-
-func (d *DNSProvider) generateClientToken() string {
-	return strings.ReplaceAll(uuid.New().String(), "-", "")
 }

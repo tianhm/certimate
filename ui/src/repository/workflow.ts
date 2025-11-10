@@ -57,7 +57,7 @@ export const list = async ({
     expand: expand ? ["lastRunRef"].join(",") : void 0,
     fields: [..._commonFields, ..._expandFields].join(","),
     filter: filters.join(" && "),
-    sort: sort,
+    sort: sort || "-created",
     requestKey: null,
   });
 };

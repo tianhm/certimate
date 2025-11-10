@@ -238,7 +238,7 @@ const CertificateList = () => {
     () => {
       const { columnKey: sorterKey, order: sorterOrder } = sorter;
       let sort: string | undefined;
-      sort = sorterKey === "validity" ? "validityNotAfter" : "";
+      sort = sorterKey === "validity" ? "validityNotAfter" : void 0;
       sort = sort && (sorterOrder === "ascend" ? `${sort}` : sorterOrder === "descend" ? `-${sort}` : void 0);
 
       return listCertificates({

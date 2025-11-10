@@ -1,4 +1,4 @@
-package clientv3
+package master
 
 type apiResponse interface {
 	GetCode() int32
@@ -7,7 +7,7 @@ type apiResponse interface {
 
 type apiResponseBase struct {
 	Code    int32  `json:"code"`
-	Message string `json:"msg"`
+	Message string `json:"message"`
 }
 
 func (r *apiResponseBase) GetCode() int32 {

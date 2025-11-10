@@ -1,4 +1,4 @@
-package masterv3
+package client
 
 import (
 	"crypto/tls"
@@ -43,8 +43,6 @@ func NewClient(serverUrl, username, password string) (*Client, error) {
 	}
 	client.client = resty.New().
 		SetBaseURL(strings.TrimRight(serverUrl, "/")+"/prod-api").
-		SetHeader("Accept", "application/json").
-		SetHeader("Content-Type", "application/json").
 		SetHeader("User-Agent", "certimate").
 		SetPreRequestHook(func(c *resty.Client, req *http.Request) error {
 			if client.accessToken != "" {
@@ -137,6 +135,7 @@ func (c *Client) ensureAccessTokenExists() error {
 		return err
 	} else {
 		httpreq.SetBody(map[string]string{
+			"email":    c.username,
 			"username": c.username,
 			"password": c.password,
 		})

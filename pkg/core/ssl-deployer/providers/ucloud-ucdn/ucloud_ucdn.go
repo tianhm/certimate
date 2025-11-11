@@ -7,12 +7,12 @@ import (
 	"log/slog"
 	"strconv"
 
-	"github.com/ucloud/ucloud-sdk-go/services/ucdn"
 	"github.com/ucloud/ucloud-sdk-go/ucloud"
 	"github.com/ucloud/ucloud-sdk-go/ucloud/auth"
 
 	"github.com/certimate-go/certimate/pkg/core"
 	sslmgrsp "github.com/certimate-go/certimate/pkg/core/ssl-manager/providers/ucloud-ussl"
+	usdkCdn "github.com/certimate-go/certimate/pkg/sdk3rd/ucloud/ucdn"
 )
 
 type SSLDeployerProviderConfig struct {
@@ -29,7 +29,7 @@ type SSLDeployerProviderConfig struct {
 type SSLDeployerProvider struct {
 	config     *SSLDeployerProviderConfig
 	logger     *slog.Logger
-	sdkClient  *ucdn.UCDNClient
+	sdkClient  *usdkCdn.UCDNClient
 	sslManager core.SSLManager
 }
 
@@ -123,13 +123,13 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	return &core.SSLDeployResult{}, nil
 }
 
-func createSDKClient(privateKey, publicKey string) (*ucdn.UCDNClient, error) {
+func createSDKClient(privateKey, publicKey string) (*usdkCdn.UCDNClient, error) {
 	cfg := ucloud.NewConfig()
 
 	credential := auth.NewCredential()
 	credential.PrivateKey = privateKey
 	credential.PublicKey = publicKey
 
-	client := ucdn.NewClient(&cfg, &credential)
+	client := usdkCdn.NewClient(&cfg, &credential)
 	return client, nil
 }

@@ -115,15 +115,16 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 	return d.config.PropagationTimeout, d.config.PollingInterval
 }
 
-func (d *DNSProvider) findDNSRecord(zoneName, subDomain string) (*libdns.Record, error) {
+func (d *DNSProvider) findDNSRecord(zoneName, subDomain string) (libdns.Record, error) {
 	records, err := d.client.GetRecords(context.Background(), zoneName)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, record := range records {
-		if record.Type == "TXT" && record.Name == subDomain {
-			return &record, nil
+		rr := record.RR()
+		if rr.Type == "TXT" && rr.Name == subDomain {
+			return record, nil
 		}
 	}
 
@@ -137,17 +138,20 @@ func (d *DNSProvider) addOrUpdateDNSRecord(zoneName, subDomain, value string) er
 	}
 
 	if record == nil {
-		record = &libdns.Record{
-			Type:  "TXT",
-			Name:  subDomain,
-			Value: value,
-			TTL:   time.Duration(d.config.TTL) * time.Second,
+		record = &libdns.TXT{
+			Name: subDomain,
+			Text: value,
+			TTL:  time.Duration(d.config.TTL),
 		}
-		_, err := d.client.AppendRecords(context.Background(), zoneName, []libdns.Record{*record})
+		_, err := d.client.AppendRecords(context.Background(), zoneName, []libdns.Record{record})
 		return err
 	} else {
-		record.Value = value
-		_, err := d.client.SetRecords(context.Background(), zoneName, []libdns.Record{*record})
+		record = &libdns.TXT{
+			Name: subDomain,
+			Text: value,
+			TTL:  time.Duration(d.config.TTL),
+		}
+		_, err := d.client.SetRecords(context.Background(), zoneName, []libdns.Record{record})
 		return err
 	}
 }
@@ -161,7 +165,7 @@ func (d *DNSProvider) removeDNSRecord(zoneName, subDomain string) error {
 	if record == nil {
 		return nil
 	} else {
-		_, err = d.client.DeleteRecords(context.Background(), zoneName, []libdns.Record{*record})
+		_, err = d.client.DeleteRecords(context.Background(), zoneName, []libdns.Record{record})
 		return err
 	}
 }

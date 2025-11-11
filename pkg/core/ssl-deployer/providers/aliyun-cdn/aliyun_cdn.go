@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	alicdn "github.com/alibabacloud-go/cdn-20180510/v8/client"
+	alicdn "github.com/alibabacloud-go/cdn-20180510/v9/client"
 	aliopen "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	"github.com/alibabacloud-go/tea/dara"
 	"github.com/alibabacloud-go/tea/tea"

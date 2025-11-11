@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	bce "github.com/baidubce/bce-sdk-go/bce"
 	bcedns "github.com/baidubce/bce-sdk-go/services/dns"
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
@@ -73,9 +74,10 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 	if err != nil {
 		return nil, err
 	} else {
-		if client.Config != nil {
-			client.Config.ConnectionTimeoutInMillis = int(config.HTTPTimeout.Milliseconds())
+		if client.Config == nil {
+			client.Config = &bce.BceClientConfiguration{}
 		}
+		client.Config.HTTPClientTimeout = &config.HTTPTimeout
 	}
 
 	return &DNSProvider{
@@ -148,7 +150,7 @@ func (d *DNSProvider) findDNSRecord(zoneName, subDomain string) (*bcedns.Record,
 			}
 		}
 
-		if len(response.Records) < pageSize {
+		if !response.IsTruncated {
 			break
 		}
 

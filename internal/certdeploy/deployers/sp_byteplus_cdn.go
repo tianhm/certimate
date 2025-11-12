@@ -17,9 +17,10 @@ func init() {
 		}
 
 		provider, err := bytepluscdn.NewSSLDeployerProvider(&bytepluscdn.SSLDeployerProviderConfig{
-			AccessKey: credentials.AccessKey,
-			SecretKey: credentials.SecretKey,
-			Domain:    xmaps.GetString(options.ProviderExtendedConfig, "domain"),
+			AccessKey:          credentials.AccessKey,
+			SecretKey:          credentials.SecretKey,
+			DomainMatchPattern: xmaps.GetString(options.ProviderExtendedConfig, "domainMatchPattern"),
+			Domain:             xmaps.GetString(options.ProviderExtendedConfig, "domain"),
 		})
 		return provider, err
 	})

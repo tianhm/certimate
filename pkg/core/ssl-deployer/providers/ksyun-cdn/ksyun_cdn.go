@@ -61,7 +61,7 @@ func (d *SSLDeployerProvider) SetLogger(logger *slog.Logger) {
 }
 
 func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privkeyPEM string) (*core.SSLDeployResult, error) {
-	// // 如果原证书 ID 为空，则创建证书；否则更新证书。
+	// 如果原证书 ID 为空，则创建证书；否则更新证书。
 	if d.config.CertificateId == "" {
 		if d.config.Domain == "" {
 			return nil, errors.New("config `domain` is required")

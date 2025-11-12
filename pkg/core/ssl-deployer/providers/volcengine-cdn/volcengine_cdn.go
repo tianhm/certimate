@@ -115,12 +115,12 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 
 	case DOMAIN_MATCH_PATTERN_CERTSAN:
 		{
-			temp, err := d.getMatchedDomainsByCertId(ctx, upres.CertId)
+			domainCandidates, err := d.getMatchedDomainsByCertId(ctx, upres.CertId)
 			if err != nil {
 				return nil, err
 			}
 
-			domains = temp
+			domains = domainCandidates
 		}
 
 	default:
@@ -192,6 +192,10 @@ func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, w
 		} else {
 			listCdnDomainsPageSize++
 		}
+	}
+
+	if len(domains) == 0 {
+		return nil, errors.New("no domains matched by wildcard")
 	}
 
 	return domains, nil

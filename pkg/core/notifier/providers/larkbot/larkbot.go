@@ -75,10 +75,17 @@ func (n *NotifierProvider) Notify(ctx context.Context, subject string, message s
 		},
 	}
 	if n.config.Secret != "" {
-		timestamp := fmt.Sprintf("%d", time.Now().UnixMilli())
+		timestamp := fmt.Sprintf("%d", time.Now().Unix())
 
-		h := hmac.New(sha256.New, []byte(n.config.Secret))
-		h.Write([]byte(fmt.Sprintf("%s\n%s", timestamp, n.config.Secret)))
+		// timestamp + key 做sha256, 再进行base64 encode
+		stringToSign := fmt.Sprintf("%s\n%s", timestamp, n.config.Secret)
+
+		h := hmac.New(sha256.New, []byte(stringToSign))
+		var data []byte
+		_, err := h.Write(data)
+		if err != nil {
+			return nil, fmt.Errorf("lark api error: failed to calc sign: %w", err)
+		}
 		sign := base64.StdEncoding.EncodeToString(h.Sum(nil))
 
 		payload["timestamp"] = timestamp

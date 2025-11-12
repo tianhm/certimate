@@ -84,8 +84,12 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		return fmt.Errorf("dynv6: %w", err)
 	}
 
-	if err := d.addOrUpdateDNSRecord(dns01.UnFqdn(authZone), subDomain, info.Value); err != nil {
-		return fmt.Errorf("dynv6: %w", err)
+	if _, err := d.client.AppendRecords(context.Background(), dns01.UnFqdn(authZone), []libdns.Record{&libdns.TXT{
+		Name: subDomain,
+		Text: info.Value,
+		TTL:  time.Duration(d.config.TTL),
+	}}); err != nil {
+		return fmt.Errorf("dynv6: error when create record: %w", err)
 	}
 
 	return nil
@@ -104,8 +108,13 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		return fmt.Errorf("dynv6: %w", err)
 	}
 
-	if err := d.removeDNSRecord(dns01.UnFqdn(authZone), subDomain); err != nil {
-		return fmt.Errorf("dynv6: %w", err)
+	record, err := d.findDNSRecord(dns01.UnFqdn(authZone), subDomain, info.Value)
+	if err != nil {
+		return fmt.Errorf("dynv6: error when find record: %w", err)
+	}
+
+	if _, err := d.client.DeleteRecords(context.Background(), dns01.UnFqdn(authZone), []libdns.Record{record}); err != nil {
+		return fmt.Errorf("dynv6: error when delete record: %w", err)
 	}
 
 	return nil
@@ -115,7 +124,7 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 	return d.config.PropagationTimeout, d.config.PollingInterval
 }
 
-func (d *DNSProvider) findDNSRecord(zoneName, subDomain string) (libdns.Record, error) {
+func (d *DNSProvider) findDNSRecord(zoneName, subDomain, tokenValue string) (libdns.Record, error) {
 	records, err := d.client.GetRecords(context.Background(), zoneName)
 	if err != nil {
 		return nil, err
@@ -123,49 +132,10 @@ func (d *DNSProvider) findDNSRecord(zoneName, subDomain string) (libdns.Record, 
 
 	for _, record := range records {
 		rr := record.RR()
-		if rr.Type == "TXT" && rr.Name == subDomain {
+		if rr.Type == "TXT" && rr.Name == subDomain && rr.Data == tokenValue {
 			return record, nil
 		}
 	}
 
-	return nil, nil
-}
-
-func (d *DNSProvider) addOrUpdateDNSRecord(zoneName, subDomain, value string) error {
-	record, err := d.findDNSRecord(zoneName, subDomain)
-	if err != nil {
-		return err
-	}
-
-	if record == nil {
-		record = &libdns.TXT{
-			Name: subDomain,
-			Text: value,
-			TTL:  time.Duration(d.config.TTL),
-		}
-		_, err := d.client.AppendRecords(context.Background(), zoneName, []libdns.Record{record})
-		return err
-	} else {
-		record = &libdns.TXT{
-			Name: subDomain,
-			Text: value,
-			TTL:  time.Duration(d.config.TTL),
-		}
-		_, err := d.client.SetRecords(context.Background(), zoneName, []libdns.Record{record})
-		return err
-	}
-}
-
-func (d *DNSProvider) removeDNSRecord(zoneName, subDomain string) error {
-	record, err := d.findDNSRecord(zoneName, subDomain)
-	if err != nil {
-		return err
-	}
-
-	if record == nil {
-		return nil
-	} else {
-		_, err = d.client.DeleteRecords(context.Background(), zoneName, []libdns.Record{record})
-		return err
-	}
+	return nil, errors.New("record not found")
 }

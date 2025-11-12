@@ -3,6 +3,7 @@ package internal
 import (
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/go-acme/lego/v4/challenge"
@@ -40,6 +41,9 @@ type Config struct {
 type DNSProvider struct {
 	client *gnamesdk.Client
 	config *Config
+
+	recordIDs   map[string]int64
+	recordIDsMu sync.Mutex
 }
 
 func NewDefaultConfig() *Config {
@@ -77,8 +81,10 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 	}
 
 	return &DNSProvider{
-		client: client,
-		config: config,
+		client:      client,
+		config:      config,
+		recordIDs:   make(map[string]int64),
+		recordIDsMu: sync.Mutex{},
 	}, nil
 }
 
@@ -95,9 +101,22 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		return fmt.Errorf("gname: %w", err)
 	}
 
-	if err := d.addOrUpdateDNSRecord(dns01.UnFqdn(authZone), subDomain, info.Value); err != nil {
-		return fmt.Errorf("gname: %w", err)
+	// REF: https://www.gname.vip/domain/api/dns/add
+	gnameAddDomainResolutionReq := &gnamesdk.AddDomainResolutionRequest{
+		ZoneName:    lo.ToPtr(dns01.UnFqdn(authZone)),
+		RecordType:  lo.ToPtr("TXT"),
+		RecordName:  lo.ToPtr(subDomain),
+		RecordValue: lo.ToPtr(info.Value),
+		TTL:         lo.ToPtr(int32(d.config.TTL)),
 	}
+	gnameAddDomainResolutionResp, err := d.client.AddDomainResolution(gnameAddDomainResolutionReq)
+	if err != nil {
+		return fmt.Errorf("gname: error when create record: %w", err)
+	}
+
+	d.recordIDsMu.Lock()
+	d.recordIDs[token], _ = gnameAddDomainResolutionResp.Data.Int64()
+	d.recordIDsMu.Unlock()
 
 	return nil
 }
@@ -110,13 +129,21 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		return fmt.Errorf("gname: could not find zone for domain %q: %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
-	if err != nil {
-		return fmt.Errorf("gname: %w", err)
+	d.recordIDsMu.Lock()
+	recordID, ok := d.recordIDs[token]
+	d.recordIDsMu.Unlock()
+	if !ok {
+		return fmt.Errorf("gname: unknown record ID for '%s'", info.EffectiveFQDN)
 	}
 
-	if err := d.removeDNSRecord(dns01.UnFqdn(authZone), subDomain); err != nil {
-		return fmt.Errorf("gname: %w", err)
+	// REF: https://www.gname.vip/domain/api/dns/del
+	gnameDeleteDomainResolutionReq := &gnamesdk.DeleteDomainResolutionRequest{
+		ZoneName: lo.ToPtr(dns01.UnFqdn(authZone)),
+		RecordID: lo.ToPtr(recordID),
+	}
+	_, err = d.client.DeleteDomainResolution(gnameDeleteDomainResolutionReq)
+	if err != nil {
+		return fmt.Errorf("gname: error when delete record: %w", err)
 	}
 
 	return nil
@@ -124,88 +151,4 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 	return d.config.PropagationTimeout, d.config.PollingInterval
-}
-
-func (d *DNSProvider) findDNSRecord(zoneName, subDomain string) (*gnamesdk.DomainResolutionRecordord, error) {
-	page := int32(1)
-	pageSize := int32(20)
-	for {
-		request := &gnamesdk.ListDomainResolutionRequest{
-			ZoneName: lo.ToPtr(zoneName),
-			Page:     lo.ToPtr(page),
-			PageSize: lo.ToPtr(pageSize),
-		}
-
-		response, err := d.client.ListDomainResolution(request)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, record := range response.Data {
-			if record.RecordType == "TXT" && record.RecordName == subDomain {
-				return record, nil
-			}
-		}
-
-		if len(response.Data) == 0 {
-			break
-		}
-		if response.Page*response.PageSize >= response.Count {
-			break
-		}
-
-		page++
-	}
-
-	return nil, nil
-}
-
-func (d *DNSProvider) addOrUpdateDNSRecord(zoneName, subDomain, value string) error {
-	record, err := d.findDNSRecord(zoneName, subDomain)
-	if err != nil {
-		return err
-	}
-
-	if record == nil {
-		request := &gnamesdk.AddDomainResolutionRequest{
-			ZoneName:    lo.ToPtr(zoneName),
-			RecordType:  lo.ToPtr("TXT"),
-			RecordName:  lo.ToPtr(subDomain),
-			RecordValue: lo.ToPtr(value),
-			TTL:         lo.ToPtr(int32(d.config.TTL)),
-		}
-		_, err := d.client.AddDomainResolution(request)
-		return err
-	} else {
-		recordId, _ := record.ID.Int64()
-		request := &gnamesdk.ModifyDomainResolutionRequest{
-			ID:          lo.ToPtr(recordId),
-			ZoneName:    lo.ToPtr(zoneName),
-			RecordType:  lo.ToPtr("TXT"),
-			RecordName:  lo.ToPtr(subDomain),
-			RecordValue: lo.ToPtr(value),
-			TTL:         lo.ToPtr(int32(d.config.TTL)),
-		}
-		_, err := d.client.ModifyDomainResolution(request)
-		return err
-	}
-}
-
-func (d *DNSProvider) removeDNSRecord(zoneName, subDomain string) error {
-	record, err := d.findDNSRecord(zoneName, subDomain)
-	if err != nil {
-		return err
-	}
-
-	if record == nil {
-		return nil
-	}
-
-	recordId, _ := record.ID.Int64()
-	request := &gnamesdk.DeleteDomainResolutionRequest{
-		ZoneName: lo.ToPtr(zoneName),
-		RecordID: lo.ToPtr(recordId),
-	}
-	_, err = d.client.DeleteDomainResolution(request)
-	return err
 }

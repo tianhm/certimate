@@ -3,6 +3,7 @@ package internal
 import (
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/go-acme/lego/v4/challenge"
@@ -43,6 +44,9 @@ type Config struct {
 type DNSProvider struct {
 	client *jddnsclient.DomainserviceClient
 	config *Config
+
+	recordIDs   map[string]int
+	recordIDsMu sync.Mutex
 }
 
 func NewDefaultConfig() *Config {
@@ -81,8 +85,10 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 	client.DisableLogger()
 
 	return &DNSProvider{
-		client: client,
-		config: config,
+		client:      client,
+		config:      config,
+		recordIDs:   make(map[string]int),
+		recordIDsMu: sync.Mutex{},
 	}, nil
 }
 
@@ -99,9 +105,27 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		return fmt.Errorf("jdcloud: %w", err)
 	}
 
-	if err := d.addOrUpdateDNSRecord(dns01.UnFqdn(authZone), subDomain, info.Value); err != nil {
-		return fmt.Errorf("jdcloud: %w", err)
+	zone, err := d.getDNSZone(dns01.UnFqdn(authZone))
+	if err != nil {
+		return fmt.Errorf("jdcloud: error when list zones: %w", err)
 	}
+
+	// REF: https://docs.jdcloud.com/cn/jd-cloud-dns/api/createresourcerecord
+	jddnsCreateResourceRecordReq := jddnsapi.NewCreateResourceRecordRequest(d.config.RegionId, fmt.Sprintf("%d", zone.Id), &jddnsmodel.AddRR{
+		Type:       "TXT",
+		HostRecord: subDomain,
+		HostValue:  info.Value,
+		Ttl:        int(d.config.TTL),
+		ViewValue:  -1,
+	})
+	jddnsCreateResourceRecordResp, err := d.client.CreateResourceRecord(jddnsCreateResourceRecordReq)
+	if err != nil {
+		return fmt.Errorf("jdcloud: error when create record: %w", err)
+	}
+
+	d.recordIDsMu.Lock()
+	d.recordIDs[token] = jddnsCreateResourceRecordResp.Result.DataList.Id
+	d.recordIDsMu.Unlock()
 
 	return nil
 }
@@ -114,13 +138,23 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		return fmt.Errorf("jdcloud: could not find zone for domain %q: %w", domain, err)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
-	if err != nil {
-		return fmt.Errorf("jdcloud: %w", err)
+	d.recordIDsMu.Lock()
+	recordID, ok := d.recordIDs[token]
+	d.recordIDsMu.Unlock()
+	if !ok {
+		return fmt.Errorf("jdcloud: unknown record ID for '%s'", info.EffectiveFQDN)
 	}
 
-	if err := d.removeDNSRecord(dns01.UnFqdn(authZone), subDomain); err != nil {
-		return fmt.Errorf("jdcloud: %w", err)
+	zone, err := d.getDNSZone(dns01.UnFqdn(authZone))
+	if err != nil {
+		return fmt.Errorf("jdcloud: error when list zones: %w", err)
+	}
+
+	// REF: https://docs.jdcloud.com/cn/jd-cloud-dns/api/deleteresourcerecord
+	jddnsDeleteResourceRecordReq := jddnsapi.NewDeleteResourceRecordRequest(d.config.RegionId, fmt.Sprintf("%d", zone.Id), fmt.Sprintf("%d", recordID))
+	_, err = d.client.DeleteResourceRecord(jddnsDeleteResourceRecordReq)
+	if err != nil {
+		return fmt.Errorf("jdcloud: error when delete record: %w", err)
 	}
 
 	return nil
@@ -134,21 +168,22 @@ func (d *DNSProvider) getDNSZone(zoneName string) (*jddnsmodel.DomainInfo, error
 	pageNumber := 1
 	pageSize := 10
 	for {
-		request := jddnsapi.NewDescribeDomainsRequest(d.config.RegionId, pageNumber, pageSize)
-		request.SetDomainName(zoneName)
+		// REF: https://docs.jdcloud.com/cn/jd-cloud-dns/api/describedomains
+		jddnsDescribeDomainsReq := jddnsapi.NewDescribeDomainsRequest(d.config.RegionId, pageNumber, pageSize)
+		jddnsDescribeDomainsReq.SetDomainName(zoneName)
 
-		response, err := d.client.DescribeDomains(request)
+		jddnsDescribeDomainsResp, err := d.client.DescribeDomains(jddnsDescribeDomainsReq)
 		if err != nil {
 			return nil, err
 		}
 
-		for _, item := range response.Result.DataList {
+		for _, item := range jddnsDescribeDomainsResp.Result.DataList {
 			if item.DomainName == zoneName {
 				return &item, nil
 			}
 		}
 
-		if len(response.Result.DataList) < pageSize {
+		if len(jddnsDescribeDomainsResp.Result.DataList) < pageSize {
 			break
 		}
 
@@ -156,83 +191,4 @@ func (d *DNSProvider) getDNSZone(zoneName string) (*jddnsmodel.DomainInfo, error
 	}
 
 	return nil, fmt.Errorf("jdcloud: zone %s not found", zoneName)
-}
-
-func (d *DNSProvider) getDNSZoneAndRecord(zoneName, subDomain string) (*jddnsmodel.DomainInfo, *jddnsmodel.RRInfo, error) {
-	zone, err := d.getDNSZone(zoneName)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	pageNumber := 1
-	pageSize := 10
-	for {
-		request := jddnsapi.NewDescribeResourceRecordRequest(d.config.RegionId, fmt.Sprintf("%d", zone.Id))
-		request.SetSearch(subDomain)
-		request.SetPageNumber(pageNumber)
-		request.SetPageSize(pageSize)
-
-		response, err := d.client.DescribeResourceRecord(request)
-		if err != nil {
-			return zone, nil, err
-		}
-
-		for _, record := range response.Result.DataList {
-			if record.Type == "TXT" && record.HostRecord == subDomain {
-				return zone, &record, nil
-			}
-		}
-
-		if len(response.Result.DataList) < pageSize {
-			break
-		}
-
-		pageNumber++
-	}
-
-	return zone, nil, nil
-}
-
-func (d *DNSProvider) addOrUpdateDNSRecord(zoneName, subDomain, value string) error {
-	zone, record, err := d.getDNSZoneAndRecord(zoneName, subDomain)
-	if err != nil {
-		return err
-	}
-
-	if record == nil {
-		request := jddnsapi.NewCreateResourceRecordRequest(d.config.RegionId, fmt.Sprintf("%d", zone.Id), &jddnsmodel.AddRR{
-			Type:       "TXT",
-			HostRecord: subDomain,
-			HostValue:  value,
-			Ttl:        int(d.config.TTL),
-			ViewValue:  -1,
-		})
-		_, err := d.client.CreateResourceRecord(request)
-		return err
-	} else {
-		request := jddnsapi.NewModifyResourceRecordRequest(d.config.RegionId, fmt.Sprintf("%d", zone.Id), fmt.Sprintf("%d", record.Id), &jddnsmodel.UpdateRR{
-			Type:       "TXT",
-			HostRecord: subDomain,
-			HostValue:  value,
-			Ttl:        int(d.config.TTL),
-			ViewValue:  -1,
-		})
-		_, err := d.client.ModifyResourceRecord(request)
-		return err
-	}
-}
-
-func (d *DNSProvider) removeDNSRecord(zoneName, subDomain string) error {
-	zone, record, err := d.getDNSZoneAndRecord(zoneName, subDomain)
-	if err != nil {
-		return err
-	}
-
-	if record == nil {
-		return nil
-	} else {
-		request := jddnsapi.NewDeleteResourceRecordRequest(d.config.RegionId, fmt.Sprintf("%d", zone.Id), fmt.Sprintf("%d", record.Id))
-		_, err = d.client.DeleteResourceRecord(request)
-		return err
-	}
 }

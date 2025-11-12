@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"sync"
 	"time"
 
 	"github.com/go-acme/lego/v4/challenge"
@@ -12,6 +13,7 @@ import (
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile"
 	tcteo "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/teo/v20220901"
+	"golang.org/x/net/idna"
 )
 
 const (
@@ -43,6 +45,9 @@ type Config struct {
 type DNSProvider struct {
 	client *TeoClient
 	config *Config
+
+	recordIDs   map[string]*string
+	recordIDsMu sync.Mutex
 }
 
 func NewDefaultConfig() *Config {
@@ -82,17 +87,36 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 	}
 
 	return &DNSProvider{
-		client: client,
-		config: config,
+		client:      client,
+		config:      config,
+		recordIDs:   make(map[string]*string),
+		recordIDsMu: sync.Mutex{},
 	}, nil
 }
 
 func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	if err := d.addDNSRecord(dns01.UnFqdn(info.EffectiveFQDN), info.Value); err != nil {
-		return fmt.Errorf("tencentcloud-eo: %w", err)
+	punnyCoded, err := idna.ToASCII(dns01.UnFqdn(info.EffectiveFQDN))
+	if err != nil {
+		return fmt.Errorf("tencentcloud-eo: fail to convert punycode: %w", err)
 	}
+
+	// REF: https://cloud.tencent.com/document/product/1552/80720
+	teoCreateDnsRecordReq := tcteo.NewCreateDnsRecordRequest()
+	teoCreateDnsRecordReq.ZoneId = common.StringPtr(d.config.ZoneID)
+	teoCreateDnsRecordReq.Name = common.StringPtr(punnyCoded)
+	teoCreateDnsRecordReq.Type = common.StringPtr("TXT")
+	teoCreateDnsRecordReq.Content = common.StringPtr(info.Value)
+	teoCreateDnsRecordReq.TTL = common.Int64Ptr(int64(d.config.TTL))
+	teoCreateDnsRecordResp, err := d.client.CreateDnsRecord(teoCreateDnsRecordReq)
+	if err != nil {
+		return fmt.Errorf("tencentcloud-eo: error when create record: %w", err)
+	}
+
+	d.recordIDsMu.Lock()
+	d.recordIDs[token] = teoCreateDnsRecordResp.Response.RecordId
+	d.recordIDsMu.Unlock()
 
 	return nil
 }
@@ -100,8 +124,20 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	if err := d.removeDNSRecord(dns01.UnFqdn(info.EffectiveFQDN), info.Value); err != nil {
-		return fmt.Errorf("tencentcloud-eo: %w", err)
+	d.recordIDsMu.Lock()
+	recordID, ok := d.recordIDs[token]
+	d.recordIDsMu.Unlock()
+	if !ok {
+		return fmt.Errorf("tencentcloud-eo: unknown record ID for '%s'", info.EffectiveFQDN)
+	}
+
+	// REF: https://cloud.tencent.com/document/product/1552/80718
+	teoDeleteDnsRecordReq := tcteo.NewDeleteDnsRecordsRequest()
+	teoDeleteDnsRecordReq.ZoneId = common.StringPtr(d.config.ZoneID)
+	teoDeleteDnsRecordReq.RecordIds = []*string{recordID}
+	_, err := d.client.DeleteDnsRecords(teoDeleteDnsRecordReq)
+	if err != nil {
+		return fmt.Errorf("tencentcloud-eo: error when delete record: %w", err)
 	}
 
 	return nil
@@ -109,89 +145,4 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 	return d.config.PropagationTimeout, d.config.PollingInterval
-}
-
-func (d *DNSProvider) findDNSRecord(effectiveFQDN, value string) (*tcteo.DnsRecord, error) {
-	pageOffset := 0
-	pageLimit := 1000
-	for {
-		request := tcteo.NewDescribeDnsRecordsRequest()
-		request.ZoneId = common.StringPtr(d.config.ZoneID)
-		request.Offset = common.Int64Ptr(int64(pageOffset))
-		request.Limit = common.Int64Ptr(int64(pageLimit))
-		request.Filters = []*tcteo.AdvancedFilter{
-			{
-				Name:   common.StringPtr("type"),
-				Values: []*string{common.StringPtr("TXT")},
-			},
-		}
-
-		response, err := d.client.DescribeDnsRecords(request)
-		if err != nil {
-			return nil, err
-		}
-
-		if response.Response == nil {
-			break
-		} else {
-			for _, record := range response.Response.DnsRecords {
-				if *record.Name == effectiveFQDN && *record.Content == value {
-					return record, nil
-				}
-			}
-
-			if len(response.Response.DnsRecords) < pageLimit {
-				break
-			}
-
-			pageOffset += len(response.Response.DnsRecords)
-		}
-	}
-
-	return nil, nil
-}
-
-func (d *DNSProvider) addDNSRecord(effectiveFQDN, value string) error {
-	record, err := d.findDNSRecord(effectiveFQDN, value)
-	if err != nil {
-		return err
-	}
-
-	if record == nil {
-		request := tcteo.NewCreateDnsRecordRequest()
-		request.ZoneId = common.StringPtr(d.config.ZoneID)
-		request.Name = common.StringPtr(effectiveFQDN)
-		request.Type = common.StringPtr("TXT")
-		request.Content = common.StringPtr(value)
-		request.TTL = common.Int64Ptr(int64(d.config.TTL))
-		_, err := d.client.CreateDnsRecord(request)
-		return err
-	} else {
-		if *record.Status == "disable" {
-			request := tcteo.NewModifyDnsRecordsStatusRequest()
-			request.ZoneId = common.StringPtr(d.config.ZoneID)
-			request.RecordsToEnable = []*string{record.RecordId}
-			if _, err = d.client.ModifyDnsRecordsStatus(request); err != nil {
-				return err
-			}
-		}
-		return nil
-	}
-}
-
-func (d *DNSProvider) removeDNSRecord(effectiveFQDN, value string) error {
-	record, err := d.findDNSRecord(effectiveFQDN, value)
-	if err != nil {
-		return err
-	}
-
-	if record == nil {
-		return nil
-	} else {
-		request := tcteo.NewDeleteDnsRecordsRequest()
-		request.ZoneId = common.StringPtr(d.config.ZoneID)
-		request.RecordIds = []*string{record.RecordId}
-		_, err = d.client.DeleteDnsRecords(request)
-		return err
-	}
 }

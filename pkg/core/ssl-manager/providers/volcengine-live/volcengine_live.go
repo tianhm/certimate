@@ -94,13 +94,12 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 	// 上传新证书
 	// REF: https://www.volcengine.com/docs/6469/1186278#%E6%B7%BB%E5%8A%A0%E8%AF%81%E4%B9%A6
 	createCertReq := &velive.CreateCertBody{
-		CertName:    ve.String(certName),
-		UseWay:      "https",
-		ProjectName: ve.String("default"),
+		CertName: ve.String(certName),
 		Rsa: velive.CreateCertBodyRsa{
 			Prikey: privkeyPEM,
 			Pubkey: certPEM,
 		},
+		UseWay: "https",
 	}
 	createCertResp, err := m.sdkClient.CreateCert(ctx, createCertReq)
 	m.logger.Debug("sdk request 'live.CreateCert'", slog.Any("request", createCertReq), slog.Any("response", createCertResp))

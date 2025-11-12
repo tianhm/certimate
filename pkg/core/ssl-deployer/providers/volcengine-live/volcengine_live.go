@@ -2,6 +2,7 @@ package volcenginelive
 
 import (
 	"context"
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/certimate-go/certimate/pkg/core"
 	sslmgrsp "github.com/certimate-go/certimate/pkg/core/ssl-manager/providers/volcengine-live"
+	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
 	xcerthostname "github.com/certimate-go/certimate/pkg/utils/cert/hostname"
 )
 
@@ -110,6 +112,21 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			}
 		}
 
+	case DOMAIN_MATCH_PATTERN_CERTSAN:
+		{
+			certX509, err := xcert.ParseCertificateFromPEM(certPEM)
+			if err != nil {
+				return nil, err
+			}
+
+			temp, err := d.getMatchedDomainsByCertX509(ctx, certX509)
+			if err != nil {
+				return nil, err
+			}
+
+			domains = temp
+		}
+
 	default:
 		return nil, fmt.Errorf("unsupported match pattern: '%s'", d.config.DomainMatchPattern)
 	}
@@ -144,7 +161,7 @@ func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, w
 	domains := make([]string, 0)
 
 	// 遍历查询域名列表，获取匹配的域名
-	// REF: https://www.volcengine.com/docs/6469/1186277#%E6%9F%A5%E8%AF%A2%E5%9F%9F%E5%90%8D%E5%88%97%E8%A1%A8
+	// REF: https://www.volcengine.com/docs/6469/1126815
 	listDomainDetailPageNum := int32(1)
 	listDomainDetailPageSize := int32(1000)
 	for {
@@ -187,9 +204,56 @@ func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, w
 	return domains, nil
 }
 
+func (d *SSLDeployerProvider) getMatchedDomainsByCertX509(ctx context.Context, certX509 *x509.Certificate) ([]string, error) {
+	domains := make([]string, 0)
+
+	// 遍历查询域名列表，获取匹配的域名
+	// REF: https://www.volcengine.com/docs/6469/1126815
+	listDomainDetailPageNum := int32(1)
+	listDomainDetailPageSize := int32(1000)
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+
+		listDomainDetailReq := &velive.ListDomainDetailBody{
+			DomainStatusList: ve.Int32Slice([]int32{0}),
+			PageNum:          listDomainDetailPageNum,
+			PageSize:         listDomainDetailPageSize,
+		}
+		listDomainDetailResp, err := d.sdkClient.ListDomainDetail(ctx, listDomainDetailReq)
+		d.logger.Debug("sdk request 'live.ListDomainDetail'", slog.Any("request", listDomainDetailReq), slog.Any("response", listDomainDetailResp))
+		if err != nil {
+			return nil, fmt.Errorf("failed to execute sdk request 'live.ListDomainDetail': %w", err)
+		}
+
+		if listDomainDetailResp.Result.DomainList != nil {
+			for _, domain := range listDomainDetailResp.Result.DomainList {
+				if certX509.VerifyHostname(domain.Domain) == nil {
+					domains = append(domains, domain.Domain)
+				}
+			}
+		}
+
+		if len(listDomainDetailResp.Result.DomainList) < int(listDomainDetailPageSize) {
+			break
+		} else {
+			listDomainDetailPageNum++
+		}
+	}
+
+	if len(domains) == 0 {
+		return nil, errors.New("domain not found")
+	}
+
+	return domains, nil
+}
+
 func (d *SSLDeployerProvider) bindCert(ctx context.Context, domain string, cloudCertId string) error {
 	// 绑定证书
-	// REF: https://www.volcengine.com/docs/6469/1186278#%E7%BB%91%E5%AE%9A%E8%AF%81%E4%B9%A6
+	// REF: https://www.volcengine.com/docs/6469/1126820
 	bindCertReq := &velive.BindCertBody{
 		ChainID: cloudCertId,
 		Domain:  domain,

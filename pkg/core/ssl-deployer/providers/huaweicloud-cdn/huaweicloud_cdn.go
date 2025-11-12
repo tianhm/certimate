@@ -223,10 +223,6 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 		}
 	}
 
-	if len(domains) == 0 {
-		return nil, errors.New("no domains matched by wildcard")
-	}
-
 	return domains, nil
 }
 

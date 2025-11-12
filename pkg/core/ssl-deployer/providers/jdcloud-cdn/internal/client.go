@@ -33,6 +33,26 @@ func NewCdnClient(credential *core.Credential) *CdnClient {
 	}
 }
 
+func (c *CdnClient) GetDomainList(request *cdn.GetDomainListRequest) (*cdn.GetDomainListResponse, error) {
+	if request == nil {
+		return nil, errors.New("Request object is nil.")
+	}
+
+	resp, err := c.Send(request, c.ServiceName)
+	if err != nil {
+		return nil, err
+	}
+
+	jdResp := &cdn.GetDomainListResponse{}
+	err = json.Unmarshal(resp, jdResp)
+	if err != nil {
+		c.Logger.Log(core.LogError, "Unmarshal json failed, resp: %s", string(resp))
+		return nil, err
+	}
+
+	return jdResp, err
+}
+
 func (c *CdnClient) QueryDomainConfig(request *cdn.QueryDomainConfigRequest) (*cdn.QueryDomainConfigResponse, error) {
 	if request == nil {
 		return nil, errors.New("Request object is nil.")

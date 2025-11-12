@@ -79,9 +79,9 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			return nil, fmt.Errorf("failed to execute sdk request 'vod.ListDomains': %w", err)
 		}
 
-		for _, domain := range listDomainsResp.Result.Content {
-			if domain.Name == d.config.Domain {
-				domainId, _ = strconv.Atoi(domain.Id)
+		for _, domainInfo := range listDomainsResp.Result.Content {
+			if domainInfo.Name == d.config.Domain {
+				domainId, _ = strconv.Atoi(domainInfo.Id)
 				break
 			}
 		}

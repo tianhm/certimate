@@ -113,16 +113,20 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 				return nil, errors.New("config `domain` is required")
 			}
 
-			domainCandidates, err := d.getAllDomains(ctx)
-			if err != nil {
-				return nil, err
-			}
+			if strings.HasPrefix(d.config.Domain, "*.") {
+				domainCandidates, err := d.getAllDomains(ctx)
+				if err != nil {
+					return nil, err
+				}
 
-			domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
-				return xcerthostname.IsMatch(d.config.Domain, domain)
-			})
-			if len(domains) == 0 {
-				return nil, errors.New("no domains matched by wildcard")
+				domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
+					return xcerthostname.IsMatch(d.config.Domain, domain)
+				})
+				if len(domains) == 0 {
+					return nil, errors.New("no domains matched by wildcard")
+				}
+			} else {
+				domains = []string{d.config.Domain}
 			}
 		}
 
@@ -192,6 +196,7 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 		}
 
 		describeDcdnUserDomainsReq := &alidcdn.DescribeDcdnUserDomainsRequest{
+			ResourceGroupId: lo.EmptyableToPtr(d.config.ResourceGroupId),
 			CheckDomainShow: tea.Bool(true),
 			PageNumber:      tea.Int32(describeUserDomainsPageNumber),
 			PageSize:        tea.Int32(describeUserDomainsPageSize),
@@ -202,13 +207,13 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 			return nil, fmt.Errorf("failed to execute sdk request 'dcdn.DescribeDcdnUserDomains': %w", err)
 		}
 
-		for _, domain := range describeDcdnUserDomainsResp.Body.Domains.PageData {
-			status := tea.StringValue(domain.DomainStatus)
+		for _, domainInfo := range describeDcdnUserDomainsResp.Body.Domains.PageData {
+			status := tea.StringValue(domainInfo.DomainStatus)
 			if status == "stopping" || status == "deleting" {
 				continue
 			}
 
-			domains = append(domains, tea.StringValue(domain.DomainName))
+			domains = append(domains, tea.StringValue(domainInfo.DomainName))
 		}
 
 		if len(describeDcdnUserDomainsResp.Body.Domains.PageData) < int(describeUserDomainsPageNumber) {

@@ -190,9 +190,9 @@ func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, w
 		}
 
 		if describeDomainsResp.Response.Domains != nil {
-			for _, domain := range describeDomainsResp.Response.Domains {
-				if lo.FromPtr(domain.Product) == "cdn" && xcerthostname.IsMatch(wildcardDomain, lo.FromPtr(domain.Domain)) {
-					domains = append(domains, *domain.Domain)
+			for _, domainInfo := range describeDomainsResp.Response.Domains {
+				if lo.FromPtr(domainInfo.Product) == "cdn" && xcerthostname.IsMatch(wildcardDomain, lo.FromPtr(domainInfo.Domain)) {
+					domains = append(domains, *domainInfo.Domain)
 				}
 			}
 		}

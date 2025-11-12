@@ -23,6 +23,9 @@ type SSLDeployerProviderConfig struct {
 	AccessKeySecret string `json:"accessKeySecret"`
 	// 火山引擎地域。
 	Region string `json:"region"`
+	// 域名匹配模式。
+	// 零值时默认值 [DOMAIN_MATCH_PATTERN_EXACT]。
+	DomainMatchPattern string `json:"domainMatchPattern,omitempty"`
 	// 加速域名（支持泛域名）。
 	Domain string `json:"domain"`
 }
@@ -74,10 +77,6 @@ func (d *SSLDeployerProvider) SetLogger(logger *slog.Logger) {
 }
 
 func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privkeyPEM string) (*core.SSLDeployResult, error) {
-	if d.config.Domain == "" {
-		return nil, errors.New("config `domain` is required")
-	}
-
 	// 上传证书
 	upres, err := d.sslManager.Upload(ctx, certPEM, privkeyPEM)
 	if err != nil {
@@ -86,15 +85,30 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
 	}
 
-	// "*.example.com" → ".example.com"，适配火山引擎 DCDN 要求的泛域名格式
-	domain := strings.TrimPrefix(d.config.Domain, "*")
+	// 获取待部署的域名列表
+	domains := make([]string, 0)
+	switch d.config.DomainMatchPattern {
+	case "", DOMAIN_MATCH_PATTERN_EXACT:
+		{
+			if d.config.Domain == "" {
+				return nil, errors.New("config `domain` is required")
+			}
 
-	// 绑定证书
+			// "*.example.com" → ".example.com"，适配火山引擎 DCDN 要求的泛域名格式
+			domain := strings.TrimPrefix(d.config.Domain, "*")
+			domains = []string{domain}
+		}
+
+	default:
+		return nil, fmt.Errorf("unsupported domain match pattern: '%s'", d.config.DomainMatchPattern)
+	}
+
+	// 批量绑定证书
 	// REF: https://www.volcengine.com/docs/6559/1250189
 	createCertBindReq := &vedcdn.CreateCertBindInput{
 		CertSource:  ve.String("volc"),
 		CertId:      ve.String(upres.CertId),
-		DomainNames: ve.StringSlice([]string{domain}),
+		DomainNames: ve.StringSlice(domains),
 	}
 	createCertBindResp, err := d.sdkClient.CreateCertBind(createCertBindReq)
 	d.logger.Debug("sdk request 'dcdn.CreateCertBind'", slog.Any("request", createCertBindReq), slog.Any("response", createCertBindResp))

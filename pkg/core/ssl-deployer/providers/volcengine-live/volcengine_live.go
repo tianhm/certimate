@@ -193,8 +193,8 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 		}
 
 		if listDomainDetailResp.Result.DomainList != nil {
-			for _, domain := range listDomainDetailResp.Result.DomainList {
-				domains = append(domains, domain.Domain)
+			for _, domainInfo := range listDomainDetailResp.Result.DomainList {
+				domains = append(domains, domainInfo.Domain)
 			}
 		}
 

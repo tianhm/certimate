@@ -196,6 +196,7 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 		}
 
 		describeUserDomainsReq := &alicdn.DescribeUserDomainsRequest{
+			ResourceGroupId: lo.EmptyableToPtr(d.config.ResourceGroupId),
 			CheckDomainShow: tea.Bool(true),
 			PageNumber:      tea.Int32(describeUserDomainsPageNumber),
 			PageSize:        tea.Int32(describeUserDomainsPageSize),

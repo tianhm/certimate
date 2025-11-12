@@ -16,6 +16,16 @@ func NewCdnClient(hcClient *httpclient.HcHttpClient) *CdnClient {
 	return &CdnClient{HcClient: hcClient}
 }
 
+func (c *CdnClient) ListDomains(request *model.ListDomainsRequest) (*model.ListDomainsResponse, error) {
+	requestDef := hwcdn.GenReqDefForListDomains()
+
+	if resp, err := c.HcClient.Sync(request, requestDef); err != nil {
+		return nil, err
+	} else {
+		return resp.(*model.ListDomainsResponse), nil
+	}
+}
+
 func (c *CdnClient) ShowDomainFullConfig(request *model.ShowDomainFullConfigRequest) (*model.ShowDomainFullConfigResponse, error) {
 	requestDef := hwcdn.GenReqDefForShowDomainFullConfig()
 

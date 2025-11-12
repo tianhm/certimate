@@ -83,7 +83,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
 	}
 
-	// 获取待部署的 CDN 实例
+	// 获取待部署的域名列表
 	domains := make([]string, 0)
 	switch d.config.DomainMatchPattern {
 	case "", DOMAIN_MATCH_PATTERN_EXACT:
@@ -92,7 +92,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 				return nil, errors.New("config `domain` is required")
 			}
 
-			domains = append(domains, d.config.Domain)
+			domains = []string{d.config.Domain}
 		}
 
 	case DOMAIN_MATCH_PATTERN_WILDCARD:
@@ -102,14 +102,14 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			}
 
 			if strings.HasPrefix(d.config.Domain, "*.") {
-				temp, err := d.getMatchedDomainsByWildcard(ctx, d.config.Domain)
+				domainCandidates, err := d.getMatchedDomainsByWildcard(ctx, d.config.Domain)
 				if err != nil {
 					return nil, err
 				}
 
-				domains = temp
+				domains = domainCandidates
 			} else {
-				domains = append(domains, d.config.Domain)
+				domains = []string{d.config.Domain}
 			}
 		}
 
@@ -180,9 +180,9 @@ func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, w
 		}
 
 		if listCdnDomainsResp.Data != nil {
-			for _, domain := range listCdnDomainsResp.Data {
-				if xcerthostname.IsMatch(wildcardDomain, ve.StringValue(domain.Domain)) {
-					domains = append(domains, ve.StringValue(domain.Domain))
+			for _, domainInfo := range listCdnDomainsResp.Data {
+				if xcerthostname.IsMatch(wildcardDomain, ve.StringValue(domainInfo.Domain)) {
+					domains = append(domains, ve.StringValue(domainInfo.Domain))
 				}
 			}
 		}

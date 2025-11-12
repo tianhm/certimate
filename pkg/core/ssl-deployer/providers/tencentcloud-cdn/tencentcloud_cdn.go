@@ -145,7 +145,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			case <-ctx.Done():
 				return nil, ctx.Err()
 			default:
-				if err := d.updateDomainHttpsServerCert(ctx, domain, upres.CertId); err != nil {
+				if err := d.updateDomainCertificate(ctx, domain, upres.CertId); err != nil {
 					errs = append(errs, err)
 				}
 			}
@@ -229,7 +229,7 @@ func (d *SSLDeployerProvider) getMatchedDomainsByCertId(ctx context.Context, clo
 	return domains, nil
 }
 
-func (d *SSLDeployerProvider) updateDomainHttpsServerCert(ctx context.Context, domain string, cloudCertId string) error {
+func (d *SSLDeployerProvider) updateDomainCertificate(ctx context.Context, domain string, cloudCertId string) error {
 	// 查询域名详细配置
 	// REF: https://cloud.tencent.com/document/api/228/41117
 	describeDomainsConfigReq := tccdn.NewDescribeDomainsConfigRequest()

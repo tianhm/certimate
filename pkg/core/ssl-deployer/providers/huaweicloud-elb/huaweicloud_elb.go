@@ -217,7 +217,7 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, certPEM 
 			case <-ctx.Done():
 				return ctx.Err()
 			default:
-				if err := d.modifyListenerCertificate(ctx, listenerId, upres.CertId); err != nil {
+				if err := d.updateListenerCertificate(ctx, listenerId, upres.CertId); err != nil {
 					errs = append(errs, err)
 				}
 			}
@@ -245,14 +245,14 @@ func (d *SSLDeployerProvider) deployToListener(ctx context.Context, certPEM stri
 	}
 
 	// 更新监听器证书
-	if err := d.modifyListenerCertificate(ctx, d.config.ListenerId, upres.CertId); err != nil {
+	if err := d.updateListenerCertificate(ctx, d.config.ListenerId, upres.CertId); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (d *SSLDeployerProvider) modifyListenerCertificate(ctx context.Context, cloudListenerId string, cloudCertId string) error {
+func (d *SSLDeployerProvider) updateListenerCertificate(ctx context.Context, cloudListenerId string, cloudCertId string) error {
 	// 查询监听器详情
 	// REF: https://support.huaweicloud.com/api-elb/ShowListener.html
 	showListenerReq := &hcelbmodel.ShowListenerRequest{

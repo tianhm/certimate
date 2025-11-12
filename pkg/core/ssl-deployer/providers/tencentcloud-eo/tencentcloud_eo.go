@@ -96,6 +96,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
 	}
 
+	// 获取待部署的域名列表
 	var domains []string
 	switch d.config.DomainMatchPattern {
 	case "", DOMAIN_MATCH_PATTERN_EXACT:

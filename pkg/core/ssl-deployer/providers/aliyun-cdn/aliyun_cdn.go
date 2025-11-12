@@ -17,6 +17,8 @@ import (
 	"github.com/certimate-go/certimate/pkg/core"
 	"github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/aliyun-cdn/internal"
 	sslmgrsp "github.com/certimate-go/certimate/pkg/core/ssl-manager/providers/aliyun-cas"
+	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
+	xcerthostname "github.com/certimate-go/certimate/pkg/utils/cert/hostname"
 )
 
 type SSLDeployerProviderConfig struct {
@@ -28,6 +30,9 @@ type SSLDeployerProviderConfig struct {
 	ResourceGroupId string `json:"resourceGroupId,omitempty"`
 	// 阿里云地域。
 	Region string `json:"region"`
+	// 域名匹配模式。
+	// 零值时默认值 [DOMAIN_MATCH_PATTERN_EXACT]。
+	DomainMatchPattern string `json:"domainMatchPattern,omitempty"`
 	// 加速域名（支持泛域名）。
 	Domain string `json:"domain"`
 }
@@ -80,10 +85,6 @@ func (d *SSLDeployerProvider) SetLogger(logger *slog.Logger) {
 }
 
 func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privkeyPEM string) (*core.SSLDeployResult, error) {
-	if d.config.Domain == "" {
-		return nil, errors.New("config `domain` is required")
-	}
-
 	// 上传证书
 	upres, err := d.sslManager.Upload(ctx, certPEM, privkeyPEM)
 	if err != nil {
@@ -92,16 +93,145 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
 	}
 
-	// "*.example.com" → ".example.com"，适配阿里云 CDN 要求的泛域名格式
-	domain := strings.TrimPrefix(d.config.Domain, "*")
+	// 获取待部署的域名列表
+	var domains []string
+	switch d.config.DomainMatchPattern {
+	case "", DOMAIN_MATCH_PATTERN_EXACT:
+		{
+			if d.config.Domain == "" {
+				return nil, errors.New("config `domain` is required")
+			}
 
+			// "*.example.com" → ".example.com"，适配阿里云 CDN 要求的泛域名格式
+			domain := strings.TrimPrefix(d.config.Domain, "*")
+			domains = []string{domain}
+		}
+
+	case DOMAIN_MATCH_PATTERN_WILDCARD:
+		{
+			if d.config.Domain == "" {
+				return nil, errors.New("config `domain` is required")
+			}
+
+			domainCandidates, err := d.getAllDomains(ctx)
+			if err != nil {
+				return nil, err
+			}
+
+			domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
+				return xcerthostname.IsMatch(d.config.Domain, domain)
+			})
+			if len(domains) == 0 {
+				return nil, errors.New("no domains matched by wildcard")
+			}
+		}
+
+	case DOMAIN_MATCH_PATTERN_CERTSAN:
+		{
+			certX509, err := xcert.ParseCertificateFromPEM(certPEM)
+			if err != nil {
+				return nil, err
+			}
+
+			domainCandidates, err := d.getAllDomains(ctx)
+			if err != nil {
+				return nil, err
+			}
+
+			domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
+				return certX509.VerifyHostname(domain) == nil
+			})
+			if len(domains) == 0 {
+				return nil, errors.New("no domains matched by certificate")
+			}
+		}
+
+	default:
+		return nil, fmt.Errorf("unsupported domain match pattern: '%s'", d.config.DomainMatchPattern)
+	}
+
+	// 遍历更新域名证书
+	if len(domains) == 0 {
+		d.logger.Info("no cdn domains to deploy")
+	} else {
+		d.logger.Info("found cdn domains to deploy", slog.Any("domains", domains))
+		var errs []error
+
+		certId, _ := strconv.ParseInt(upres.CertId, 10, 64)
+		for _, domain := range domains {
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			default:
+				if err := d.updateDomainCertificate(ctx, domain, certId); err != nil {
+					errs = append(errs, err)
+				}
+			}
+		}
+
+		if len(errs) > 0 {
+			return nil, errors.Join(errs...)
+		}
+	}
+
+	return &core.SSLDeployResult{}, nil
+}
+
+func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, error) {
+	domains := make([]string, 0)
+
+	// 遍历查询域名列表
+	// REF: https://help.aliyun.com/zh/cdn/developer-reference/api-cdn-2018-05-10-describeuserdomains
+	describeUserDomainsPageNumber := int32(1)
+	describeUserDomainsPageSize := int32(500)
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+
+		describeUserDomainsReq := &alicdn.DescribeUserDomainsRequest{
+			CheckDomainShow: tea.Bool(true),
+			PageNumber:      tea.Int32(describeUserDomainsPageNumber),
+			PageSize:        tea.Int32(describeUserDomainsPageSize),
+		}
+		describeUserDomainsResp, err := d.sdkClient.DescribeUserDomainsWithContext(ctx, describeUserDomainsReq, &dara.RuntimeOptions{})
+		d.logger.Debug("sdk request 'cdn.DescribeUserDomains'", slog.Any("request", describeUserDomainsReq), slog.Any("response", describeUserDomainsResp))
+		if err != nil {
+			return nil, fmt.Errorf("failed to execute sdk request 'cdn.DescribeUserDomains': %w", err)
+		}
+
+		for _, domain := range describeUserDomainsResp.Body.Domains.PageData {
+			status := tea.StringValue(domain.DomainStatus)
+			if status == "stopping" || status == "deleting" {
+				continue
+			}
+
+			domains = append(domains, tea.StringValue(domain.DomainName))
+		}
+
+		if len(describeUserDomainsResp.Body.Domains.PageData) < int(describeUserDomainsPageNumber) {
+			break
+		} else {
+			describeUserDomainsPageNumber++
+		}
+	}
+
+	if len(domains) == 0 {
+		return nil, errors.New("no domains matched by wildcard")
+	}
+
+	return domains, nil
+}
+
+func (d *SSLDeployerProvider) updateDomainCertificate(ctx context.Context, domain string, cloudCertId int64) error {
 	// 设置 CDN 域名域名证书
 	// REF: https://help.aliyun.com/zh/cdn/developer-reference/api-cdn-2018-05-10-setcdndomainsslcertificate
-	certId, _ := strconv.ParseInt(upres.CertId, 10, 64)
 	setCdnDomainSSLCertificateReq := &alicdn.SetCdnDomainSSLCertificateRequest{
 		DomainName: tea.String(domain),
 		CertType:   tea.String("cas"),
-		CertId:     tea.Int64(certId),
+		CertId:     tea.Int64(cloudCertId),
 		CertRegion: lo.
 			If(d.config.Region == "" || strings.HasPrefix(d.config.Region, "cn-"), tea.String("cn-hangzhou")).
 			Else(tea.String("ap-southeast-1")),
@@ -110,10 +240,10 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	setCdnDomainSSLCertificateResp, err := d.sdkClient.SetCdnDomainSSLCertificateWithContext(context.TODO(), setCdnDomainSSLCertificateReq, &dara.RuntimeOptions{})
 	d.logger.Debug("sdk request 'cdn.SetCdnDomainSSLCertificate'", slog.Any("request", setCdnDomainSSLCertificateReq), slog.Any("response", setCdnDomainSSLCertificateResp))
 	if err != nil {
-		return nil, fmt.Errorf("failed to execute sdk request 'cdn.SetCdnDomainSSLCertificate': %w", err)
+		return fmt.Errorf("failed to execute sdk request 'cdn.SetCdnDomainSSLCertificate': %w", err)
 	}
 
-	return &core.SSLDeployResult{}, nil
+	return nil
 }
 
 func createSDKClient(accessKeyId, accessKeySecret string) (*internal.CdnClient, error) {

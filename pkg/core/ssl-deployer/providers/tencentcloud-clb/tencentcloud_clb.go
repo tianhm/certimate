@@ -159,7 +159,7 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCer
 			case <-ctx.Done():
 				return ctx.Err()
 			default:
-				if err := d.modifyListenerCertificate(ctx, d.config.LoadbalancerId, listenerId, cloudCertId); err != nil {
+				if err := d.updateListenerCertificate(ctx, d.config.LoadbalancerId, listenerId, cloudCertId); err != nil {
 					errs = append(errs, err)
 				}
 			}
@@ -182,7 +182,7 @@ func (d *SSLDeployerProvider) deployToListener(ctx context.Context, cloudCertId 
 	}
 
 	// 更新监听器证书
-	if err := d.modifyListenerCertificate(ctx, d.config.LoadbalancerId, d.config.ListenerId, cloudCertId); err != nil {
+	if err := d.updateListenerCertificate(ctx, d.config.LoadbalancerId, d.config.ListenerId, cloudCertId); err != nil {
 		return err
 	}
 
@@ -246,7 +246,7 @@ func (d *SSLDeployerProvider) deployToRuleDomain(ctx context.Context, cloudCertI
 	return nil
 }
 
-func (d *SSLDeployerProvider) modifyListenerCertificate(ctx context.Context, cloudLoadbalancerId, cloudListenerId, cloudCertId string) error {
+func (d *SSLDeployerProvider) updateListenerCertificate(ctx context.Context, cloudLoadbalancerId, cloudListenerId, cloudCertId string) error {
 	// 查询负载均衡的监听器列表
 	// REF: https://cloud.tencent.com/document/api/214/30686
 	describeListenersReq := tcclb.NewDescribeListenersRequest()

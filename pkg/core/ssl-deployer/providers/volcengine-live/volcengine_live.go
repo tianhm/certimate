@@ -153,7 +153,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			case <-ctx.Done():
 				return nil, ctx.Err()
 			default:
-				if err := d.bindCert(ctx, domain, upres.CertId); err != nil {
+				if err := d.updateDomainCertificate(ctx, domain, upres.CertId); err != nil {
 					errs = append(errs, err)
 				}
 			}
@@ -170,7 +170,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, error) {
 	domains := make([]string, 0)
 
-	// 遍历查询域名列表，获取匹配的域名
+	// 遍历查询域名列表
 	// REF: https://www.volcengine.com/docs/6469/1126815
 	listDomainDetailPageNum := int32(1)
 	listDomainDetailPageSize := int32(1000)
@@ -212,7 +212,7 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 	return domains, nil
 }
 
-func (d *SSLDeployerProvider) bindCert(ctx context.Context, domain string, cloudCertId string) error {
+func (d *SSLDeployerProvider) updateDomainCertificate(ctx context.Context, domain string, cloudCertId string) error {
 	// 绑定证书
 	// REF: https://www.volcengine.com/docs/6469/1126820
 	bindCertReq := &velive.BindCertBody{

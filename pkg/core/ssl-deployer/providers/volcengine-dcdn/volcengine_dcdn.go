@@ -12,6 +12,7 @@ import (
 	vesession "github.com/volcengine/volcengine-go-sdk/volcengine/session"
 
 	"github.com/certimate-go/certimate/pkg/core"
+	"github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/volcengine-dcdn/internal"
 	sslmgrsp "github.com/certimate-go/certimate/pkg/core/ssl-manager/providers/volcengine-certcenter"
 )
 
@@ -29,7 +30,7 @@ type SSLDeployerProviderConfig struct {
 type SSLDeployerProvider struct {
 	config     *SSLDeployerProviderConfig
 	logger     *slog.Logger
-	sdkClient  vedcdn.DCDNAPI
+	sdkClient  *internal.DcdnClient
 	sslManager core.SSLManager
 }
 
@@ -104,7 +105,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	return &core.SSLDeployResult{}, nil
 }
 
-func createSDKClient(accessKeyId, accessKeySecret, region string) (vedcdn.DCDNAPI, error) {
+func createSDKClient(accessKeyId, accessKeySecret, region string) (*internal.DcdnClient, error) {
 	if region == "" {
 		region = "cn-beijing" // DCDN 服务默认区域：北京
 	}
@@ -118,6 +119,6 @@ func createSDKClient(accessKeyId, accessKeySecret, region string) (vedcdn.DCDNAP
 		return nil, err
 	}
 
-	client := vedcdn.New(session)
+	client := internal.NewDcdnClient(session)
 	return client, nil
 }

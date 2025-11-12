@@ -16,6 +16,7 @@ import (
 	vesession "github.com/volcengine/volcengine-go-sdk/volcengine/session"
 
 	"github.com/certimate-go/certimate/pkg/core"
+	"github.com/certimate-go/certimate/pkg/core/ssl-manager/providers/volcengine-cdn/internal"
 	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
 )
 
@@ -29,7 +30,7 @@ type SSLManagerProviderConfig struct {
 type SSLManagerProvider struct {
 	config    *SSLManagerProviderConfig
 	logger    *slog.Logger
-	sdkClient vecdn.CDNAPI
+	sdkClient *internal.CdnClient
 }
 
 var _ core.SSLManager = (*SSLManagerProvider)(nil)
@@ -142,7 +143,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 	}, nil
 }
 
-func createSDKClient(accessKeyId, accessKeySecret string) (vecdn.CDNAPI, error) {
+func createSDKClient(accessKeyId, accessKeySecret string) (*internal.CdnClient, error) {
 	config := ve.NewConfig().
 		WithAkSk(accessKeyId, accessKeySecret)
 
@@ -151,6 +152,6 @@ func createSDKClient(accessKeyId, accessKeySecret string) (vecdn.CDNAPI, error) 
 		return nil, err
 	}
 
-	client := vecdn.New(session)
+	client := internal.NewCdnClient(session)
 	return client, nil
 }

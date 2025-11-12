@@ -8,8 +8,9 @@ import (
 
 	"github.com/certimate-go/certimate/pkg/core"
 	jdcore "github.com/jdcloud-api/jdcloud-sdk-go/core"
-	jdliveapi "github.com/jdcloud-api/jdcloud-sdk-go/services/live/apis"
-	jdliveclient "github.com/jdcloud-api/jdcloud-sdk-go/services/live/client"
+	jdlive "github.com/jdcloud-api/jdcloud-sdk-go/services/live/apis"
+
+	"github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/jdcloud-live/internal"
 )
 
 type SSLDeployerProviderConfig struct {
@@ -24,7 +25,7 @@ type SSLDeployerProviderConfig struct {
 type SSLDeployerProvider struct {
 	config    *SSLDeployerProviderConfig
 	logger    *slog.Logger
-	sdkClient *jdliveclient.LiveClient
+	sdkClient *internal.LiveClient
 }
 
 var _ core.SSLDeployer = (*SSLDeployerProvider)(nil)
@@ -61,7 +62,9 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 
 	// 设置直播证书
 	// REF: https://docs.jdcloud.com/cn/live-video/api/setlivedomaincertificate
-	setLiveDomainCertificateReq := jdliveapi.NewSetLiveDomainCertificateRequest(d.config.Domain, "on")
+	setLiveDomainCertificateReq := jdlive.NewSetLiveDomainCertificateRequestWithoutParam()
+	setLiveDomainCertificateReq.SetPlayDomain(d.config.Domain)
+	setLiveDomainCertificateReq.SetCertStatus("on")
 	setLiveDomainCertificateReq.SetCert(certPEM)
 	setLiveDomainCertificateReq.SetKey(privkeyPEM)
 	setLiveDomainCertificateResp, err := d.sdkClient.SetLiveDomainCertificate(setLiveDomainCertificateReq)
@@ -73,9 +76,8 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	return &core.SSLDeployResult{}, nil
 }
 
-func createSDKClient(accessKeyId, accessKeySecret string) (*jdliveclient.LiveClient, error) {
+func createSDKClient(accessKeyId, accessKeySecret string) (*internal.LiveClient, error) {
 	clientCredentials := jdcore.NewCredentials(accessKeyId, accessKeySecret)
-	client := jdliveclient.NewLiveClient(clientCredentials)
-	client.DisableLogger()
+	client := internal.NewLiveClient(clientCredentials)
 	return client, nil
 }

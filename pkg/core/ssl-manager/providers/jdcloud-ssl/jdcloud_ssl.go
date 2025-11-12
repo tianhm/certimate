@@ -82,7 +82,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 		default:
 		}
 
-		describeCertsReq := jdsslapi.NewDescribeCertsRequest()
+		describeCertsReq := jdsslapi.NewDescribeCertsRequestWithoutParam()
 		describeCertsReq.SetDomainName(certX509.Subject.CommonName)
 		describeCertsReq.SetPageNumber(describeCertsPageNumber)
 		describeCertsReq.SetPageSize(describeCertsPageSize)
@@ -137,7 +137,10 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 
 	// 上传证书
 	// REF: https://docs.jdcloud.com/cn/ssl-certificate/api/uploadcert
-	uploadCertReq := jdsslapi.NewUploadCertRequest(certName, privkeyPEM, certPEM)
+	uploadCertReq := jdsslapi.NewUploadCertRequestWithoutParam()
+	uploadCertReq.SetCertName(certName)
+	uploadCertReq.SetCertFile(certPEM)
+	uploadCertReq.SetKeyFile(privkeyPEM)
 	uploadCertResp, err := m.sdkClient.UploadCert(uploadCertReq)
 	m.logger.Debug("sdk request 'ssl.UploadCertificate'", slog.Any("request", uploadCertReq), slog.Any("response", uploadCertResp))
 	if err != nil {
@@ -153,6 +156,6 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 func createSDKClient(accessKeyId, accessKeySecret string) (*jdsslclient.SslClient, error) {
 	clientCredentials := jdcore.NewCredentials(accessKeyId, accessKeySecret)
 	client := jdsslclient.NewSslClient(clientCredentials)
-	client.SetLogger(jdcore.NewDefaultLogger(jdcore.LogWarn))
+	client.DisableLogger()
 	return client, nil
 }

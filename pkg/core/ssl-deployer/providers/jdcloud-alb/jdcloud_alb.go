@@ -9,12 +9,12 @@ import (
 
 	jdcore "github.com/jdcloud-api/jdcloud-sdk-go/core"
 	jdcommon "github.com/jdcloud-api/jdcloud-sdk-go/services/common/models"
-	jdlbapi "github.com/jdcloud-api/jdcloud-sdk-go/services/lb/apis"
-	jdlbclient "github.com/jdcloud-api/jdcloud-sdk-go/services/lb/client"
+	jdlb "github.com/jdcloud-api/jdcloud-sdk-go/services/lb/apis"
 	jdlbmodel "github.com/jdcloud-api/jdcloud-sdk-go/services/lb/models"
 	"github.com/samber/lo"
 
 	"github.com/certimate-go/certimate/pkg/core"
+	"github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/jdcloud-alb/internal"
 	sslmgrsp "github.com/certimate-go/certimate/pkg/core/ssl-manager/providers/jdcloud-ssl"
 )
 
@@ -41,7 +41,7 @@ type SSLDeployerProviderConfig struct {
 type SSLDeployerProvider struct {
 	config     *SSLDeployerProviderConfig
 	logger     *slog.Logger
-	sdkClient  *jdlbclient.LbClient
+	sdkClient  *internal.LbClient
 	sslManager core.SSLManager
 }
 
@@ -118,7 +118,9 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCer
 
 	// 查询负载均衡器详情
 	// REF: https://docs.jdcloud.com/cn/load-balancer/api/describeloadbalancer
-	describeLoadBalancerReq := jdlbapi.NewDescribeLoadBalancerRequest(d.config.RegionId, d.config.LoadbalancerId)
+	describeLoadBalancerReq := jdlb.NewDescribeLoadBalancerRequestWithoutParam()
+	describeLoadBalancerReq.SetRegionId(d.config.RegionId)
+	describeLoadBalancerReq.SetLoadBalancerId(d.config.LoadbalancerId)
 	describeLoadBalancerResp, err := d.sdkClient.DescribeLoadBalancer(describeLoadBalancerReq)
 	d.logger.Debug("sdk request 'lb.DescribeLoadBalancer'", slog.Any("request", describeLoadBalancerReq), slog.Any("response", describeLoadBalancerResp))
 	if err != nil {
@@ -137,7 +139,8 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCer
 		default:
 		}
 
-		describeListenersReq := jdlbapi.NewDescribeListenersRequest(d.config.RegionId)
+		describeListenersReq := jdlb.NewDescribeListenersRequestWithoutParam()
+		describeListenersReq.SetRegionId(d.config.RegionId)
 		describeListenersReq.SetFilters([]jdcommon.Filter{{Name: "loadBalancerId", Values: []string{d.config.LoadbalancerId}}})
 		describeListenersReq.SetPageSize(describeListenersPageNumber)
 		describeListenersReq.SetPageSize(describeListenersPageSize)
@@ -203,7 +206,9 @@ func (d *SSLDeployerProvider) deployToListener(ctx context.Context, cloudCertId 
 func (d *SSLDeployerProvider) updateListenerCertificate(ctx context.Context, cloudListenerId string, cloudCertId string) error {
 	// 查询监听器详情
 	// REF: https://docs.jdcloud.com/cn/load-balancer/api/describelistener
-	describeListenerReq := jdlbapi.NewDescribeListenerRequest(d.config.RegionId, cloudListenerId)
+	describeListenerReq := jdlb.NewDescribeListenerRequestWithoutParam()
+	describeListenerReq.SetRegionId(d.config.RegionId)
+	describeListenerReq.SetListenerId(cloudListenerId)
 	describeListenerResp, err := d.sdkClient.DescribeListener(describeListenerReq)
 	d.logger.Debug("sdk request 'lb.DescribeListener'", slog.Any("request", describeListenerReq), slog.Any("response", describeListenerResp))
 	if err != nil {
@@ -215,7 +220,9 @@ func (d *SSLDeployerProvider) updateListenerCertificate(ctx context.Context, clo
 
 		// 修改监听器信息
 		// REF: https://docs.jdcloud.com/cn/load-balancer/api/updatelistener
-		updateListenerReq := jdlbapi.NewUpdateListenerRequest(d.config.RegionId, cloudListenerId)
+		updateListenerReq := jdlb.NewUpdateListenerRequestWithoutParam()
+		updateListenerReq.SetRegionId(d.config.RegionId)
+		updateListenerReq.SetListenerId(cloudListenerId)
 		updateListenerReq.SetCertificateSpecs([]jdlbmodel.CertificateSpec{{CertificateId: cloudCertId}})
 		updateListenerResp, err := d.sdkClient.UpdateListener(updateListenerReq)
 		d.logger.Debug("sdk request 'lb.UpdateListener'", slog.Any("request", updateListenerReq), slog.Any("response", updateListenerResp))
@@ -234,17 +241,16 @@ func (d *SSLDeployerProvider) updateListenerCertificate(ctx context.Context, clo
 
 		// 批量修改扩展证书
 		// REF: https://docs.jdcloud.com/cn/load-balancer/api/updatelistenercertificates
-		updateListenerCertificatesReq := jdlbapi.NewUpdateListenerCertificatesRequest(
-			d.config.RegionId,
-			cloudListenerId,
-			lo.Map(extCertSpecs, func(extCertSpec jdlbmodel.ExtensionCertificateSpec, _ int) jdlbmodel.ExtCertificateUpdateSpec {
-				return jdlbmodel.ExtCertificateUpdateSpec{
-					CertificateBindId: extCertSpec.CertificateBindId,
-					CertificateId:     &cloudCertId,
-					Domain:            &extCertSpec.Domain,
-				}
-			}),
-		)
+		updateListenerCertificatesReq := jdlb.NewUpdateListenerCertificatesRequestWithoutParam()
+		updateListenerCertificatesReq.SetRegionId(d.config.RegionId)
+		updateListenerCertificatesReq.SetListenerId(cloudListenerId)
+		updateListenerCertificatesReq.SetCertificates(lo.Map(extCertSpecs, func(extCertSpec jdlbmodel.ExtensionCertificateSpec, _ int) jdlbmodel.ExtCertificateUpdateSpec {
+			return jdlbmodel.ExtCertificateUpdateSpec{
+				CertificateBindId: extCertSpec.CertificateBindId,
+				CertificateId:     &cloudCertId,
+				Domain:            &extCertSpec.Domain,
+			}
+		}))
 		updateListenerCertificatesResp, err := d.sdkClient.UpdateListenerCertificates(updateListenerCertificatesReq)
 		d.logger.Debug("sdk request 'lb.UpdateListenerCertificates'", slog.Any("request", updateListenerCertificatesReq), slog.Any("response", updateListenerCertificatesResp))
 		if err != nil {
@@ -255,9 +261,8 @@ func (d *SSLDeployerProvider) updateListenerCertificate(ctx context.Context, clo
 	return nil
 }
 
-func createSDKClient(accessKeyId, accessKeySecret string) (*jdlbclient.LbClient, error) {
+func createSDKClient(accessKeyId, accessKeySecret string) (*internal.LbClient, error) {
 	clientCredentials := jdcore.NewCredentials(accessKeyId, accessKeySecret)
-	client := jdlbclient.NewLbClient(clientCredentials)
-	client.DisableLogger()
+	client := internal.NewLbClient(clientCredentials)
 	return client, nil
 }

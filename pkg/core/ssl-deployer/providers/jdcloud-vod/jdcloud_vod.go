@@ -10,8 +10,9 @@ import (
 
 	"github.com/certimate-go/certimate/pkg/core"
 	jdcore "github.com/jdcloud-api/jdcloud-sdk-go/core"
-	jdvodapi "github.com/jdcloud-api/jdcloud-sdk-go/services/vod/apis"
-	jdvodclient "github.com/jdcloud-api/jdcloud-sdk-go/services/vod/client"
+	jdvod "github.com/jdcloud-api/jdcloud-sdk-go/services/vod/apis"
+
+	"github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/jdcloud-vod/internal"
 )
 
 type SSLDeployerProviderConfig struct {
@@ -26,7 +27,7 @@ type SSLDeployerProviderConfig struct {
 type SSLDeployerProvider struct {
 	config    *SSLDeployerProviderConfig
 	logger    *slog.Logger
-	sdkClient *jdvodclient.VodClient
+	sdkClient *internal.VodClient
 }
 
 var _ core.SSLDeployer = (*SSLDeployerProvider)(nil)
@@ -69,9 +70,9 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		default:
 		}
 
-		listDomainsReq := jdvodapi.NewListDomainsRequest()
-		listDomainsReq.SetPageNumber(1)
-		listDomainsReq.SetPageSize(100)
+		listDomainsReq := jdvod.NewListDomainsRequestWithoutParam()
+		listDomainsReq.SetPageNumber(listDomainsPageNumber)
+		listDomainsReq.SetPageSize(listDomainsPageSize)
 		listDomainsResp, err := d.sdkClient.ListDomains(listDomainsReq)
 		d.logger.Debug("sdk request 'vod.ListDomains'", slog.Any("request", listDomainsReq), slog.Any("response", listDomainsResp))
 		if err != nil {
@@ -97,7 +98,8 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 
 	// 查询域名 SSL 配置
 	// REF: https://docs.jdcloud.com/cn/video-on-demand/api/gethttpssl
-	getHttpSslReq := jdvodapi.NewGetHttpSslRequest(domainId)
+	getHttpSslReq := jdvod.NewGetHttpSslRequestWithoutParam()
+	getHttpSslReq.SetDomainId(domainId)
 	getHttpSslResp, err := d.sdkClient.GetHttpSsl(getHttpSslReq)
 	d.logger.Debug("sdk request 'vod.GetHttpSsl'", slog.Any("request", getHttpSslReq), slog.Any("response", getHttpSslResp))
 	if err != nil {
@@ -106,7 +108,8 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 
 	// 设置域名 SSL 配置
 	// REF: https://docs.jdcloud.com/cn/video-on-demand/api/sethttpssl
-	setHttpSslReq := jdvodapi.NewSetHttpSslRequest(domainId)
+	setHttpSslReq := jdvod.NewSetHttpSslRequestWithoutParam()
+	setHttpSslReq.SetDomainId(domainId)
 	setHttpSslReq.SetTitle(fmt.Sprintf("certimate-%d", time.Now().UnixMilli()))
 	setHttpSslReq.SetSslCert(certPEM)
 	setHttpSslReq.SetSslKey(privkeyPEM)
@@ -122,9 +125,8 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	return &core.SSLDeployResult{}, nil
 }
 
-func createSDKClient(accessKeyId, accessKeySecret string) (*jdvodclient.VodClient, error) {
+func createSDKClient(accessKeyId, accessKeySecret string) (*internal.VodClient, error) {
 	clientCredentials := jdcore.NewCredentials(accessKeyId, accessKeySecret)
-	client := jdvodclient.NewVodClient(clientCredentials)
-	client.DisableLogger()
+	client := internal.NewVodClient(clientCredentials)
 	return client, nil
 }

@@ -10,8 +10,7 @@ import (
 	"github.com/go-acme/lego/v4/challenge/dns01"
 	"github.com/go-acme/lego/v4/platform/config/env"
 	jdcore "github.com/jdcloud-api/jdcloud-sdk-go/core"
-	jddnsapi "github.com/jdcloud-api/jdcloud-sdk-go/services/domainservice/apis"
-	jddnsclient "github.com/jdcloud-api/jdcloud-sdk-go/services/domainservice/client"
+	jddns "github.com/jdcloud-api/jdcloud-sdk-go/services/domainservice/apis"
 	jddnsmodel "github.com/jdcloud-api/jdcloud-sdk-go/services/domainservice/models"
 )
 
@@ -42,7 +41,7 @@ type Config struct {
 }
 
 type DNSProvider struct {
-	client *jddnsclient.DomainserviceClient
+	client *DomainserviceClient
 	config *Config
 
 	recordIDs   map[string]int
@@ -78,11 +77,8 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 	}
 
 	clientCredentials := jdcore.NewCredentials(config.AccessKeyID, config.AccessKeySecret)
-	client := jddnsclient.NewDomainserviceClient(clientCredentials)
-	clientConfig := &client.Config
-	clientConfig.SetTimeout(config.HTTPTimeout)
-	client.SetConfig(clientConfig)
-	client.DisableLogger()
+	client := NewDomainserviceClient(clientCredentials)
+	client.Config.SetTimeout(config.HTTPTimeout)
 
 	return &DNSProvider{
 		client:      client,
@@ -111,7 +107,10 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	}
 
 	// REF: https://docs.jdcloud.com/cn/jd-cloud-dns/api/createresourcerecord
-	jddnsCreateResourceRecordReq := jddnsapi.NewCreateResourceRecordRequest(d.config.RegionId, fmt.Sprintf("%d", zone.Id), &jddnsmodel.AddRR{
+	jddnsCreateResourceRecordReq := jddns.NewCreateResourceRecordRequestWithoutParam()
+	jddnsCreateResourceRecordReq.SetRegionId(d.config.RegionId)
+	jddnsCreateResourceRecordReq.SetDomainId(fmt.Sprintf("%d", zone.Id))
+	jddnsCreateResourceRecordReq.SetReq(&jddnsmodel.AddRR{
 		Type:       "TXT",
 		HostRecord: subDomain,
 		HostValue:  info.Value,
@@ -151,7 +150,10 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	}
 
 	// REF: https://docs.jdcloud.com/cn/jd-cloud-dns/api/deleteresourcerecord
-	jddnsDeleteResourceRecordReq := jddnsapi.NewDeleteResourceRecordRequest(d.config.RegionId, fmt.Sprintf("%d", zone.Id), fmt.Sprintf("%d", recordID))
+	jddnsDeleteResourceRecordReq := jddns.NewDeleteResourceRecordRequestWithoutParam()
+	jddnsDeleteResourceRecordReq.SetRegionId(d.config.RegionId)
+	jddnsDeleteResourceRecordReq.SetDomainId(fmt.Sprintf("%d", zone.Id))
+	jddnsDeleteResourceRecordReq.SetResourceRecordId(fmt.Sprintf("%d", recordID))
 	_, err = d.client.DeleteResourceRecord(jddnsDeleteResourceRecordReq)
 	if err != nil {
 		return fmt.Errorf("jdcloud: error when delete record: %w", err)
@@ -169,7 +171,10 @@ func (d *DNSProvider) getDNSZone(zoneName string) (*jddnsmodel.DomainInfo, error
 	pageSize := 10
 	for {
 		// REF: https://docs.jdcloud.com/cn/jd-cloud-dns/api/describedomains
-		jddnsDescribeDomainsReq := jddnsapi.NewDescribeDomainsRequest(d.config.RegionId, pageNumber, pageSize)
+		jddnsDescribeDomainsReq := jddns.NewDescribeDomainsRequestWithoutParam()
+		jddnsDescribeDomainsReq.SetRegionId(d.config.RegionId)
+		jddnsDescribeDomainsReq.SetPageNumber(pageNumber)
+		jddnsDescribeDomainsReq.SetPageSize(pageSize)
 		jddnsDescribeDomainsReq.SetDomainName(zoneName)
 
 		jddnsDescribeDomainsResp, err := d.client.DescribeDomains(jddnsDescribeDomainsReq)

@@ -98,7 +98,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 				return nil, errors.New("config `domain` is required")
 			}
 
-			domains = append(domains, d.config.Domain)
+			domains = []string{d.config.Domain}
 		}
 
 	case DOMAIN_MATCH_PATTERN_WILDCARD:
@@ -108,25 +108,25 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			}
 
 			if strings.HasPrefix(d.config.Domain, "*.") {
-				temp, err := d.getMatchedDomainsByWildcard(ctx, d.config.Domain)
+				domainCandidates, err := d.getMatchedDomainsByWildcard(ctx, d.config.Domain)
 				if err != nil {
 					return nil, err
 				}
 
-				domains = temp
+				domains = domainCandidates
 			} else {
-				domains = append(domains, d.config.Domain)
+				domains = []string{d.config.Domain}
 			}
 		}
 
 	case DOMAIN_MATCH_PATTERN_CERTSAN:
 		{
-			temp, err := d.getMatchedDomainsByCertId(ctx, upres.CertId)
+			domainCandidates, err := d.getMatchedDomainsByCertId(ctx, upres.CertId)
 			if err != nil {
 				return nil, err
 			}
 
-			domains = temp
+			domains = domainCandidates
 		}
 
 	default:

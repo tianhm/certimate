@@ -9,8 +9,8 @@ import { validDomainName } from "@/utils/validators";
 import { useFormNestedFieldsContext } from "./_context";
 
 const MULTIPLE_INPUT_SEPARATOR = ";";
-const MATCH_PATTERN_EXACT = "exact" as const;
-const MATCH_PATTERN_WILDCARD = "wildcard" as const;
+const DOMAIN_MATCH_PATTERN_EXACT = "exact" as const;
+const DOMAIN_MATCH_PATTERN_WILDCARD = "wildcard" as const;
 
 const BizDeployNodeConfigFieldsProviderTencentCloudEO = () => {
   const { i18n, t } = useTranslation();
@@ -45,14 +45,14 @@ const BizDeployNodeConfigFieldsProviderTencentCloudEO = () => {
       </Form.Item>
 
       <Form.Item
-        name={[parentNamePath, "matchPattern"]}
-        initialValue={initialValues.matchPattern}
+        name={[parentNamePath, "domainMatchPattern"]}
+        initialValue={initialValues.domainMatchPattern}
         label={t("workflow_node.deploy.form.shared_domain_match_pattern.label")}
         extra={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.shared_domain_match_pattern.help_wildcard") }}></span>}
         rules={[formRule]}
       >
         <Radio.Group
-          options={[MATCH_PATTERN_EXACT, MATCH_PATTERN_WILDCARD].map((s) => ({
+          options={[DOMAIN_MATCH_PATTERN_EXACT, DOMAIN_MATCH_PATTERN_WILDCARD].map((s) => ({
             key: s,
             label: t(`workflow_node.deploy.form.shared_domain_match_pattern.option.${s}.label`),
             value: s,
@@ -80,7 +80,7 @@ const BizDeployNodeConfigFieldsProviderTencentCloudEO = () => {
 
 const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   return {
-    matchPattern: MATCH_PATTERN_EXACT,
+    domainMatchPattern: DOMAIN_MATCH_PATTERN_EXACT,
     zoneId: "",
     domains: "",
   };
@@ -92,7 +92,10 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
   return z.object({
     endpoint: z.string().nullish(),
     zoneId: z.string().nonempty(t("workflow_node.deploy.form.tencentcloud_eo_zone_id.placeholder")),
-    matchPattern: z.enum([MATCH_PATTERN_EXACT, MATCH_PATTERN_WILDCARD], t("workflow_node.deploy.form.shared_domain_match_pattern.placeholder")),
+    domainMatchPattern: z.enum(
+      [DOMAIN_MATCH_PATTERN_EXACT, DOMAIN_MATCH_PATTERN_WILDCARD],
+      t("workflow_node.deploy.form.shared_domain_match_pattern.placeholder")
+    ),
     domains: z.string().refine((v) => {
       if (!v) return false;
       return String(v)

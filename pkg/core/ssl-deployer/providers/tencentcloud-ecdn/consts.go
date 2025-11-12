@@ -2,9 +2,9 @@ package tencentcloudecdn
 
 const (
 	// 匹配模式：精确匹配。
-	MATCH_PATTERN_EXACT = "exact"
+	DOMAIN_MATCH_PATTERN_EXACT = "exact"
 	// 匹配模式：通配符匹配。
-	MATCH_PATTERN_WILDCARD = "wildcard"
+	DOMAIN_MATCH_PATTERN_WILDCARD = "wildcard"
 	// 匹配模式：证书 SAN 匹配。
-	MATCH_PATTERN_CERTSAN = "certsan"
+	DOMAIN_MATCH_PATTERN_CERTSAN = "certsan"
 )

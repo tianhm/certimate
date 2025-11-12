@@ -105,7 +105,6 @@ func (c *ACMEClient) sendObtainCertificateRequest(request *ObtainCertificateRequ
 			provider, err := providerFactory(&applicators.ProviderFactoryOptions{
 				ProviderAccessConfig:   request.ProviderAccessConfig,
 				ProviderExtendedConfig: request.ProviderExtendedConfig,
-				DnsPropagationWait:     request.DnsPropagationWait,
 				DnsPropagationTimeout:  request.DnsPropagationTimeout,
 				DnsTTL:                 request.DnsTTL,
 			})

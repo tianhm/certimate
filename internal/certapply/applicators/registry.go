@@ -12,7 +12,6 @@ type ProviderFactoryFunc func(options *ProviderFactoryOptions) (core.ACMEChallen
 type ProviderFactoryOptions struct {
 	ProviderAccessConfig   map[string]any
 	ProviderExtendedConfig map[string]any
-	DnsPropagationWait     int
 	DnsPropagationTimeout  int
 	DnsTTL                 int
 }

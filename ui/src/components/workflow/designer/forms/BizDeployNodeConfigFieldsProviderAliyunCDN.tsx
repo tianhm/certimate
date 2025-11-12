@@ -91,10 +91,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
   return z
     .object({
       region: z.string().nullish(),
-      domainMatchPattern: z.enum(
-        [DOMAIN_MATCH_PATTERN_EXACT, DOMAIN_MATCH_PATTERN_WILDCARD, DOMAIN_MATCH_PATTERN_CERTSAN],
-        t("workflow_node.deploy.form.shared_domain_match_pattern.placeholder")
-      ),
+      domainMatchPattern: z.string().nonempty(t("workflow_node.deploy.form.shared_domain_match_pattern.placeholder")).default(DOMAIN_MATCH_PATTERN_EXACT),
       domain: z.string().nullish(),
     })
     .superRefine((values, ctx) => {

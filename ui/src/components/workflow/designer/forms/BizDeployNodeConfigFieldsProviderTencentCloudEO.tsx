@@ -107,10 +107,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
     .object({
       endpoint: z.string().nullish(),
       zoneId: z.string().nonempty(t("workflow_node.deploy.form.tencentcloud_eo_zone_id.placeholder")),
-      domainMatchPattern: z.enum(
-        [DOMAIN_MATCH_PATTERN_EXACT, DOMAIN_MATCH_PATTERN_WILDCARD, DOMAIN_MATCH_PATTERN_CERTSAN],
-        t("workflow_node.deploy.form.shared_domain_match_pattern.placeholder")
-      ),
+      domainMatchPattern: z.string().nonempty(t("workflow_node.deploy.form.shared_domain_match_pattern.placeholder")).default(DOMAIN_MATCH_PATTERN_EXACT),
       domains: z.string().nullish(),
     })
     .superRefine((values, ctx) => {

@@ -130,7 +130,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		}
 
 	default:
-		return nil, fmt.Errorf("unsupported match pattern: '%s'", d.config.DomainMatchPattern)
+		return nil, fmt.Errorf("unsupported domain match pattern: '%s'", d.config.DomainMatchPattern)
 	}
 
 	// 遍历更新域名证书

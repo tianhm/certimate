@@ -124,7 +124,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		}
 
 	default:
-		return nil, fmt.Errorf("unsupported match pattern: '%s'", d.config.DomainMatchPattern)
+		return nil, fmt.Errorf("unsupported domain match pattern: '%s'", d.config.DomainMatchPattern)
 	}
 
 	// 遍历绑定证书
@@ -225,7 +225,7 @@ func (d *SSLDeployerProvider) getMatchedDomainsByCertId(ctx context.Context, clo
 
 	if len(domains) == 0 {
 		if len(describeCertConfigResp.SpecifiedCertConfig) == 0 {
-			return nil, errors.New("domains not found")
+			return nil, errors.New("no domains matched by certificate")
 		}
 	}
 

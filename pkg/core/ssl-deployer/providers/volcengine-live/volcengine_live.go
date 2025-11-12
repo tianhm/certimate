@@ -2,12 +2,12 @@ package volcenginelive
 
 import (
 	"context"
-	"crypto/x509"
 	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
 
+	"github.com/samber/lo"
 	velive "github.com/volcengine/volc-sdk-golang/service/live/v20230101"
 	ve "github.com/volcengine/volcengine-go-sdk/volcengine"
 
@@ -101,12 +101,17 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			}
 
 			if strings.HasPrefix(d.config.Domain, "*.") {
-				temp, err := d.getMatchedDomainsByWildcard(ctx, d.config.Domain)
+				domainCandidates, err := d.getAllDomains(ctx)
 				if err != nil {
 					return nil, err
 				}
 
-				domains = temp
+				domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
+					return xcerthostname.IsMatch(d.config.Domain, domain)
+				})
+				if len(domains) == 0 {
+					return nil, errors.New("no domains matched by wildcard")
+				}
 			} else {
 				domains = append(domains, d.config.Domain)
 			}
@@ -119,16 +124,21 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 				return nil, err
 			}
 
-			temp, err := d.getMatchedDomainsByCertX509(ctx, certX509)
+			domainCandidates, err := d.getAllDomains(ctx)
 			if err != nil {
 				return nil, err
 			}
 
-			domains = temp
+			domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
+				return certX509.VerifyHostname(domain) == nil
+			})
+			if len(domains) == 0 {
+				return nil, errors.New("no domains matched by certificate")
+			}
 		}
 
 	default:
-		return nil, fmt.Errorf("unsupported match pattern: '%s'", d.config.DomainMatchPattern)
+		return nil, fmt.Errorf("unsupported domain match pattern: '%s'", d.config.DomainMatchPattern)
 	}
 
 	// 遍历绑定证书
@@ -157,7 +167,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	return &core.SSLDeployResult{}, nil
 }
 
-func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, wildcardDomain string) ([]string, error) {
+func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, error) {
 	domains := make([]string, 0)
 
 	// 遍历查询域名列表，获取匹配的域名
@@ -184,9 +194,7 @@ func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, w
 
 		if listDomainDetailResp.Result.DomainList != nil {
 			for _, domain := range listDomainDetailResp.Result.DomainList {
-				if xcerthostname.IsMatch(wildcardDomain, domain.Domain) {
-					domains = append(domains, domain.Domain)
-				}
+				domains = append(domains, domain.Domain)
 			}
 		}
 
@@ -198,54 +206,7 @@ func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, w
 	}
 
 	if len(domains) == 0 {
-		return nil, errors.New("domain not found")
-	}
-
-	return domains, nil
-}
-
-func (d *SSLDeployerProvider) getMatchedDomainsByCertX509(ctx context.Context, certX509 *x509.Certificate) ([]string, error) {
-	domains := make([]string, 0)
-
-	// 遍历查询域名列表，获取匹配的域名
-	// REF: https://www.volcengine.com/docs/6469/1126815
-	listDomainDetailPageNum := int32(1)
-	listDomainDetailPageSize := int32(1000)
-	for {
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		default:
-		}
-
-		listDomainDetailReq := &velive.ListDomainDetailBody{
-			DomainStatusList: ve.Int32Slice([]int32{0}),
-			PageNum:          listDomainDetailPageNum,
-			PageSize:         listDomainDetailPageSize,
-		}
-		listDomainDetailResp, err := d.sdkClient.ListDomainDetail(ctx, listDomainDetailReq)
-		d.logger.Debug("sdk request 'live.ListDomainDetail'", slog.Any("request", listDomainDetailReq), slog.Any("response", listDomainDetailResp))
-		if err != nil {
-			return nil, fmt.Errorf("failed to execute sdk request 'live.ListDomainDetail': %w", err)
-		}
-
-		if listDomainDetailResp.Result.DomainList != nil {
-			for _, domain := range listDomainDetailResp.Result.DomainList {
-				if certX509.VerifyHostname(domain.Domain) == nil {
-					domains = append(domains, domain.Domain)
-				}
-			}
-		}
-
-		if len(listDomainDetailResp.Result.DomainList) < int(listDomainDetailPageSize) {
-			break
-		} else {
-			listDomainDetailPageNum++
-		}
-	}
-
-	if len(domains) == 0 {
-		return nil, errors.New("domain not found")
+		return nil, errors.New("no domains matched by wildcard")
 	}
 
 	return domains, nil

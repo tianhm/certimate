@@ -12,6 +12,7 @@ import (
 	vesession "github.com/volcengine/volcengine-go-sdk/volcengine/session"
 
 	"github.com/certimate-go/certimate/pkg/core"
+	"github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/volcengine-cdn/internal"
 	sslmgrsp "github.com/certimate-go/certimate/pkg/core/ssl-manager/providers/volcengine-cdn"
 	xcerthostname "github.com/certimate-go/certimate/pkg/utils/cert/hostname"
 )
@@ -22,8 +23,8 @@ type SSLDeployerProviderConfig struct {
 	// 火山引擎 AccessKeySecret。
 	AccessKeySecret string `json:"accessKeySecret"`
 	// 域名匹配模式。
-	// 零值时默认值 [MATCH_PATTERN_EXACT]。
-	MatchPattern string `json:"matchPattern,omitempty"`
+	// 零值时默认值 [DOMAIN_MATCH_PATTERN_EXACT]。
+	DomainMatchPattern string `json:"domainMatchPattern,omitempty"`
 	// 加速域名（支持泛域名）。
 	Domain string `json:"domain"`
 }
@@ -31,7 +32,7 @@ type SSLDeployerProviderConfig struct {
 type SSLDeployerProvider struct {
 	config     *SSLDeployerProviderConfig
 	logger     *slog.Logger
-	sdkClient  vecdn.CDNAPI
+	sdkClient  *internal.CdnClient
 	sslManager core.SSLManager
 }
 
@@ -84,8 +85,8 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 
 	// 获取待部署的 CDN 实例
 	domains := make([]string, 0)
-	switch d.config.MatchPattern {
-	case "", MATCH_PATTERN_EXACT:
+	switch d.config.DomainMatchPattern {
+	case "", DOMAIN_MATCH_PATTERN_EXACT:
 		{
 			if d.config.Domain == "" {
 				return nil, errors.New("config `domain` is required")
@@ -94,7 +95,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			domains = append(domains, d.config.Domain)
 		}
 
-	case MATCH_PATTERN_WILDCARD:
+	case DOMAIN_MATCH_PATTERN_WILDCARD:
 		{
 			if d.config.Domain == "" {
 				return nil, errors.New("config `domain` is required")
@@ -112,7 +113,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			}
 		}
 
-	case MATCH_PATTERN_CERTSAN:
+	case DOMAIN_MATCH_PATTERN_CERTSAN:
 		{
 			temp, err := d.getMatchedDomainsByCertId(ctx, upres.CertId)
 			if err != nil {
@@ -123,7 +124,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		}
 
 	default:
-		return nil, fmt.Errorf("unsupported match pattern: '%s'", d.config.MatchPattern)
+		return nil, fmt.Errorf("unsupported match pattern: '%s'", d.config.DomainMatchPattern)
 	}
 
 	// 遍历绑定证书
@@ -247,7 +248,7 @@ func (d *SSLDeployerProvider) bindCert(ctx context.Context, domain string, cloud
 	return nil
 }
 
-func createSDKClient(accessKeyId, accessKeySecret string) (vecdn.CDNAPI, error) {
+func createSDKClient(accessKeyId, accessKeySecret string) (*internal.CdnClient, error) {
 	config := ve.NewConfig().
 		WithAkSk(accessKeyId, accessKeySecret)
 
@@ -256,6 +257,6 @@ func createSDKClient(accessKeyId, accessKeySecret string) (vecdn.CDNAPI, error) 
 		return nil, err
 	}
 
-	client := vecdn.New(session)
+	client := internal.NewCdnClient(session)
 	return client, nil
 }

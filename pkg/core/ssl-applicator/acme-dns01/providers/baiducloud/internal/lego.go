@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	bce "github.com/baidubce/bce-sdk-go/bce"
 	bcedns "github.com/baidubce/bce-sdk-go/services/dns"
 	"github.com/go-acme/lego/v4/challenge"
 	"github.com/go-acme/lego/v4/challenge/dns01"
@@ -73,9 +74,10 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 	if err != nil {
 		return nil, err
 	} else {
-		if client.Config != nil {
-			client.Config.ConnectionTimeoutInMillis = int(config.HTTPTimeout.Milliseconds())
+		if client.Config == nil {
+			client.Config = &bce.BceClientConfiguration{}
 		}
+		client.Config.HTTPClientTimeout = &config.HTTPTimeout
 	}
 
 	return &DNSProvider{
@@ -97,8 +99,16 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		return fmt.Errorf("baiducloud: %w", err)
 	}
 
-	if err := d.addOrUpdateDNSRecord(dns01.UnFqdn(authZone), subDomain, info.Value); err != nil {
-		return fmt.Errorf("baiducloud: %w", err)
+	// REF: https://cloud.baidu.com/doc/DNS/s/El4s7lssr#%E6%B7%BB%E5%8A%A0%E8%A7%A3%E6%9E%90%E8%AE%B0%E5%BD%95
+	bceCreateRecordReq := &bcedns.CreateRecordRequest{
+		Type:        "TXT",
+		Rr:          subDomain,
+		Value:       info.Value,
+		Description: lo.ToPtr("certimate acme"),
+		Ttl:         lo.ToPtr(int32(d.config.TTL)),
+	}
+	if err := d.client.CreateRecord(dns01.UnFqdn(authZone), bceCreateRecordReq, security.RandomString(32)); err != nil {
+		return fmt.Errorf("baiducloud: error when create record: %w", err)
 	}
 
 	return nil
@@ -117,7 +127,13 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		return fmt.Errorf("baiducloud: %w", err)
 	}
 
-	if err := d.removeDNSRecord(dns01.UnFqdn(authZone), subDomain); err != nil {
+	record, err := d.findDNSRecord(dns01.UnFqdn(authZone), subDomain, info.Value)
+	if err != nil {
+		return fmt.Errorf("baiducloud: error when find record: %q: %w", domain, err)
+	}
+
+	// REF: https://cloud.baidu.com/doc/DNS/s/El4s7lssr#%E5%88%A0%E9%99%A4%E8%A7%A3%E6%9E%90%E8%AE%B0%E5%BD%95
+	if err := d.client.DeleteRecord(dns01.UnFqdn(authZone), record.Id, security.RandomString(32)); err != nil {
 		return fmt.Errorf("baiducloud: %w", err)
 	}
 
@@ -128,73 +144,32 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 	return d.config.PropagationTimeout, d.config.PollingInterval
 }
 
-func (d *DNSProvider) findDNSRecord(zoneName, subDomain string) (*bcedns.Record, error) {
+func (d *DNSProvider) findDNSRecord(zoneName, subDomain, tokenValue string) (*bcedns.Record, error) {
 	pageMarker := ""
 	pageSize := 1000
 	for {
-		request := &bcedns.ListRecordRequest{}
-		request.Rr = subDomain
-		request.Marker = pageMarker
-		request.MaxKeys = pageSize
+		// REF: https://cloud.baidu.com/doc/DNS/s/El4s7lssr#%E6%9F%A5%E8%AF%A2%E8%A7%A3%E6%9E%90%E8%AE%B0%E5%BD%95%E5%88%97%E8%A1%A8
+		bceListRecordReq := &bcedns.ListRecordRequest{}
+		bceListRecordReq.Rr = subDomain
+		bceListRecordReq.Marker = pageMarker
+		bceListRecordReq.MaxKeys = pageSize
 
-		response, err := d.client.ListRecord(zoneName, request)
+		ceListRecordResp, err := d.client.ListRecord(zoneName, bceListRecordReq)
 		if err != nil {
 			return nil, err
 		}
 
-		for _, record := range response.Records {
-			if record.Type == "TXT" && record.Rr == subDomain {
+		for _, record := range ceListRecordResp.Records {
+			if record.Type == "TXT" && record.Rr == subDomain && record.Value == tokenValue {
 				return &record, nil
 			}
 		}
 
-		if len(response.Records) < pageSize {
+		pageMarker = ceListRecordResp.NextMarker
+		if pageMarker == "" {
 			break
 		}
-
-		pageMarker = response.NextMarker
 	}
 
-	return nil, nil
-}
-
-func (d *DNSProvider) addOrUpdateDNSRecord(zoneName, subDomain, value string) error {
-	record, err := d.findDNSRecord(zoneName, subDomain)
-	if err != nil {
-		return err
-	}
-
-	if record == nil {
-		request := &bcedns.CreateRecordRequest{
-			Type:  "TXT",
-			Rr:    subDomain,
-			Value: value,
-			Ttl:   lo.ToPtr(int32(d.config.TTL)),
-		}
-		err := d.client.CreateRecord(zoneName, request, security.RandomString(32))
-		return err
-	} else {
-		request := &bcedns.UpdateRecordRequest{
-			Type:  "TXT",
-			Rr:    subDomain,
-			Value: value,
-			Ttl:   lo.ToPtr(int32(d.config.TTL)),
-		}
-		err := d.client.UpdateRecord(zoneName, record.Id, request, security.RandomString(32))
-		return err
-	}
-}
-
-func (d *DNSProvider) removeDNSRecord(zoneName, subDomain string) error {
-	record, err := d.findDNSRecord(zoneName, subDomain)
-	if err != nil {
-		return err
-	}
-
-	if record == nil {
-		return nil
-	} else {
-		err = d.client.DeleteRecord(zoneName, record.Id, security.RandomString(32))
-		return err
-	}
+	return nil, errors.New("record not found")
 }

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-acme/lego/v4/challenge"
@@ -41,6 +42,9 @@ type Config struct {
 type DNSProvider struct {
 	client *dnslasdk.Client
 	config *Config
+
+	recordIDs   map[string]string
+	recordIDsMu sync.Mutex
 }
 
 func NewDefaultConfig() *Config {
@@ -78,8 +82,10 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 	}
 
 	return &DNSProvider{
-		client: client,
-		config: config,
+		client:      client,
+		config:      config,
+		recordIDs:   make(map[string]string),
+		recordIDsMu: sync.Mutex{},
 	}, nil
 }
 
@@ -96,9 +102,27 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		return fmt.Errorf("dnsla: %w", err)
 	}
 
-	if err := d.addOrUpdateDNSRecord(dns01.UnFqdn(authZone), subDomain, info.Value); err != nil {
-		return fmt.Errorf("dnsla: %w", err)
+	zone, err := d.getDNSZone(dns01.UnFqdn(authZone))
+	if err != nil {
+		return fmt.Errorf("dnsla: error when list zones: %w", err)
 	}
+
+	// REF: https://www.dnsla.cn/docs/ApiDoc
+	dnslaCreateRecordReq := &dnslasdk.CreateRecordRequest{
+		DomainId: lo.ToPtr(zone.Id),
+		Type:     lo.ToPtr(int32(16)),
+		Host:     lo.ToPtr(subDomain),
+		Data:     lo.ToPtr(info.Value),
+		Ttl:      lo.ToPtr(int32(d.config.TTL)),
+	}
+	dnslaCreateRecordResp, err := d.client.CreateRecord(dnslaCreateRecordReq)
+	if err != nil {
+		return fmt.Errorf("dnsla: error when create record: %w", err)
+	}
+
+	d.recordIDsMu.Lock()
+	d.recordIDs[token] = dnslaCreateRecordResp.Data.Id
+	d.recordIDsMu.Unlock()
 
 	return nil
 }
@@ -106,18 +130,16 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
-	if err != nil {
-		return fmt.Errorf("dnsla: could not find zone for domain %q: %w", domain, err)
+	d.recordIDsMu.Lock()
+	recordID, ok := d.recordIDs[token]
+	d.recordIDsMu.Unlock()
+	if !ok {
+		return fmt.Errorf("dnsla: unknown record ID for '%s'", info.EffectiveFQDN)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
-	if err != nil {
-		return fmt.Errorf("dnsla: %w", err)
-	}
-
-	if err := d.removeDNSRecord(dns01.UnFqdn(authZone), subDomain); err != nil {
-		return fmt.Errorf("dnsla: %w", err)
+	// REF: https://www.dnsla.cn/docs/ApiDoc
+	if _, err := d.client.DeleteRecord(recordID); err != nil {
+		return fmt.Errorf("dnsla: error when delete record: %w", err)
 	}
 
 	return nil
@@ -131,111 +153,30 @@ func (d *DNSProvider) getDNSZone(zoneName string) (*dnslasdk.DomainRecord, error
 	pageIndex := int32(1)
 	pageSize := int32(100)
 	for {
-		request := &dnslasdk.ListDomainsRequest{
+		// REF: https://www.dnsla.cn/docs/ApiDoc
+		dnslaListDomainsReq := &dnslasdk.ListDomainsRequest{
 			PageIndex: &pageIndex,
 			PageSize:  &pageSize,
 		}
-		response, err := d.client.ListDomains(request)
+		dnslaListDomainsResp, err := d.client.ListDomains(dnslaListDomainsReq)
 		if err != nil {
 			return nil, err
 		}
 
-		if response.Data != nil {
-			for _, item := range response.Data.Results {
+		if dnslaListDomainsResp.Data != nil {
+			for _, item := range dnslaListDomainsResp.Data.Results {
 				if strings.TrimRight(item.Domain, ".") == zoneName || strings.TrimRight(item.DisplayDomain, ".") == zoneName {
 					return item, nil
 				}
 			}
 		}
 
-		if response.Data == nil || len(response.Data.Results) < int(pageSize) {
+		if dnslaListDomainsResp.Data == nil || len(dnslaListDomainsResp.Data.Results) < int(pageSize) {
 			break
 		}
 
 		pageIndex++
 	}
 
-	return nil, fmt.Errorf("dnsla: zone %s not found", zoneName)
-}
-
-func (d *DNSProvider) getDNSZoneAndRecord(zoneName, subDomain string) (*dnslasdk.DomainRecord, *dnslasdk.DnsRecord, error) {
-	zone, err := d.getDNSZone(zoneName)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	pageIndex := int32(1)
-	pageSize := int32(100)
-	for {
-		request := &dnslasdk.ListRecordsRequest{
-			DomainId:  &zone.Id,
-			Host:      &subDomain,
-			PageIndex: &pageIndex,
-			PageSize:  &pageSize,
-		}
-		response, err := d.client.ListRecords(request)
-		if err != nil {
-			return zone, nil, err
-		}
-
-		if response.Data != nil {
-			for _, record := range response.Data.Results {
-				if record.Type == 16 && (record.Host == subDomain || record.DisplayHost == subDomain) {
-					return zone, record, nil
-				}
-			}
-		}
-
-		if response.Data == nil || len(response.Data.Results) < int(pageSize) {
-			break
-		}
-
-		pageIndex++
-	}
-
-	return zone, nil, nil
-}
-
-func (d *DNSProvider) addOrUpdateDNSRecord(zoneName, subDomain, value string) error {
-	zone, record, err := d.getDNSZoneAndRecord(zoneName, subDomain)
-	if err != nil {
-		return err
-	}
-
-	const recordTypeTXT = 16
-	if record == nil {
-		request := &dnslasdk.CreateRecordRequest{
-			DomainId: lo.ToPtr(zone.Id),
-			Type:     lo.ToPtr(int32(recordTypeTXT)),
-			Host:     lo.ToPtr(subDomain),
-			Data:     lo.ToPtr(value),
-			Ttl:      lo.ToPtr(int32(d.config.TTL)),
-		}
-		_, err := d.client.CreateRecord(request)
-		return err
-	} else {
-		request := &dnslasdk.UpdateRecordRequest{
-			Id:   lo.ToPtr(record.Id),
-			Type: lo.ToPtr(int32(recordTypeTXT)),
-			Host: lo.ToPtr(subDomain),
-			Data: lo.ToPtr(value),
-			Ttl:  lo.ToPtr(int32(d.config.TTL)),
-		}
-		_, err := d.client.UpdateRecord(request)
-		return err
-	}
-}
-
-func (d *DNSProvider) removeDNSRecord(zoneName, subDomain string) error {
-	_, record, err := d.getDNSZoneAndRecord(zoneName, subDomain)
-	if err != nil {
-		return err
-	}
-
-	if record == nil {
-		return nil
-	} else {
-		_, err = d.client.DeleteRecord(record.Id)
-		return err
-	}
+	return nil, fmt.Errorf("zone '%s' not found", zoneName)
 }

@@ -44,8 +44,8 @@ type DNSProvider struct {
 	client *EsaClient
 	config *Config
 
-	siteIDs    map[string]int64
-	siteIDsMtx sync.Mutex
+	recordIDs   map[string]int64
+	recordIDsMu sync.Mutex
 }
 
 func NewDefaultConfig() *Config {
@@ -76,6 +76,10 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 		return nil, errors.New("alicloud-esa: the configuration of the DNS provider is nil")
 	}
 
+	if config.RegionID == "" {
+		config.RegionID = "cn-hangzhou"
+	}
+
 	client, err := NewEsaClient(&aliopen.Config{
 		AccessKeyId:     tea.String(config.SecretID),
 		AccessKeySecret: tea.String(config.SecretKey),
@@ -86,10 +90,10 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 	}
 
 	return &DNSProvider{
-		client: client,
-		config: config,
-
-		siteIDs: make(map[string]int64),
+		client:      client,
+		config:      config,
+		recordIDs:   make(map[string]int64),
+		recordIDsMu: sync.Mutex{},
 	}, nil
 }
 
@@ -102,14 +106,29 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	}
 
 	siteName := dns01.UnFqdn(authZone)
-	siteId, err := d.getSiteId(siteName)
+	siteID, err := d.getSiteId(siteName)
 	if err != nil {
 		return fmt.Errorf("alicloud-esa: could not find site for zone %q: %w", siteName, err)
 	}
 
-	if err := d.addOrUpdateDNSRecord(siteId, dns01.UnFqdn(info.EffectiveFQDN), info.Value); err != nil {
-		return fmt.Errorf("alicloud-esa: %w", err)
+	// REF: https://www.alibabacloud.com/help/en/edge-security-acceleration/esa/api-esa-2024-09-10-createrecord
+	aliCreateRecordReq := &aliesa.CreateRecordRequest{
+		SiteId:     tea.Int64(siteID),
+		Type:       tea.String("TXT"),
+		RecordName: tea.String(dns01.UnFqdn(info.EffectiveFQDN)),
+		Data: &aliesa.CreateRecordRequestData{
+			Value: tea.String(info.Value),
+		},
+		Ttl: tea.Int32(int32(d.config.TTL)),
 	}
+	aliCreateRecordResp, err := d.client.CreateRecord(aliCreateRecordReq)
+	if err != nil {
+		return fmt.Errorf("alicloud-esa: error when create record: %w", err)
+	}
+
+	d.recordIDsMu.Lock()
+	d.recordIDs[token] = *aliCreateRecordResp.Body.GetRecordId()
+	d.recordIDsMu.Unlock()
 
 	return nil
 }
@@ -117,19 +136,19 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
-	if err != nil {
-		return fmt.Errorf("alicloud-esa: could not find zone for domain %q: %w", domain, err)
+	d.recordIDsMu.Lock()
+	recordID, ok := d.recordIDs[token]
+	d.recordIDsMu.Unlock()
+	if !ok {
+		return fmt.Errorf("alicloud-esa: unknown record ID for '%s'", info.EffectiveFQDN)
 	}
 
-	siteName := dns01.UnFqdn(authZone)
-	siteId, err := d.getSiteId(siteName)
-	if err != nil {
-		return fmt.Errorf("alicloud-esa: could not find site for zone %q: %w", siteName, err)
+	// REF: https://www.alibabacloud.com/help/en/edge-security-acceleration/esa/api-esa-2024-09-10-deleterecord
+	aliDeleteRecordReq := &aliesa.DeleteRecordRequest{
+		RecordId: &recordID,
 	}
-
-	if err := d.removeDNSRecord(siteId, dns01.UnFqdn(info.EffectiveFQDN), info.Value); err != nil {
-		return fmt.Errorf("alicloud-esa: %w", err)
+	if _, err := d.client.DeleteRecord(aliDeleteRecordReq); err != nil {
+		return fmt.Errorf("alicloud-esa: error when delete record %w", err)
 	}
 
 	return nil
@@ -140,41 +159,32 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 }
 
 func (d *DNSProvider) getSiteId(siteName string) (int64, error) {
-	d.siteIDsMtx.Lock()
-	siteID, ok := d.siteIDs[siteName]
-	d.siteIDsMtx.Unlock()
-	if ok {
-		return siteID, nil
-	}
-
 	pageNumber := 1
 	pageSize := 500
 	for {
-		request := &aliesa.ListSitesRequest{
+		// REF: https://www.alibabacloud.com/help/en/edge-security-acceleration/esa/api-esa-2024-09-10-listsites
+		aliListSitesReq := &aliesa.ListSitesRequest{
 			SiteName:       tea.String(siteName),
 			SiteSearchType: tea.String("exact"),
 			PageNumber:     tea.Int32(int32(pageNumber)),
 			PageSize:       tea.Int32(int32(pageSize)),
 			AccessType:     tea.String("NS"),
 		}
-		response, err := d.client.ListSites(request)
+		aliListSitesResp, err := d.client.ListSites(aliListSitesReq)
 		if err != nil {
 			return 0, err
 		}
 
-		if response.Body == nil {
+		if aliListSitesResp.Body == nil {
 			break
 		} else {
-			for _, record := range response.Body.Sites {
-				if tea.StringValue(record.SiteName) == siteName {
-					d.siteIDsMtx.Lock()
-					d.siteIDs[siteName] = *record.SiteId
-					d.siteIDsMtx.Unlock()
-					return *record.SiteId, nil
+			for _, site := range aliListSitesResp.Body.Sites {
+				if *site.GetSiteName() == siteName {
+					return *site.GetSiteId(), nil
 				}
 			}
 
-			if len(response.Body.Sites) < pageSize {
+			if len(aliListSitesResp.Body.Sites) < pageSize {
 				break
 			}
 
@@ -183,81 +193,4 @@ func (d *DNSProvider) getSiteId(siteName string) (int64, error) {
 	}
 
 	return 0, errors.New("site not found")
-}
-
-func (d *DNSProvider) findDNSRecord(siteId int64, effectiveFQDN string, value string) (*aliesa.ListRecordsResponseBodyRecords, error) {
-	pageNumber := 1
-	pageSize := 500
-	for {
-		request := &aliesa.ListRecordsRequest{
-			SiteId:          tea.Int64(siteId),
-			Type:            tea.String("TXT"),
-			RecordName:      tea.String(effectiveFQDN),
-			RecordMatchType: tea.String("exact"),
-			PageNumber:      tea.Int32(int32(pageNumber)),
-			PageSize:        tea.Int32(int32(pageSize)),
-		}
-		response, err := d.client.ListRecords(request)
-		if err != nil {
-			return nil, err
-		}
-
-		if response.Body == nil {
-			break
-		} else {
-			for _, record := range response.Body.Records {
-				if tea.StringValue(record.RecordName) == effectiveFQDN && tea.StringValue(record.Data.Value) == value {
-					return record, nil
-				}
-			}
-
-			if len(response.Body.Records) < pageSize {
-				break
-			}
-
-			pageNumber++
-		}
-	}
-
-	return nil, nil
-}
-
-func (d *DNSProvider) addOrUpdateDNSRecord(siteId int64, effectiveFQDN, value string) error {
-	record, err := d.findDNSRecord(siteId, effectiveFQDN, value)
-	if err != nil {
-		return err
-	}
-
-	if record != nil {
-		return nil
-	}
-
-	request := &aliesa.CreateRecordRequest{
-		SiteId:     tea.Int64(siteId),
-		Type:       tea.String("TXT"),
-		RecordName: tea.String(effectiveFQDN),
-		Data: &aliesa.CreateRecordRequestData{
-			Value: tea.String(value),
-		},
-		Ttl: tea.Int32(int32(d.config.TTL)),
-	}
-	_, err = d.client.CreateRecord(request)
-	return err
-}
-
-func (d *DNSProvider) removeDNSRecord(siteId int64, effectiveFQDN, value string) error {
-	record, err := d.findDNSRecord(siteId, effectiveFQDN, value)
-	if err != nil {
-		return err
-	}
-
-	if record == nil {
-		return nil
-	} else {
-		request := &aliesa.DeleteRecordRequest{
-			RecordId: record.RecordId,
-		}
-		_, err = d.client.DeleteRecord(request)
-		return err
-	}
 }

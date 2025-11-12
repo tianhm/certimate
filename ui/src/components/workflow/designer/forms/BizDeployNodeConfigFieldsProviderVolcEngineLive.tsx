@@ -7,8 +7,8 @@ import { validDomainName } from "@/utils/validators";
 
 import { useFormNestedFieldsContext } from "./_context";
 
-const MATCH_PATTERN_EXACT = "exact" as const;
-const MATCH_PATTERN_WILDCARD = "wildcard" as const;
+const DOMAIN_MATCH_PATTERN_EXACT = "exact" as const;
+const DOMAIN_MATCH_PATTERN_WILDCARD = "wildcard" as const;
 
 const BizDeployNodeConfigFieldsProviderVolcEngineLive = () => {
   const { i18n, t } = useTranslation();
@@ -23,13 +23,13 @@ const BizDeployNodeConfigFieldsProviderVolcEngineLive = () => {
   return (
     <>
       <Form.Item
-        name={[parentNamePath, "matchPattern"]}
-        initialValue={initialValues.matchPattern}
+        name={[parentNamePath, "domainMatchPattern"]}
+        initialValue={initialValues.domainMatchPattern}
         label={t("workflow_node.deploy.form.shared_domain_match_pattern.label")}
         rules={[formRule]}
       >
         <Radio.Group
-          options={[MATCH_PATTERN_EXACT, MATCH_PATTERN_WILDCARD].map((s) => ({
+          options={[DOMAIN_MATCH_PATTERN_EXACT, DOMAIN_MATCH_PATTERN_WILDCARD].map((s) => ({
             key: s,
             label: t(`workflow_node.deploy.form.shared_domain_match_pattern.option.${s}.label`),
             value: s,
@@ -51,7 +51,7 @@ const BizDeployNodeConfigFieldsProviderVolcEngineLive = () => {
 
 const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   return {
-    matchPattern: MATCH_PATTERN_EXACT,
+    domainMatchPattern: DOMAIN_MATCH_PATTERN_EXACT,
     domain: "",
   };
 };
@@ -61,14 +61,17 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
 
   return z
     .object({
-      matchPattern: z.enum([MATCH_PATTERN_EXACT, MATCH_PATTERN_WILDCARD], t("workflow_node.deploy.form.shared_domain_match_pattern.placeholder")),
+      domainMatchPattern: z.enum(
+        [DOMAIN_MATCH_PATTERN_EXACT, DOMAIN_MATCH_PATTERN_WILDCARD],
+        t("workflow_node.deploy.form.shared_domain_match_pattern.placeholder")
+      ),
       domain: z.string().nullish(),
     })
     .superRefine((values, ctx) => {
-      if (values.matchPattern) {
-        switch (values.matchPattern) {
-          case MATCH_PATTERN_EXACT:
-          case MATCH_PATTERN_WILDCARD:
+      if (values.domainMatchPattern) {
+        switch (values.domainMatchPattern) {
+          case DOMAIN_MATCH_PATTERN_EXACT:
+          case DOMAIN_MATCH_PATTERN_WILDCARD:
             {
               if (!validDomainName(values.domain!, { allowWildcard: true })) {
                 ctx.addIssue({

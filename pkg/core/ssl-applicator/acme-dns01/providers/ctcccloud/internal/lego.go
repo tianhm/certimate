@@ -3,6 +3,7 @@ package internal
 import (
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/go-acme/lego/v4/challenge"
@@ -40,6 +41,9 @@ type Config struct {
 type DNSProvider struct {
 	client *ctyundns.Client
 	config *Config
+
+	recordIDs   map[string]int32
+	recordIDsMu sync.Mutex
 }
 
 func NewDefaultConfig() *Config {
@@ -76,8 +80,10 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 	}
 
 	return &DNSProvider{
-		client: client,
-		config: config,
+		client:      client,
+		config:      config,
+		recordIDs:   make(map[string]int32),
+		recordIDsMu: sync.Mutex{},
 	}, nil
 }
 
@@ -94,9 +100,24 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		return fmt.Errorf("ctyun: %w", err)
 	}
 
-	if err := d.addOrUpdateDNSRecord(dns01.UnFqdn(authZone), subDomain, info.Value); err != nil {
-		return fmt.Errorf("ctyun: %w", err)
+	// REF: https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=122&api=11259&data=181&isNormal=1&vid=259
+	ctyunAddRecordReq := &ctyundns.AddRecordRequest{
+		Domain:   lo.ToPtr(dns01.UnFqdn(authZone)),
+		Host:     lo.ToPtr(subDomain),
+		Type:     lo.ToPtr("TXT"),
+		LineCode: lo.ToPtr("Default"),
+		Value:    lo.ToPtr(info.Value),
+		State:    lo.ToPtr(int32(1)),
+		TTL:      lo.ToPtr(int32(d.config.TTL)),
 	}
+	ctyunAddRecordResp, err := d.client.AddRecord(ctyunAddRecordReq)
+	if err != nil {
+		return fmt.Errorf("ctyun: error when create record: %w", err)
+	}
+
+	d.recordIDsMu.Lock()
+	d.recordIDs[token] = ctyunAddRecordResp.ReturnObj.RecordId
+	d.recordIDsMu.Unlock()
 
 	return nil
 }
@@ -104,18 +125,19 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
-	if err != nil {
-		return fmt.Errorf("ctyun: could not find zone for domain %q: %w", domain, err)
+	d.recordIDsMu.Lock()
+	recordID, ok := d.recordIDs[token]
+	d.recordIDsMu.Unlock()
+	if !ok {
+		return fmt.Errorf("tencentcloud-eo: unknown record ID for '%s'", info.EffectiveFQDN)
 	}
 
-	subDomain, err := dns01.ExtractSubDomain(info.EffectiveFQDN, authZone)
-	if err != nil {
-		return fmt.Errorf("ctyun: %w", err)
+	// REF: https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=122&api=11262&data=181&isNormal=1&vid=259
+	ctyunDeleteRecordReq := &ctyundns.DeleteRecordRequest{
+		RecordId: lo.ToPtr(recordID),
 	}
-
-	if err := d.removeDNSRecord(dns01.UnFqdn(authZone), subDomain); err != nil {
-		return fmt.Errorf("ctyun: %w", err)
+	if _, err := d.client.DeleteRecord(ctyunDeleteRecordReq); err != nil {
+		return fmt.Errorf("ctyun: error when delete record: %w", err)
 	}
 
 	return nil
@@ -123,81 +145,4 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 	return d.config.PropagationTimeout, d.config.PollingInterval
-}
-
-func (d *DNSProvider) findDNSRecordId(zoneName, subDomain string) (int32, error) {
-	// 查询解析记录列表
-	// REF: https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=122&api=11264&data=181&isNormal=1&vid=259
-	request := &ctyundns.QueryRecordListRequest{}
-	request.Domain = lo.ToPtr(zoneName)
-	request.Host = lo.ToPtr(subDomain)
-	request.Type = lo.ToPtr("TXT")
-
-	response, err := d.client.QueryRecordList(request)
-	if err != nil {
-		return 0, err
-	}
-
-	if response.ReturnObj == nil || response.ReturnObj.Records == nil || len(response.ReturnObj.Records) == 0 {
-		return 0, nil
-	}
-
-	return response.ReturnObj.Records[0].RecordId, nil
-}
-
-func (d *DNSProvider) addOrUpdateDNSRecord(zoneName, subDomain, value string) error {
-	recordId, err := d.findDNSRecordId(zoneName, subDomain)
-	if err != nil {
-		return err
-	}
-
-	if recordId == 0 {
-		// 新增解析记录
-		// REF: https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=122&api=11259&data=181&isNormal=1&vid=259
-		request := &ctyundns.AddRecordRequest{
-			Domain:   lo.ToPtr(zoneName),
-			Host:     lo.ToPtr(subDomain),
-			Type:     lo.ToPtr("TXT"),
-			LineCode: lo.ToPtr("Default"),
-			Value:    lo.ToPtr(value),
-			State:    lo.ToPtr(int32(1)),
-			TTL:      lo.ToPtr(int32(d.config.TTL)),
-		}
-		_, err := d.client.AddRecord(request)
-		return err
-	} else {
-		// 修改解析记录
-		// REF: https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=122&api=11261&data=181&isNormal=1&vid=259
-		request := &ctyundns.UpdateRecordRequest{
-			RecordId: lo.ToPtr(recordId),
-			Domain:   lo.ToPtr(zoneName),
-			Host:     lo.ToPtr(subDomain),
-			Type:     lo.ToPtr("TXT"),
-			LineCode: lo.ToPtr("Default"),
-			Value:    lo.ToPtr(value),
-			State:    lo.ToPtr(int32(1)),
-			TTL:      lo.ToPtr(int32(d.config.TTL)),
-		}
-		_, err := d.client.UpdateRecord(request)
-		return err
-	}
-}
-
-func (d *DNSProvider) removeDNSRecord(zoneName, subDomain string) error {
-	recordId, err := d.findDNSRecordId(zoneName, subDomain)
-	if err != nil {
-		return err
-	}
-
-	if recordId == 0 {
-		return nil
-	} else {
-		// 删除解析记录
-		// REF: https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=122&api=11262&data=181&isNormal=1&vid=259
-		request := &ctyundns.DeleteRecordRequest{
-			RecordId: lo.ToPtr(recordId),
-		}
-		_, err = d.client.DeleteRecord(request)
-		return err
-	}
 }

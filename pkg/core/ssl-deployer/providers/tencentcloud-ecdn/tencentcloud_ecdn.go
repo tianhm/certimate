@@ -26,8 +26,8 @@ type SSLDeployerProviderConfig struct {
 	// 腾讯云接口端点。
 	Endpoint string `json:"endpoint,omitempty"`
 	// 域名匹配模式。
-	// 零值时默认值 [MATCH_PATTERN_EXACT]。
-	MatchPattern string `json:"matchPattern,omitempty"`
+	// 零值时默认值 [DOMAIN_MATCH_PATTERN_EXACT]。
+	DomainMatchPattern string `json:"domainMatchPattern,omitempty"`
 	// 加速域名（支持泛域名）。
 	Domain string `json:"domain"`
 }
@@ -91,8 +91,8 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 
 	// 获取待部署的 ECDN 实例
 	domains := make([]string, 0)
-	switch d.config.MatchPattern {
-	case "", MATCH_PATTERN_EXACT:
+	switch d.config.DomainMatchPattern {
+	case "", DOMAIN_MATCH_PATTERN_EXACT:
 		{
 			if d.config.Domain == "" {
 				return nil, errors.New("config `domain` is required")
@@ -101,7 +101,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			domains = append(domains, d.config.Domain)
 		}
 
-	case MATCH_PATTERN_WILDCARD:
+	case DOMAIN_MATCH_PATTERN_WILDCARD:
 		{
 			if d.config.Domain == "" {
 				return nil, errors.New("config `domain` is required")
@@ -119,7 +119,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			}
 		}
 
-	case MATCH_PATTERN_CERTSAN:
+	case DOMAIN_MATCH_PATTERN_CERTSAN:
 		{
 			temp, err := d.getMatchedDomainsByCertId(ctx, upres.CertId)
 			if err != nil {
@@ -130,7 +130,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		}
 
 	default:
-		return nil, fmt.Errorf("unsupported match pattern: '%s'", d.config.MatchPattern)
+		return nil, fmt.Errorf("unsupported match pattern: '%s'", d.config.DomainMatchPattern)
 	}
 
 	// 遍历更新域名证书

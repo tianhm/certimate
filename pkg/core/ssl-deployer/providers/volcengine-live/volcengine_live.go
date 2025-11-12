@@ -21,8 +21,8 @@ type SSLDeployerProviderConfig struct {
 	// 火山引擎 AccessKeySecret。
 	AccessKeySecret string `json:"accessKeySecret"`
 	// 域名匹配模式。
-	// 零值时默认值 [MATCH_PATTERN_EXACT]。
-	MatchPattern string `json:"matchPattern,omitempty"`
+	// 零值时默认值 [DOMAIN_MATCH_PATTERN_EXACT]。
+	DomainMatchPattern string `json:"domainMatchPattern,omitempty"`
 	// 直播流域名（支持泛域名）。
 	Domain string `json:"domain"`
 }
@@ -82,8 +82,8 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 
 	// 获取待部署的直播实例
 	domains := make([]string, 0)
-	switch d.config.MatchPattern {
-	case "", MATCH_PATTERN_EXACT:
+	switch d.config.DomainMatchPattern {
+	case "", DOMAIN_MATCH_PATTERN_EXACT:
 		{
 			if d.config.Domain == "" {
 				return nil, errors.New("config `domain` is required")
@@ -92,7 +92,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			domains = append(domains, d.config.Domain)
 		}
 
-	case MATCH_PATTERN_WILDCARD:
+	case DOMAIN_MATCH_PATTERN_WILDCARD:
 		{
 			if d.config.Domain == "" {
 				return nil, errors.New("config `domain` is required")
@@ -111,7 +111,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		}
 
 	default:
-		return nil, fmt.Errorf("unsupported match pattern: '%s'", d.config.MatchPattern)
+		return nil, fmt.Errorf("unsupported match pattern: '%s'", d.config.DomainMatchPattern)
 	}
 
 	// 遍历绑定证书

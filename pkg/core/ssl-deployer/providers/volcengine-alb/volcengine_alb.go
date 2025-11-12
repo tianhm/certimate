@@ -12,6 +12,7 @@ import (
 	vesession "github.com/volcengine/volcengine-go-sdk/volcengine/session"
 
 	"github.com/certimate-go/certimate/pkg/core"
+	"github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/volcengine-alb/internal"
 	sslmgrsp "github.com/certimate-go/certimate/pkg/core/ssl-manager/providers/volcengine-certcenter"
 )
 
@@ -38,7 +39,7 @@ type SSLDeployerProviderConfig struct {
 type SSLDeployerProvider struct {
 	config     *SSLDeployerProviderConfig
 	logger     *slog.Logger
-	sdkClient  vealb.ALBAPI
+	sdkClient  *internal.AlbClient
 	sslManager core.SSLManager
 }
 
@@ -259,7 +260,7 @@ func (d *SSLDeployerProvider) updateListenerCertificate(ctx context.Context, clo
 	return nil
 }
 
-func createSDKClient(accessKeyId, accessKeySecret, region string) (vealb.ALBAPI, error) {
+func createSDKClient(accessKeyId, accessKeySecret, region string) (*internal.AlbClient, error) {
 	config := ve.NewConfig().
 		WithAkSk(accessKeyId, accessKeySecret).
 		WithRegion(region)
@@ -269,6 +270,6 @@ func createSDKClient(accessKeyId, accessKeySecret, region string) (vealb.ALBAPI,
 		return nil, err
 	}
 
-	client := vealb.New(session)
+	client := internal.NewAlbClient(session)
 	return client, nil
 }

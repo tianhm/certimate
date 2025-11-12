@@ -11,6 +11,7 @@ import (
 	vesession "github.com/volcengine/volcengine-go-sdk/volcengine/session"
 
 	"github.com/certimate-go/certimate/pkg/core"
+	"github.com/certimate-go/certimate/pkg/core/ssl-manager/providers/volcengine-certcenter/internal"
 )
 
 type SSLManagerProviderConfig struct {
@@ -25,7 +26,7 @@ type SSLManagerProviderConfig struct {
 type SSLManagerProvider struct {
 	config    *SSLManagerProviderConfig
 	logger    *slog.Logger
-	sdkClient vecs.CERTIFICATESERVICEAPI
+	sdkClient *internal.CertificateserviceClient
 }
 
 var _ core.SSLManager = (*SSLManagerProvider)(nil)
@@ -88,7 +89,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 	}, nil
 }
 
-func createSDKClient(accessKeyId, accessKeySecret, region string) (vecs.CERTIFICATESERVICEAPI, error) {
+func createSDKClient(accessKeyId, accessKeySecret, region string) (*internal.CertificateserviceClient, error) {
 	if region == "" {
 		region = "cn-beijing" // 证书中心默认区域：北京
 	}
@@ -102,6 +103,6 @@ func createSDKClient(accessKeyId, accessKeySecret, region string) (vecs.CERTIFIC
 		return nil, err
 	}
 
-	client := vecs.New(session)
+	client := internal.NewCertificateserviceClient(session)
 	return client, nil
 }

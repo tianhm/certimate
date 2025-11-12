@@ -21,6 +21,8 @@ func NewChallengeProvider(config *ChallengeProviderConfig) (core.ACMEChallenger,
 		return nil, errors.New("the configuration of the acme challenge provider is nil")
 	}
 
+	// 没有使用 github.com/go-acme/lego/v4/providers/dns/edgeone
+	// 因为该实现存在一些问题
 	providerConfig := internal.NewDefaultConfig()
 	providerConfig.SecretID = config.SecretId
 	providerConfig.SecretKey = config.SecretKey

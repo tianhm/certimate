@@ -3,7 +3,7 @@
 import (
 	"context"
 
-	alicdn "github.com/alibabacloud-go/cdn-20180510/v8/client"
+	alicdn "github.com/alibabacloud-go/cdn-20180510/v9/client"
 	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	openapiutil "github.com/alibabacloud-go/darabonba-openapi/v2/utils"
 	"github.com/alibabacloud-go/tea/dara"

@@ -11,8 +11,10 @@ import (
 	"github.com/certimate-go/certimate/pkg/core"
 	jdcore "github.com/jdcloud-api/jdcloud-sdk-go/core"
 	jdvod "github.com/jdcloud-api/jdcloud-sdk-go/services/vod/apis"
+	"github.com/samber/lo"
 
 	"github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/jdcloud-vod/internal"
+	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
 )
 
 type SSLDeployerProviderConfig struct {
@@ -20,6 +22,9 @@ type SSLDeployerProviderConfig struct {
 	AccessKeyId string `json:"accessKeyId"`
 	// 京东云 AccessKeySecret。
 	AccessKeySecret string `json:"accessKeySecret"`
+	// 域名匹配模式。
+	// 零值时默认值 [DOMAIN_MATCH_PATTERN_EXACT]。
+	DomainMatchPattern string `json:"domainMatchPattern,omitempty"`
 	// 点播加速域名（不支持泛域名）。
 	Domain string `json:"domain"`
 }
@@ -58,10 +63,115 @@ func (d *SSLDeployerProvider) SetLogger(logger *slog.Logger) {
 }
 
 func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privkeyPEM string) (*core.SSLDeployResult, error) {
+	// 获取待部署的域名列表
+	var domains []string
+	switch d.config.DomainMatchPattern {
+	case "", DOMAIN_MATCH_PATTERN_EXACT:
+		{
+			if d.config.Domain == "" {
+				return nil, errors.New("config `domain` is required")
+			}
+
+			domains = []string{d.config.Domain}
+		}
+
+	case DOMAIN_MATCH_PATTERN_CERTSAN:
+		{
+			certX509, err := xcert.ParseCertificateFromPEM(certPEM)
+			if err != nil {
+				return nil, err
+			}
+
+			domainCandidates, err := d.getAllDomains(ctx)
+			if err != nil {
+				return nil, err
+			}
+
+			domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
+				return certX509.VerifyHostname(domain) == nil
+			})
+			if len(domains) == 0 {
+				return nil, errors.New("could not find any domains matched by certificate")
+			}
+		}
+
+	default:
+		return nil, fmt.Errorf("unsupported domain match pattern: '%s'", d.config.DomainMatchPattern)
+	}
+
+	// 遍历更新域名证书
+	if len(domains) == 0 {
+		d.logger.Info("no vod domains to deploy")
+	} else {
+		d.logger.Info("found vod domains to deploy", slog.Any("domains", domains))
+		var errs []error
+
+		for _, domain := range domains {
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			default:
+				if err := d.updateDomainCertificate(ctx, domain, certPEM, privkeyPEM); err != nil {
+					errs = append(errs, err)
+				}
+			}
+		}
+
+		if len(errs) > 0 {
+			return nil, errors.Join(errs...)
+		}
+	}
+
+	return &core.SSLDeployResult{}, nil
+}
+
+func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, error) {
+	domains := make([]string, 0)
+
+	// 查询域名列表
+	// REF: https://docs.jdcloud.com/cn/video-on-demand/api/listdomains
+	listPageNumber := 1
+	listDomainsPageSize := 100
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+
+		listDomainsReq := jdvod.NewListDomainsRequestWithoutParam()
+		listDomainsReq.SetPageNumber(listPageNumber)
+		listDomainsReq.SetPageSize(listDomainsPageSize)
+		listDomainsResp, err := d.sdkClient.ListDomains(listDomainsReq)
+		d.logger.Debug("sdk request 'vod.ListDomains'", slog.Any("request", listDomainsReq), slog.Any("response", listDomainsResp))
+		if err != nil {
+			return nil, fmt.Errorf("failed to execute sdk request 'vod.ListDomains': %w", err)
+		}
+
+		ignoredStatuses := []string{"init", "stopped"}
+		for _, domainItem := range listDomainsResp.Result.Content {
+			if lo.Contains(ignoredStatuses, domainItem.Status) {
+				continue
+			}
+
+			domains = append(domains, domainItem.Name)
+		}
+
+		if len(listDomainsResp.Result.Content) < listDomainsPageSize {
+			break
+		}
+
+		listPageNumber++
+	}
+
+	return domains, nil
+}
+
+func (d *SSLDeployerProvider) updateDomainCertificate(ctx context.Context, domain string, certPEM, privkeyPEM string) error {
 	// 获取域名 ID
-	domainId, err := d.findDomainIdByDomain(ctx, d.config.Domain)
+	domainId, err := d.findDomainIdByDomain(ctx, domain)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// 查询域名 SSL 配置
@@ -71,7 +181,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	getHttpSslResp, err := d.sdkClient.GetHttpSsl(getHttpSslReq)
 	d.logger.Debug("sdk request 'vod.GetHttpSsl'", slog.Any("request", getHttpSslReq), slog.Any("response", getHttpSslResp))
 	if err != nil {
-		return nil, fmt.Errorf("failed to execute sdk request 'vod.GetHttpSsl': %w", err)
+		return fmt.Errorf("failed to execute sdk request 'vod.GetHttpSsl': %w", err)
 	}
 
 	// 设置域名 SSL 配置
@@ -87,10 +197,10 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	setHttpSslResp, err := d.sdkClient.SetHttpSsl(setHttpSslReq)
 	d.logger.Debug("sdk request 'vod.SetHttpSsl'", slog.Any("request", setHttpSslReq), slog.Any("response", setHttpSslResp))
 	if err != nil {
-		return nil, fmt.Errorf("failed to execute sdk request 'vod.SetHttpSsl': %w", err)
+		return fmt.Errorf("failed to execute sdk request 'vod.SetHttpSsl': %w", err)
 	}
 
-	return &core.SSLDeployResult{}, nil
+	return nil
 }
 
 func (d *SSLDeployerProvider) findDomainIdByDomain(ctx context.Context, domain string) (int, error) {

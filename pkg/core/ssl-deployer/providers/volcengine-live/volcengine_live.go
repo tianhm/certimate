@@ -110,7 +110,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 					return xcerthostname.IsMatch(d.config.Domain, domain)
 				})
 				if len(domains) == 0 {
-					return nil, errors.New("no domains matched by wildcard")
+					return nil, errors.New("could not find any domains matched by wildcard")
 				}
 			} else {
 				domains = append(domains, d.config.Domain)
@@ -133,7 +133,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 				return certX509.VerifyHostname(domain) == nil
 			})
 			if len(domains) == 0 {
-				return nil, errors.New("no domains matched by certificate")
+				return nil, errors.New("could not find any domains matched by certificate")
 			}
 		}
 

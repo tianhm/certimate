@@ -195,7 +195,7 @@ func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, w
 	}
 
 	if len(domains) == 0 {
-		return nil, errors.New("no domains matched by wildcard")
+		return nil, errors.New("could not find any domains matched by wildcard")
 	}
 
 	return domains, nil
@@ -229,7 +229,7 @@ func (d *SSLDeployerProvider) getMatchedDomainsByCertId(ctx context.Context, clo
 
 	if len(domains) == 0 {
 		if len(describeCertConfigResp.SpecifiedCertConfig) == 0 {
-			return nil, errors.New("no domains matched by certificate")
+			return nil, errors.New("could not find any domains matched by certificate")
 		}
 	}
 

@@ -17,10 +17,11 @@ func init() {
 		}
 
 		provider, err := ksyuncdn.NewSSLDeployerProvider(&ksyuncdn.SSLDeployerProviderConfig{
-			AccessKeyId:     credentials.AccessKeyId,
-			SecretAccessKey: credentials.SecretAccessKey,
-			Domain:          xmaps.GetString(options.ProviderExtendedConfig, "domain"),
-			CertificateId:   xmaps.GetString(options.ProviderExtendedConfig, "certificateId"),
+			AccessKeyId:        credentials.AccessKeyId,
+			SecretAccessKey:    credentials.SecretAccessKey,
+			DomainMatchPattern: xmaps.GetString(options.ProviderExtendedConfig, "domainMatchPattern"),
+			Domain:             xmaps.GetString(options.ProviderExtendedConfig, "domain"),
+			CertificateId:      xmaps.GetString(options.ProviderExtendedConfig, "certificateId"),
 		})
 		return provider, err
 	})

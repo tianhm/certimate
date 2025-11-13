@@ -123,7 +123,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 					return xcerthostname.IsMatch(d.config.Domain, domain)
 				})
 				if len(domains) == 0 {
-					return nil, errors.New("no domains matched by wildcard")
+					return nil, errors.New("could not find any domains matched by wildcard")
 				}
 			} else {
 				domains = []string{d.config.Domain}
@@ -146,7 +146,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 				return certX509.VerifyHostname(domain) == nil
 			})
 			if len(domains) == 0 {
-				return nil, errors.New("no domains matched by certificate")
+				return nil, errors.New("could not find any domains matched by certificate")
 			}
 		}
 
@@ -206,9 +206,9 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 		}
 
 		if listDomainsResp.Domains != nil {
+			ignoredStatuses := []string{"offline", "checking", "check_failed", "deleting"}
 			for _, domainInfo := range *listDomainsResp.Domains {
-				status := lo.FromPtr(domainInfo.DomainStatus)
-				if status == "offline" || status == "checking" || status == "check_failed" || status == "deleting" {
+				if lo.Contains(ignoredStatuses, lo.FromPtr(domainInfo.DomainStatus)) {
 					continue
 				}
 

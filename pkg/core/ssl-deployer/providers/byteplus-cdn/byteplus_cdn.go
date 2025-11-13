@@ -220,7 +220,7 @@ func (d *SSLDeployerProvider) getMatchedDomainsByCertId(ctx context.Context, clo
 
 	if len(domains) == 0 {
 		if len(describeCertConfigResp.Result.SpecifiedCertConfig) == 0 {
-			return nil, errors.New("no domains matched by certificate")
+			return nil, errors.New("could not find any domains matched by certificate")
 		}
 	}
 

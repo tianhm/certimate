@@ -20,6 +20,9 @@ type SSLDeployerProviderConfig struct {
 	AccessKeyId string `json:"accessKeyId"`
 	// 金山云 SecretAccessKey。
 	SecretAccessKey string `json:"secretAccessKey"`
+	// 域名匹配模式。
+	// 零值时默认值 [DOMAIN_MATCH_PATTERN_EXACT]。
+	DomainMatchPattern string `json:"domainMatchPattern,omitempty"`
 	// 加速域名（支持泛域名）。
 	Domain string `json:"domain"`
 	// 证书 ID。
@@ -63,108 +66,136 @@ func (d *SSLDeployerProvider) SetLogger(logger *slog.Logger) {
 func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privkeyPEM string) (*core.SSLDeployResult, error) {
 	// 如果原证书 ID 为空，则创建证书；否则更新证书。
 	if d.config.CertificateId == "" {
-		if d.config.Domain == "" {
-			return nil, errors.New("config `domain` is required")
-		}
-
-		// 遍历查询域名列表，获取域名 ID
-		// https://docs.ksyun.com/documents/198
-		var domainId string
-		getCdnDomainsPageNumber := int32(1)
-		getCdnDomainsPageSize := int32(100)
-		for {
-			select {
-			case <-ctx.Done():
-				return nil, ctx.Err()
-			default:
-			}
-
-			getCdnDomainsInput := map[string]any{
-				"PageNumber": getCdnDomainsPageNumber,
-				"PageSize":   getCdnDomainsPageSize,
-				"DomainName": d.config.Domain,
-				"FuzzyMatch": "off",
-			}
-			getCdnDomainsReq, getCdnDomainsOutput := d.sdkClient.GetCdnDomainsPostRequest(&getCdnDomainsInput)
-			getCdnDomainsErr := getCdnDomainsReq.Send()
-			d.logger.Debug("sdk request 'cdn.GetCdnDomains'", slog.Any("request", getCdnDomainsInput), slog.Any("response", getCdnDomainsOutput))
-			if getCdnDomainsErr != nil {
-				return nil, fmt.Errorf("failed to execute sdk request 'cdn.GetCdnDomains': %w", getCdnDomainsErr)
-			}
-
-			type GetCdnDomainsResponse struct {
-				PageNumber int32 `json:"PageNumber"`
-				PageSize   int32 `json:"PageSize"`
-				TotalCount int32 `json:"TotalCount"`
-				Domains    []*struct {
-					DomainId     string `json:"DomainId"`
-					DomainName   string `json:"DomainName"`
-					Cname        string `json:"Cname"`
-					CdnType      string `json:"CdnType"`
-					CreatedTime  string `json:"CreatedTime"`
-					ModifiedTime string `json:"ModifiedTime"`
-					Region       string `json:"Region"`
-				} `json:"Domains"`
-			}
-			var getCdnDomainsResp *GetCdnDomainsResponse
-			mapstructure.Decode(getCdnDomainsOutput, &getCdnDomainsResp)
-
-			if getCdnDomainsResp != nil {
-				for _, domainItem := range getCdnDomainsResp.Domains {
-					if strings.EqualFold(domainItem.DomainName, d.config.Domain) {
-						domainId = domainItem.DomainId
-						break
-					}
-				}
-
-				if domainId != "" {
-					break
-				}
-			}
-
-			if getCdnDomainsResp == nil || len(getCdnDomainsResp.Domains) < int(getCdnDomainsPageSize) {
-				break
-			} else {
-				getCdnDomainsPageNumber++
-			}
-		}
-		if domainId == "" {
-			return nil, errors.New("domain not found")
-		}
-
-		// 为加速域名配置证书接口
-		// https://docs.ksyun.com/documents/261
-		configCertificateInput := map[string]any{
-			"Enable":            "on",
-			"DomainIds":         domainId,
-			"CertificateName":   fmt.Sprintf("certimate_%d", time.Now().UnixMilli()),
-			"ServerCertificate": certPEM,
-			"PrivateKey":        privkeyPEM,
-		}
-		configCertificateReq, configCertificateOutput := d.sdkClient.ConfigCertificatePostRequest(&configCertificateInput)
-		configCertificateErr := configCertificateReq.Send()
-		d.logger.Debug("sdk request 'cdn.ConfigCertificate'", slog.Any("request", configCertificateInput), slog.Any("response", configCertificateOutput))
-		if configCertificateErr != nil {
-			return nil, fmt.Errorf("failed to execute sdk request 'cdn.ConfigCertificate': %w", configCertificateErr)
+		if err := d.deployToDomain(ctx, certPEM, privkeyPEM); err != nil {
+			return nil, err
 		}
 	} else {
-		// 更新证书
-		// https://docs.ksyun.com/documents/259
-		setCertificateInput := map[string]any{
-			"CertificateId":     d.config.CertificateId,
-			"CertificateName":   fmt.Sprintf("certimate_%d", time.Now().UnixMilli()),
-			"ServerCertificate": certPEM,
-			"PrivateKey":        privkeyPEM,
-		}
-		setCertificateReq, setCertificateOutput := d.sdkClient.SetCertificatePostRequest(&setCertificateInput)
-		setCertificateErr := setCertificateReq.Send()
-		d.logger.Debug("sdk request 'cdn.SetCertificate'", slog.Any("request", setCertificateInput), slog.Any("response", setCertificateOutput))
-		if setCertificateErr != nil {
-			return nil, fmt.Errorf("failed to execute sdk request 'cdn.SetCertificate': %w", setCertificateErr)
+		if err := d.deployToCertificate(ctx, certPEM, privkeyPEM); err != nil {
+			return nil, err
 		}
 	}
 
 	return &core.SSLDeployResult{}, nil
+}
+
+func (d *SSLDeployerProvider) deployToDomain(ctx context.Context, certPEM string, privkeyPEM string) error {
+	if d.config.Domain == "" {
+		return errors.New("config `domain` is required")
+	}
+
+	// 遍历查询域名列表，获取域名 ID
+	// https://docs.ksyun.com/documents/198
+	var domainId string
+	getCdnDomainsPageNumber := int32(1)
+	getCdnDomainsPageSize := int32(100)
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+
+		getCdnDomainsInput := map[string]any{
+			"PageNumber": getCdnDomainsPageNumber,
+			"PageSize":   getCdnDomainsPageSize,
+			"DomainName": d.config.Domain,
+			"FuzzyMatch": "off",
+		}
+		getCdnDomainsReq, getCdnDomainsOutput := d.sdkClient.GetCdnDomainsPostRequest(&getCdnDomainsInput)
+		getCdnDomainsErr := getCdnDomainsReq.Send()
+		d.logger.Debug("sdk request 'cdn.GetCdnDomains'", slog.Any("request", getCdnDomainsInput), slog.Any("response", getCdnDomainsOutput))
+		if getCdnDomainsErr != nil {
+			return fmt.Errorf("failed to execute sdk request 'cdn.GetCdnDomains': %w", getCdnDomainsErr)
+		}
+
+		type GetCdnDomainsResponse struct {
+			PageNumber int32 `json:"PageNumber"`
+			PageSize   int32 `json:"PageSize"`
+			TotalCount int32 `json:"TotalCount"`
+			Domains    []*struct {
+				DomainId     string `json:"DomainId"`
+				DomainName   string `json:"DomainName"`
+				Cname        string `json:"Cname"`
+				CdnType      string `json:"CdnType"`
+				CreatedTime  string `json:"CreatedTime"`
+				ModifiedTime string `json:"ModifiedTime"`
+				Region       string `json:"Region"`
+			} `json:"Domains"`
+		}
+		var getCdnDomainsResp *GetCdnDomainsResponse
+		mapstructure.Decode(getCdnDomainsOutput, &getCdnDomainsResp)
+
+		if getCdnDomainsResp != nil {
+			for _, domainItem := range getCdnDomainsResp.Domains {
+				if strings.EqualFold(domainItem.DomainName, d.config.Domain) {
+					domainId = domainItem.DomainId
+					break
+				}
+			}
+
+			if domainId != "" {
+				break
+			}
+		}
+
+		if getCdnDomainsResp == nil || len(getCdnDomainsResp.Domains) < int(getCdnDomainsPageSize) {
+			break
+		} else {
+			getCdnDomainsPageNumber++
+		}
+	}
+	if domainId == "" {
+		return errors.New("domain not found")
+	}
+
+	if err := d.updateDomainCertificate(ctx, domainId, certPEM, privkeyPEM); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *SSLDeployerProvider) deployToCertificate(ctx context.Context, certPEM string, privkeyPEM string) error {
+	if d.config.CertificateId == "" {
+		return errors.New("config `certificateId` is required")
+	}
+
+	// 更新证书
+	// https://docs.ksyun.com/documents/259
+	setCertificateInput := map[string]any{
+		"CertificateId":     d.config.CertificateId,
+		"CertificateName":   fmt.Sprintf("certimate_%d", time.Now().UnixMilli()),
+		"ServerCertificate": certPEM,
+		"PrivateKey":        privkeyPEM,
+	}
+	setCertificateReq, setCertificateOutput := d.sdkClient.SetCertificatePostRequest(&setCertificateInput)
+	setCertificateErr := setCertificateReq.Send()
+	d.logger.Debug("sdk request 'cdn.SetCertificate'", slog.Any("request", setCertificateInput), slog.Any("response", setCertificateOutput))
+	if setCertificateErr != nil {
+		return fmt.Errorf("failed to execute sdk request 'cdn.SetCertificate': %w", setCertificateErr)
+	}
+
+	return nil
+}
+
+func (d *SSLDeployerProvider) updateDomainCertificate(ctx context.Context, domainId string, certPEM string, privkeyPEM string) error {
+	// 为加速域名配置证书接口
+	// https://docs.ksyun.com/documents/261
+	configCertificateInput := map[string]any{
+		"Enable":            "on",
+		"DomainIds":         domainId,
+		"CertificateName":   fmt.Sprintf("certimate_%d", time.Now().UnixMilli()),
+		"ServerCertificate": certPEM,
+		"PrivateKey":        privkeyPEM,
+	}
+	configCertificateReq, configCertificateOutput := d.sdkClient.ConfigCertificatePostRequest(&configCertificateInput)
+	configCertificateErr := configCertificateReq.Send()
+	d.logger.Debug("sdk request 'cdn.ConfigCertificate'", slog.Any("request", configCertificateInput), slog.Any("response", configCertificateOutput))
+	if configCertificateErr != nil {
+		return fmt.Errorf("failed to execute sdk request 'cdn.ConfigCertificate': %w", configCertificateErr)
+	}
+
+	return nil
 }
 
 func createSDKClient(accessKeyId, secretAccessKey string) (*ksccdnv1.Cdnv1, error) {

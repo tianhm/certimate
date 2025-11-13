@@ -144,7 +144,8 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			}
 
 			domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
-				return certX509.VerifyHostname(domain) == nil
+				return certX509.VerifyHostname(domain) == nil ||
+					strings.TrimPrefix(d.config.Domain, "*") == strings.TrimPrefix(domain, "*")
 			})
 			if len(domains) == 0 {
 				return nil, errors.New("could not find any domains matched by certificate")

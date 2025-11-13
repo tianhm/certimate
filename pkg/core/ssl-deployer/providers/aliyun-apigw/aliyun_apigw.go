@@ -205,7 +205,7 @@ func (d *SSLDeployerProvider) findCloudNativeDomainIdByDomain(ctx context.Contex
 		listDomainsReq := &aliapig.ListDomainsRequest{
 			ResourceGroupId: lo.EmptyableToPtr(d.config.ResourceGroupId),
 			GatewayId:       tea.String(d.config.GatewayId),
-			NameLike:        tea.String(d.config.Domain),
+			NameLike:        tea.String(domain),
 			PageNumber:      tea.Int32(int32(listDomainsPageNumber)),
 			PageSize:        tea.Int32(int32(listDomainsPageSize)),
 		}
@@ -220,7 +220,7 @@ func (d *SSLDeployerProvider) findCloudNativeDomainIdByDomain(ctx context.Contex
 		}
 
 		for _, domainItem := range listDomainsResp.Body.Data.Items {
-			if strings.EqualFold(tea.StringValue(domainItem.Name), d.config.Domain) {
+			if strings.EqualFold(tea.StringValue(domainItem.Name), domain) {
 				return tea.StringValue(domainItem.DomainId), nil
 			}
 		}

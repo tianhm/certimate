@@ -17,9 +17,10 @@ func init() {
 		}
 
 		provider, err := rainyunrcdn.NewSSLDeployerProvider(&rainyunrcdn.SSLDeployerProviderConfig{
-			ApiKey:     credentials.ApiKey,
-			InstanceId: xmaps.GetInt64(options.ProviderExtendedConfig, "instanceId"),
-			Domain:     xmaps.GetString(options.ProviderExtendedConfig, "domain"),
+			ApiKey:             credentials.ApiKey,
+			InstanceId:         xmaps.GetInt64(options.ProviderExtendedConfig, "instanceId"),
+			DomainMatchPattern: xmaps.GetString(options.ProviderExtendedConfig, "domainMatchPattern"),
+			Domain:             xmaps.GetString(options.ProviderExtendedConfig, "domain"),
 		})
 		return provider, err
 	})

@@ -71,10 +71,6 @@ func (d *SSLDeployerProvider) SetLogger(logger *slog.Logger) {
 }
 
 func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privkeyPEM string) (*core.SSLDeployResult, error) {
-	if len(d.config.Domains) == 0 {
-		return nil, errors.New("config `domains` is required")
-	}
-
 	// 上传证书
 	upres, err := d.sslManager.Upload(ctx, certPEM, privkeyPEM)
 	if err != nil {
@@ -83,15 +79,31 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
 	}
 
+	// 获取待部署的域名列表
+	domains := make([]string, 0)
+	switch d.config.DomainMatchPattern {
+	case "", DOMAIN_MATCH_PATTERN_EXACT:
+		{
+			if len(d.config.Domains) == 0 {
+				return nil, errors.New("config `domains` is required")
+			}
+
+			// "*.example.com" → ".example.com"，适配网宿云 CDN 要求的泛域名格式
+			domains = lo.Map(d.config.Domains, func(domain string, _ int) string {
+				return strings.TrimPrefix(domain, "*")
+			})
+		}
+
+	default:
+		return nil, fmt.Errorf("unsupported domain match pattern: '%s'", d.config.DomainMatchPattern)
+	}
+
 	// 批量修改域名证书配置
 	// REF: https://www.wangsu.com/document/api-doc/37447
 	certId, _ := strconv.ParseInt(upres.CertId, 10, 64)
 	batchUpdateCertificateConfigReq := &wangsusdk.BatchUpdateCertificateConfigRequest{
 		CertificateId: certId,
-		DomainNames: lo.Map(d.config.Domains, func(domain string, _ int) string {
-			// "*.example.com" → ".example.com"，适配网宿云 CDN 要求的泛域名格式
-			return strings.TrimPrefix(domain, "*")
-		}),
+		DomainNames:   domains,
 	}
 	batchUpdateCertificateConfigResp, err := d.sdkClient.BatchUpdateCertificateConfig(batchUpdateCertificateConfigReq)
 	d.logger.Debug("sdk request 'cdn.BatchUpdateCertificateConfig'", slog.Any("request", batchUpdateCertificateConfigReq), slog.Any("response", batchUpdateCertificateConfigResp))

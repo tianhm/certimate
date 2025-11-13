@@ -215,7 +215,7 @@ func (d *SSLDeployerProvider) updateDomainCertificate(ctx context.Context, domai
 	// 查询域名配置信息
 	// REF: https://docs.jdcloud.com/cn/cdn/api/querydomainconfig
 	queryDomainConfigReq := jdcdn.NewQueryDomainConfigRequestWithoutParam()
-	queryDomainConfigReq.SetDomain(d.config.Domain)
+	queryDomainConfigReq.SetDomain(domain)
 	queryDomainConfigResp, err := d.sdkClient.QueryDomainConfig(queryDomainConfigReq)
 	d.logger.Debug("sdk request 'cdn.QueryDomainConfig'", slog.Any("request", queryDomainConfigReq), slog.Any("response", queryDomainConfigResp))
 	if err != nil {
@@ -225,7 +225,7 @@ func (d *SSLDeployerProvider) updateDomainCertificate(ctx context.Context, domai
 	// 设置通讯协议
 	// REF: https://docs.jdcloud.com/cn/cdn/api/sethttptype
 	setHttpTypeReq := jdcdn.NewSetHttpTypeRequestWithoutParam()
-	setHttpTypeReq.SetDomain(d.config.Domain)
+	setHttpTypeReq.SetDomain(domain)
 	setHttpTypeReq.SetHttpType("https")
 	setHttpTypeReq.SetCertFrom("ssl")
 	setHttpTypeReq.SetSslCertId(cloudCertId)

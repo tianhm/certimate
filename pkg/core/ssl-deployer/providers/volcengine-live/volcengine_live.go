@@ -7,11 +7,13 @@ import (
 	"log/slog"
 	"strings"
 
+	"github.com/samber/lo"
 	velive "github.com/volcengine/volc-sdk-golang/service/live/v20230101"
 	ve "github.com/volcengine/volcengine-go-sdk/volcengine"
 
 	"github.com/certimate-go/certimate/pkg/core"
 	sslmgrsp "github.com/certimate-go/certimate/pkg/core/ssl-manager/providers/volcengine-live"
+	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
 	xcerthostname "github.com/certimate-go/certimate/pkg/utils/cert/hostname"
 )
 
@@ -99,19 +101,44 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			}
 
 			if strings.HasPrefix(d.config.Domain, "*.") {
-				temp, err := d.getMatchedDomainsByWildcard(ctx, d.config.Domain)
+				domainCandidates, err := d.getAllDomains(ctx)
 				if err != nil {
 					return nil, err
 				}
 
-				domains = temp
+				domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
+					return xcerthostname.IsMatch(d.config.Domain, domain)
+				})
+				if len(domains) == 0 {
+					return nil, errors.New("could not find any domains matched by wildcard")
+				}
 			} else {
 				domains = append(domains, d.config.Domain)
 			}
 		}
 
+	case DOMAIN_MATCH_PATTERN_CERTSAN:
+		{
+			certX509, err := xcert.ParseCertificateFromPEM(certPEM)
+			if err != nil {
+				return nil, err
+			}
+
+			domainCandidates, err := d.getAllDomains(ctx)
+			if err != nil {
+				return nil, err
+			}
+
+			domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
+				return certX509.VerifyHostname(domain) == nil
+			})
+			if len(domains) == 0 {
+				return nil, errors.New("could not find any domains matched by certificate")
+			}
+		}
+
 	default:
-		return nil, fmt.Errorf("unsupported match pattern: '%s'", d.config.DomainMatchPattern)
+		return nil, fmt.Errorf("unsupported domain match pattern: '%s'", d.config.DomainMatchPattern)
 	}
 
 	// 遍历绑定证书
@@ -126,7 +153,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			case <-ctx.Done():
 				return nil, ctx.Err()
 			default:
-				if err := d.bindCert(ctx, domain, upres.CertId); err != nil {
+				if err := d.updateDomainCertificate(ctx, domain, upres.CertId); err != nil {
 					errs = append(errs, err)
 				}
 			}
@@ -140,13 +167,13 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	return &core.SSLDeployResult{}, nil
 }
 
-func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, wildcardDomain string) ([]string, error) {
+func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, error) {
 	domains := make([]string, 0)
 
-	// 遍历查询域名列表，获取匹配的域名
-	// REF: https://www.volcengine.com/docs/6469/1186277#%E6%9F%A5%E8%AF%A2%E5%9F%9F%E5%90%8D%E5%88%97%E8%A1%A8
-	listDomainDetailPageNum := int32(1)
-	listDomainDetailPageSize := int32(1000)
+	// 查询域名列表
+	// REF: https://www.volcengine.com/docs/6469/1126815
+	listDomainDetailPageNum := 1
+	listDomainDetailPageSize := 1000
 	for {
 		select {
 		case <-ctx.Done():
@@ -156,8 +183,8 @@ func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, w
 
 		listDomainDetailReq := &velive.ListDomainDetailBody{
 			DomainStatusList: ve.Int32Slice([]int32{0}),
-			PageNum:          listDomainDetailPageNum,
-			PageSize:         listDomainDetailPageSize,
+			PageNum:          int32(listDomainDetailPageNum),
+			PageSize:         int32(listDomainDetailPageSize),
 		}
 		listDomainDetailResp, err := d.sdkClient.ListDomainDetail(ctx, listDomainDetailReq)
 		d.logger.Debug("sdk request 'live.ListDomainDetail'", slog.Any("request", listDomainDetailReq), slog.Any("response", listDomainDetailResp))
@@ -165,31 +192,27 @@ func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, w
 			return nil, fmt.Errorf("failed to execute sdk request 'live.ListDomainDetail': %w", err)
 		}
 
-		if listDomainDetailResp.Result.DomainList != nil {
-			for _, domain := range listDomainDetailResp.Result.DomainList {
-				if xcerthostname.IsMatch(wildcardDomain, domain.Domain) {
-					domains = append(domains, domain.Domain)
-				}
-			}
-		}
-
-		if len(listDomainDetailResp.Result.DomainList) < int(listDomainDetailPageSize) {
+		if listDomainDetailResp.Result == nil {
 			break
-		} else {
-			listDomainDetailPageNum++
 		}
-	}
 
-	if len(domains) == 0 {
-		return nil, errors.New("domain not found")
+		for _, domainItem := range listDomainDetailResp.Result.DomainList {
+			domains = append(domains, domainItem.Domain)
+		}
+
+		if len(listDomainDetailResp.Result.DomainList) < listDomainDetailPageSize {
+			break
+		}
+
+		listDomainDetailPageNum++
 	}
 
 	return domains, nil
 }
 
-func (d *SSLDeployerProvider) bindCert(ctx context.Context, domain string, cloudCertId string) error {
+func (d *SSLDeployerProvider) updateDomainCertificate(ctx context.Context, domain string, cloudCertId string) error {
 	// 绑定证书
-	// REF: https://www.volcengine.com/docs/6469/1186278#%E7%BB%91%E5%AE%9A%E8%AF%81%E4%B9%A6
+	// REF: https://www.volcengine.com/docs/6469/1126820
 	bindCertReq := &velive.BindCertBody{
 		ChainID: cloudCertId,
 		Domain:  domain,

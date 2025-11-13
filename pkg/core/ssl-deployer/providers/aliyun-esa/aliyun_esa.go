@@ -103,7 +103,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		CasId:  tea.Int64(certId),
 		Region: tea.String(d.config.Region),
 	}
-	setCertificateResp, err := d.sdkClient.SetCertificateWithContext(context.TODO(), setCertificateReq, &dara.RuntimeOptions{})
+	setCertificateResp, err := d.sdkClient.SetCertificateWithContext(ctx, setCertificateReq, &dara.RuntimeOptions{})
 	d.logger.Debug("sdk request 'esa.SetCertificate'", slog.Any("request", setCertificateReq), slog.Any("response", setCertificateResp))
 	if err != nil {
 		var sdkError *tea.SDKError

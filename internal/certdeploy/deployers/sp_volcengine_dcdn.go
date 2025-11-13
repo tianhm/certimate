@@ -17,9 +17,10 @@ func init() {
 		}
 
 		provider, err := volcenginedcdn.NewSSLDeployerProvider(&volcenginedcdn.SSLDeployerProviderConfig{
-			AccessKeyId:     credentials.AccessKeyId,
-			AccessKeySecret: credentials.SecretAccessKey,
-			Domain:          xmaps.GetString(options.ProviderExtendedConfig, "domain"),
+			AccessKeyId:        credentials.AccessKeyId,
+			AccessKeySecret:    credentials.SecretAccessKey,
+			DomainMatchPattern: xmaps.GetString(options.ProviderExtendedConfig, "domainMatchPattern"),
+			Domain:             xmaps.GetString(options.ProviderExtendedConfig, "domain"),
 		})
 		return provider, err
 	})

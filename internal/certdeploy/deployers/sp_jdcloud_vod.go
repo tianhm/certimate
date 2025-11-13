@@ -17,9 +17,10 @@ func init() {
 		}
 
 		provider, err := jdcloudvod.NewSSLDeployerProvider(&jdcloudvod.SSLDeployerProviderConfig{
-			AccessKeyId:     credentials.AccessKeyId,
-			AccessKeySecret: credentials.AccessKeySecret,
-			Domain:          xmaps.GetString(options.ProviderExtendedConfig, "domain"),
+			AccessKeyId:        credentials.AccessKeyId,
+			AccessKeySecret:    credentials.AccessKeySecret,
+			DomainMatchPattern: xmaps.GetString(options.ProviderExtendedConfig, "domainMatchPattern"),
+			Domain:             xmaps.GetString(options.ProviderExtendedConfig, "domain"),
 		})
 		return provider, err
 	})

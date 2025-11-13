@@ -17,11 +17,12 @@ func init() {
 		}
 
 		provider, err := tencentcloudscf.NewSSLDeployerProvider(&tencentcloudscf.SSLDeployerProviderConfig{
-			SecretId:  credentials.SecretId,
-			SecretKey: credentials.SecretKey,
-			Endpoint:  xmaps.GetString(options.ProviderExtendedConfig, "endpoint"),
-			Region:    xmaps.GetString(options.ProviderExtendedConfig, "region"),
-			Domain:    xmaps.GetString(options.ProviderExtendedConfig, "domain"),
+			SecretId:           credentials.SecretId,
+			SecretKey:          credentials.SecretKey,
+			Endpoint:           xmaps.GetString(options.ProviderExtendedConfig, "endpoint"),
+			Region:             xmaps.GetString(options.ProviderExtendedConfig, "region"),
+			DomainMatchPattern: xmaps.GetString(options.ProviderExtendedConfig, "domainMatchPattern"),
+			Domain:             xmaps.GetString(options.ProviderExtendedConfig, "domain"),
 		})
 		return provider, err
 	})

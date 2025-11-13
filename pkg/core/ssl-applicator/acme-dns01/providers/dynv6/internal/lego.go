@@ -137,5 +137,5 @@ func (d *DNSProvider) findDNSRecord(zoneName, subDomain, tokenValue string) (lib
 		}
 	}
 
-	return nil, errors.New("record not found")
+	return nil, errors.New("could not find record")
 }

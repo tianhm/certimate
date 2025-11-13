@@ -74,48 +74,10 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		return nil, fmt.Errorf("failed to execute sdk request 'bt.PanelGetConfig': %w", err)
 	}
 
-	// 遍历查询网站列表，获取网站 ID
-	var siteId int32
-	datalistGetDataListPage := int32(1)
-	datalistGetDataListLimit := int32(10)
-	for {
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		default:
-		}
-
-		datalistGetDataListReq := &btsdk.DatalistGetDataListRequest{
-			Table:        lo.ToPtr("sites"),
-			SearchString: lo.ToPtr(d.config.SiteName),
-			Page:         lo.ToPtr(datalistGetDataListPage),
-			Limit:        lo.ToPtr(datalistGetDataListLimit),
-		}
-		datalistGetDataListResp, err := d.sdkClient.DatalistGetDataList(datalistGetDataListReq)
-		d.logger.Debug("sdk request 'bt.DatalistGetDataList'", slog.Any("request", datalistGetDataListReq), slog.Any("response", datalistGetDataListResp))
-		if err != nil {
-			return nil, fmt.Errorf("failed to execute sdk request 'bt.DatalistGetDataList': %w", err)
-		}
-
-		for _, siteInfo := range datalistGetDataListResp.Data {
-			if strings.EqualFold(siteInfo.Name, d.config.SiteName) {
-				siteId = siteInfo.Id
-				break
-			}
-		}
-
-		if siteId != 0 {
-			break
-		}
-
-		if len(datalistGetDataListResp.Data) < int(datalistGetDataListLimit) {
-			break
-		} else {
-			datalistGetDataListPage++
-		}
-	}
-	if siteId == 0 {
-		return nil, errors.New("website not found")
+	// 获取网站 ID
+	siteId, err := d.findSiteIdByName(ctx, d.config.SiteName)
+	if err != nil {
+		return nil, err
 	}
 
 	if panelGetConfigResp.Site != nil && strings.EqualFold(panelGetConfigResp.Site.WebServer, "iis") {
@@ -172,6 +134,45 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	}
 
 	return &core.SSLDeployResult{}, nil
+}
+
+func (d *SSLDeployerProvider) findSiteIdByName(ctx context.Context, siteName string) (int32, error) {
+	// 查询网站列表
+	datalistGetDataListPage := 1
+	datalistGetDataListLimit := 10
+	for {
+		select {
+		case <-ctx.Done():
+			return 0, ctx.Err()
+		default:
+		}
+
+		datalistGetDataListReq := &btsdk.DatalistGetDataListRequest{
+			Table:        lo.ToPtr("sites"),
+			SearchString: lo.ToPtr(d.config.SiteName),
+			Page:         lo.ToPtr(int32(datalistGetDataListPage)),
+			Limit:        lo.ToPtr(int32(datalistGetDataListLimit)),
+		}
+		datalistGetDataListResp, err := d.sdkClient.DatalistGetDataList(datalistGetDataListReq)
+		d.logger.Debug("sdk request 'bt.DatalistGetDataList'", slog.Any("request", datalistGetDataListReq), slog.Any("response", datalistGetDataListResp))
+		if err != nil {
+			return 0, fmt.Errorf("failed to execute sdk request 'bt.DatalistGetDataList': %w", err)
+		}
+
+		for _, siteItem := range datalistGetDataListResp.Data {
+			if strings.EqualFold(siteItem.Name, d.config.SiteName) {
+				return siteItem.Id, nil
+			}
+		}
+
+		if len(datalistGetDataListResp.Data) < datalistGetDataListLimit {
+			break
+		}
+
+		datalistGetDataListPage++
+	}
+
+	return 0, fmt.Errorf("could not find site '%s'", siteName)
 }
 
 func createSDKClient(serverUrl, apiKey string, skipTlsVerify bool) (*btsdk.Client, error) {

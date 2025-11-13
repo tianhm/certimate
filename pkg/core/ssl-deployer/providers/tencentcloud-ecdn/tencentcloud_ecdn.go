@@ -98,7 +98,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 				return nil, errors.New("config `domain` is required")
 			}
 
-			domains = append(domains, d.config.Domain)
+			domains = []string{d.config.Domain}
 		}
 
 	case DOMAIN_MATCH_PATTERN_WILDCARD:
@@ -108,29 +108,29 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			}
 
 			if strings.HasPrefix(d.config.Domain, "*.") {
-				temp, err := d.getMatchedDomainsByWildcard(ctx, d.config.Domain)
+				domainCandidates, err := d.getMatchedDomainsByWildcard(ctx, d.config.Domain)
 				if err != nil {
 					return nil, err
 				}
 
-				domains = temp
+				domains = domainCandidates
 			} else {
-				domains = append(domains, d.config.Domain)
+				domains = []string{d.config.Domain}
 			}
 		}
 
 	case DOMAIN_MATCH_PATTERN_CERTSAN:
 		{
-			temp, err := d.getMatchedDomainsByCertId(ctx, upres.CertId)
+			domainCandidates, err := d.getMatchedDomainsByCertId(ctx, upres.CertId)
 			if err != nil {
 				return nil, err
 			}
 
-			domains = temp
+			domains = domainCandidates
 		}
 
 	default:
-		return nil, fmt.Errorf("unsupported match pattern: '%s'", d.config.DomainMatchPattern)
+		return nil, fmt.Errorf("unsupported domain match pattern: '%s'", d.config.DomainMatchPattern)
 	}
 
 	// 遍历更新域名证书
@@ -145,7 +145,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			case <-ctx.Done():
 				return nil, ctx.Err()
 			default:
-				if err := d.updateDomainHttpsServerCert(ctx, domain, upres.CertId); err != nil {
+				if err := d.updateDomainCertificate(ctx, domain, upres.CertId); err != nil {
 					errs = append(errs, err)
 				}
 			}
@@ -162,10 +162,10 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, wildcardDomain string) ([]string, error) {
 	domains := make([]string, 0)
 
-	// 遍历查询域名基本信息，获取匹配的域名
+	// 查询域名基本信息，获取匹配的域名
 	// REF: https://cloud.tencent.com/document/api/228/41118
-	describeDomainsOffset := int64(0)
-	describeDomainsLimit := int64(100)
+	describeDomainsOffset := 0
+	describeDomainsLimit := 100
 	for {
 		select {
 		case <-ctx.Done():
@@ -181,27 +181,29 @@ func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, w
 				Fuzzy: common.BoolPtr(true),
 			},
 		}
-		describeDomainsReq.Offset = common.Int64Ptr(describeDomainsOffset)
-		describeDomainsReq.Limit = common.Int64Ptr(describeDomainsLimit)
+		describeDomainsReq.Offset = common.Int64Ptr(int64(describeDomainsOffset))
+		describeDomainsReq.Limit = common.Int64Ptr(int64(describeDomainsLimit))
 		describeDomainsResp, err := d.sdkClient.DescribeDomains(describeDomainsReq)
 		d.logger.Debug("sdk request 'cdn.DescribeDomains'", slog.Any("request", describeDomainsReq), slog.Any("response", describeDomainsResp))
 		if err != nil {
 			return nil, fmt.Errorf("failed to execute sdk request 'cdn.DescribeDomains': %w", err)
 		}
 
-		if describeDomainsResp.Response.Domains != nil {
-			for _, domain := range describeDomainsResp.Response.Domains {
-				if lo.FromPtr(domain.Product) == "ecdn" && xcerthostname.IsMatch(wildcardDomain, lo.FromPtr(domain.Domain)) {
-					domains = append(domains, *domain.Domain)
-				}
+		if describeDomainsResp.Response == nil {
+			break
+		}
+
+		for _, domainItem := range describeDomainsResp.Response.Domains {
+			if lo.FromPtr(domainItem.Product) == "ecdn" && xcerthostname.IsMatch(wildcardDomain, lo.FromPtr(domainItem.Domain)) {
+				domains = append(domains, *domainItem.Domain)
 			}
 		}
 
-		if len(describeDomainsResp.Response.Domains) < int(describeDomainsLimit) {
+		if len(describeDomainsResp.Response.Domains) < describeDomainsLimit {
 			break
-		} else {
-			describeDomainsOffset += describeDomainsLimit
 		}
+
+		describeDomainsOffset += describeDomainsLimit
 	}
 
 	return domains, nil
@@ -229,7 +231,7 @@ func (d *SSLDeployerProvider) getMatchedDomainsByCertId(ctx context.Context, clo
 	return domains, nil
 }
 
-func (d *SSLDeployerProvider) updateDomainHttpsServerCert(ctx context.Context, domain string, cloudCertId string) error {
+func (d *SSLDeployerProvider) updateDomainCertificate(ctx context.Context, domain string, cloudCertId string) error {
 	// 查询域名详细配置
 	// REF: https://cloud.tencent.com/document/api/228/41117
 	describeDomainsConfigReq := tccdn.NewDescribeDomainsConfigRequest()
@@ -246,7 +248,7 @@ func (d *SSLDeployerProvider) updateDomainHttpsServerCert(ctx context.Context, d
 	if err != nil {
 		return fmt.Errorf("failed to execute sdk request 'cdn.DescribeDomainsConfig': %w", err)
 	} else if len(describeDomainsConfigResp.Response.Domains) == 0 {
-		return fmt.Errorf("domain %s not found", domain)
+		return fmt.Errorf("could not find domain '%s'", domain)
 	}
 
 	domainConfig := describeDomainsConfigResp.Response.Domains[0]

@@ -13,15 +13,7 @@ type QueryDomainDetailRequest struct {
 type QueryDomainDetailResponse struct {
 	apiResponseBase
 
-	ReturnObj *struct {
-		Domain      string `json:"domain"`
-		ProductCode string `json:"product_code"`
-		Status      int32  `json:"status"`
-		AreaScope   int32  `json:"area_scope"`
-		Cname       string `json:"cname"`
-		HttpsSwitch int32  `json:"https_switch"`
-		CertName    string `json:"cert_name"`
-	} `json:"returnObj,omitempty"`
+	ReturnObj *DomainDetail `json:"returnObj,omitempty"`
 }
 
 func (c *Client) QueryDomainDetail(req *QueryDomainDetailRequest) (*QueryDomainDetailResponse, error) {

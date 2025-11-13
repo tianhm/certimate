@@ -59,8 +59,8 @@ func (m *SSLManagerProvider) SetLogger(logger *slog.Logger) {
 }
 
 func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkeyPEM string) (*core.SSLManageUploadResult, error) {
-	// 遍历证书列表，避免重复上传
-	if res, err := m.findCertIfExists(ctx, certPEM, privkeyPEM); err != nil {
+	// 避免重复上传
+	if res, err := m.tryFindCert(ctx, certPEM, privkeyPEM); err != nil {
 		return nil, err
 	} else if res != nil {
 		m.logger.Info("ssl certificate already exists")
@@ -106,20 +106,20 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 		panic("sdk client is not implemented")
 	}
 
-	// 遍历证书列表，获取刚刚上传证书 ID
-	if res, err := m.findCertIfExists(ctx, certPEM, privkeyPEM); err != nil {
+	// 获取刚刚上传证书 ID
+	if res, err := m.tryFindCert(ctx, certPEM, privkeyPEM); err != nil {
 		return nil, err
 	} else if res == nil {
-		return nil, fmt.Errorf("no ssl certificate found, may be upload failed")
+		return nil, fmt.Errorf("could not find ssl certificate, may be upload failed")
 	} else {
 		return res, nil
 	}
 }
 
-func (m *SSLManagerProvider) findCertIfExists(ctx context.Context, certPEM string, privkeyPEM string) (*core.SSLManageUploadResult, error) {
-	searchWebsiteSSLPageNumber := int32(1)
-	searchWebsiteSSLPageSize := int32(100)
-	searchWebsiteSSLItemsCount := int32(0)
+func (m *SSLManagerProvider) tryFindCert(ctx context.Context, certPEM string, privkeyPEM string) (*core.SSLManageUploadResult, error) {
+	searchWebsiteSSLPageNumber := 1
+	searchWebsiteSSLPageSize := 100
+	searchWebsiteSSLItemsCount := 0
 	for {
 		select {
 		case <-ctx.Done():
@@ -131,8 +131,8 @@ func (m *SSLManagerProvider) findCertIfExists(ctx context.Context, certPEM strin
 		case *onepanelsdk.Client:
 			{
 				searchWebsiteSSLReq := &onepanelsdk.SearchWebsiteSSLRequest{
-					Page:     searchWebsiteSSLPageNumber,
-					PageSize: searchWebsiteSSLPageSize,
+					Page:     int32(searchWebsiteSSLPageNumber),
+					PageSize: int32(searchWebsiteSSLPageSize),
 				}
 				searchWebsiteSSLResp, err := sdkClient.SearchWebsiteSSL(searchWebsiteSSLReq)
 				m.logger.Debug("sdk request '1panel.SearchWebsiteSSL'", slog.Any("request", searchWebsiteSSLReq), slog.Any("response", searchWebsiteSSLResp))
@@ -140,27 +140,29 @@ func (m *SSLManagerProvider) findCertIfExists(ctx context.Context, certPEM strin
 					return nil, fmt.Errorf("failed to execute sdk request '1panel.SearchWebsiteSSL': %w", err)
 				}
 
-				if searchWebsiteSSLResp.Data != nil {
-					for _, sslItem := range searchWebsiteSSLResp.Data.Items {
-						if strings.TrimSpace(sslItem.PEM) == strings.TrimSpace(certPEM) &&
-							strings.TrimSpace(sslItem.PrivateKey) == strings.TrimSpace(privkeyPEM) {
-							// 如果已存在相同证书，直接返回
-							return &core.SSLManageUploadResult{
-								CertId:   fmt.Sprintf("%d", sslItem.ID),
-								CertName: sslItem.Description,
-							}, nil
-						}
+				if searchWebsiteSSLResp.Data == nil {
+					break
+				}
+
+				for _, sslItem := range searchWebsiteSSLResp.Data.Items {
+					if strings.TrimSpace(sslItem.PEM) == strings.TrimSpace(certPEM) &&
+						strings.TrimSpace(sslItem.PrivateKey) == strings.TrimSpace(privkeyPEM) {
+						// 如果已存在相同证书，直接返回
+						return &core.SSLManageUploadResult{
+							CertId:   fmt.Sprintf("%d", sslItem.ID),
+							CertName: sslItem.Description,
+						}, nil
 					}
 				}
 
-				searchWebsiteSSLItemsCount = searchWebsiteSSLResp.Data.Total
+				searchWebsiteSSLItemsCount = int(searchWebsiteSSLResp.Data.Total)
 			}
 
 		case *onepanelsdkv2.Client:
 			{
 				searchWebsiteSSLReq := &onepanelsdkv2.SearchWebsiteSSLRequest{
-					Page:     searchWebsiteSSLPageNumber,
-					PageSize: searchWebsiteSSLPageSize,
+					Page:     int32(searchWebsiteSSLPageNumber),
+					PageSize: int32(searchWebsiteSSLPageSize),
 				}
 				searchWebsiteSSLResp, err := sdkClient.SearchWebsiteSSL(searchWebsiteSSLReq)
 				m.logger.Debug("sdk request '1panel.SearchWebsiteSSL'", slog.Any("request", searchWebsiteSSLReq), slog.Any("response", searchWebsiteSSLResp))
@@ -168,20 +170,22 @@ func (m *SSLManagerProvider) findCertIfExists(ctx context.Context, certPEM strin
 					return nil, fmt.Errorf("failed to execute sdk request '1panel.SearchWebsiteSSL': %w", err)
 				}
 
-				if searchWebsiteSSLResp.Data != nil {
-					for _, sslItem := range searchWebsiteSSLResp.Data.Items {
-						if strings.TrimSpace(sslItem.PEM) == strings.TrimSpace(certPEM) &&
-							strings.TrimSpace(sslItem.PrivateKey) == strings.TrimSpace(privkeyPEM) {
-							// 如果已存在相同证书，直接返回
-							return &core.SSLManageUploadResult{
-								CertId:   fmt.Sprintf("%d", sslItem.ID),
-								CertName: sslItem.Description,
-							}, nil
-						}
+				if searchWebsiteSSLResp.Data == nil {
+					break
+				}
+
+				for _, sslItem := range searchWebsiteSSLResp.Data.Items {
+					if strings.TrimSpace(sslItem.PEM) == strings.TrimSpace(certPEM) &&
+						strings.TrimSpace(sslItem.PrivateKey) == strings.TrimSpace(privkeyPEM) {
+						// 如果已存在相同证书，直接返回
+						return &core.SSLManageUploadResult{
+							CertId:   fmt.Sprintf("%d", sslItem.ID),
+							CertName: sslItem.Description,
+						}, nil
 					}
 				}
 
-				searchWebsiteSSLItemsCount = searchWebsiteSSLResp.Data.Total
+				searchWebsiteSSLItemsCount = int(searchWebsiteSSLResp.Data.Total)
 			}
 
 		default:

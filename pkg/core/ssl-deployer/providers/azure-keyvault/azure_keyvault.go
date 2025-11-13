@@ -106,7 +106,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	} else {
 		// 获取证书
 		// REF: https://learn.microsoft.com/en-us/rest/api/keyvault/certificates/get-certificate/get-certificate
-		getCertificateResp, err := d.sdkClient.GetCertificate(context.TODO(), d.config.CertificateName, "", nil)
+		getCertificateResp, err := d.sdkClient.GetCertificate(ctx, d.config.CertificateName, "", nil)
 		d.logger.Debug("sdk request 'keyvault.GetCertificate'", slog.String("request.certificateName", d.config.CertificateName), slog.Any("response", getCertificateResp))
 		if err != nil {
 			var respErr *azcore.ResponseError
@@ -134,7 +134,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 				"certimate/cert-sn": to.Ptr(certX509.SerialNumber.Text(16)),
 			},
 		}
-		importCertificateResp, err := d.sdkClient.ImportCertificate(context.TODO(), d.config.CertificateName, importCertificateParams, nil)
+		importCertificateResp, err := d.sdkClient.ImportCertificate(ctx, d.config.CertificateName, importCertificateParams, nil)
 		d.logger.Debug("sdk request 'keyvault.ImportCertificate'", slog.String("request.certificateName", d.config.CertificateName), slog.Any("request.parameters", importCertificateParams), slog.Any("response", importCertificateResp))
 		if err != nil {
 			return nil, fmt.Errorf("failed to execute sdk request 'keyvault.ImportCertificate': %w", err)

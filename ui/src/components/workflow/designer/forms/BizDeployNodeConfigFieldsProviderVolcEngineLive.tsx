@@ -3,12 +3,14 @@ import { Form, Input, Radio } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
+import Show from "@/components/Show";
 import { validDomainName } from "@/utils/validators";
 
 import { useFormNestedFieldsContext } from "./_context";
 
 const DOMAIN_MATCH_PATTERN_EXACT = "exact" as const;
 const DOMAIN_MATCH_PATTERN_WILDCARD = "wildcard" as const;
+const DOMAIN_MATCH_PATTERN_CERTSAN = "certsan" as const;
 
 const BizDeployNodeConfigFieldsProviderVolcEngineLive = () => {
   const { i18n, t } = useTranslation();
@@ -18,7 +20,10 @@ const BizDeployNodeConfigFieldsProviderVolcEngineLive = () => {
     [parentNamePath]: getSchema({ i18n }),
   });
   const formRule = createSchemaFieldRule(formSchema);
+  const formInst = Form.useFormInstance();
   const initialValues = getInitialValues();
+
+  const fieldDomainMatchPattern = Form.useWatch([parentNamePath, "domainMatchPattern"], { form: formInst, preserve: true });
 
   return (
     <>
@@ -29,7 +34,7 @@ const BizDeployNodeConfigFieldsProviderVolcEngineLive = () => {
         rules={[formRule]}
       >
         <Radio.Group
-          options={[DOMAIN_MATCH_PATTERN_EXACT, DOMAIN_MATCH_PATTERN_WILDCARD].map((s) => ({
+          options={[DOMAIN_MATCH_PATTERN_EXACT, DOMAIN_MATCH_PATTERN_WILDCARD, DOMAIN_MATCH_PATTERN_CERTSAN].map((s) => ({
             key: s,
             label: t(`workflow_node.deploy.form.shared_domain_match_pattern.option.${s}.label`),
             value: s,
@@ -37,14 +42,16 @@ const BizDeployNodeConfigFieldsProviderVolcEngineLive = () => {
         />
       </Form.Item>
 
-      <Form.Item
-        name={[parentNamePath, "domain"]}
-        initialValue={initialValues.domain}
-        label={t("workflow_node.deploy.form.volcengine_live_domain.label")}
-        rules={[formRule]}
-      >
-        <Input placeholder={t("workflow_node.deploy.form.volcengine_live_domain.placeholder")} />
-      </Form.Item>
+      <Show when={fieldDomainMatchPattern !== DOMAIN_MATCH_PATTERN_CERTSAN}>
+        <Form.Item
+          name={[parentNamePath, "domain"]}
+          initialValue={initialValues.domain}
+          label={t("workflow_node.deploy.form.volcengine_live_domain.label")}
+          rules={[formRule]}
+        >
+          <Input placeholder={t("workflow_node.deploy.form.volcengine_live_domain.placeholder")} />
+        </Form.Item>
+      </Show>
     </>
   );
 };
@@ -61,10 +68,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
 
   return z
     .object({
-      domainMatchPattern: z.enum(
-        [DOMAIN_MATCH_PATTERN_EXACT, DOMAIN_MATCH_PATTERN_WILDCARD],
-        t("workflow_node.deploy.form.shared_domain_match_pattern.placeholder")
-      ),
+      domainMatchPattern: z.string().nonempty(t("workflow_node.deploy.form.shared_domain_match_pattern.placeholder")).default(DOMAIN_MATCH_PATTERN_EXACT),
       domain: z.string().nullish(),
     })
     .superRefine((values, ctx) => {

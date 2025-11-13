@@ -23,6 +23,27 @@ func NewLiveClient(credential common.CredentialIface, region string, clientProfi
 	return
 }
 
+func (c *LiveClient) DescribeLiveDomains(request *tclive.DescribeLiveDomainsRequest) (response *tclive.DescribeLiveDomainsResponse, err error) {
+	return c.DescribeLiveDomainsWithContext(context.Background(), request)
+}
+
+func (c *LiveClient) DescribeLiveDomainsWithContext(ctx context.Context, request *tclive.DescribeLiveDomainsRequest) (response *tclive.DescribeLiveDomainsResponse, err error) {
+	if request == nil {
+		request = tclive.NewDescribeLiveDomainsRequest()
+	}
+	c.InitBaseRequest(&request.BaseRequest, "live", tclive.APIVersion, "DescribeLiveDomains")
+
+	if c.GetCredential() == nil {
+		return nil, errors.New("DescribeLiveDomains require credential")
+	}
+
+	request.SetContext(ctx)
+
+	response = tclive.NewDescribeLiveDomainsResponse()
+	err = c.Send(request, response)
+	return
+}
+
 func (c *LiveClient) ModifyLiveDomainCertBindings(request *tclive.ModifyLiveDomainCertBindingsRequest) (response *tclive.ModifyLiveDomainCertBindingsResponse, err error) {
 	return c.ModifyLiveDomainCertBindingsWithContext(context.Background(), request)
 }

@@ -1,5 +1,5 @@
 import { getI18n, useTranslation } from "react-i18next";
-import { Form, Input, Select } from "antd";
+import { Form, Input, Radio, Select } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
@@ -10,6 +10,8 @@ import { useFormNestedFieldsContext } from "./_context";
 const ENVIRONMENT_PRODUCTION = "production" as const;
 const ENVIRONMENT_STAGING = "stating" as const;
 
+const DOMAIN_MATCH_PATTERN_EXACT = "exact" as const;
+
 const BizDeployNodeConfigFieldsProviderWangsuCDNPro = () => {
   const { i18n, t } = useTranslation();
 
@@ -18,7 +20,10 @@ const BizDeployNodeConfigFieldsProviderWangsuCDNPro = () => {
     [parentNamePath]: getSchema({ i18n }),
   });
   const formRule = createSchemaFieldRule(formSchema);
+  const formInst = Form.useFormInstance();
   const initialValues = getInitialValues();
+
+  const fieldDomainMatchPattern = Form.useWatch([parentNamePath, "domainMatchPattern"], { form: formInst, preserve: true });
 
   return (
     <>
@@ -36,6 +41,28 @@ const BizDeployNodeConfigFieldsProviderWangsuCDNPro = () => {
             {t("workflow_node.deploy.form.wangsu_cdnpro_environment.option.staging.label")}
           </Select.Option>
         </Select>
+      </Form.Item>
+
+      <Form.Item
+        name={[parentNamePath, "domainMatchPattern"]}
+        initialValue={initialValues.domainMatchPattern}
+        label={t("workflow_node.deploy.form.shared_domain_match_pattern.label")}
+        extra={
+          fieldDomainMatchPattern === DOMAIN_MATCH_PATTERN_EXACT ? (
+            <span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.shared_domain_match_pattern.help_wildcard") }}></span>
+          ) : (
+            void 0
+          )
+        }
+        rules={[formRule]}
+      >
+        <Radio.Group
+          options={[DOMAIN_MATCH_PATTERN_EXACT].map((s) => ({
+            key: s,
+            label: t(`workflow_node.deploy.form.shared_domain_match_pattern.option.${s}.label`),
+            value: s,
+          }))}
+        />
       </Form.Item>
 
       <Form.Item
@@ -74,6 +101,7 @@ const BizDeployNodeConfigFieldsProviderWangsuCDNPro = () => {
 const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   return {
     environment: ENVIRONMENT_PRODUCTION,
+    domainMatchPattern: DOMAIN_MATCH_PATTERN_EXACT,
     domain: "",
   };
 };
@@ -81,12 +109,31 @@ const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
 const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) => {
   const { t } = i18n;
 
-  return z.object({
-    environment: z.literal([ENVIRONMENT_PRODUCTION, ENVIRONMENT_STAGING], t("workflow_node.deploy.form.wangsu_cdnpro_environment.placeholder")),
-    domain: z.string().refine((v) => validDomainName(v, { allowWildcard: true }), t("common.errmsg.domain_invalid")),
-    certificateId: z.string().nullish(),
-    webhookId: z.string().nullish(),
-  });
+  return z
+    .object({
+      environment: z.literal([ENVIRONMENT_PRODUCTION, ENVIRONMENT_STAGING], t("workflow_node.deploy.form.wangsu_cdnpro_environment.placeholder")),
+      domainMatchPattern: z.string().nonempty(t("workflow_node.deploy.form.shared_domain_match_pattern.placeholder")).default(DOMAIN_MATCH_PATTERN_EXACT),
+      domain: z.string().nullish(),
+      certificateId: z.string().nullish(),
+      webhookId: z.string().nullish(),
+    })
+    .superRefine((values, ctx) => {
+      if (values.domainMatchPattern) {
+        switch (values.domainMatchPattern) {
+          case DOMAIN_MATCH_PATTERN_EXACT:
+            {
+              if (!validDomainName(values.domain!, { allowWildcard: true })) {
+                ctx.addIssue({
+                  code: "custom",
+                  message: t("common.errmsg.domain_invalid"),
+                  path: ["domain"],
+                });
+              }
+            }
+            break;
+        }
+      }
+    });
 };
 
 const _default = Object.assign(BizDeployNodeConfigFieldsProviderWangsuCDNPro, {

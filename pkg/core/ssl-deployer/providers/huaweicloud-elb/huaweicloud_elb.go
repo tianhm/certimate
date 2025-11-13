@@ -160,8 +160,7 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, certPEM 
 	// 查询监听器列表
 	// REF: https://support.huaweicloud.com/api-elb/ListListeners.html
 	listenerIds := make([]string, 0)
-	listListenersLimit := int32(2000)
-	var listListenersMarker *string = nil
+	listListenersMarker := (*string)(nil)
 	for {
 		select {
 		case <-ctx.Done():
@@ -170,8 +169,8 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, certPEM 
 		}
 
 		listListenersReq := &hcelbmodel.ListListenersRequest{
-			Limit:          lo.ToPtr(listListenersLimit),
 			Marker:         listListenersMarker,
+			Limit:          lo.ToPtr(int32(2000)),
 			Protocol:       &[]string{"HTTPS", "TERMINATED_HTTPS"},
 			LoadbalancerId: &[]string{showLoadBalancerResp.Loadbalancer.Id},
 		}
@@ -184,17 +183,19 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, certPEM 
 			return fmt.Errorf("failed to execute sdk request 'elb.ListListeners': %w", err)
 		}
 
-		if listListenersResp.Listeners != nil {
-			for _, listener := range *listListenersResp.Listeners {
-				listenerIds = append(listenerIds, listener.Id)
-			}
+		if listListenersResp.Listeners == nil {
+			break
 		}
 
-		if listListenersResp.Listeners == nil || len(*listListenersResp.Listeners) < int(listListenersLimit) {
-			break
-		} else {
-			listListenersMarker = listListenersResp.PageInfo.NextMarker
+		for _, listener := range *listListenersResp.Listeners {
+			listenerIds = append(listenerIds, listener.Id)
 		}
+
+		if len(*listListenersResp.Listeners) == 0 || listListenersResp.PageInfo.NextMarker == nil {
+			break
+		}
+
+		listListenersMarker = listListenersResp.PageInfo.NextMarker
 	}
 
 	// 上传证书
@@ -217,7 +218,7 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, certPEM 
 			case <-ctx.Done():
 				return ctx.Err()
 			default:
-				if err := d.modifyListenerCertificate(ctx, listenerId, upres.CertId); err != nil {
+				if err := d.updateListenerCertificate(ctx, listenerId, upres.CertId); err != nil {
 					errs = append(errs, err)
 				}
 			}
@@ -245,14 +246,14 @@ func (d *SSLDeployerProvider) deployToListener(ctx context.Context, certPEM stri
 	}
 
 	// 更新监听器证书
-	if err := d.modifyListenerCertificate(ctx, d.config.ListenerId, upres.CertId); err != nil {
+	if err := d.updateListenerCertificate(ctx, d.config.ListenerId, upres.CertId); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (d *SSLDeployerProvider) modifyListenerCertificate(ctx context.Context, cloudListenerId string, cloudCertId string) error {
+func (d *SSLDeployerProvider) updateListenerCertificate(ctx context.Context, cloudListenerId string, cloudCertId string) error {
 	// 查询监听器详情
 	// REF: https://support.huaweicloud.com/api-elb/ShowListener.html
 	showListenerReq := &hcelbmodel.ShowListenerRequest{

@@ -20,9 +20,10 @@ func init() {
 		}
 
 		provider, err := wangsucdn.NewSSLDeployerProvider(&wangsucdn.SSLDeployerProviderConfig{
-			AccessKeyId:     credentials.AccessKeyId,
-			AccessKeySecret: credentials.AccessKeySecret,
-			Domains:         lo.Filter(strings.Split(xmaps.GetString(options.ProviderExtendedConfig, "domains"), ";"), func(s string, _ int) bool { return s != "" }),
+			AccessKeyId:        credentials.AccessKeyId,
+			AccessKeySecret:    credentials.AccessKeySecret,
+			DomainMatchPattern: xmaps.GetString(options.ProviderExtendedConfig, "domainMatchPattern"),
+			Domains:            lo.Filter(strings.Split(xmaps.GetString(options.ProviderExtendedConfig, "domains"), ";"), func(s string, _ int) bool { return s != "" }),
 		})
 		return provider, err
 	})

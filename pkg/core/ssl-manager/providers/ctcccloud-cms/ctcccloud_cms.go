@@ -58,8 +58,11 @@ func (m *SSLManagerProvider) SetLogger(logger *slog.Logger) {
 }
 
 func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkeyPEM string) (*core.SSLManageUploadResult, error) {
-	// 遍历证书列表，避免重复上传
-	if res, _ := m.findCertIfExists(ctx, certPEM); res != nil {
+	// 避免重复上传
+	if res, err := m.tryFindCert(ctx, certPEM); err != nil {
+		return nil, err
+	} else if res != nil {
+		m.logger.Info("ssl certificate already exists")
 		return res, nil
 	}
 
@@ -85,7 +88,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 	m.logger.Debug("sdk request 'cms.UploadCertificate'", slog.Any("request", uploadCertificateReq), slog.Any("response", uploadCertificateResp))
 	if err != nil {
 		if uploadCertificateResp != nil && uploadCertificateResp.GetError() == "CCMS_100000067" {
-			if res, err := m.findCertIfExists(ctx, certPEM); err != nil {
+			if res, err := m.tryFindCert(ctx, certPEM); err != nil {
 				return nil, err
 			} else if res == nil {
 				return nil, errors.New("ctyun cms: no certificate found")
@@ -98,17 +101,17 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 		return nil, fmt.Errorf("failed to execute sdk request 'cms.UploadCertificate': %w", err)
 	}
 
-	// 遍历证书列表，获取刚刚上传证书 ID
-	if res, err := m.findCertIfExists(ctx, certPEM); err != nil {
+	// 获取刚刚上传证书 ID
+	if res, err := m.tryFindCert(ctx, certPEM); err != nil {
 		return nil, err
 	} else if res == nil {
-		return nil, fmt.Errorf("no ssl certificate found, may be upload failed")
+		return nil, fmt.Errorf("could not find ssl certificate, may be upload failed")
 	} else {
 		return res, nil
 	}
 }
 
-func (m *SSLManagerProvider) findCertIfExists(ctx context.Context, certPEM string) (*core.SSLManageUploadResult, error) {
+func (m *SSLManagerProvider) tryFindCert(ctx context.Context, certPEM string) (*core.SSLManageUploadResult, error) {
 	// 解析证书内容
 	certX509, err := xcert.ParseCertificateFromPEM(certPEM)
 	if err != nil {
@@ -117,8 +120,8 @@ func (m *SSLManagerProvider) findCertIfExists(ctx context.Context, certPEM strin
 
 	// 查询用户证书列表
 	// REF: https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=152&api=17233&data=204&isNormal=1&vid=283
-	getCertificateListPageNum := int32(1)
-	getCertificateListPageSize := int32(10)
+	getCertificateListPageNum := 1
+	getCertificateListPageSize := 10
 	for {
 		select {
 		case <-ctx.Done():
@@ -127,8 +130,8 @@ func (m *SSLManagerProvider) findCertIfExists(ctx context.Context, certPEM strin
 		}
 
 		getCertificateListReq := &ctyuncms.GetCertificateListRequest{
-			PageNum:  lo.ToPtr(getCertificateListPageNum),
-			PageSize: lo.ToPtr(getCertificateListPageSize),
+			PageNum:  lo.ToPtr(int32(getCertificateListPageNum)),
+			PageSize: lo.ToPtr(int32(getCertificateListPageSize)),
 			Keyword:  lo.ToPtr(certX509.Subject.CommonName),
 			Origin:   lo.ToPtr("UPLOAD"),
 		}
@@ -138,44 +141,45 @@ func (m *SSLManagerProvider) findCertIfExists(ctx context.Context, certPEM strin
 			return nil, fmt.Errorf("failed to execute sdk request 'cms.GetCertificateList': %w", err)
 		}
 
-		if getCertificateListResp.ReturnObj != nil {
+		if getCertificateListResp.ReturnObj == nil {
+			break
+		}
+
+		for _, certItem := range getCertificateListResp.ReturnObj.List {
+			// 对比证书名称
+			if !strings.EqualFold(strings.Join(certX509.DNSNames, ","), certItem.DomainName) {
+				continue
+			}
+
+			// 对比证书有效期
+			oldCertNotBefore, _ := time.Parse("2006-01-02T15:04:05Z", certItem.IssueTime)
+			oldCertNotAfter, _ := time.Parse("2006-01-02T15:04:05Z", certItem.ExpireTime)
+			if !certX509.NotBefore.Equal(oldCertNotBefore) {
+				continue
+			} else if !certX509.NotAfter.Equal(oldCertNotAfter) {
+				continue
+			}
+
+			// 对比证书指纹
 			fingerprint := sha1.Sum(certX509.Raw)
 			fingerprintHex := hex.EncodeToString(fingerprint[:])
-
-			for _, certRecord := range getCertificateListResp.ReturnObj.List {
-				// 对比证书名称
-				if !strings.EqualFold(strings.Join(certX509.DNSNames, ","), certRecord.DomainName) {
-					continue
-				}
-
-				// 对比证书有效期
-				oldCertNotBefore, _ := time.Parse("2006-01-02T15:04:05Z", certRecord.IssueTime)
-				oldCertNotAfter, _ := time.Parse("2006-01-02T15:04:05Z", certRecord.ExpireTime)
-				if !certX509.NotBefore.Equal(oldCertNotBefore) {
-					continue
-				} else if !certX509.NotAfter.Equal(oldCertNotAfter) {
-					continue
-				}
-
-				// 对比证书指纹
-				if !strings.EqualFold(fingerprintHex, certRecord.Fingerprint) {
-					continue
-				}
-
-				// 如果以上信息都一致，则视为已存在相同证书，直接返回
-				m.logger.Info("ssl certificate already exists")
-				return &core.SSLManageUploadResult{
-					CertId:   string(*&certRecord.Id),
-					CertName: certRecord.Name,
-				}, nil
+			if !strings.EqualFold(fingerprintHex, certItem.Fingerprint) {
+				continue
 			}
+
+			// 如果以上信息都一致，则视为已存在相同证书，直接返回
+			m.logger.Info("ssl certificate already exists")
+			return &core.SSLManageUploadResult{
+				CertId:   certItem.Id,
+				CertName: certItem.Name,
+			}, nil
 		}
 
-		if getCertificateListResp.ReturnObj == nil || len(getCertificateListResp.ReturnObj.List) < int(getCertificateListPageSize) {
+		if len(getCertificateListResp.ReturnObj.List) < getCertificateListPageSize {
 			break
-		} else {
-			getCertificateListPageNum++
 		}
+
+		getCertificateListPageNum++
 	}
 
 	return nil, nil

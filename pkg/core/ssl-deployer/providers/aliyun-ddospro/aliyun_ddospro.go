@@ -16,6 +16,8 @@ import (
 	"github.com/certimate-go/certimate/pkg/core"
 	"github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/aliyun-ddospro/internal"
 	sslmgrsp "github.com/certimate-go/certimate/pkg/core/ssl-manager/providers/aliyun-cas"
+	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
+	xcerthostname "github.com/certimate-go/certimate/pkg/utils/cert/hostname"
 )
 
 type SSLDeployerProviderConfig struct {
@@ -27,6 +29,9 @@ type SSLDeployerProviderConfig struct {
 	ResourceGroupId string `json:"resourceGroupId,omitempty"`
 	// 阿里云地域。
 	Region string `json:"region"`
+	// 域名匹配模式。
+	// 零值时默认值 [DOMAIN_MATCH_PATTERN_EXACT]。
+	DomainMatchPattern string `json:"domainMatchPattern,omitempty"`
 	// 网站域名（支持泛域名）。
 	Domain string `json:"domain"`
 }
@@ -81,10 +86,6 @@ func (d *SSLDeployerProvider) SetLogger(logger *slog.Logger) {
 }
 
 func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privkeyPEM string) (*core.SSLDeployResult, error) {
-	if d.config.Domain == "" {
-		return nil, errors.New("config `domain` is required")
-	}
-
 	// 上传证书
 	upres, err := d.sslManager.Upload(ctx, certPEM, privkeyPEM)
 	if err != nil {
@@ -93,19 +94,127 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
 	}
 
-	// 为网站业务转发规则关联 SSL 证书
-	// REF: https://help.aliyun.com/zh/anti-ddos/anti-ddos-pro-and-premium/developer-reference/api-ddoscoo-2020-01-01-associatewebcert
-	associateWebCertReq := &aliddoscoo.AssociateWebCertRequest{
-		Domain:         tea.String(d.config.Domain),
-		CertIdentifier: tea.String(upres.ExtendedData["CertIdentifier"].(string)),
+	// 获取待部署的域名列表
+	var domains []string
+	switch d.config.DomainMatchPattern {
+	case "", DOMAIN_MATCH_PATTERN_EXACT:
+		{
+			if d.config.Domain == "" {
+				return nil, errors.New("config `domain` is required")
+			}
+
+			domains = []string{d.config.Domain}
+		}
+
+	case DOMAIN_MATCH_PATTERN_WILDCARD:
+		{
+			if d.config.Domain == "" {
+				return nil, errors.New("config `domain` is required")
+			}
+
+			if strings.HasPrefix(d.config.Domain, "*.") {
+				domainCandidates, err := d.getAllDomains(ctx)
+				if err != nil {
+					return nil, err
+				}
+
+				domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
+					return xcerthostname.IsMatch(d.config.Domain, domain)
+				})
+				if len(domains) == 0 {
+					return nil, errors.New("could not find any domains matched by wildcard")
+				}
+			} else {
+				domains = []string{d.config.Domain}
+			}
+		}
+
+	case DOMAIN_MATCH_PATTERN_CERTSAN:
+		{
+			certX509, err := xcert.ParseCertificateFromPEM(certPEM)
+			if err != nil {
+				return nil, err
+			}
+
+			domainCandidates, err := d.getAllDomains(ctx)
+			if err != nil {
+				return nil, err
+			}
+
+			domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
+				return certX509.VerifyHostname(domain) == nil
+			})
+			if len(domains) == 0 {
+				return nil, errors.New("could not find any domains matched by certificate")
+			}
+		}
+
+	default:
+		return nil, fmt.Errorf("unsupported domain match pattern: '%s'", d.config.DomainMatchPattern)
 	}
-	associateWebCertResp, err := d.sdkClient.AssociateWebCertWithContext(context.TODO(), associateWebCertReq, &dara.RuntimeOptions{})
-	d.logger.Debug("sdk request 'dcdn.AssociateWebCert'", slog.Any("request", associateWebCertReq), slog.Any("response", associateWebCertResp))
-	if err != nil {
-		return nil, fmt.Errorf("failed to execute sdk request 'dcdn.AssociateWebCert': %w", err)
+
+	// 遍历更新域名证书
+	if len(domains) == 0 {
+		d.logger.Info("no ddoscoo domains to deploy")
+	} else {
+		d.logger.Info("found ddoscoo domains to deploy", slog.Any("domains", domains))
+		var errs []error
+
+		for _, domain := range domains {
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			default:
+				certId := upres.ExtendedData["CertIdentifier"].(string)
+				if err := d.updateDomainCertificate(ctx, domain, certId); err != nil {
+					errs = append(errs, err)
+				}
+			}
+		}
+
+		if len(errs) > 0 {
+			return nil, errors.Join(errs...)
+		}
 	}
 
 	return &core.SSLDeployResult{}, nil
+}
+
+func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, error) {
+	domains := make([]string, 0)
+
+	// 查询已配置网站业务转发规则的域名
+	// REF: https://help.aliyun.com/zh/anti-ddos/anti-ddos-pro-and-premium/developer-reference/api-ddoscoo-2020-01-01-describedomains
+	describeDomainsReq := &aliddoscoo.DescribeDomainsRequest{
+		ResourceGroupId: lo.EmptyableToPtr(d.config.ResourceGroupId),
+	}
+	describeDomainsResp, err := d.sdkClient.DescribeDomainsWithContext(ctx, describeDomainsReq, &dara.RuntimeOptions{})
+	d.logger.Debug("sdk request 'aliddoscoo.DescribeLiveUserDomains'", slog.Any("request", describeDomainsReq), slog.Any("response", describeDomainsResp))
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute sdk request 'aliddoscoo.DescribeDomains': %w", err)
+	}
+
+	for _, domain := range describeDomainsResp.Body.Domains {
+		domains = append(domains, tea.StringValue(domain))
+	}
+
+	return domains, nil
+}
+
+func (d *SSLDeployerProvider) updateDomainCertificate(ctx context.Context, domain string, cloudCertId string) error {
+	// 为网站业务转发规则关联 SSL 证书
+	// REF: https://help.aliyun.com/zh/anti-ddos/anti-ddos-pro-and-premium/developer-reference/api-ddoscoo-2020-01-01-associatewebcert
+	associateWebCertReq := &aliddoscoo.AssociateWebCertRequest{
+		Domain:         tea.String(domain),
+		CertIdentifier: tea.String(cloudCertId),
+	}
+	associateWebCertResp, err := d.sdkClient.AssociateWebCertWithContext(ctx, associateWebCertReq, &dara.RuntimeOptions{})
+	d.logger.Debug("sdk request 'dcdn.AssociateWebCert'", slog.Any("request", associateWebCertReq), slog.Any("response", associateWebCertResp))
+	if err != nil {
+		return fmt.Errorf("failed to execute sdk request 'dcdn.AssociateWebCert': %w", err)
+	}
+
+	return nil
 }
 
 func createSDKClient(accessKeyId, accessKeySecret, region string) (*internal.DdoscooClient, error) {

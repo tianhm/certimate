@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
 	aliopen "github.com/alibabacloud-go/darabonba-openapi/v2/client"
@@ -12,9 +13,12 @@ import (
 	alifc2 "github.com/alibabacloud-go/fc-open-20210406/v2/client"
 	"github.com/alibabacloud-go/tea/dara"
 	"github.com/alibabacloud-go/tea/tea"
+	"github.com/samber/lo"
 
 	"github.com/certimate-go/certimate/pkg/core"
 	"github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/aliyun-fc/internal"
+	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
+	xcerthostname "github.com/certimate-go/certimate/pkg/utils/cert/hostname"
 )
 
 type SSLDeployerProviderConfig struct {
@@ -29,6 +33,9 @@ type SSLDeployerProviderConfig struct {
 	// 服务版本。
 	// 可取值 "2.0"、"3.0"。
 	ServiceVersion string `json:"serviceVersion"`
+	// 域名匹配模式。
+	// 零值时默认值 [DOMAIN_MATCH_PATTERN_EXACT]。
+	DomainMatchPattern string `json:"domainMatchPattern,omitempty"`
 	// 自定义域名（支持泛域名）。
 	Domain string `json:"domain"`
 }
@@ -91,16 +98,270 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 }
 
 func (d *SSLDeployerProvider) deployToFC3(ctx context.Context, certPEM string, privkeyPEM string) error {
-	if d.config.Domain == "" {
-		return errors.New("config `domain` is required")
+	// 获取待部署的域名列表
+	var domains []string
+	switch d.config.DomainMatchPattern {
+	case "", DOMAIN_MATCH_PATTERN_EXACT:
+		{
+			if d.config.Domain == "" {
+				return errors.New("config `domain` is required")
+			}
+
+			domains = []string{d.config.Domain}
+		}
+
+	case DOMAIN_MATCH_PATTERN_WILDCARD:
+		{
+			if d.config.Domain == "" {
+				return errors.New("config `domain` is required")
+			}
+
+			if strings.HasPrefix(d.config.Domain, "*.") {
+				domainCandidates, err := d.getFC3AllDomains(ctx)
+				if err != nil {
+					return err
+				}
+
+				domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
+					return xcerthostname.IsMatch(d.config.Domain, domain)
+				})
+				if len(domains) == 0 {
+					return errors.New("could not find any domains matched by wildcard")
+				}
+			} else {
+				domains = []string{d.config.Domain}
+			}
+		}
+
+	case DOMAIN_MATCH_PATTERN_CERTSAN:
+		{
+			certX509, err := xcert.ParseCertificateFromPEM(certPEM)
+			if err != nil {
+				return err
+			}
+
+			domainCandidates, err := d.getFC3AllDomains(ctx)
+			if err != nil {
+				return err
+			}
+
+			domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
+				return certX509.VerifyHostname(domain) == nil
+			})
+			if len(domains) == 0 {
+				return errors.New("could not find any domains matched by certificate")
+			}
+		}
+
+	default:
+		return fmt.Errorf("unsupported domain match pattern: '%s'", d.config.DomainMatchPattern)
 	}
 
+	// 遍历更新域名证书
+	if len(domains) == 0 {
+		d.logger.Info("no fc domains to deploy")
+	} else {
+		d.logger.Info("found fc domains to deploy", slog.Any("domains", domains))
+		var errs []error
+
+		for _, domain := range domains {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			default:
+				if err := d.updateFC3DomainCertificate(ctx, domain, certPEM, privkeyPEM); err != nil {
+					errs = append(errs, err)
+				}
+			}
+		}
+
+		if len(errs) > 0 {
+			return errors.Join(errs...)
+		}
+	}
+
+	return nil
+}
+
+func (d *SSLDeployerProvider) deployToFC2(ctx context.Context, certPEM string, privkeyPEM string) error {
+	// 获取待部署的域名列表
+	var domains []string
+	switch d.config.DomainMatchPattern {
+	case "", DOMAIN_MATCH_PATTERN_EXACT:
+		{
+			if d.config.Domain == "" {
+				return errors.New("config `domain` is required")
+			}
+
+			domains = []string{d.config.Domain}
+		}
+
+	case DOMAIN_MATCH_PATTERN_WILDCARD:
+		{
+			if d.config.Domain == "" {
+				return errors.New("config `domain` is required")
+			}
+
+			if strings.HasPrefix(d.config.Domain, "*.") {
+				domainCandidates, err := d.getFC2AllDomains(ctx)
+				if err != nil {
+					return err
+				}
+
+				domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
+					return xcerthostname.IsMatch(d.config.Domain, domain)
+				})
+				if len(domains) == 0 {
+					return errors.New("could not find any domains matched by wildcard")
+				}
+			} else {
+				domains = []string{d.config.Domain}
+			}
+		}
+
+	case DOMAIN_MATCH_PATTERN_CERTSAN:
+		{
+			certX509, err := xcert.ParseCertificateFromPEM(certPEM)
+			if err != nil {
+				return err
+			}
+
+			domainCandidates, err := d.getFC2AllDomains(ctx)
+			if err != nil {
+				return err
+			}
+
+			domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
+				return certX509.VerifyHostname(domain) == nil
+			})
+			if len(domains) == 0 {
+				return errors.New("could not find any domains matched by certificate")
+			}
+		}
+
+	default:
+		return fmt.Errorf("unsupported domain match pattern: '%s'", d.config.DomainMatchPattern)
+	}
+
+	// 遍历更新域名证书
+	if len(domains) == 0 {
+		d.logger.Info("no fc domains to deploy")
+	} else {
+		d.logger.Info("found fc domains to deploy", slog.Any("domains", domains))
+		var errs []error
+
+		for _, domain := range domains {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			default:
+				if err := d.updateFC2DomainCertificate(ctx, domain, certPEM, privkeyPEM); err != nil {
+					errs = append(errs, err)
+				}
+			}
+		}
+
+		if len(errs) > 0 {
+			return errors.Join(errs...)
+		}
+	}
+
+	return nil
+}
+
+func (d *SSLDeployerProvider) getFC3AllDomains(ctx context.Context) ([]string, error) {
+	domains := make([]string, 0)
+
+	// 列出自定义域名
+	// REF: https://help.aliyun.com/zh/functioncompute/fc/developer-reference/api-fc-2023-03-30-listcustomdomains
+	listCustomDomainsNextToken := (*string)(nil)
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+
+		listCustomDomainsReq := &alifc3.ListCustomDomainsRequest{
+			NextToken: listCustomDomainsNextToken,
+			Limit:     tea.Int32(100),
+		}
+		listCustomDomainsResp, err := d.sdkClients.FC3.ListCustomDomainsWithContext(ctx, listCustomDomainsReq, make(map[string]*string, 0), &dara.RuntimeOptions{})
+		d.logger.Debug("sdk request 'fc.ListCustomDomains'", slog.Any("request", listCustomDomainsReq), slog.Any("response", listCustomDomainsResp))
+		if err != nil {
+			return nil, fmt.Errorf("failed to execute sdk request 'fc.ListCustomDomains': %w", err)
+		}
+
+		if listCustomDomainsResp.Body == nil {
+			break
+		}
+
+		for _, domainItem := range listCustomDomainsResp.Body.CustomDomains {
+			domains = append(domains, tea.StringValue(domainItem.DomainName))
+		}
+
+		if len(listCustomDomainsResp.Body.CustomDomains) == 0 || listCustomDomainsResp.Body.NextToken == nil {
+			break
+		}
+
+		listCustomDomainsNextToken = listCustomDomainsResp.Body.NextToken
+	}
+
+	return domains, nil
+}
+
+func (d *SSLDeployerProvider) getFC2AllDomains(ctx context.Context) ([]string, error) {
+	domains := make([]string, 0)
+
+	// 列出自定义域名
+	// REF: https://help.aliyun.com/zh/functioncompute/fc-2-0/developer-reference/api-fc-open-2021-04-06-listcustomdomains
+	listCustomDomainsNextToken := (*string)(nil)
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+
+		listCustomDomainsReq := &alifc2.ListCustomDomainsRequest{
+			NextToken: listCustomDomainsNextToken,
+			Limit:     tea.Int32(100),
+		}
+		listCustomDomainsResp, err := d.sdkClients.FC2.ListCustomDomains(listCustomDomainsReq)
+		d.logger.Debug("sdk request 'fc.ListCustomDomains'", slog.Any("request", listCustomDomainsReq), slog.Any("response", listCustomDomainsResp))
+		if err != nil {
+			return nil, fmt.Errorf("failed to execute sdk request 'fc.ListCustomDomains': %w", err)
+		}
+
+		if listCustomDomainsResp.Body == nil {
+			break
+		}
+
+		for _, domainItem := range listCustomDomainsResp.Body.CustomDomains {
+			domains = append(domains, tea.StringValue(domainItem.DomainName))
+		}
+
+		if len(listCustomDomainsResp.Body.CustomDomains) == 0 || listCustomDomainsResp.Body.NextToken == nil {
+			break
+		}
+
+		listCustomDomainsNextToken = listCustomDomainsResp.Body.NextToken
+	}
+
+	return domains, nil
+}
+
+func (d *SSLDeployerProvider) updateFC3DomainCertificate(ctx context.Context, domain string, certPEM, privkeyPEM string) error {
 	// 获取自定义域名
 	// REF: https://help.aliyun.com/zh/functioncompute/fc-3-0/developer-reference/api-fc-2023-03-30-getcustomdomain
-	getCustomDomainResp, err := d.sdkClients.FC3.GetCustomDomainWithContext(context.TODO(), tea.String(d.config.Domain), make(map[string]*string), &dara.RuntimeOptions{})
+	getCustomDomainResp, err := d.sdkClients.FC3.GetCustomDomainWithContext(ctx, tea.String(domain), make(map[string]*string), &dara.RuntimeOptions{})
 	d.logger.Debug("sdk request 'fc.GetCustomDomain'", slog.Any("response", getCustomDomainResp))
 	if err != nil {
 		return fmt.Errorf("failed to execute sdk request 'fc.GetCustomDomain': %w", err)
+	} else {
+		if getCustomDomainResp.Body.CertConfig != nil && tea.StringValue(getCustomDomainResp.Body.CertConfig.Certificate) == certPEM {
+			return nil
+		}
 	}
 
 	// 更新自定义域名
@@ -119,7 +380,7 @@ func (d *SSLDeployerProvider) deployToFC3(ctx context.Context, certPEM string, p
 	if tea.StringValue(updateCustomDomainReq.Body.Protocol) == "HTTP" {
 		updateCustomDomainReq.Body.Protocol = tea.String("HTTP,HTTPS")
 	}
-	updateCustomDomainResp, err := d.sdkClients.FC3.UpdateCustomDomainWithContext(context.TODO(), tea.String(d.config.Domain), updateCustomDomainReq, make(map[string]*string), &dara.RuntimeOptions{})
+	updateCustomDomainResp, err := d.sdkClients.FC3.UpdateCustomDomainWithContext(ctx, tea.String(domain), updateCustomDomainReq, make(map[string]*string), &dara.RuntimeOptions{})
 	d.logger.Debug("sdk request 'fc.UpdateCustomDomain'", slog.Any("request", updateCustomDomainReq), slog.Any("response", updateCustomDomainResp))
 	if err != nil {
 		return fmt.Errorf("failed to execute sdk request 'fc.UpdateCustomDomain': %w", err)
@@ -128,17 +389,17 @@ func (d *SSLDeployerProvider) deployToFC3(ctx context.Context, certPEM string, p
 	return nil
 }
 
-func (d *SSLDeployerProvider) deployToFC2(ctx context.Context, certPEM string, privkeyPEM string) error {
-	if d.config.Domain == "" {
-		return errors.New("config `domain` is required")
-	}
-
+func (d *SSLDeployerProvider) updateFC2DomainCertificate(ctx context.Context, domain string, certPEM, privkeyPEM string) error {
 	// 获取自定义域名
 	// REF: https://help.aliyun.com/zh/functioncompute/fc-2-0/developer-reference/api-fc-open-2021-04-06-getcustomdomain
-	getCustomDomainResp, err := d.sdkClients.FC2.GetCustomDomain(tea.String(d.config.Domain))
+	getCustomDomainResp, err := d.sdkClients.FC2.GetCustomDomain(tea.String(domain))
 	d.logger.Debug("sdk request 'fc.GetCustomDomain'", slog.Any("response", getCustomDomainResp))
 	if err != nil {
 		return fmt.Errorf("failed to execute sdk request 'fc.GetCustomDomain': %w", err)
+	} else {
+		if getCustomDomainResp.Body.CertConfig != nil && tea.StringValue(getCustomDomainResp.Body.CertConfig.Certificate) == certPEM {
+			return nil
+		}
 	}
 
 	// 更新自定义域名
@@ -155,7 +416,7 @@ func (d *SSLDeployerProvider) deployToFC2(ctx context.Context, certPEM string, p
 	if tea.StringValue(updateCustomDomainReq.Protocol) == "HTTP" {
 		updateCustomDomainReq.Protocol = tea.String("HTTP,HTTPS")
 	}
-	updateCustomDomainResp, err := d.sdkClients.FC2.UpdateCustomDomain(tea.String(d.config.Domain), updateCustomDomainReq)
+	updateCustomDomainResp, err := d.sdkClients.FC2.UpdateCustomDomain(tea.String(domain), updateCustomDomainReq)
 	d.logger.Debug("sdk request 'fc.UpdateCustomDomain'", slog.Any("request", updateCustomDomainReq), slog.Any("response", updateCustomDomainResp))
 	if err != nil {
 		return fmt.Errorf("failed to execute sdk request 'fc.UpdateCustomDomain': %w", err)

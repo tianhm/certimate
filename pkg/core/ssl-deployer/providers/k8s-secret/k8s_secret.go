@@ -112,7 +112,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	}
 
 	// 获取 Secret 实例，如果不存在则创建
-	secretPayload, err = client.CoreV1().Secrets(d.config.Namespace).Get(context.TODO(), d.config.SecretName, k8smeta.GetOptions{})
+	secretPayload, err = client.CoreV1().Secrets(d.config.Namespace).Get(ctx, d.config.SecretName, k8smeta.GetOptions{})
 	if err != nil {
 		if !k8serrors.IsNotFound(err) {
 			return nil, fmt.Errorf("failed to get kubernetes secret: %w", err)
@@ -134,7 +134,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		secretPayload.Data[d.config.SecretDataKeyForCrt] = []byte(certPEM)
 		secretPayload.Data[d.config.SecretDataKeyForKey] = []byte(privkeyPEM)
 
-		secretPayload, err = client.CoreV1().Secrets(d.config.Namespace).Create(context.TODO(), secretPayload, k8smeta.CreateOptions{})
+		secretPayload, err = client.CoreV1().Secrets(d.config.Namespace).Create(ctx, secretPayload, k8smeta.CreateOptions{})
 		d.logger.Debug("kubernetes operate 'Secrets.Create'", slog.String("namespace", d.config.Namespace), slog.Any("secret", secretPayload))
 		if err != nil {
 			return nil, fmt.Errorf("failed to create kubernetes secret: %w", err)
@@ -164,7 +164,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	}
 	secretPayload.Data[d.config.SecretDataKeyForCrt] = []byte(certPEM)
 	secretPayload.Data[d.config.SecretDataKeyForKey] = []byte(privkeyPEM)
-	secretPayload, err = client.CoreV1().Secrets(d.config.Namespace).Update(context.TODO(), secretPayload, k8smeta.UpdateOptions{})
+	secretPayload, err = client.CoreV1().Secrets(d.config.Namespace).Update(ctx, secretPayload, k8smeta.UpdateOptions{})
 	d.logger.Debug("kubernetes operate 'Secrets.Update'", slog.String("namespace", d.config.Namespace), slog.Any("secret", secretPayload))
 	if err != nil {
 		return nil, fmt.Errorf("failed to update kubernetes secret: %w", err)

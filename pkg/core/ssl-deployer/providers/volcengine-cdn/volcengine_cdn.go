@@ -83,7 +83,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
 	}
 
-	// 获取待部署的 CDN 实例
+	// 获取待部署的域名列表
 	domains := make([]string, 0)
 	switch d.config.DomainMatchPattern {
 	case "", DOMAIN_MATCH_PATTERN_EXACT:
@@ -92,7 +92,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 				return nil, errors.New("config `domain` is required")
 			}
 
-			domains = append(domains, d.config.Domain)
+			domains = []string{d.config.Domain}
 		}
 
 	case DOMAIN_MATCH_PATTERN_WILDCARD:
@@ -102,29 +102,29 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			}
 
 			if strings.HasPrefix(d.config.Domain, "*.") {
-				temp, err := d.getMatchedDomainsByWildcard(ctx, d.config.Domain)
+				domainCandidates, err := d.getMatchedDomainsByWildcard(ctx, d.config.Domain)
 				if err != nil {
 					return nil, err
 				}
 
-				domains = temp
+				domains = domainCandidates
 			} else {
-				domains = append(domains, d.config.Domain)
+				domains = []string{d.config.Domain}
 			}
 		}
 
 	case DOMAIN_MATCH_PATTERN_CERTSAN:
 		{
-			temp, err := d.getMatchedDomainsByCertId(ctx, upres.CertId)
+			domainCandidates, err := d.getMatchedDomainsByCertId(ctx, upres.CertId)
 			if err != nil {
 				return nil, err
 			}
 
-			domains = temp
+			domains = domainCandidates
 		}
 
 	default:
-		return nil, fmt.Errorf("unsupported match pattern: '%s'", d.config.DomainMatchPattern)
+		return nil, fmt.Errorf("unsupported domain match pattern: '%s'", d.config.DomainMatchPattern)
 	}
 
 	// 遍历绑定证书
@@ -139,7 +139,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			case <-ctx.Done():
 				return nil, ctx.Err()
 			default:
-				if err := d.bindCert(ctx, domain, upres.CertId); err != nil {
+				if err := d.updateDomainCertificate(ctx, domain, upres.CertId); err != nil {
 					errs = append(errs, err)
 				}
 			}
@@ -156,10 +156,10 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, wildcardDomain string) ([]string, error) {
 	domains := make([]string, 0)
 
-	// 遍历获取加速域名列表，获取匹配的域名
+	// 查询加速域名列表，获取匹配的域名
 	// REF: https://www.volcengine.com/docs/6454/75269
-	listCdnDomainsPageNum := int64(1)
-	listCdnDomainsPageSize := int64(100)
+	listCdnDomainsPageNum := 1
+	listCdnDomainsPageSize := 100
 	for {
 		select {
 		case <-ctx.Done():
@@ -170,8 +170,8 @@ func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, w
 		listCdnDomainsReq := &vecdn.ListCdnDomainsInput{
 			Domain:   ve.String(strings.TrimPrefix(wildcardDomain, "*.")),
 			Status:   ve.String("online"),
-			PageNum:  ve.Int64(listCdnDomainsPageNum),
-			PageSize: ve.Int64(listCdnDomainsPageSize),
+			PageNum:  ve.Int64(int64(listCdnDomainsPageNum)),
+			PageSize: ve.Int64(int64(listCdnDomainsPageSize)),
 		}
 		listCdnDomainsResp, err := d.sdkClient.ListCdnDomains(listCdnDomainsReq)
 		d.logger.Debug("sdk request 'cdn.ListCdnDomains'", slog.Any("request", listCdnDomainsReq), slog.Any("response", listCdnDomainsResp))
@@ -179,19 +179,21 @@ func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, w
 			return nil, fmt.Errorf("failed to execute sdk request 'cdn.ListCdnDomains': %w", err)
 		}
 
-		if listCdnDomainsResp.Data != nil {
-			for _, domain := range listCdnDomainsResp.Data {
-				if xcerthostname.IsMatch(wildcardDomain, ve.StringValue(domain.Domain)) {
-					domains = append(domains, ve.StringValue(domain.Domain))
-				}
+		for _, domainItem := range listCdnDomainsResp.Data {
+			if xcerthostname.IsMatch(wildcardDomain, ve.StringValue(domainItem.Domain)) {
+				domains = append(domains, ve.StringValue(domainItem.Domain))
 			}
 		}
 
-		if len(listCdnDomainsResp.Data) < int(listCdnDomainsPageSize) {
+		if len(listCdnDomainsResp.Data) < listCdnDomainsPageSize {
 			break
-		} else {
-			listCdnDomainsPageSize++
 		}
+
+		listCdnDomainsPageSize++
+	}
+
+	if len(domains) == 0 {
+		return nil, errors.New("could not find any domains matched by wildcard")
 	}
 
 	return domains, nil
@@ -225,14 +227,14 @@ func (d *SSLDeployerProvider) getMatchedDomainsByCertId(ctx context.Context, clo
 
 	if len(domains) == 0 {
 		if len(describeCertConfigResp.SpecifiedCertConfig) == 0 {
-			return nil, errors.New("domains not found")
+			return nil, errors.New("could not find any domains matched by certificate")
 		}
 	}
 
 	return domains, nil
 }
 
-func (d *SSLDeployerProvider) bindCert(ctx context.Context, domain string, cloudCertId string) error {
+func (d *SSLDeployerProvider) updateDomainCertificate(ctx context.Context, domain string, cloudCertId string) error {
 	// 关联证书与加速域名
 	// REF: https://www.volcengine.com/docs/6454/125712
 	batchDeployCertReq := &vecdn.BatchDeployCertInput{

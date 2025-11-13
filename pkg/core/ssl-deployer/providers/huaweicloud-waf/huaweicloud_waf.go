@@ -171,11 +171,11 @@ func (d *SSLDeployerProvider) deployToCloudServer(ctx context.Context, certPEM s
 		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
 	}
 
-	// 遍历查询云模式防护域名列表，获取防护域名 ID
+	// 查询云模式防护域名列表，获取防护域名 ID
 	// REF: https://support.huaweicloud.com/api-waf/ListHost.html
 	hostId := ""
-	listHostPage := int32(1)
-	listHostPageSize := int32(100)
+	listHostPage := 1
+	listHostPageSize := 100
 	for {
 		select {
 		case <-ctx.Done():
@@ -186,8 +186,8 @@ func (d *SSLDeployerProvider) deployToCloudServer(ctx context.Context, certPEM s
 		listHostReq := &hcwafmodel.ListHostRequest{
 			EnterpriseProjectId: lo.EmptyableToPtr(d.config.EnterpriseProjectId),
 			Hostname:            lo.ToPtr(strings.TrimPrefix(d.config.Domain, "*")),
-			Page:                lo.ToPtr(listHostPage),
-			Pagesize:            lo.ToPtr(listHostPageSize),
+			Page:                lo.ToPtr(int32(listHostPage)),
+			Pagesize:            lo.ToPtr(int32(listHostPageSize)),
 		}
 		listHostResp, err := d.sdkClient.ListHost(listHostReq)
 		d.logger.Debug("sdk request 'waf.ListHost'", slog.Any("request", listHostReq), slog.Any("response", listHostResp))
@@ -195,23 +195,25 @@ func (d *SSLDeployerProvider) deployToCloudServer(ctx context.Context, certPEM s
 			return fmt.Errorf("failed to execute sdk request 'waf.ListHost': %w", err)
 		}
 
-		if listHostResp.Items != nil {
-			for _, hostItem := range *listHostResp.Items {
-				if strings.TrimPrefix(d.config.Domain, "*") == *hostItem.Hostname {
-					hostId = *hostItem.Id
-					break
-				}
+		if listHostResp.Items == nil {
+			break
+		}
+
+		for _, hostItem := range *listHostResp.Items {
+			if strings.TrimPrefix(d.config.Domain, "*") == *hostItem.Hostname {
+				hostId = *hostItem.Id
+				break
 			}
 		}
 
-		if listHostResp.Items == nil || len(*listHostResp.Items) < int(listHostPageSize) {
+		if len(*listHostResp.Items) < listHostPageSize {
 			break
-		} else {
-			listHostPage++
 		}
+
+		listHostPage++
 	}
 	if hostId == "" {
-		return errors.New("host not found")
+		return fmt.Errorf("could not find cloudserver host '%s'", d.config.Domain)
 	}
 
 	// 更新云模式防护域名的配置
@@ -246,11 +248,11 @@ func (d *SSLDeployerProvider) deployToPremiumHost(ctx context.Context, certPEM s
 		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
 	}
 
-	// 遍历查询独享模式域名列表，获取防护域名 ID
+	// 查询独享模式域名列表，获取防护域名 ID
 	// REF: https://support.huaweicloud.com/api-waf/ListPremiumHost.html
 	hostId := ""
-	listPremiumHostPage := int32(1)
-	listPremiumHostPageSize := int32(100)
+	listPremiumHostPage := 1
+	listPremiumHostPageSize := 100
 	for {
 		select {
 		case <-ctx.Done():
@@ -270,23 +272,25 @@ func (d *SSLDeployerProvider) deployToPremiumHost(ctx context.Context, certPEM s
 			return fmt.Errorf("failed to execute sdk request 'waf.ListPremiumHost': %w", err)
 		}
 
-		if listPremiumHostResp.Items != nil {
-			for _, hostItem := range *listPremiumHostResp.Items {
-				if strings.TrimPrefix(d.config.Domain, "*") == *hostItem.Hostname {
-					hostId = *hostItem.Id
-					break
-				}
+		if listPremiumHostResp.Items == nil {
+			break
+		}
+
+		for _, hostItem := range *listPremiumHostResp.Items {
+			if strings.TrimPrefix(d.config.Domain, "*") == *hostItem.Hostname {
+				hostId = *hostItem.Id
+				break
 			}
 		}
 
-		if listPremiumHostResp.Items == nil || len(*listPremiumHostResp.Items) < int(listPremiumHostPageSize) {
+		if len(*listPremiumHostResp.Items) < listPremiumHostPageSize {
 			break
-		} else {
-			listPremiumHostPage++
 		}
+
+		listPremiumHostPage++
 	}
 	if hostId == "" {
-		return errors.New("host not found")
+		return fmt.Errorf("could not find premium host '%s'", d.config.Domain)
 	}
 
 	// 修改独享模式域名配置

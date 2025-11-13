@@ -57,10 +57,11 @@ func TestDeploy(t *testing.T) {
 		}, "\n"))
 
 		deployer, err := provider.NewSSLDeployerProvider(&provider.SSLDeployerProviderConfig{
-			SecretId:  fSecretId,
-			SecretKey: fSecretKey,
-			ZoneId:    fZoneId,
-			Domains:   strings.Split(fDomains, ";"),
+			SecretId:           fSecretId,
+			SecretKey:          fSecretKey,
+			ZoneId:             fZoneId,
+			DomainMatchPattern: provider.DOMAIN_MATCH_PATTERN_EXACT,
+			Domains:            strings.Split(fDomains, ";"),
 		})
 		if err != nil {
 			t.Errorf("err: %+v", err)

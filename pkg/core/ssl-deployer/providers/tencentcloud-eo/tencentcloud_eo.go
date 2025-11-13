@@ -15,6 +15,7 @@ import (
 	"github.com/certimate-go/certimate/pkg/core"
 	"github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/tencentcloud-eo/internal"
 	sslmgrsp "github.com/certimate-go/certimate/pkg/core/ssl-manager/providers/tencentcloud-ssl"
+	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
 	xcerthostname "github.com/certimate-go/certimate/pkg/utils/cert/hostname"
 )
 
@@ -86,9 +87,6 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	if d.config.ZoneId == "" {
 		return nil, errors.New("config `zoneId` is required")
 	}
-	if len(d.config.Domains) == 0 {
-		return nil, errors.New("config `domains` is required")
-	}
 
 	// 上传证书
 	upres, err := d.sslManager.Upload(ctx, certPEM, privkeyPEM)
@@ -98,6 +96,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
 	}
 
+	// 获取待部署的域名列表
 	var domains []string
 	switch d.config.DomainMatchPattern {
 	case "", DOMAIN_MATCH_PATTERN_EXACT:
@@ -115,12 +114,12 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 				return nil, errors.New("config `domains` is required")
 			}
 
-			domainsInZone, err := d.getDomainsInZone(ctx, d.config.ZoneId)
+			domainCandidates, err := d.getAllDomainsInZone(ctx, d.config.ZoneId)
 			if err != nil {
 				return nil, err
 			}
 
-			domains = lo.Filter(domainsInZone, func(domain string, _ int) bool {
+			domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
 				for _, configDomain := range d.config.Domains {
 					if xcerthostname.IsMatch(configDomain, domain) {
 						return true
@@ -128,14 +127,33 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 				}
 				return false
 			})
-
 			if len(domains) == 0 {
-				return nil, errors.New("no domains matched in wildcard mode")
+				return nil, errors.New("could not find any domains matched by wildcard")
+			}
+		}
+
+	case DOMAIN_MATCH_PATTERN_CERTSAN:
+		{
+			certX509, err := xcert.ParseCertificateFromPEM(certPEM)
+			if err != nil {
+				return nil, err
+			}
+
+			domainCandidates, err := d.getAllDomainsInZone(ctx, d.config.ZoneId)
+			if err != nil {
+				return nil, err
+			}
+
+			domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
+				return certX509.VerifyHostname(domain) == nil
+			})
+			if len(domains) == 0 {
+				return nil, errors.New("could not find any domains matched by certificate")
 			}
 		}
 
 	default:
-		return nil, fmt.Errorf("unsupported match pattern: '%s'", d.config.DomainMatchPattern)
+		return nil, fmt.Errorf("unsupported domain match pattern: '%s'", d.config.DomainMatchPattern)
 	}
 
 	// 配置域名证书
@@ -154,7 +172,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	return &core.SSLDeployResult{}, nil
 }
 
-func (d *SSLDeployerProvider) getDomainsInZone(ctx context.Context, zoneId string) ([]string, error) {
+func (d *SSLDeployerProvider) getAllDomainsInZone(ctx context.Context, zoneId string) ([]string, error) {
 	var domainsInZone []string
 
 	const pageSize = 200
@@ -177,11 +195,12 @@ func (d *SSLDeployerProvider) getDomainsInZone(ctx context.Context, zoneId strin
 			return nil, fmt.Errorf("failed to execute sdk request 'teo.DescribeAccelerationDomains': %w", err)
 		}
 
-		for _, accelerationDomain := range describeAccelerationDomainsResp.Response.AccelerationDomains {
-			if accelerationDomain == nil || accelerationDomain.DomainName == nil {
+		for _, domainItem := range describeAccelerationDomainsResp.Response.AccelerationDomains {
+			if domainItem == nil || domainItem.DomainName == nil {
 				continue
 			}
-			domainsInZone = append(domainsInZone, *accelerationDomain.DomainName)
+
+			domainsInZone = append(domainsInZone, *domainItem.DomainName)
 		}
 
 		if len(describeAccelerationDomainsResp.Response.AccelerationDomains) < pageSize {

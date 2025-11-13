@@ -18,6 +18,8 @@ type SSLDeployerProviderConfig struct {
 	AccessKey string `json:"accessKey"`
 	// 七牛云 SecretKey。
 	SecretKey string `json:"secretKey"`
+	// 存储桶名。暂时无用。
+	Bucket string `json:"bucket"`
 	// 自定义域名（不支持泛域名）。
 	Domain string `json:"domain"`
 }
@@ -78,7 +80,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	}
 
 	// 绑定空间域名证书
-	bindBucketCertResp, err := d.sdkClient.BindBucketCert(context.TODO(), d.config.Domain, upres.CertId)
+	bindBucketCertResp, err := d.sdkClient.BindBucketCert(ctx, d.config.Domain, upres.CertId)
 	d.logger.Debug("sdk request 'kodo.BindCert'", slog.String("request.domain", d.config.Domain), slog.String("request.certId", upres.CertId), slog.Any("response", bindBucketCertResp))
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute sdk request 'kodo.BindCert': %w", err)

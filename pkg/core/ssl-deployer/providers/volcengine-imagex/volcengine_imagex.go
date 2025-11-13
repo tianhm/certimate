@@ -94,7 +94,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		ServiceID:  d.config.ServiceId,
 		DomainName: d.config.Domain,
 	}
-	getDomainConfigResp, err := d.sdkClient.GetDomainConfig(context.TODO(), getDomainConfigReq)
+	getDomainConfigResp, err := d.sdkClient.GetDomainConfig(ctx, getDomainConfigReq)
 	d.logger.Debug("sdk request 'imagex.GetDomainConfig'", slog.Any("request", getDomainConfigReq), slog.Any("response", getDomainConfigResp))
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute sdk request 'imagex.GetDomainConfig': %w", err)
@@ -123,7 +123,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		updateHttpsReq.UpdateHTTPSBody.HTTPS.ForceRedirectType = getDomainConfigResp.Result.HTTPSConfig.ForceRedirectType
 		updateHttpsReq.UpdateHTTPSBody.HTTPS.ForceRedirectCode = getDomainConfigResp.Result.HTTPSConfig.ForceRedirectCode
 	}
-	updateHttpsResp, err := d.sdkClient.UpdateHTTPS(context.TODO(), updateHttpsReq)
+	updateHttpsResp, err := d.sdkClient.UpdateHTTPS(ctx, updateHttpsReq)
 	d.logger.Debug("sdk request 'imagex.UpdateHttps'", slog.Any("request", updateHttpsReq), slog.Any("response", updateHttpsResp))
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute sdk request 'imagex.UpdateHttps': %w", err)

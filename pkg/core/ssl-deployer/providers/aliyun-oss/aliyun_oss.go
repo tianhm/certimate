@@ -82,7 +82,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			},
 		},
 	}
-	putCnameResp, err := d.sdkClient.PutCname(context.TODO(), putCnameReq)
+	putCnameResp, err := d.sdkClient.PutCname(ctx, putCnameReq)
 	d.logger.Debug("sdk request 'oss.PutCname'", slog.Any("request", putCnameReq), slog.Any("response", putCnameResp))
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute sdk request 'oss.PutCname': %w", err)

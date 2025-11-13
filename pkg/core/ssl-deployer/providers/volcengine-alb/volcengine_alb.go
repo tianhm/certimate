@@ -129,8 +129,8 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCer
 	// 查询 HTTPS 监听器列表
 	// REF: https://www.volcengine.com/docs/6767/113684
 	listenerIds := make([]string, 0)
-	describeListenersPageSize := int64(100)
-	describeListenersPageNumber := int64(1)
+	describeListenersPageSize := 100
+	describeListenersPageNumber := 1
 	for {
 		select {
 		case <-ctx.Done():
@@ -141,8 +141,8 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCer
 		describeListenersReq := &vealb.DescribeListenersInput{
 			LoadBalancerId: ve.String(d.config.LoadbalancerId),
 			Protocol:       ve.String("HTTPS"),
-			PageNumber:     ve.Int64(describeListenersPageNumber),
-			PageSize:       ve.Int64(describeListenersPageSize),
+			PageNumber:     ve.Int64(int64(describeListenersPageNumber)),
+			PageSize:       ve.Int64(int64(describeListenersPageSize)),
 		}
 		describeListenersResp, err := d.sdkClient.DescribeListeners(describeListenersReq)
 		d.logger.Debug("sdk request 'alb.DescribeListeners'", slog.Any("request", describeListenersReq), slog.Any("response", describeListenersResp))
@@ -154,11 +154,11 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCer
 			listenerIds = append(listenerIds, *listener.ListenerId)
 		}
 
-		if len(describeListenersResp.Listeners) < int(describeListenersPageSize) {
+		if len(describeListenersResp.Listeners) < describeListenersPageSize {
 			break
-		} else {
-			describeListenersPageNumber++
 		}
+
+		describeListenersPageNumber++
 	}
 
 	// 遍历更新监听证书

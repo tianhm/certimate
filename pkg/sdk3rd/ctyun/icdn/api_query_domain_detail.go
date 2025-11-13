@@ -14,23 +14,7 @@ type QueryDomainDetailRequest struct {
 type QueryDomainDetailResponse struct {
 	apiResponseBase
 
-	ReturnObj *struct {
-		Domain      string `json:"domain"`
-		ProductCode string `json:"product_code"`
-		Status      int32  `json:"status"`
-		AreaScope   int32  `json:"area_scope"`
-		Cname       string `json:"cname"`
-		HttpsStatus string `json:"https_status"`
-		HttpsBasic  *struct {
-			HttpsForce     string `json:"https_force"`
-			HttpForce      string `json:"http_force"`
-			ForceStatus    string `json:"force_status"`
-			OriginProtocol string `json:"origin_protocol"`
-		} `json:"https_basic,omitempty"`
-		CertName    string `json:"cert_name"`
-		Ssl         string `json:"ssl"`
-		SslStapling string `json:"ssl_stapling"`
-	} `json:"returnObj,omitempty"`
+	ReturnObj *DomainDetail `json:"returnObj,omitempty"`
 }
 
 func (c *Client) QueryDomainDetail(req *QueryDomainDetailRequest) (*QueryDomainDetailResponse, error) {

@@ -31,7 +31,13 @@ const BizDeployNodeConfigFieldsProviderVolcEngineCDN = () => {
         name={[parentNamePath, "domainMatchPattern"]}
         initialValue={initialValues.domainMatchPattern}
         label={t("workflow_node.deploy.form.shared_domain_match_pattern.label")}
-        extra={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.shared_domain_match_pattern.help_wildcard") }}></span>}
+        extra={
+          fieldDomainMatchPattern === DOMAIN_MATCH_PATTERN_EXACT ? (
+            <span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.shared_domain_match_pattern.help_wildcard") }}></span>
+          ) : (
+            void 0
+          )
+        }
         rules={[formRule]}
       >
         <Radio.Group
@@ -69,10 +75,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
 
   return z
     .object({
-      domainMatchPattern: z.enum(
-        [DOMAIN_MATCH_PATTERN_EXACT, DOMAIN_MATCH_PATTERN_WILDCARD, DOMAIN_MATCH_PATTERN_CERTSAN],
-        t("workflow_node.deploy.form.shared_domain_match_pattern.placeholder")
-      ),
+      domainMatchPattern: z.string().nonempty(t("workflow_node.deploy.form.shared_domain_match_pattern.placeholder")).default(DOMAIN_MATCH_PATTERN_EXACT),
       domain: z.string().nullish(),
     })
     .superRefine((values, ctx) => {

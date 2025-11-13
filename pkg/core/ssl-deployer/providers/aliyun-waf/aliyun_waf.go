@@ -118,10 +118,10 @@ func (d *SSLDeployerProvider) deployToWAF3(ctx context.Context, certPEM string, 
 		// REF: https://help.aliyun.com/zh/waf/web-application-firewall-3-0/developer-reference/api-waf-openapi-2021-10-01-describedefaulthttps
 		describeDefaultHttpsReq := &aliwaf.DescribeDefaultHttpsRequest{
 			ResourceManagerResourceGroupId: lo.EmptyableToPtr(d.config.ResourceGroupId),
-			InstanceId:                     tea.String(d.config.InstanceId),
 			RegionId:                       tea.String(d.config.Region),
+			InstanceId:                     tea.String(d.config.InstanceId),
 		}
-		describeDefaultHttpsResp, err := d.sdkClient.DescribeDefaultHttpsWithContext(context.TODO(), describeDefaultHttpsReq, &dara.RuntimeOptions{})
+		describeDefaultHttpsResp, err := d.sdkClient.DescribeDefaultHttpsWithContext(ctx, describeDefaultHttpsReq, &dara.RuntimeOptions{})
 		d.logger.Debug("sdk request 'waf.DescribeDefaultHttps'", slog.Any("request", describeDefaultHttpsReq), slog.Any("response", describeDefaultHttpsResp))
 		if err != nil {
 			return fmt.Errorf("failed to execute sdk request 'waf.DescribeDefaultHttps': %w", err)
@@ -131,8 +131,8 @@ func (d *SSLDeployerProvider) deployToWAF3(ctx context.Context, certPEM string, 
 		// REF: https://help.aliyun.com/zh/waf/web-application-firewall-3-0/developer-reference/api-waf-openapi-2021-10-01-modifydefaulthttps
 		modifyDefaultHttpsReq := &aliwaf.ModifyDefaultHttpsRequest{
 			ResourceManagerResourceGroupId: lo.EmptyableToPtr(d.config.ResourceGroupId),
-			InstanceId:                     tea.String(d.config.InstanceId),
 			RegionId:                       tea.String(d.config.Region),
+			InstanceId:                     tea.String(d.config.InstanceId),
 			CertId:                         tea.String(upres.ExtendedData["CertIdentifier"].(string)),
 			TLSVersion:                     tea.String("tlsv1"),
 			EnableTLSv3:                    tea.Bool(true),
@@ -145,7 +145,7 @@ func (d *SSLDeployerProvider) deployToWAF3(ctx context.Context, certPEM string, 
 				modifyDefaultHttpsReq.EnableTLSv3 = describeDefaultHttpsResp.Body.DefaultHttps.EnableTLSv3
 			}
 		}
-		modifyDefaultHttpsResp, err := d.sdkClient.ModifyDefaultHttpsWithContext(context.TODO(), modifyDefaultHttpsReq, &dara.RuntimeOptions{})
+		modifyDefaultHttpsResp, err := d.sdkClient.ModifyDefaultHttpsWithContext(ctx, modifyDefaultHttpsReq, &dara.RuntimeOptions{})
 		d.logger.Debug("sdk request 'waf.ModifyDefaultHttps'", slog.Any("request", modifyDefaultHttpsReq), slog.Any("response", modifyDefaultHttpsResp))
 		if err != nil {
 			return fmt.Errorf("failed to execute sdk request 'waf.ModifyDefaultHttps': %w", err)
@@ -156,11 +156,11 @@ func (d *SSLDeployerProvider) deployToWAF3(ctx context.Context, certPEM string, 
 		// 查询 CNAME 接入详情
 		// REF: https://help.aliyun.com/zh/waf/web-application-firewall-3-0/developer-reference/api-waf-openapi-2021-10-01-describedomaindetail
 		describeDomainDetailReq := &aliwaf.DescribeDomainDetailRequest{
-			InstanceId: tea.String(d.config.InstanceId),
 			RegionId:   tea.String(d.config.Region),
+			InstanceId: tea.String(d.config.InstanceId),
 			Domain:     tea.String(d.config.Domain),
 		}
-		describeDomainDetailResp, err := d.sdkClient.DescribeDomainDetailWithContext(context.TODO(), describeDomainDetailReq, &dara.RuntimeOptions{})
+		describeDomainDetailResp, err := d.sdkClient.DescribeDomainDetailWithContext(ctx, describeDomainDetailReq, &dara.RuntimeOptions{})
 		d.logger.Debug("sdk request 'waf.DescribeDomainDetail'", slog.Any("request", describeDomainDetailReq), slog.Any("response", describeDomainDetailResp))
 		if err != nil {
 			return fmt.Errorf("failed to execute sdk request 'waf.DescribeDomainDetail': %w", err)
@@ -169,14 +169,14 @@ func (d *SSLDeployerProvider) deployToWAF3(ctx context.Context, certPEM string, 
 		// 修改 CNAME 接入资源
 		// REF: https://help.aliyun.com/zh/waf/web-application-firewall-3-0/developer-reference/api-waf-openapi-2021-10-01-modifydomain
 		modifyDomainReq := &aliwaf.ModifyDomainRequest{
-			InstanceId: tea.String(d.config.InstanceId),
 			RegionId:   tea.String(d.config.Region),
+			InstanceId: tea.String(d.config.InstanceId),
 			Domain:     tea.String(d.config.Domain),
 			Listen:     &aliwaf.ModifyDomainRequestListen{CertId: tea.String(upres.ExtendedData["CertIdentifier"].(string))},
 			Redirect:   &aliwaf.ModifyDomainRequestRedirect{Loadbalance: tea.String("iphash")},
 		}
-		modifyDomainReq = assign(modifyDomainReq, describeDomainDetailResp.Body)
-		modifyDomainResp, err := d.sdkClient.ModifyDomainWithContext(context.TODO(), modifyDomainReq, &dara.RuntimeOptions{})
+		modifyDomainReq = _assign(modifyDomainReq, describeDomainDetailResp.Body)
+		modifyDomainResp, err := d.sdkClient.ModifyDomainWithContext(ctx, modifyDomainReq, &dara.RuntimeOptions{})
 		d.logger.Debug("sdk request 'waf.ModifyDomain'", slog.Any("request", modifyDomainReq), slog.Any("response", modifyDomainResp))
 		if err != nil {
 			return fmt.Errorf("failed to execute sdk request 'waf.ModifyDomain': %w", err)
@@ -210,7 +210,7 @@ func createSDKClient(accessKeyId, accessKeySecret, region string) (*internal.Waf
 	return client, nil
 }
 
-func assign(source *aliwaf.ModifyDomainRequest, target *aliwaf.DescribeDomainDetailResponseBody) *aliwaf.ModifyDomainRequest {
+func _assign(source *aliwaf.ModifyDomainRequest, target *aliwaf.DescribeDomainDetailResponseBody) *aliwaf.ModifyDomainRequest {
 	// `ModifyDomain` 中不传的字段表示使用默认值、而非保留原值，
 	// 因此这里需要把原配置中的参数重新赋值回去。
 

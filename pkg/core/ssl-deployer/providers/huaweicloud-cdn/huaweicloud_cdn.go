@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 
 	"github.com/huaweicloud/huaweicloud-sdk-go-v3/core/auth/global"
 	hccdn "github.com/huaweicloud/huaweicloud-sdk-go-v3/services/cdn/v2"
@@ -15,6 +16,8 @@ import (
 	"github.com/certimate-go/certimate/pkg/core"
 	"github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/huaweicloud-cdn/internal"
 	sslmgrsp "github.com/certimate-go/certimate/pkg/core/ssl-manager/providers/huaweicloud-scm"
+	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
+	xcerthostname "github.com/certimate-go/certimate/pkg/utils/cert/hostname"
 )
 
 type SSLDeployerProviderConfig struct {
@@ -26,6 +29,9 @@ type SSLDeployerProviderConfig struct {
 	EnterpriseProjectId string `json:"enterpriseProjectId,omitempty"`
 	// 华为云区域。
 	Region string `json:"region"`
+	// 域名匹配模式。
+	// 零值时默认值 [DOMAIN_MATCH_PATTERN_EXACT]。
+	DomainMatchPattern string `json:"domainMatchPattern,omitempty"`
 	// 加速域名（支持泛域名）。
 	Domain string `json:"domain"`
 }
@@ -81,10 +87,6 @@ func (d *SSLDeployerProvider) SetLogger(logger *slog.Logger) {
 }
 
 func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privkeyPEM string) (*core.SSLDeployResult, error) {
-	if d.config.Domain == "" {
-		return nil, fmt.Errorf("config `domain` is required")
-	}
-
 	// 上传证书
 	upres, err := d.sslManager.Upload(ctx, certPEM, privkeyPEM)
 	if err != nil {
@@ -93,28 +95,162 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
 	}
 
+	// 获取待部署的域名列表
+	var domains []string
+	switch d.config.DomainMatchPattern {
+	case "", DOMAIN_MATCH_PATTERN_EXACT:
+		{
+			if d.config.Domain == "" {
+				return nil, errors.New("config `domain` is required")
+			}
+
+			domains = []string{d.config.Domain}
+		}
+
+	case DOMAIN_MATCH_PATTERN_WILDCARD:
+		{
+			if d.config.Domain == "" {
+				return nil, errors.New("config `domain` is required")
+			}
+
+			if strings.HasPrefix(d.config.Domain, "*.") {
+				domainCandidates, err := d.getAllDomains(ctx)
+				if err != nil {
+					return nil, err
+				}
+
+				domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
+					return xcerthostname.IsMatch(d.config.Domain, domain)
+				})
+				if len(domains) == 0 {
+					return nil, errors.New("could not find any domains matched by wildcard")
+				}
+			} else {
+				domains = []string{d.config.Domain}
+			}
+		}
+
+	case DOMAIN_MATCH_PATTERN_CERTSAN:
+		{
+			certX509, err := xcert.ParseCertificateFromPEM(certPEM)
+			if err != nil {
+				return nil, err
+			}
+
+			domainCandidates, err := d.getAllDomains(ctx)
+			if err != nil {
+				return nil, err
+			}
+
+			domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
+				return certX509.VerifyHostname(domain) == nil
+			})
+			if len(domains) == 0 {
+				return nil, errors.New("could not find any domains matched by certificate")
+			}
+		}
+
+	default:
+		return nil, fmt.Errorf("unsupported domain match pattern: '%s'", d.config.DomainMatchPattern)
+	}
+
+	// 遍历更新域名证书
+	if len(domains) == 0 {
+		d.logger.Info("no cdn domains to deploy")
+	} else {
+		d.logger.Info("found cdn domains to deploy", slog.Any("domains", domains))
+		var errs []error
+
+		for _, domain := range domains {
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			default:
+				if err := d.updateDomainCertificate(ctx, domain, upres.CertId, upres.CertName); err != nil {
+					errs = append(errs, err)
+				}
+			}
+		}
+
+		if len(errs) > 0 {
+			return nil, errors.Join(errs...)
+		}
+	}
+
+	return &core.SSLDeployResult{}, nil
+}
+
+func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, error) {
+	domains := make([]string, 0)
+
+	// 查询域名列表
+	// REF: https://support.huaweicloud.com/api-cdn/ListDomains.html
+	listDomainsPageNumber := 1
+	listDomainsPageSize := 100
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+
+		listDomainsReq := &hccdnmodel.ListDomainsRequest{
+			EnterpriseProjectId: lo.EmptyableToPtr(d.config.EnterpriseProjectId),
+			PageNumber:          lo.ToPtr(int32(listDomainsPageNumber)),
+			PageSize:            lo.ToPtr(int32(listDomainsPageSize)),
+		}
+		listDomainsResp, err := d.sdkClient.ListDomains(listDomainsReq)
+		d.logger.Debug("sdk request 'cdn.ListDomains'", slog.Any("request", listDomainsReq), slog.Any("response", listDomainsResp))
+		if err != nil {
+			return nil, fmt.Errorf("failed to execute sdk request 'cdn.ListDomains': %w", err)
+		}
+
+		if listDomainsResp.Domains == nil {
+			break
+		}
+
+		ignoredStatuses := []string{"offline", "checking", "check_failed", "deleting"}
+		for _, domainItem := range *listDomainsResp.Domains {
+			if lo.Contains(ignoredStatuses, lo.FromPtr(domainItem.DomainStatus)) {
+				continue
+			}
+
+			domains = append(domains, lo.FromPtr(domainItem.DomainName))
+		}
+
+		if len(*listDomainsResp.Domains) < listDomainsPageSize {
+			break
+		}
+
+		listDomainsPageNumber++
+	}
+
+	return domains, nil
+}
+
+func (d *SSLDeployerProvider) updateDomainCertificate(ctx context.Context, domain string, cloudCertId, cloudCertName string) error {
 	// 查询加速域名配置
 	// REF: https://support.huaweicloud.com/api-cdn/ShowDomainFullConfig.html
 	showDomainFullConfigReq := &hccdnmodel.ShowDomainFullConfigRequest{
 		EnterpriseProjectId: lo.EmptyableToPtr(d.config.EnterpriseProjectId),
-		DomainName:          d.config.Domain,
+		DomainName:          domain,
 	}
 	showDomainFullConfigResp, err := d.sdkClient.ShowDomainFullConfig(showDomainFullConfigReq)
 	d.logger.Debug("sdk request 'cdn.ShowDomainFullConfig'", slog.Any("request", showDomainFullConfigReq), slog.Any("response", showDomainFullConfigResp))
 	if err != nil {
-		return nil, fmt.Errorf("failed to execute sdk request 'cdn.ShowDomainFullConfig': %w", err)
+		return fmt.Errorf("failed to execute sdk request 'cdn.ShowDomainFullConfig': %w", err)
 	}
 
 	// 更新加速域名配置
 	// REF: https://support.huaweicloud.com/api-cdn/UpdateDomainMultiCertificates.html
 	// REF: https://support.huaweicloud.com/usermanual-cdn/cdn_01_0306.html
 	updateDomainMultiCertificatesReqBodyContent := &hccdnmodel.UpdateDomainMultiCertificatesRequestBodyContent{}
-	updateDomainMultiCertificatesReqBodyContent.DomainName = d.config.Domain
+	updateDomainMultiCertificatesReqBodyContent.DomainName = domain
 	updateDomainMultiCertificatesReqBodyContent.HttpsSwitch = 1
 	updateDomainMultiCertificatesReqBodyContent.CertificateType = lo.ToPtr(int32(2))
-	updateDomainMultiCertificatesReqBodyContent.ScmCertificateId = lo.ToPtr(upres.CertId)
-	updateDomainMultiCertificatesReqBodyContent.CertName = lo.ToPtr(upres.CertName)
-	updateDomainMultiCertificatesReqBodyContent = assign(updateDomainMultiCertificatesReqBodyContent, showDomainFullConfigResp.Configs)
+	updateDomainMultiCertificatesReqBodyContent.ScmCertificateId = lo.ToPtr(cloudCertId)
+	updateDomainMultiCertificatesReqBodyContent.CertName = lo.ToPtr(cloudCertName)
+	updateDomainMultiCertificatesReqBodyContent = _assign(updateDomainMultiCertificatesReqBodyContent, showDomainFullConfigResp.Configs)
 	updateDomainMultiCertificatesReq := &hccdnmodel.UpdateDomainMultiCertificatesRequest{
 		EnterpriseProjectId: lo.EmptyableToPtr(d.config.EnterpriseProjectId),
 		Body: &hccdnmodel.UpdateDomainMultiCertificatesRequestBody{
@@ -124,10 +260,10 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	updateDomainMultiCertificatesResp, err := d.sdkClient.UpdateDomainMultiCertificates(updateDomainMultiCertificatesReq)
 	d.logger.Debug("sdk request 'cdn.UpdateDomainMultiCertificates'", slog.Any("request", updateDomainMultiCertificatesReq), slog.Any("response", updateDomainMultiCertificatesResp))
 	if err != nil {
-		return nil, fmt.Errorf("failed to execute sdk request 'cdn.UpdateDomainMultiCertificates': %w", err)
+		return fmt.Errorf("failed to execute sdk request 'cdn.UpdateDomainMultiCertificates': %w", err)
 	}
 
-	return &core.SSLDeployResult{}, nil
+	return nil
 }
 
 func createSDKClient(accessKeyId, secretAccessKey, region string) (*internal.CdnClient, error) {
@@ -160,7 +296,7 @@ func createSDKClient(accessKeyId, secretAccessKey, region string) (*internal.Cdn
 	return client, nil
 }
 
-func assign(source *hccdnmodel.UpdateDomainMultiCertificatesRequestBodyContent, target *hccdnmodel.ConfigsGetBody) *hccdnmodel.UpdateDomainMultiCertificatesRequestBodyContent {
+func _assign(source *hccdnmodel.UpdateDomainMultiCertificatesRequestBodyContent, target *hccdnmodel.ConfigsGetBody) *hccdnmodel.UpdateDomainMultiCertificatesRequestBodyContent {
 	// `UpdateDomainMultiCertificates` 中不传的字段表示使用默认值、而非保留原值，
 	// 因此这里需要把原配置中的参数重新赋值回去。
 

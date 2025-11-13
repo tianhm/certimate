@@ -76,8 +76,8 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 
 	// 获取证书列表，避免重复上传
 	// REF: https://docs.aws.amazon.com/en_us/IAM/latest/APIReference/API_ListServerCertificates.html
-	var listServerCertificatesMarker *string = nil
-	var listServerCertificatesMaxItems int32 = 1000
+	// REF: https://docs.aws.amazon.com/en_us/IAM/latest/APIReference/API_GetServerCertificate.html
+	listServerCertificatesMarker := (*string)(nil)
 	for {
 		select {
 		case <-ctx.Done():
@@ -87,34 +87,33 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 
 		listServerCertificatesReq := &awsiam.ListServerCertificatesInput{
 			Marker:   listServerCertificatesMarker,
-			MaxItems: aws.Int32(listServerCertificatesMaxItems),
+			MaxItems: aws.Int32(1000),
 		}
 		if m.config.CertificatePath != "" {
 			listServerCertificatesReq.PathPrefix = aws.String(m.config.CertificatePath)
 		}
-		listServerCertificatesResp, err := m.sdkClient.ListServerCertificates(context.TODO(), listServerCertificatesReq)
+		listServerCertificatesResp, err := m.sdkClient.ListServerCertificates(ctx, listServerCertificatesReq)
 		m.logger.Debug("sdk request 'iam.ListServerCertificates'", slog.Any("request", listServerCertificatesReq), slog.Any("response", listServerCertificatesResp))
 		if err != nil {
 			return nil, fmt.Errorf("failed to execute sdk request 'iam.ListServerCertificates': %w", err)
 		}
 
-		for _, certMeta := range listServerCertificatesResp.ServerCertificateMetadataList {
-			// 先对比证书路径
-			if m.config.CertificatePath != "" && aws.ToString(certMeta.Path) != m.config.CertificatePath {
+		for _, certItem := range listServerCertificatesResp.ServerCertificateMetadataList {
+			// 对比证书路径
+			if m.config.CertificatePath != "" && aws.ToString(certItem.Path) != m.config.CertificatePath {
 				continue
 			}
 
-			// 先对比证书有效期
-			if certMeta.Expiration == nil || !certMeta.Expiration.Equal(certX509.NotAfter) {
+			// 对比证书有效期
+			if certItem.Expiration == nil || !certItem.Expiration.Equal(certX509.NotAfter) {
 				continue
 			}
 
-			// 最后对比证书内容
-			// REF: https://docs.aws.amazon.com/en_us/IAM/latest/APIReference/API_GetServerCertificate.html
+			// 对比证书内容
 			getServerCertificateReq := &awsiam.GetServerCertificateInput{
-				ServerCertificateName: certMeta.ServerCertificateName,
+				ServerCertificateName: certItem.ServerCertificateName,
 			}
-			getServerCertificateResp, err := m.sdkClient.GetServerCertificate(context.TODO(), getServerCertificateReq)
+			getServerCertificateResp, err := m.sdkClient.GetServerCertificate(ctx, getServerCertificateReq)
 			if err != nil {
 				return nil, fmt.Errorf("failed to execute sdk request 'iam.GetServerCertificate': %w", err)
 			} else {
@@ -126,16 +125,16 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 			// 如果以上信息都一致，则视为已存在相同证书，直接返回
 			m.logger.Info("ssl certificate already exists")
 			return &core.SSLManageUploadResult{
-				CertId:   aws.ToString(certMeta.ServerCertificateId),
-				CertName: aws.ToString(certMeta.ServerCertificateName),
+				CertId:   aws.ToString(certItem.ServerCertificateId),
+				CertName: aws.ToString(certItem.ServerCertificateName),
 			}, nil
 		}
 
-		if listServerCertificatesResp.Marker == nil || len(listServerCertificatesResp.ServerCertificateMetadataList) < int(listServerCertificatesMaxItems) {
+		if len(listServerCertificatesResp.ServerCertificateMetadataList) == 0 || listServerCertificatesResp.Marker == nil {
 			break
-		} else {
-			listServerCertificatesMarker = listServerCertificatesResp.Marker
 		}
+
+		listServerCertificatesMarker = listServerCertificatesResp.Marker
 	}
 
 	// 生成新证书名（需符合 AWS IAM 命名规则）
@@ -153,7 +152,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 	if m.config.CertificatePath == "" {
 		uploadServerCertificateReq.Path = aws.String("/")
 	}
-	uploadServerCertificateResp, err := m.sdkClient.UploadServerCertificate(context.TODO(), uploadServerCertificateReq)
+	uploadServerCertificateResp, err := m.sdkClient.UploadServerCertificate(ctx, uploadServerCertificateReq)
 	m.logger.Debug("sdk request 'iam.UploadServerCertificate'", slog.Any("request", uploadServerCertificateReq), slog.Any("response", uploadServerCertificateResp))
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute sdk request 'iam.UploadServerCertificate': %w", err)

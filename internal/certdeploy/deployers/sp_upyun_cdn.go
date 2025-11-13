@@ -17,9 +17,10 @@ func init() {
 		}
 
 		provider, err := upyuncdn.NewSSLDeployerProvider(&upyuncdn.SSLDeployerProviderConfig{
-			Username: credentials.Username,
-			Password: credentials.Password,
-			Domain:   xmaps.GetString(options.ProviderExtendedConfig, "domain"),
+			Username:           credentials.Username,
+			Password:           credentials.Password,
+			DomainMatchPattern: xmaps.GetString(options.ProviderExtendedConfig, "domainMatchPattern"),
+			Domain:             xmaps.GetString(options.ProviderExtendedConfig, "domain"),
 		})
 		return provider, err
 	})

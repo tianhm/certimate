@@ -43,6 +43,27 @@ func (c *ScfClient) GetCustomDomainWithContext(ctx context.Context, request *tcs
 	return
 }
 
+func (c *ScfClient) ListCustomDomains(request *tcscf.ListCustomDomainsRequest) (response *tcscf.ListCustomDomainsResponse, err error) {
+	return c.ListCustomDomainsWithContext(context.Background(), request)
+}
+
+func (c *ScfClient) ListCustomDomainsWithContext(ctx context.Context, request *tcscf.ListCustomDomainsRequest) (response *tcscf.ListCustomDomainsResponse, err error) {
+	if request == nil {
+		request = tcscf.NewListCustomDomainsRequest()
+	}
+	c.InitBaseRequest(&request.BaseRequest, "scf", tcscf.APIVersion, "ListCustomDomains")
+
+	if c.GetCredential() == nil {
+		return nil, errors.New("ListCustomDomains require credential")
+	}
+
+	request.SetContext(ctx)
+
+	response = tcscf.NewListCustomDomainsResponse()
+	err = c.Send(request, response)
+	return
+}
+
 func (c *ScfClient) UpdateCustomDomain(request *tcscf.UpdateCustomDomainRequest) (response *tcscf.UpdateCustomDomainResponse, err error) {
 	return c.UpdateCustomDomainWithContext(context.Background(), request)
 }

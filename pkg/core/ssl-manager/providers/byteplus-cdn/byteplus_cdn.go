@@ -65,14 +65,8 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 
 	// 查询证书列表，避免重复上传
 	// REF: https://docs.byteplus.com/en/docs/byteplus-cdn/reference-listcertinfo
-	listCertInfoPageNum := int64(1)
-	listCertInfoPageSize := int64(100)
-	listCertInfoTotal := 0
-	listCertInfoReq := &bytepluscdn.ListCertInfoRequest{
-		PageNum:  bytepluscdn.GetInt64Ptr(listCertInfoPageNum),
-		PageSize: bytepluscdn.GetInt64Ptr(listCertInfoPageSize),
-		Source:   bytepluscdn.GetStrPtr("cert_center"),
-	}
+	listCertInfoPageNum := 1
+	listCertInfoPageSize := 100
 	for {
 		select {
 		case <-ctx.Done():
@@ -80,36 +74,43 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 		default:
 		}
 
+		listCertInfoReq := &bytepluscdn.ListCertInfoRequest{
+			PageNum:  bytepluscdn.GetInt64Ptr(int64(listCertInfoPageNum)),
+			PageSize: bytepluscdn.GetInt64Ptr(int64(listCertInfoPageSize)),
+			Source:   bytepluscdn.GetStrPtr("cert_center"),
+		}
 		listCertInfoResp, err := m.sdkClient.ListCertInfo(listCertInfoReq)
 		m.logger.Debug("sdk request 'cdn.ListCertInfo'", slog.Any("request", listCertInfoReq), slog.Any("response", listCertInfoResp))
 		if err != nil {
 			return nil, fmt.Errorf("failed to execute sdk request 'cdn.ListCertInfo': %w", err)
 		}
 
-		if listCertInfoResp.Result.CertInfo != nil {
-			for _, certInfo := range listCertInfoResp.Result.CertInfo {
-				fingerprintSha1 := sha1.Sum(certX509.Raw)
-				fingerprintSha256 := sha256.Sum256(certX509.Raw)
-				isSameCert := strings.EqualFold(hex.EncodeToString(fingerprintSha1[:]), certInfo.CertFingerprint.Sha1) &&
-					strings.EqualFold(hex.EncodeToString(fingerprintSha256[:]), certInfo.CertFingerprint.Sha256)
-				// 如果已存在相同证书，直接返回
-				if isSameCert {
-					m.logger.Info("ssl certificate already exists")
-					return &core.SSLManageUploadResult{
-						CertId:   certInfo.CertId,
-						CertName: certInfo.Desc,
-					}, nil
-				}
+		for _, certItem := range listCertInfoResp.Result.CertInfo {
+			// 对比证书 SHA-1 摘要
+			fingerprintSha1 := sha1.Sum(certX509.Raw)
+			if !strings.EqualFold(hex.EncodeToString(fingerprintSha1[:]), certItem.CertFingerprint.Sha1) {
+				continue
 			}
+
+			// 对比证书 SHA-256 摘要
+			fingerprintSha256 := sha256.Sum256(certX509.Raw)
+			if !strings.EqualFold(hex.EncodeToString(fingerprintSha256[:]), certItem.CertFingerprint.Sha256) {
+				continue
+			}
+
+			// 如果以上信息都一致，则视为已存在相同证书，直接返回
+			m.logger.Info("ssl certificate already exists")
+			return &core.SSLManageUploadResult{
+				CertId:   certItem.CertId,
+				CertName: certItem.Desc,
+			}, nil
 		}
 
-		listCertInfoLen := len(listCertInfoResp.Result.CertInfo)
-		if listCertInfoLen < int(listCertInfoPageSize) || int(listCertInfoResp.Result.Total) <= listCertInfoTotal+listCertInfoLen {
+		if len(listCertInfoResp.Result.CertInfo) < listCertInfoPageSize {
 			break
-		} else {
-			listCertInfoPageNum++
-			listCertInfoTotal += listCertInfoLen
 		}
+
+		listCertInfoPageNum++
 	}
 
 	// 生成新证书名（需符合 BytePlus 命名规则）

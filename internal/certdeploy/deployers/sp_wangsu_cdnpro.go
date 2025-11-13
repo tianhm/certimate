@@ -17,13 +17,14 @@ func init() {
 		}
 
 		provider, err := wangsucdnpro.NewSSLDeployerProvider(&wangsucdnpro.SSLDeployerProviderConfig{
-			AccessKeyId:     credentials.AccessKeyId,
-			AccessKeySecret: credentials.AccessKeySecret,
-			ApiKey:          credentials.ApiKey,
-			Environment:     xmaps.GetOrDefaultString(options.ProviderExtendedConfig, "environment", "production"),
-			Domain:          xmaps.GetString(options.ProviderExtendedConfig, "domain"),
-			CertificateId:   xmaps.GetString(options.ProviderExtendedConfig, "certificateId"),
-			WebhookId:       xmaps.GetString(options.ProviderExtendedConfig, "webhookId"),
+			AccessKeyId:        credentials.AccessKeyId,
+			AccessKeySecret:    credentials.AccessKeySecret,
+			ApiKey:             credentials.ApiKey,
+			Environment:        xmaps.GetOrDefaultString(options.ProviderExtendedConfig, "environment", "production"),
+			DomainMatchPattern: xmaps.GetString(options.ProviderExtendedConfig, "domainMatchPattern"),
+			Domain:             xmaps.GetString(options.ProviderExtendedConfig, "domain"),
+			CertificateId:      xmaps.GetString(options.ProviderExtendedConfig, "certificateId"),
+			WebhookId:          xmaps.GetString(options.ProviderExtendedConfig, "webhookId"),
 		})
 		return provider, err
 	})

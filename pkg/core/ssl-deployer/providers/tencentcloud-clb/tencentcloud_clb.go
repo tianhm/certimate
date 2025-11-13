@@ -159,7 +159,7 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCer
 			case <-ctx.Done():
 				return ctx.Err()
 			default:
-				if err := d.modifyListenerCertificate(ctx, d.config.LoadbalancerId, listenerId, cloudCertId); err != nil {
+				if err := d.updateListenerCertificate(ctx, d.config.LoadbalancerId, listenerId, cloudCertId); err != nil {
 					errs = append(errs, err)
 				}
 			}
@@ -182,7 +182,7 @@ func (d *SSLDeployerProvider) deployToListener(ctx context.Context, cloudCertId 
 	}
 
 	// 更新监听器证书
-	if err := d.modifyListenerCertificate(ctx, d.config.LoadbalancerId, d.config.ListenerId, cloudCertId); err != nil {
+	if err := d.updateListenerCertificate(ctx, d.config.LoadbalancerId, d.config.ListenerId, cloudCertId); err != nil {
 		return err
 	}
 
@@ -233,9 +233,10 @@ func (d *SSLDeployerProvider) deployToRuleDomain(ctx context.Context, cloudCertI
 			return fmt.Errorf("failed to execute sdk request 'clb.DescribeTaskStatus': %w", err)
 		}
 
-		if describeTaskStatusResp.Response.Status == nil || *describeTaskStatusResp.Response.Status == 1 {
+		status := lo.FromPtr(describeTaskStatusResp.Response.Status)
+		if status == 1 {
 			return errors.New("unexpected tencentcloud task status")
-		} else if *describeTaskStatusResp.Response.Status == 0 {
+		} else if status == 0 {
 			break
 		}
 
@@ -246,7 +247,7 @@ func (d *SSLDeployerProvider) deployToRuleDomain(ctx context.Context, cloudCertI
 	return nil
 }
 
-func (d *SSLDeployerProvider) modifyListenerCertificate(ctx context.Context, cloudLoadbalancerId, cloudListenerId, cloudCertId string) error {
+func (d *SSLDeployerProvider) updateListenerCertificate(ctx context.Context, cloudLoadbalancerId, cloudListenerId, cloudCertId string) error {
 	// 查询负载均衡的监听器列表
 	// REF: https://cloud.tencent.com/document/api/214/30686
 	describeListenersReq := tcclb.NewDescribeListenersRequest()
@@ -257,7 +258,7 @@ func (d *SSLDeployerProvider) modifyListenerCertificate(ctx context.Context, clo
 	if err != nil {
 		return fmt.Errorf("failed to execute sdk request 'clb.DescribeListeners': %w", err)
 	} else if len(describeListenersResp.Response.Listeners) == 0 {
-		return fmt.Errorf("listener %s not found", cloudListenerId)
+		return fmt.Errorf("could not find listener '%s'", cloudListenerId)
 	}
 
 	// 修改监听器属性
@@ -295,9 +296,10 @@ func (d *SSLDeployerProvider) modifyListenerCertificate(ctx context.Context, clo
 			return fmt.Errorf("failed to execute sdk request 'clb.DescribeTaskStatus': %w", err)
 		}
 
-		if describeTaskStatusResp.Response.Status == nil || *describeTaskStatusResp.Response.Status == 1 {
+		status := lo.FromPtr(describeTaskStatusResp.Response.Status)
+		if status == 1 {
 			return errors.New("unexpected tencentcloud task status")
-		} else if *describeTaskStatusResp.Response.Status == 0 {
+		} else if status == 0 {
 			break
 		}
 

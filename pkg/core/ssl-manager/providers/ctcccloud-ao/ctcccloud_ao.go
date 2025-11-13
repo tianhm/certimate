@@ -65,8 +65,9 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 
 	// 查询用户名下证书列表，避免重复上传
 	// REF: https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=113&api=13175&data=174&isNormal=1&vid=167
-	listCertPage := int32(1)
-	listCertPerPage := int32(1000)
+	// REF: https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=113&api=13015&data=174&isNormal=1&vid=167
+	listCertPage := 1
+	listCertPerPage := 1000
 	for {
 		select {
 		case <-ctx.Done():
@@ -75,8 +76,8 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 		}
 
 		listCertsReq := &ctyunao.ListCertsRequest{
-			Page:      lo.ToPtr(listCertPage),
-			PerPage:   lo.ToPtr(listCertPerPage),
+			Page:      lo.ToPtr(int32(listCertPage)),
+			PerPage:   lo.ToPtr(int32(listCertPerPage)),
 			UsageMode: lo.ToPtr(int32(0)),
 		}
 		listCertsResp, err := m.sdkClient.ListCerts(listCertsReq)
@@ -85,55 +86,55 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 			return nil, fmt.Errorf("failed to execute sdk request 'ao.ListCerts': %w", err)
 		}
 
-		if listCertsResp.ReturnObj != nil {
-			for _, certRecord := range listCertsResp.ReturnObj.Results {
-				// 对比证书通用名称
-				if !strings.EqualFold(certX509.Subject.CommonName, certRecord.CN) {
-					continue
-				}
-
-				// 对比证书扩展名称
-				if !slices.Equal(certX509.DNSNames, certRecord.SANs) {
-					continue
-				}
-
-				// 对比证书有效期
-				if !certX509.NotBefore.Equal(time.Unix(certRecord.IssueTime, 0).UTC()) {
-					continue
-				} else if !certX509.NotAfter.Equal(time.Unix(certRecord.ExpiresTime, 0).UTC()) {
-					continue
-				}
-
-				// 最后对比证书内容
-				// 查询证书详情
-				// REF: https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=113&api=13015&data=174&isNormal=1&vid=167
-				queryCertReq := &ctyunao.QueryCertRequest{
-					Id: lo.ToPtr(certRecord.Id),
-				}
-				queryCertResp, err := m.sdkClient.QueryCert(queryCertReq)
-				m.logger.Debug("sdk request 'ao.QueryCert'", slog.Any("request", queryCertReq), slog.Any("response", queryCertResp))
-				if err != nil {
-					return nil, fmt.Errorf("failed to execute sdk request 'ao.QueryCert': %w", err)
-				} else if queryCertResp.ReturnObj != nil && queryCertResp.ReturnObj.Result != nil {
-					if !xcert.EqualCertificatesFromPEM(certPEM, queryCertResp.ReturnObj.Result.Certs) {
-						continue
-					}
-				}
-
-				// 如果以上信息都一致，则视为已存在相同证书，直接返回
-				m.logger.Info("ssl certificate already exists")
-				return &core.SSLManageUploadResult{
-					CertId:   fmt.Sprintf("%d", queryCertResp.ReturnObj.Result.Id),
-					CertName: queryCertResp.ReturnObj.Result.Name,
-				}, nil
-			}
-		}
-
-		if listCertsResp.ReturnObj == nil || len(listCertsResp.ReturnObj.Results) < int(listCertPerPage) {
+		if listCertsResp.ReturnObj == nil {
 			break
-		} else {
-			listCertPage++
 		}
+
+		for _, certItem := range listCertsResp.ReturnObj.Results {
+			// 对比证书通用名称
+			if !strings.EqualFold(certX509.Subject.CommonName, certItem.CN) {
+				continue
+			}
+
+			// 对比证书扩展名称
+			if !slices.Equal(certX509.DNSNames, certItem.SANs) {
+				continue
+			}
+
+			// 对比证书有效期
+			if !certX509.NotBefore.Equal(time.Unix(certItem.IssueTime, 0).UTC()) {
+				continue
+			} else if !certX509.NotAfter.Equal(time.Unix(certItem.ExpiresTime, 0).UTC()) {
+				continue
+			}
+
+			// 对比证书内容
+			queryCertReq := &ctyunao.QueryCertRequest{
+				Id: lo.ToPtr(certItem.Id),
+			}
+			queryCertResp, err := m.sdkClient.QueryCert(queryCertReq)
+			m.logger.Debug("sdk request 'ao.QueryCert'", slog.Any("request", queryCertReq), slog.Any("response", queryCertResp))
+			if err != nil {
+				return nil, fmt.Errorf("failed to execute sdk request 'ao.QueryCert': %w", err)
+			} else if queryCertResp.ReturnObj != nil && queryCertResp.ReturnObj.Result != nil {
+				if !xcert.EqualCertificatesFromPEM(certPEM, queryCertResp.ReturnObj.Result.Certs) {
+					continue
+				}
+			}
+
+			// 如果以上信息都一致，则视为已存在相同证书，直接返回
+			m.logger.Info("ssl certificate already exists")
+			return &core.SSLManageUploadResult{
+				CertId:   fmt.Sprintf("%d", queryCertResp.ReturnObj.Result.Id),
+				CertName: queryCertResp.ReturnObj.Result.Name,
+			}, nil
+		}
+
+		if len(listCertsResp.ReturnObj.Results) < listCertPerPage {
+			break
+		}
+
+		listCertPage++
 	}
 
 	// 生成新证书名（需符合天翼云命名规则）

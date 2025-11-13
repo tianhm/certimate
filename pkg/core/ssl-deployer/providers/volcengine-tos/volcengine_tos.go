@@ -96,7 +96,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			CertID: upres.CertId,
 		},
 	}
-	putBucketCustomDomainResp, err := d.sdkClient.PutBucketCustomDomain(context.TODO(), putBucketCustomDomainReq)
+	putBucketCustomDomainResp, err := d.sdkClient.PutBucketCustomDomain(ctx, putBucketCustomDomainReq)
 	d.logger.Debug("sdk request 'tos.PutBucketCustomDomain'", slog.Any("request", putBucketCustomDomainReq), slog.Any("response", putBucketCustomDomainResp))
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute sdk request 'tos.PutBucketCustomDomain': %w", err)

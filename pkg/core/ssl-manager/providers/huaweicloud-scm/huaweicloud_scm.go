@@ -70,11 +70,11 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 		return nil, err
 	}
 
-	// 遍历查询已有证书，避免重复上传
+	// 查询已有证书，避免重复上传
 	// REF: https://support.huaweicloud.com/api-ccm/ListCertificates.html
 	// REF: https://support.huaweicloud.com/api-ccm/ExportCertificate_0.html
-	listCertificatesLimit := int32(50)
-	listCertificatesOffset := int32(0)
+	listCertificatesLimit := 50
+	listCertificatesOffset := 0
 	for {
 		select {
 		case <-ctx.Done():
@@ -84,8 +84,8 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 
 		listCertificatesReq := &hcscmmodel.ListCertificatesRequest{
 			EnterpriseProjectId: lo.EmptyableToPtr(m.config.EnterpriseProjectId),
-			Limit:               lo.ToPtr(listCertificatesLimit),
-			Offset:              lo.ToPtr(listCertificatesOffset),
+			Limit:               lo.ToPtr(int32(listCertificatesLimit)),
+			Offset:              lo.ToPtr(int32(listCertificatesOffset)),
 			SortDir:             lo.ToPtr("DESC"),
 			SortKey:             lo.ToPtr("certExpiredTime"),
 		}
@@ -95,51 +95,51 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 			return nil, fmt.Errorf("failed to execute sdk request 'scm.ListCertificates': %w", err)
 		}
 
-		if listCertificatesResp.Certificates != nil {
-			for _, certDetail := range *listCertificatesResp.Certificates {
-				// 先对比证书通用名称
-				if !strings.EqualFold(certX509.Subject.CommonName, certDetail.Domain) {
-					continue
-				}
-
-				// 再对比证书有效期
-				if certX509.NotAfter.Local().Format(time.DateTime) != strings.TrimSuffix(certDetail.ExpireTime, ".0") {
-					continue
-				}
-
-				// 最后对比证书内容
-				// 导出证书
-				// REF: https://support.huaweicloud.com/api-ccm/ExportCertificate_0.html
-				exportCertificateReq := &hcscmmodel.ExportCertificateRequest{
-					CertificateId: certDetail.Id,
-				}
-				exportCertificateResp, err := m.sdkClient.ExportCertificate(exportCertificateReq)
-				m.logger.Debug("sdk request 'scm.ExportCertificate'", slog.Any("request", exportCertificateReq), slog.Any("response", exportCertificateResp))
-				if err != nil {
-					if exportCertificateResp != nil && exportCertificateResp.HttpStatusCode == 404 {
-						continue
-					}
-					return nil, fmt.Errorf("failed to execute sdk request 'scm.ExportCertificate': %w", err)
-				} else {
-					if !xcert.EqualCertificatesFromPEM(certPEM, lo.FromPtr(exportCertificateResp.Certificate)) {
-						continue
-					}
-				}
-
-				// 如果以上信息都一致，则视为已存在相同证书，直接返回
-				m.logger.Info("ssl certificate already exists")
-				return &core.SSLManageUploadResult{
-					CertId:   certDetail.Id,
-					CertName: certDetail.Name,
-				}, nil
-			}
-		}
-
-		if listCertificatesResp.Certificates == nil || len(*listCertificatesResp.Certificates) < int(listCertificatesLimit) {
+		if listCertificatesResp.Certificates == nil {
 			break
-		} else {
-			listCertificatesOffset += listCertificatesLimit
 		}
+
+		for _, certItem := range *listCertificatesResp.Certificates {
+			// 对比证书通用名称
+			if !strings.EqualFold(certX509.Subject.CommonName, certItem.Domain) {
+				continue
+			}
+
+			// 对比证书有效期
+			if certX509.NotAfter.Local().Format(time.DateTime) != strings.TrimSuffix(certItem.ExpireTime, ".0") {
+				continue
+			}
+
+			// 对比证书内容
+			exportCertificateReq := &hcscmmodel.ExportCertificateRequest{
+				CertificateId: certItem.Id,
+			}
+			exportCertificateResp, err := m.sdkClient.ExportCertificate(exportCertificateReq)
+			m.logger.Debug("sdk request 'scm.ExportCertificate'", slog.Any("request", exportCertificateReq), slog.Any("response", exportCertificateResp))
+			if err != nil {
+				if exportCertificateResp != nil && exportCertificateResp.HttpStatusCode == 404 {
+					continue
+				}
+				return nil, fmt.Errorf("failed to execute sdk request 'scm.ExportCertificate': %w", err)
+			} else {
+				if !xcert.EqualCertificatesFromPEM(certPEM, lo.FromPtr(exportCertificateResp.Certificate)) {
+					continue
+				}
+			}
+
+			// 如果以上信息都一致，则视为已存在相同证书，直接返回
+			m.logger.Info("ssl certificate already exists")
+			return &core.SSLManageUploadResult{
+				CertId:   certItem.Id,
+				CertName: certItem.Name,
+			}, nil
+		}
+
+		if len(*listCertificatesResp.Certificates) < listCertificatesLimit {
+			break
+		}
+
+		listCertificatesOffset += listCertificatesLimit
 	}
 
 	// 生成新证书名（需符合华为云命名规则）

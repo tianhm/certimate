@@ -16,6 +16,7 @@ var (
 	fInputKeyPath  string
 	fAccessKey     string
 	fSecretKey     string
+	fBucket        string
 	fDomain        string
 )
 
@@ -26,6 +27,7 @@ func init() {
 	flag.StringVar(&fInputKeyPath, argsPrefix+"INPUTKEYPATH", "", "")
 	flag.StringVar(&fAccessKey, argsPrefix+"ACCESSKEY", "", "")
 	flag.StringVar(&fSecretKey, argsPrefix+"SECRETKEY", "", "")
+	flag.StringVar(&fBucket, argsPrefix+"BUCKET", "", "")
 	flag.StringVar(&fDomain, argsPrefix+"DOMAIN", "", "")
 }
 
@@ -37,6 +39,7 @@ Shell command to run this test:
 	--CERTIMATE_SSLDEPLOYER_QINIUKODO_INPUTKEYPATH="/path/to/your-input-key.pem" \
 	--CERTIMATE_SSLDEPLOYER_QINIUKODO_ACCESSKEY="your-access-key" \
 	--CERTIMATE_SSLDEPLOYER_QINIUKODO_SECRETKEY="your-secret-key" \
+	--CERTIMATE_SSLDEPLOYER_QINIUKODO_BUCKET="your-bucket" \
 	--CERTIMATE_SSLDEPLOYER_QINIUKODO_DOMAIN="example.com"
 */
 func TestDeploy(t *testing.T) {
@@ -49,12 +52,14 @@ func TestDeploy(t *testing.T) {
 			fmt.Sprintf("INPUTKEYPATH: %v", fInputKeyPath),
 			fmt.Sprintf("ACCESSKEY: %v", fAccessKey),
 			fmt.Sprintf("SECRETKEY: %v", fSecretKey),
+			fmt.Sprintf("BUCKET: %v", fBucket),
 			fmt.Sprintf("DOMAIN: %v", fDomain),
 		}, "\n"))
 
 		deployer, err := provider.NewSSLDeployerProvider(&provider.SSLDeployerProviderConfig{
 			AccessKey: fAccessKey,
 			SecretKey: fSecretKey,
+			Bucket:    fBucket,
 			Domain:    fDomain,
 		})
 		if err != nil {

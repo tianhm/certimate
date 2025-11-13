@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/samber/lo"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile"
 	tcssl "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/ssl/v20191205"
@@ -130,21 +131,11 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		if describeHostDeployRecordDetailResp.Response.TotalCount == nil {
 			return nil, errors.New("unexpected tencentcloud deployment job status")
 		} else {
-			if describeHostDeployRecordDetailResp.Response.PendingTotalCount != nil {
-				pendingCount = *describeHostDeployRecordDetailResp.Response.PendingTotalCount
-			}
-			if describeHostDeployRecordDetailResp.Response.RunningTotalCount != nil {
-				runningCount = *describeHostDeployRecordDetailResp.Response.RunningTotalCount
-			}
-			if describeHostDeployRecordDetailResp.Response.SuccessTotalCount != nil {
-				succeededCount = *describeHostDeployRecordDetailResp.Response.SuccessTotalCount
-			}
-			if describeHostDeployRecordDetailResp.Response.FailedTotalCount != nil {
-				failedCount = *describeHostDeployRecordDetailResp.Response.FailedTotalCount
-			}
-			if describeHostDeployRecordDetailResp.Response.TotalCount != nil {
-				totalCount = *describeHostDeployRecordDetailResp.Response.TotalCount
-			}
+			pendingCount = lo.FromPtr(describeHostDeployRecordDetailResp.Response.PendingTotalCount)
+			runningCount = lo.FromPtr(describeHostDeployRecordDetailResp.Response.RunningTotalCount)
+			succeededCount = lo.FromPtr(describeHostDeployRecordDetailResp.Response.SuccessTotalCount)
+			failedCount = lo.FromPtr(describeHostDeployRecordDetailResp.Response.FailedTotalCount)
+			totalCount = lo.FromPtr(describeHostDeployRecordDetailResp.Response.TotalCount)
 
 			if succeededCount+failedCount == totalCount {
 				if failedCount > 0 {

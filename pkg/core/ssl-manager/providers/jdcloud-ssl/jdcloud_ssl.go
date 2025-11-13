@@ -71,7 +71,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 	privkeyPEM = strings.ReplaceAll(privkeyPEM, "\n", "\r\n")
 	privkeyPEM = privkeyPEM + "\r\n"
 
-	// 遍历查看证书列表，避免重复上传
+	// 查看证书列表
 	// REF: https://docs.jdcloud.com/cn/ssl-certificate/api/describecerts
 	describeCertsPageNumber := 1
 	describeCertsPageSize := 10
@@ -92,36 +92,36 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 			return nil, fmt.Errorf("failed to execute sdk request 'ssl.DescribeCerts': %w", err)
 		}
 
-		for _, certDetail := range describeCertsResp.Result.CertListDetails {
-			// 先对比证书通用名称
-			if !strings.EqualFold(certX509.Subject.CommonName, certDetail.CommonName) {
+		for _, certItem := range describeCertsResp.Result.CertListDetails {
+			// 对比证书通用名称
+			if !strings.EqualFold(certX509.Subject.CommonName, certItem.CommonName) {
 				continue
 			}
 
-			// 再对比证书多域名
-			if !strings.EqualFold(strings.Join(certX509.DNSNames, ","), strings.Join(certDetail.DnsNames, ",")) {
+			// 对比证书多域名
+			if !strings.EqualFold(strings.Join(certX509.DNSNames, ","), strings.Join(certItem.DnsNames, ",")) {
 				continue
 			}
 
-			// 再对比证书有效期
-			oldCertNotBefore, _ := time.Parse(time.RFC3339, certDetail.StartTime)
-			oldCertNotAfter, _ := time.Parse(time.RFC3339, certDetail.EndTime)
+			// 对比证书有效期
+			oldCertNotBefore, _ := time.Parse(time.RFC3339, certItem.StartTime)
+			oldCertNotAfter, _ := time.Parse(time.RFC3339, certItem.EndTime)
 			if !certX509.NotBefore.Equal(oldCertNotBefore) || !certX509.NotAfter.Equal(oldCertNotAfter) {
 				continue
 			}
 
-			// 最后对比私钥摘要
+			// 对比私钥 SHA-256 摘要
 			newKeyDigest := sha256.Sum256([]byte(privkeyPEM))
 			newKeyDigestHex := hex.EncodeToString(newKeyDigest[:])
-			if !strings.EqualFold(newKeyDigestHex, certDetail.Digest) {
+			if !strings.EqualFold(newKeyDigestHex, certItem.Digest) {
 				continue
 			}
 
 			// 如果以上信息都一致，则视为已存在相同证书，直接返回
 			m.logger.Info("ssl certificate already exists")
 			return &core.SSLManageUploadResult{
-				CertId:   certDetail.CertId,
-				CertName: certDetail.CertName,
+				CertId:   certItem.CertId,
+				CertName: certItem.CertName,
 			}, nil
 		}
 

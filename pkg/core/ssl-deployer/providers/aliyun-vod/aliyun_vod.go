@@ -17,6 +17,8 @@ import (
 	"github.com/certimate-go/certimate/pkg/core"
 	"github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/aliyun-vod/internal"
 	sslmgrsp "github.com/certimate-go/certimate/pkg/core/ssl-manager/providers/aliyun-cas"
+	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
+	xcerthostname "github.com/certimate-go/certimate/pkg/utils/cert/hostname"
 )
 
 type SSLDeployerProviderConfig struct {
@@ -28,7 +30,10 @@ type SSLDeployerProviderConfig struct {
 	ResourceGroupId string `json:"resourceGroupId,omitempty"`
 	// 阿里云地域。
 	Region string `json:"region"`
-	// 点播加速域名（不支持泛域名）。
+	// 域名匹配模式。
+	// 零值时默认值 [DOMAIN_MATCH_PATTERN_EXACT]。
+	DomainMatchPattern string `json:"domainMatchPattern,omitempty"`
+	// 点播加速域名（支持泛域名）。
 	Domain string `json:"domain"`
 }
 
@@ -80,38 +85,155 @@ func (d *SSLDeployerProvider) SetLogger(logger *slog.Logger) {
 }
 
 func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privkeyPEM string) (*core.SSLDeployResult, error) {
-	if d.config.Domain == "" {
-		return nil, errors.New("config `domain` is required")
+	// 获取待部署的域名列表
+	var domains []string
+	switch d.config.DomainMatchPattern {
+	case "", DOMAIN_MATCH_PATTERN_EXACT:
+		{
+			if d.config.Domain == "" {
+				return nil, errors.New("config `domain` is required")
+			}
+
+			domains = []string{d.config.Domain}
+		}
+
+	case DOMAIN_MATCH_PATTERN_WILDCARD:
+		{
+			if d.config.Domain == "" {
+				return nil, errors.New("config `domain` is required")
+			}
+
+			if strings.HasPrefix(d.config.Domain, "*.") {
+				domainCandidates, err := d.getAllDomains(ctx)
+				if err != nil {
+					return nil, err
+				}
+
+				domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
+					return xcerthostname.IsMatch(d.config.Domain, domain)
+				})
+				if len(domains) == 0 {
+					return nil, errors.New("could not find any domains matched by wildcard")
+				}
+			} else {
+				domains = []string{d.config.Domain}
+			}
+		}
+
+	case DOMAIN_MATCH_PATTERN_CERTSAN:
+		{
+			certX509, err := xcert.ParseCertificateFromPEM(certPEM)
+			if err != nil {
+				return nil, err
+			}
+
+			domainCandidates, err := d.getAllDomains(ctx)
+			if err != nil {
+				return nil, err
+			}
+
+			domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
+				return certX509.VerifyHostname(domain) == nil
+			})
+			if len(domains) == 0 {
+				return nil, errors.New("could not find any domains matched by certificate")
+			}
+		}
+
+	default:
+		return nil, fmt.Errorf("unsupported domain match pattern: '%s'", d.config.DomainMatchPattern)
 	}
 
-	// 上传证书
-	upres, err := d.sslManager.Upload(ctx, certPEM, privkeyPEM)
-	if err != nil {
-		return nil, fmt.Errorf("failed to upload certificate file: %w", err)
+	// 遍历更新域名证书
+	if len(domains) == 0 {
+		d.logger.Info("no vod domains to deploy")
 	} else {
-		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
+		d.logger.Info("found vod domains to deploy", slog.Any("domains", domains))
+		var errs []error
+
+		for _, domain := range domains {
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			default:
+				if err := d.updateDomainCertificate(ctx, domain, certPEM, privkeyPEM); err != nil {
+					errs = append(errs, err)
+				}
+			}
+		}
+
+		if len(errs) > 0 {
+			return nil, errors.Join(errs...)
+		}
 	}
 
+	return &core.SSLDeployResult{}, nil
+}
+
+func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, error) {
+	domains := make([]string, 0)
+
+	// 查询加速域名列表
+	// REF: https://help.aliyun.com/zh/live/developer-reference/api-live-2016-11-01-describeliveuserdomains
+	describeVodUserDomainsPageNumber := 1
+	describeVodUserDomainsPageSize := 50
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+
+		describeVodUserDomainsReq := &alivod.DescribeVodUserDomainsRequest{
+			DomainStatus: tea.String("online"),
+			PageNumber:   tea.Int32(int32(describeVodUserDomainsPageNumber)),
+			PageSize:     tea.Int32(int32(describeVodUserDomainsPageSize)),
+		}
+		describeVodUserDomainsResp, err := d.sdkClient.DescribeVodUserDomainsWithContext(ctx, describeVodUserDomainsReq, &dara.RuntimeOptions{})
+		d.logger.Debug("sdk request 'vod.DescribeVodUserDomains'", slog.Any("request", describeVodUserDomainsReq), slog.Any("response", describeVodUserDomainsResp))
+		if err != nil {
+			return nil, fmt.Errorf("failed to execute sdk request 'vod.DescribeLiveUserDomains': %w", err)
+		}
+
+		if describeVodUserDomainsResp.Body == nil || describeVodUserDomainsResp.Body.Domains == nil {
+			break
+		}
+
+		for _, domainItem := range describeVodUserDomainsResp.Body.Domains.PageData {
+			domains = append(domains, tea.StringValue(domainItem.DomainName))
+		}
+
+		if len(describeVodUserDomainsResp.Body.Domains.PageData) < describeVodUserDomainsPageSize {
+			break
+		}
+
+		describeVodUserDomainsPageNumber++
+	}
+
+	return domains, nil
+}
+
+func (d *SSLDeployerProvider) updateDomainCertificate(ctx context.Context, domain string, cloudCertId, cloudCertName string) error {
 	// 设置域名证书
 	// REF: https://help.aliyun.com/zh/vod/developer-reference/api-vod-2017-03-21-setvoddomainsslcertificate
-	certId, _ := strconv.ParseInt(upres.CertId, 10, 64)
+	certId, _ := strconv.ParseInt(cloudCertId, 10, 64)
 	setVodDomainSSLCertificateReq := &alivod.SetVodDomainSSLCertificateRequest{
-		DomainName: tea.String(d.config.Domain),
+		DomainName: tea.String(domain),
 		CertType:   tea.String("cas"),
 		CertId:     tea.Int64(certId),
-		CertName:   tea.String(upres.CertName),
+		CertName:   tea.String(cloudCertName),
 		CertRegion: lo.
 			If(d.config.Region == "" || strings.HasPrefix(d.config.Region, "cn-"), tea.String("cn-hangzhou")).
 			Else(tea.String("ap-southeast-1")),
 		SSLProtocol: tea.String("on"),
 	}
-	setVodDomainSSLCertificateResp, err := d.sdkClient.SetVodDomainSSLCertificateWithContext(context.TODO(), setVodDomainSSLCertificateReq, &dara.RuntimeOptions{})
+	setVodDomainSSLCertificateResp, err := d.sdkClient.SetVodDomainSSLCertificateWithContext(ctx, setVodDomainSSLCertificateReq, &dara.RuntimeOptions{})
 	d.logger.Debug("sdk request 'live.SetVodDomainSSLCertificate'", slog.Any("request", setVodDomainSSLCertificateReq), slog.Any("response", setVodDomainSSLCertificateResp))
 	if err != nil {
-		return nil, fmt.Errorf("failed to execute sdk request 'live.SetVodDomainSSLCertificate': %w", err)
+		return fmt.Errorf("failed to execute sdk request 'live.SetVodDomainSSLCertificate': %w", err)
 	}
 
-	return &core.SSLDeployResult{}, nil
+	return nil
 }
 
 func createSDKClient(accessKeyId, accessKeySecret, region string) (*internal.VodClient, error) {

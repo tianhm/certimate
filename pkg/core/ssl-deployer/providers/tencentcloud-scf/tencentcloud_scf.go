@@ -15,6 +15,7 @@ import (
 	"github.com/certimate-go/certimate/pkg/core"
 	"github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/tencentcloud-scf/internal"
 	sslmgrsp "github.com/certimate-go/certimate/pkg/core/ssl-manager/providers/tencentcloud-ssl"
+	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
 )
 
 type SSLDeployerProviderConfig struct {
@@ -26,6 +27,9 @@ type SSLDeployerProviderConfig struct {
 	Endpoint string `json:"endpoint,omitempty"`
 	// 腾讯云地域。
 	Region string `json:"region"`
+	// 域名匹配模式。
+	// 零值时默认值 [DOMAIN_MATCH_PATTERN_EXACT]。
+	DomainMatchPattern string `json:"domainMatchPattern,omitempty"`
 	// 自定义域名（不支持泛域名）。
 	Domain string `json:"domain"`
 }
@@ -79,20 +83,6 @@ func (d *SSLDeployerProvider) SetLogger(logger *slog.Logger) {
 }
 
 func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privkeyPEM string) (*core.SSLDeployResult, error) {
-	if d.config.Domain == "" {
-		return nil, errors.New("config `domain` is required")
-	}
-
-	// 查看云函数自定义域名详情
-	// REF: https://cloud.tencent.com/document/api/583/111924
-	getCustomDomainReq := tcscf.NewGetCustomDomainRequest()
-	getCustomDomainReq.Domain = common.StringPtr(d.config.Domain)
-	getCustomDomainResp, err := d.sdkClient.GetCustomDomain(getCustomDomainReq)
-	d.logger.Debug("sdk request 'scf.GetCustomDomain'", slog.Any("request", getCustomDomainReq), slog.Any("response", getCustomDomainResp))
-	if err != nil {
-		return nil, fmt.Errorf("failed to execute sdk request 'scf.GetCustomDomain': %w", err)
-	}
-
 	// 上传证书
 	upres, err := d.sslManager.Upload(ctx, certPEM, privkeyPEM)
 	if err != nil {
@@ -101,21 +91,142 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
 	}
 
-	// 更新云函数自定义域名
-	// REF: https://cloud.tencent.com/document/api/583/111922
-	updateCustomDomainReq := tcscf.NewUpdateCustomDomainRequest()
-	updateCustomDomainReq.Domain = common.StringPtr(d.config.Domain)
-	updateCustomDomainReq.CertConfig = &tcscf.CertConf{
-		CertificateId: common.StringPtr(upres.CertId),
+	// 获取待部署的域名列表
+	var domains []string
+	switch d.config.DomainMatchPattern {
+	case "", DOMAIN_MATCH_PATTERN_EXACT:
+		{
+			if d.config.Domain == "" {
+				return nil, errors.New("config `domain` is required")
+			}
+
+			domains = []string{d.config.Domain}
+		}
+
+	case DOMAIN_MATCH_PATTERN_CERTSAN:
+		{
+			certX509, err := xcert.ParseCertificateFromPEM(certPEM)
+			if err != nil {
+				return nil, err
+			}
+
+			domainCandidates, err := d.getAllDomains(ctx)
+			if err != nil {
+				return nil, err
+			}
+
+			domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
+				return certX509.VerifyHostname(domain) == nil
+			})
+			if len(domains) == 0 {
+				return nil, errors.New("could not find any domains matched by certificate")
+			}
+		}
+
+	default:
+		return nil, fmt.Errorf("unsupported domain match pattern: '%s'", d.config.DomainMatchPattern)
 	}
-	updateCustomDomainReq.Protocol = getCustomDomainResp.Response.Protocol
-	updateCustomDomainResp, err := d.sdkClient.UpdateCustomDomain(updateCustomDomainReq)
-	d.logger.Debug("sdk request 'scf.UpdateCustomDomain'", slog.Any("request", updateCustomDomainReq), slog.Any("response", updateCustomDomainResp))
-	if err != nil {
-		return nil, fmt.Errorf("failed to execute sdk request 'scf.UpdateCustomDomain': %w", err)
+
+	// 遍历更新域名证书
+	if len(domains) == 0 {
+		d.logger.Info("no scf domains to deploy")
+	} else {
+		d.logger.Info("found scf domains to deploy", slog.Any("domains", domains))
+		var errs []error
+
+		for _, domain := range domains {
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			default:
+				if err := d.updateDomainCertificate(ctx, domain, upres.CertId); err != nil {
+					errs = append(errs, err)
+				}
+			}
+		}
+
+		if len(errs) > 0 {
+			return nil, errors.Join(errs...)
+		}
 	}
 
 	return &core.SSLDeployResult{}, nil
+}
+
+func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, error) {
+	domains := make([]string, 0)
+
+	// 获取云函数自定义域名列表
+	// REF: https://cloud.tencent.com/document/api/583/111923
+	listCustomDomainsOffset := 0
+	listCustomDomainsLimit := 20
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+
+		describeLiveDomainsReq := tcscf.NewListCustomDomainsRequest()
+		describeLiveDomainsReq.Offset = common.Uint64Ptr(uint64(listCustomDomainsOffset))
+		describeLiveDomainsReq.Limit = common.Uint64Ptr(uint64(listCustomDomainsLimit))
+		describeLiveDomainsResp, err := d.sdkClient.ListCustomDomains(describeLiveDomainsReq)
+		d.logger.Debug("sdk request 'scf.DescribeLiveDomains'", slog.Any("request", describeLiveDomainsReq), slog.Any("response", describeLiveDomainsResp))
+		if err != nil {
+			return nil, fmt.Errorf("failed to execute sdk request 'scf.DescribeLiveDomains': %w", err)
+		}
+
+		if describeLiveDomainsResp.Response == nil {
+			break
+		}
+
+		for _, domainItem := range describeLiveDomainsResp.Response.Domains {
+			domains = append(domains, *domainItem.Domain)
+		}
+
+		if len(describeLiveDomainsResp.Response.Domains) < listCustomDomainsLimit {
+			break
+		}
+
+		listCustomDomainsOffset++
+	}
+
+	return domains, nil
+}
+
+func (d *SSLDeployerProvider) updateDomainCertificate(ctx context.Context, domain string, cloudCertId string) error {
+	// 查看云函数自定义域名详情
+	// REF: https://cloud.tencent.com/document/api/583/111924
+	getCustomDomainReq := tcscf.NewGetCustomDomainRequest()
+	getCustomDomainReq.Domain = common.StringPtr(domain)
+	getCustomDomainResp, err := d.sdkClient.GetCustomDomain(getCustomDomainReq)
+	d.logger.Debug("sdk request 'scf.GetCustomDomain'", slog.Any("request", getCustomDomainReq), slog.Any("response", getCustomDomainResp))
+	if err != nil {
+		return fmt.Errorf("failed to execute sdk request 'scf.GetCustomDomain': %w", err)
+	} else {
+		if getCustomDomainResp.Response.CertConfig != nil && getCustomDomainResp.Response.CertConfig.CertificateId != nil && *getCustomDomainResp.Response.CertConfig.CertificateId == cloudCertId {
+			return nil
+		}
+	}
+
+	// 更新云函数自定义域名
+	// REF: https://cloud.tencent.com/document/api/583/111922
+	updateCustomDomainReq := tcscf.NewUpdateCustomDomainRequest()
+	updateCustomDomainReq.Domain = common.StringPtr(domain)
+	updateCustomDomainReq.CertConfig = &tcscf.CertConf{
+		CertificateId: common.StringPtr(cloudCertId),
+	}
+	updateCustomDomainReq.Protocol = getCustomDomainResp.Response.Protocol
+	if updateCustomDomainReq.Protocol == nil || *updateCustomDomainReq.Protocol == "HTTP" {
+		updateCustomDomainReq.Protocol = common.StringPtr("HTTP&HTTPS")
+	}
+	updateCustomDomainResp, err := d.sdkClient.UpdateCustomDomain(updateCustomDomainReq)
+	d.logger.Debug("sdk request 'scf.UpdateCustomDomain'", slog.Any("request", updateCustomDomainReq), slog.Any("response", updateCustomDomainResp))
+	if err != nil {
+		return fmt.Errorf("failed to execute sdk request 'scf.UpdateCustomDomain': %w", err)
+	}
+
+	return nil
 }
 
 func createSDKClient(secretId, secretKey, endpoint, region string) (*internal.ScfClient, error) {

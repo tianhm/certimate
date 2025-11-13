@@ -19,6 +19,9 @@ import (
 type SSLDeployerProviderConfig struct {
 	// 白山云 API Token。
 	ApiToken string `json:"apiToken"`
+	// 域名匹配模式。暂时只支持精确匹配。
+	// 零值时默认值 [DOMAIN_MATCH_PATTERN_EXACT]。
+	DomainMatchPattern string `json:"domainMatchPattern,omitempty"`
 	// 加速域名（支持泛域名）。
 	Domain string `json:"domain"`
 	// 证书 ID。
@@ -103,7 +106,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		if err != nil {
 			return nil, fmt.Errorf("failed to execute sdk request 'baishan.GetDomainConfig': %w", err)
 		} else if len(getDomainConfigResp.Data) == 0 {
-			return nil, fmt.Errorf("domain %s not found", d.config.Domain)
+			return nil, fmt.Errorf("could not find domain '%s'", d.config.Domain)
 		}
 
 		// 设置域名配置

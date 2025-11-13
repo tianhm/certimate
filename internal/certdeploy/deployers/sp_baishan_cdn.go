@@ -17,9 +17,10 @@ func init() {
 		}
 
 		provider, err := baishancdn.NewSSLDeployerProvider(&baishancdn.SSLDeployerProviderConfig{
-			ApiToken:      credentials.ApiToken,
-			Domain:        xmaps.GetString(options.ProviderExtendedConfig, "domain"),
-			CertificateId: xmaps.GetString(options.ProviderExtendedConfig, "certificateId"),
+			ApiToken:           credentials.ApiToken,
+			DomainMatchPattern: xmaps.GetString(options.ProviderExtendedConfig, "domainMatchPattern"),
+			Domain:             xmaps.GetString(options.ProviderExtendedConfig, "domain"),
+			CertificateId:      xmaps.GetString(options.ProviderExtendedConfig, "certificateId"),
 		})
 		return provider, err
 	})

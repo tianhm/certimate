@@ -111,14 +111,14 @@ func (d *SSLDeployerProvider) deployToListener(ctx context.Context, cloudCertId 
 	}
 
 	// 更新监听器证书
-	if err := d.modifyHttpsListenerCertificate(ctx, d.config.ListenerId, cloudCertId); err != nil {
+	if err := d.updateHttpsListenerCertificate(ctx, d.config.ListenerId, cloudCertId); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (d *SSLDeployerProvider) modifyHttpsListenerCertificate(ctx context.Context, cloudListenerId, cloudCertId string) error {
+func (d *SSLDeployerProvider) updateHttpsListenerCertificate(ctx context.Context, cloudListenerId, cloudCertId string) error {
 	// 查询 HTTPS 监听器信息
 	// REF: https://cloud.tencent.com/document/api/608/37001
 	describeHTTPSListenersReq := tcgaap.NewDescribeHTTPSListenersRequest()
@@ -130,7 +130,7 @@ func (d *SSLDeployerProvider) modifyHttpsListenerCertificate(ctx context.Context
 	if err != nil {
 		return fmt.Errorf("failed to execute sdk request 'gaap.DescribeHTTPSListeners': %w", err)
 	} else if len(describeHTTPSListenersResp.Response.ListenerSet) == 0 {
-		return fmt.Errorf("listener %s not found", cloudListenerId)
+		return fmt.Errorf("could not find listener '%s'", cloudListenerId)
 	}
 
 	// 修改 HTTPS 监听器配置

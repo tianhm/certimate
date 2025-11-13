@@ -135,7 +135,7 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCer
 	getLoadBalancerAttributeReq := &alialb.GetLoadBalancerAttributeRequest{
 		LoadBalancerId: tea.String(d.config.LoadbalancerId),
 	}
-	getLoadBalancerAttributeResp, err := d.sdkClients.ALB.GetLoadBalancerAttributeWithContext(context.TODO(), getLoadBalancerAttributeReq, &dara.RuntimeOptions{})
+	getLoadBalancerAttributeResp, err := d.sdkClients.ALB.GetLoadBalancerAttributeWithContext(ctx, getLoadBalancerAttributeReq, &dara.RuntimeOptions{})
 	d.logger.Debug("sdk request 'alb.GetLoadBalancerAttribute'", slog.Any("request", getLoadBalancerAttributeReq), slog.Any("response", getLoadBalancerAttributeResp))
 	if err != nil {
 		return fmt.Errorf("failed to execute sdk request 'alb.GetLoadBalancerAttribute': %w", err)
@@ -144,8 +144,7 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCer
 	// 查询 HTTPS 监听列表
 	// REF: https://help.aliyun.com/zh/slb/application-load-balancer/developer-reference/api-alb-2020-06-16-listlisteners
 	listenerIds := make([]string, 0)
-	listListenersLimit := int32(100)
-	var listListenersToken *string = nil
+	listListenersToken := (*string)(nil)
 	for {
 		select {
 		case <-ctx.Done():
@@ -154,28 +153,30 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCer
 		}
 
 		listListenersReq := &alialb.ListListenersRequest{
-			MaxResults:       tea.Int32(listListenersLimit),
 			NextToken:        listListenersToken,
-			LoadBalancerIds:  []*string{tea.String(d.config.LoadbalancerId)},
+			MaxResults:       tea.Int32(100),
+			LoadBalancerIds:  tea.StringSlice([]string{d.config.LoadbalancerId}),
 			ListenerProtocol: tea.String("HTTPS"),
 		}
-		listListenersResp, err := d.sdkClients.ALB.ListListenersWithContext(context.TODO(), listListenersReq, &dara.RuntimeOptions{})
+		listListenersResp, err := d.sdkClients.ALB.ListListenersWithContext(ctx, listListenersReq, &dara.RuntimeOptions{})
 		d.logger.Debug("sdk request 'alb.ListListeners'", slog.Any("request", listListenersReq), slog.Any("response", listListenersResp))
 		if err != nil {
 			return fmt.Errorf("failed to execute sdk request 'alb.ListListeners': %w", err)
 		}
 
-		if listListenersResp.Body.Listeners != nil {
-			for _, listener := range listListenersResp.Body.Listeners {
-				listenerIds = append(listenerIds, tea.StringValue(listener.ListenerId))
-			}
+		if listListenersResp.Body == nil {
+			break
+		}
+
+		for _, listener := range listListenersResp.Body.Listeners {
+			listenerIds = append(listenerIds, tea.StringValue(listener.ListenerId))
 		}
 
 		if len(listListenersResp.Body.Listeners) == 0 || listListenersResp.Body.NextToken == nil {
 			break
-		} else {
-			listListenersToken = listListenersResp.Body.NextToken
 		}
+
+		listListenersToken = listListenersResp.Body.NextToken
 	}
 
 	// 查询 QUIC 监听列表
@@ -189,28 +190,30 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCer
 		}
 
 		listListenersReq := &alialb.ListListenersRequest{
-			MaxResults:       tea.Int32(listListenersLimit),
 			NextToken:        listListenersToken,
-			LoadBalancerIds:  []*string{tea.String(d.config.LoadbalancerId)},
+			MaxResults:       tea.Int32(100),
+			LoadBalancerIds:  tea.StringSlice([]string{d.config.LoadbalancerId}),
 			ListenerProtocol: tea.String("QUIC"),
 		}
-		listListenersResp, err := d.sdkClients.ALB.ListListenersWithContext(context.TODO(), listListenersReq, &dara.RuntimeOptions{})
+		listListenersResp, err := d.sdkClients.ALB.ListListenersWithContext(ctx, listListenersReq, &dara.RuntimeOptions{})
 		d.logger.Debug("sdk request 'alb.ListListeners'", slog.Any("request", listListenersReq), slog.Any("response", listListenersResp))
 		if err != nil {
 			return fmt.Errorf("failed to execute sdk request 'alb.ListListeners': %w", err)
 		}
 
-		if listListenersResp.Body.Listeners != nil {
-			for _, listener := range listListenersResp.Body.Listeners {
-				listenerIds = append(listenerIds, tea.StringValue(listener.ListenerId))
-			}
+		if listListenersResp.Body == nil {
+			break
+		}
+
+		for _, listener := range listListenersResp.Body.Listeners {
+			listenerIds = append(listenerIds, tea.StringValue(listener.ListenerId))
 		}
 
 		if len(listListenersResp.Body.Listeners) == 0 || listListenersResp.Body.NextToken == nil {
 			break
-		} else {
-			listListenersToken = listListenersResp.Body.NextToken
 		}
+
+		listListenersToken = listListenersResp.Body.NextToken
 	}
 
 	// 遍历更新监听证书
@@ -258,7 +261,7 @@ func (d *SSLDeployerProvider) updateListenerCertificate(ctx context.Context, clo
 	getListenerAttributeReq := &alialb.GetListenerAttributeRequest{
 		ListenerId: tea.String(cloudListenerId),
 	}
-	getListenerAttributeResp, err := d.sdkClients.ALB.GetListenerAttributeWithContext(context.TODO(), getListenerAttributeReq, &dara.RuntimeOptions{})
+	getListenerAttributeResp, err := d.sdkClients.ALB.GetListenerAttributeWithContext(ctx, getListenerAttributeReq, &dara.RuntimeOptions{})
 	d.logger.Debug("sdk request 'alb.GetListenerAttribute'", slog.Any("request", getListenerAttributeReq), slog.Any("response", getListenerAttributeResp))
 	if err != nil {
 		return fmt.Errorf("failed to execute sdk request 'alb.GetListenerAttribute': %w", err)
@@ -275,7 +278,7 @@ func (d *SSLDeployerProvider) updateListenerCertificate(ctx context.Context, clo
 				CertificateId: tea.String(cloudCertId),
 			}},
 		}
-		updateListenerAttributeResp, err := d.sdkClients.ALB.UpdateListenerAttributeWithContext(context.TODO(), updateListenerAttributeReq, &dara.RuntimeOptions{})
+		updateListenerAttributeResp, err := d.sdkClients.ALB.UpdateListenerAttributeWithContext(ctx, updateListenerAttributeReq, &dara.RuntimeOptions{})
 		d.logger.Debug("sdk request 'alb.UpdateListenerAttribute'", slog.Any("request", updateListenerAttributeReq), slog.Any("response", updateListenerAttributeResp))
 		if err != nil {
 			return fmt.Errorf("failed to execute sdk request 'alb.UpdateListenerAttribute': %w", err)
@@ -286,8 +289,7 @@ func (d *SSLDeployerProvider) updateListenerCertificate(ctx context.Context, clo
 		// 查询监听证书列表
 		// REF: https://help.aliyun.com/zh/slb/application-load-balancer/developer-reference/api-alb-2020-06-16-listlistenercertificates
 		listenerCertificates := make([]alialb.ListListenerCertificatesResponseBodyCertificates, 0)
-		listListenerCertificatesLimit := int32(100)
-		var listListenerCertificatesToken *string = nil
+		listListenerCertificatesToken := (*string)(nil)
 		for {
 			select {
 			case <-ctx.Done():
@@ -297,30 +299,32 @@ func (d *SSLDeployerProvider) updateListenerCertificate(ctx context.Context, clo
 
 			listListenerCertificatesReq := &alialb.ListListenerCertificatesRequest{
 				NextToken:       listListenerCertificatesToken,
-				MaxResults:      tea.Int32(listListenerCertificatesLimit),
+				MaxResults:      tea.Int32(100),
 				ListenerId:      tea.String(cloudListenerId),
 				CertificateType: tea.String("Server"),
 			}
-			listListenerCertificatesResp, err := d.sdkClients.ALB.ListListenerCertificatesWithContext(context.TODO(), listListenerCertificatesReq, &dara.RuntimeOptions{})
+			listListenerCertificatesResp, err := d.sdkClients.ALB.ListListenerCertificatesWithContext(ctx, listListenerCertificatesReq, &dara.RuntimeOptions{})
 			d.logger.Debug("sdk request 'alb.ListListenerCertificates'", slog.Any("request", listListenerCertificatesReq), slog.Any("response", listListenerCertificatesResp))
 			if err != nil {
 				return fmt.Errorf("failed to execute sdk request 'alb.ListListenerCertificates': %w", err)
 			}
 
-			if listListenerCertificatesResp.Body.Certificates != nil {
-				for _, listenerCertificate := range listListenerCertificatesResp.Body.Certificates {
-					listenerCertificates = append(listenerCertificates, *listenerCertificate)
-				}
+			if listListenerCertificatesResp.Body == nil {
+				break
+			}
+
+			for _, listenerCertificate := range listListenerCertificatesResp.Body.Certificates {
+				listenerCertificates = append(listenerCertificates, *listenerCertificate)
 			}
 
 			if len(listListenerCertificatesResp.Body.Certificates) == 0 || listListenerCertificatesResp.Body.NextToken == nil {
 				break
-			} else {
-				listListenerCertificatesToken = listListenerCertificatesResp.Body.NextToken
 			}
+
+			listListenerCertificatesToken = listListenerCertificatesResp.Body.NextToken
 		}
 
-		// 遍历查询监听证书，并找出需要解除关联的证书
+		// 查询监听证书，并找出需要解除关联的证书
 		// REF: https://help.aliyun.com/zh/slb/application-load-balancer/developer-reference/api-alb-2020-06-16-listlistenercertificates
 		// REF: https://help.aliyun.com/zh/ssl-certificate/developer-reference/api-cas-2020-04-07-getusercertificatedetail
 		certificateIsAlreadyAssociated := false
@@ -354,7 +358,7 @@ func (d *SSLDeployerProvider) updateListenerCertificate(ctx context.Context, clo
 				getUserCertificateDetailReq := &alicas.GetUserCertificateDetailRequest{
 					CertId: tea.Int64(certificateIdAsInt64),
 				}
-				getUserCertificateDetailResp, err := d.sdkClients.CAS.GetUserCertificateDetailWithContext(context.TODO(), getUserCertificateDetailReq, &dara.RuntimeOptions{})
+				getUserCertificateDetailResp, err := d.sdkClients.CAS.GetUserCertificateDetailWithContext(ctx, getUserCertificateDetailReq, &dara.RuntimeOptions{})
 				d.logger.Debug("sdk request 'cas.GetUserCertificateDetail'", slog.Any("request", getUserCertificateDetailReq), slog.Any("response", getUserCertificateDetailResp))
 				if err != nil {
 					if sdkerr, ok := err.(*tea.SDKError); ok {
@@ -397,7 +401,7 @@ func (d *SSLDeployerProvider) updateListenerCertificate(ctx context.Context, clo
 					},
 				},
 			}
-			associateAdditionalCertificatesFromListenerResp, err := d.sdkClients.ALB.AssociateAdditionalCertificatesWithListenerWithContext(context.TODO(), associateAdditionalCertificatesFromListenerReq, &dara.RuntimeOptions{})
+			associateAdditionalCertificatesFromListenerResp, err := d.sdkClients.ALB.AssociateAdditionalCertificatesWithListenerWithContext(ctx, associateAdditionalCertificatesFromListenerReq, &dara.RuntimeOptions{})
 			d.logger.Debug("sdk request 'alb.AssociateAdditionalCertificatesWithListener'", slog.Any("request", associateAdditionalCertificatesFromListenerReq), slog.Any("response", associateAdditionalCertificatesFromListenerResp))
 			if err != nil {
 				return fmt.Errorf("failed to execute sdk request 'alb.AssociateAdditionalCertificatesWithListener': %w", err)
@@ -418,7 +422,7 @@ func (d *SSLDeployerProvider) updateListenerCertificate(ctx context.Context, clo
 				ListenerId:   tea.String(cloudListenerId),
 				Certificates: dissociateAdditionalCertificates,
 			}
-			dissociateAdditionalCertificatesFromListenerResp, err := d.sdkClients.ALB.DissociateAdditionalCertificatesFromListenerWithContext(context.TODO(), dissociateAdditionalCertificatesFromListenerReq, &dara.RuntimeOptions{})
+			dissociateAdditionalCertificatesFromListenerResp, err := d.sdkClients.ALB.DissociateAdditionalCertificatesFromListenerWithContext(ctx, dissociateAdditionalCertificatesFromListenerReq, &dara.RuntimeOptions{})
 			d.logger.Debug("sdk request 'alb.DissociateAdditionalCertificatesFromListener'", slog.Any("request", dissociateAdditionalCertificatesFromListenerReq), slog.Any("response", dissociateAdditionalCertificatesFromListenerResp))
 			if err != nil {
 				return fmt.Errorf("failed to execute sdk request 'alb.DissociateAdditionalCertificatesFromListener': %w", err)

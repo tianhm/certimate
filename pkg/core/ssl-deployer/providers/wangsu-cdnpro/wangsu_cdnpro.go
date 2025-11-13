@@ -32,6 +32,9 @@ type SSLDeployerProviderConfig struct {
 	ApiKey string `json:"apiKey"`
 	// 网宿云环境。
 	Environment string `json:"environment"`
+	// 域名匹配模式。暂时只支持精确匹配。
+	// 零值时默认值 [DOMAIN_MATCH_PATTERN_EXACT]。
+	DomainMatchPattern string `json:"domainMatchPattern,omitempty"`
 	// 加速域名（支持泛域名）。
 	Domain string `json:"domain"`
 	// 证书 ID。

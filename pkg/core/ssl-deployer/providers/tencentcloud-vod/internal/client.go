@@ -23,6 +23,27 @@ func NewVodClient(credential common.CredentialIface, region string, clientProfil
 	return
 }
 
+func (c *VodClient) DescribeVodDomains(request *tcvod.DescribeVodDomainsRequest) (response *tcvod.DescribeVodDomainsResponse, err error) {
+	return c.DescribeVodDomainsWithContext(context.Background(), request)
+}
+
+func (c *VodClient) DescribeVodDomainsWithContext(ctx context.Context, request *tcvod.DescribeVodDomainsRequest) (response *tcvod.DescribeVodDomainsResponse, err error) {
+	if request == nil {
+		request = tcvod.NewDescribeVodDomainsRequest()
+	}
+	c.InitBaseRequest(&request.BaseRequest, "vod", tcvod.APIVersion, "DescribeVodDomains")
+
+	if c.GetCredential() == nil {
+		return nil, errors.New("DescribeVodDomains require credential")
+	}
+
+	request.SetContext(ctx)
+
+	response = tcvod.NewDescribeVodDomainsResponse()
+	err = c.Send(request, response)
+	return
+}
+
 func (c *VodClient) SetVodDomainCertificate(request *tcvod.SetVodDomainCertificateRequest) (response *tcvod.SetVodDomainCertificateResponse, err error) {
 	return c.SetVodDomainCertificateWithContext(context.Background(), request)
 }

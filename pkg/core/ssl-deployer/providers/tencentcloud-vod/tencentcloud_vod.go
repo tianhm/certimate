@@ -26,6 +26,9 @@ type SSLDeployerProviderConfig struct {
 	Endpoint string `json:"endpoint,omitempty"`
 	// 点播应用 ID。
 	SubAppId int64 `json:"subAppId"`
+	// 域名匹配模式。
+	// 零值时默认值 [DOMAIN_MATCH_PATTERN_EXACT]。
+	DomainMatchPattern string `json:"domainMatchPattern,omitempty"`
 	// 点播加速域名（不支持泛域名）。
 	Domain string `json:"domain"`
 }
@@ -79,10 +82,6 @@ func (d *SSLDeployerProvider) SetLogger(logger *slog.Logger) {
 }
 
 func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privkeyPEM string) (*core.SSLDeployResult, error) {
-	if d.config.Domain == "" {
-		return nil, errors.New("config `domain` is required")
-	}
-
 	// 上传证书
 	upres, err := d.sslManager.Upload(ctx, certPEM, privkeyPEM)
 	if err != nil {
@@ -91,22 +90,124 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
 	}
 
+	// 获取待部署的 ECDN 实例
+	domains := make([]string, 0)
+	switch d.config.DomainMatchPattern {
+	case "", DOMAIN_MATCH_PATTERN_EXACT:
+		{
+			if d.config.Domain == "" {
+				return nil, errors.New("config `domain` is required")
+			}
+
+			domains = []string{d.config.Domain}
+		}
+
+	case DOMAIN_MATCH_PATTERN_CERTSAN:
+		{
+			domainCandidates, err := d.getAllDomains(ctx)
+			if err != nil {
+				return nil, err
+			}
+
+			domains = domainCandidates
+		}
+
+	default:
+		return nil, fmt.Errorf("unsupported domain match pattern: '%s'", d.config.DomainMatchPattern)
+	}
+
+	// 遍历更新域名证书
+	if len(domains) == 0 {
+		d.logger.Info("no vod domains to deploy")
+	} else {
+		d.logger.Info("found vod domains to deploy", slog.Any("domains", domains))
+		var errs []error
+
+		for _, domain := range domains {
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			default:
+				if err := d.updateDomainCertificate(ctx, domain, upres.CertId); err != nil {
+					errs = append(errs, err)
+				}
+			}
+		}
+
+		if len(errs) > 0 {
+			return nil, errors.Join(errs...)
+		}
+	}
+
+	return &core.SSLDeployResult{}, nil
+}
+
+func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, error) {
+	domains := make([]string, 0)
+
+	// 查询点播域名列表
+	// REF: https://cloud.tencent.com/document/api/266/54176
+	describeVodDomainsOffset := 0
+	describeVodDomainsLimit := 20
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+
+		describeVodDomainsReq := tcvod.NewDescribeVodDomainsRequest()
+		describeVodDomainsReq.Offset = common.Uint64Ptr(uint64(describeVodDomainsOffset))
+		describeVodDomainsReq.Limit = common.Uint64Ptr(uint64(describeVodDomainsLimit))
+		if d.config.SubAppId != 0 {
+			describeVodDomainsReq.SubAppId = common.Uint64Ptr(uint64(d.config.SubAppId))
+		}
+		describeVodDomainsResp, err := d.sdkClient.DescribeVodDomains(describeVodDomainsReq)
+		d.logger.Debug("sdk request 'vod.DescribeVodDomains'", slog.Any("request", describeVodDomainsReq), slog.Any("response", describeVodDomainsResp))
+		if err != nil {
+			return nil, fmt.Errorf("failed to execute sdk request 'vod.DescribeVodDomains': %w", err)
+		}
+
+		if describeVodDomainsResp.Response == nil {
+			break
+		}
+
+		ignoredStatuses := []string{"Locked"}
+		for _, domainItem := range describeVodDomainsResp.Response.DomainSet {
+			if lo.Contains(ignoredStatuses, *domainItem.DeployStatus) {
+				continue
+			}
+
+			domains = append(domains, *domainItem.Domain)
+		}
+
+		if len(describeVodDomainsResp.Response.DomainSet) < describeVodDomainsLimit {
+			break
+		}
+
+		describeVodDomainsOffset += describeVodDomainsLimit
+	}
+
+	return domains, nil
+}
+
+func (d *SSLDeployerProvider) updateDomainCertificate(ctx context.Context, domain string, cloudCertId string) error {
 	// 设置点播域名 HTTPS 证书
 	// REF: https://cloud.tencent.com/document/api/266/102015
 	setVodDomainCertificateReq := tcvod.NewSetVodDomainCertificateRequest()
-	setVodDomainCertificateReq.Domain = common.StringPtr(d.config.Domain)
+	setVodDomainCertificateReq.Domain = common.StringPtr(domain)
 	setVodDomainCertificateReq.Operation = common.StringPtr("Set")
-	setVodDomainCertificateReq.CertID = common.StringPtr(upres.CertId)
+	setVodDomainCertificateReq.CertID = common.StringPtr(cloudCertId)
 	if d.config.SubAppId != 0 {
 		setVodDomainCertificateReq.SubAppId = common.Uint64Ptr(uint64(d.config.SubAppId))
 	}
 	setVodDomainCertificateResp, err := d.sdkClient.SetVodDomainCertificate(setVodDomainCertificateReq)
 	d.logger.Debug("sdk request 'vod.SetVodDomainCertificate'", slog.Any("request", setVodDomainCertificateReq), slog.Any("response", setVodDomainCertificateResp))
 	if err != nil {
-		return nil, fmt.Errorf("failed to execute sdk request 'vod.SetVodDomainCertificate': %w", err)
+		return fmt.Errorf("failed to execute sdk request 'vod.SetVodDomainCertificate': %w", err)
 	}
 
-	return &core.SSLDeployResult{}, nil
+	return nil
 }
 
 func createSDKClient(secretId, secretKey, endpoint string) (*internal.VodClient, error) {

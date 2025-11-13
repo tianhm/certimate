@@ -17,11 +17,12 @@ func init() {
 		}
 
 		provider, err := tencentcloudvod.NewSSLDeployerProvider(&tencentcloudvod.SSLDeployerProviderConfig{
-			SecretId:  credentials.SecretId,
-			SecretKey: credentials.SecretKey,
-			Endpoint:  xmaps.GetString(options.ProviderExtendedConfig, "endpoint"),
-			SubAppId:  xmaps.GetInt64(options.ProviderExtendedConfig, "subAppId"),
-			Domain:    xmaps.GetString(options.ProviderExtendedConfig, "domain"),
+			SecretId:           credentials.SecretId,
+			SecretKey:          credentials.SecretKey,
+			Endpoint:           xmaps.GetString(options.ProviderExtendedConfig, "endpoint"),
+			SubAppId:           xmaps.GetInt64(options.ProviderExtendedConfig, "subAppId"),
+			DomainMatchPattern: xmaps.GetString(options.ProviderExtendedConfig, "domainMatchPattern"),
+			Domain:             xmaps.GetString(options.ProviderExtendedConfig, "domain"),
 		})
 		return provider, err
 	})

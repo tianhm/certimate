@@ -120,7 +120,8 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 				}
 
 				domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
-					return xcerthostname.IsMatch(d.config.Domain, domain)
+					return xcerthostname.IsMatch(d.config.Domain, domain) ||
+						strings.TrimPrefix(d.config.Domain, "*") == strings.TrimPrefix(domain, "*")
 				})
 				if len(domains) == 0 {
 					return nil, errors.New("could not find any domains matched by wildcard")

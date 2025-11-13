@@ -183,8 +183,6 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 		default:
 		}
 
-		// 查询域名配置信息
-		// REF: https://docs.jdcloud.com/cn/cdn/api/querydomainconfig
 		getDomainListReq := jdcdn.NewGetDomainListRequestWithoutParam()
 		getDomainListReq.SetPageNumber(getDomainListPageNumber)
 		getDomainListReq.SetPageSize(getDomainListPageSize)

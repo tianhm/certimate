@@ -91,12 +91,12 @@ type CertDetail struct {
 
 type DomainRecord struct {
 	Domain      string `json:"domain"`
-	CNAME       string `json:"cname"`
+	Cname       string `json:"cname"`
 	ProductCode string `json:"product_code"`
 	ProductName string `json:"product_name"`
 	Status      int32  `json:"status"`
 	AreaScope   int32  `json:"area_scope"`
-	InsertDate  int64  `json:"insert_date"`
+	CreatedTime int64  `json:"insert_date"`
 }
 
 type DomainOriginConfig struct {

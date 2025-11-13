@@ -19,8 +19,8 @@ func IsMatch(match, candidate string) bool {
 		return false
 	}
 
-	if !strings.Contains(match, "*") {
-		return strings.EqualFold(match, candidate)
+	if strings.EqualFold(match, candidate) {
+		return true
 	}
 
 	mockCert := &x509.Certificate{}

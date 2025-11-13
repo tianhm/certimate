@@ -180,20 +180,20 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 		default:
 		}
 
-		listDomainsReq := &ctyunao.QueryDomainsRequest{
+		queryDomainsReq := &ctyunao.QueryDomainsRequest{
 			Page:        lo.ToPtr(queryDomainsPage),
 			PageSize:    lo.ToPtr(queryDomainsPageSize),
 			ProductCode: lo.ToPtr("020"),
 		}
-		listDomainsResp, err := d.sdkClient.QueryDomains(listDomainsReq)
-		d.logger.Debug("sdk request 'cdn.QueryDomains'", slog.Any("request", listDomainsReq), slog.Any("response", listDomainsResp))
+		queryDomainsResp, err := d.sdkClient.QueryDomains(queryDomainsReq)
+		d.logger.Debug("sdk request 'cdn.QueryDomains'", slog.Any("request", queryDomainsReq), slog.Any("response", queryDomainsResp))
 		if err != nil {
 			return nil, fmt.Errorf("failed to execute sdk request 'cdn.QueryDomains': %w", err)
 		}
 
-		if listDomainsResp.ReturnObj != nil {
+		if queryDomainsResp.ReturnObj != nil {
 			ignoredStatuses := []int32{1, 5, 6, 7, 8, 9, 11, 12}
-			for _, domainInfo := range listDomainsResp.ReturnObj.Results {
+			for _, domainInfo := range queryDomainsResp.ReturnObj.Results {
 				if lo.Contains(ignoredStatuses, domainInfo.Status) {
 					continue
 				}
@@ -202,7 +202,7 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 			}
 		}
 
-		if listDomainsResp.ReturnObj == nil || len(listDomainsResp.ReturnObj.Results) < int(queryDomainsPageSize) {
+		if queryDomainsResp.ReturnObj == nil || len(queryDomainsResp.ReturnObj.Results) < int(queryDomainsPageSize) {
 			break
 		} else {
 			queryDomainsPage++

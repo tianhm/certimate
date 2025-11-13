@@ -17,9 +17,10 @@ func init() {
 		}
 
 		provider, err := ctcccloudcdn.NewSSLDeployerProvider(&ctcccloudcdn.SSLDeployerProviderConfig{
-			AccessKeyId:     credentials.AccessKeyId,
-			SecretAccessKey: credentials.SecretAccessKey,
-			Domain:          xmaps.GetString(options.ProviderExtendedConfig, "domain"),
+			AccessKeyId:        credentials.AccessKeyId,
+			SecretAccessKey:    credentials.SecretAccessKey,
+			DomainMatchPattern: xmaps.GetString(options.ProviderExtendedConfig, "domainMatchPattern"),
+			Domain:             xmaps.GetString(options.ProviderExtendedConfig, "domain"),
 		})
 		return provider, err
 	})

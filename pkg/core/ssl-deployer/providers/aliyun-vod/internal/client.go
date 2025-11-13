@@ -35,6 +35,68 @@ func (client *VodClient) Init(config *openapiutil.Config) (_err error) {
 	return nil
 }
 
+func (client *VodClient) DescribeVodUserDomainsWithContext(ctx context.Context, request *alivod.DescribeVodUserDomainsRequest, runtime *dara.RuntimeOptions) (_result *alivod.DescribeVodUserDomainsResponse, _err error) {
+	_err = request.Validate()
+	if _err != nil {
+		return _result, _err
+	}
+	query := map[string]interface{}{}
+
+	if !dara.IsNil(request.DomainName) {
+		query["DomainName"] = request.DomainName
+	}
+
+	if !dara.IsNil(request.DomainSearchType) {
+		query["DomainSearchType"] = request.DomainSearchType
+	}
+
+	if !dara.IsNil(request.DomainStatus) {
+		query["DomainStatus"] = request.DomainStatus
+	}
+
+	if !dara.IsNil(request.OwnerId) {
+		query["OwnerId"] = request.OwnerId
+	}
+
+	if !dara.IsNil(request.PageNumber) {
+		query["PageNumber"] = request.PageNumber
+	}
+
+	if !dara.IsNil(request.PageSize) {
+		query["PageSize"] = request.PageSize
+	}
+
+	if !dara.IsNil(request.SecurityToken) {
+		query["SecurityToken"] = request.SecurityToken
+	}
+
+	if !dara.IsNil(request.Tag) {
+		query["Tag"] = request.Tag
+	}
+
+	req := &openapiutil.OpenApiRequest{
+		Query: openapiutil.Query(query),
+	}
+	params := &openapiutil.Params{
+		Action:      dara.String("DescribeVodUserDomains"),
+		Version:     dara.String("2017-03-21"),
+		Protocol:    dara.String("HTTPS"),
+		Pathname:    dara.String("/"),
+		Method:      dara.String("POST"),
+		AuthType:    dara.String("AK"),
+		Style:       dara.String("RPC"),
+		ReqBodyType: dara.String("formData"),
+		BodyType:    dara.String("json"),
+	}
+	_result = &alivod.DescribeVodUserDomainsResponse{}
+	_body, _err := client.CallApiWithCtx(ctx, params, req, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_err = dara.Convert(_body, &_result)
+	return _result, _err
+}
+
 func (client *VodClient) SetVodDomainSSLCertificateWithContext(ctx context.Context, request *alivod.SetVodDomainSSLCertificateRequest, runtime *dara.RuntimeOptions) (_result *alivod.SetVodDomainSSLCertificateResponse, _err error) {
 	_err = request.Validate()
 	if _err != nil {

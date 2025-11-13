@@ -17,14 +17,15 @@ func init() {
 		}
 
 		provider, err := aliyunapigw.NewSSLDeployerProvider(&aliyunapigw.SSLDeployerProviderConfig{
-			AccessKeyId:     credentials.AccessKeyId,
-			AccessKeySecret: credentials.AccessKeySecret,
-			ResourceGroupId: credentials.ResourceGroupId,
-			Region:          xmaps.GetString(options.ProviderExtendedConfig, "region"),
-			ServiceType:     xmaps.GetString(options.ProviderExtendedConfig, "serviceType"),
-			GatewayId:       xmaps.GetString(options.ProviderExtendedConfig, "gatewayId"),
-			GroupId:         xmaps.GetString(options.ProviderExtendedConfig, "groupId"),
-			Domain:          xmaps.GetString(options.ProviderExtendedConfig, "domain"),
+			AccessKeyId:        credentials.AccessKeyId,
+			AccessKeySecret:    credentials.AccessKeySecret,
+			ResourceGroupId:    credentials.ResourceGroupId,
+			Region:             xmaps.GetString(options.ProviderExtendedConfig, "region"),
+			ServiceType:        xmaps.GetString(options.ProviderExtendedConfig, "serviceType"),
+			GatewayId:          xmaps.GetString(options.ProviderExtendedConfig, "gatewayId"),
+			GroupId:            xmaps.GetString(options.ProviderExtendedConfig, "groupId"),
+			DomainMatchPattern: xmaps.GetString(options.ProviderExtendedConfig, "domainMatchPattern"),
+			Domain:             xmaps.GetString(options.ProviderExtendedConfig, "domain"),
 		})
 		return provider, err
 	})

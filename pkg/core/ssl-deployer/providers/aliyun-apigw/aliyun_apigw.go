@@ -18,6 +18,8 @@ import (
 	"github.com/certimate-go/certimate/pkg/core"
 	"github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/aliyun-apigw/internal"
 	sslmgrsp "github.com/certimate-go/certimate/pkg/core/ssl-manager/providers/aliyun-cas"
+	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
+	xcerthostname "github.com/certimate-go/certimate/pkg/utils/cert/hostname"
 )
 
 type SSLDeployerProviderConfig struct {
@@ -37,6 +39,9 @@ type SSLDeployerProviderConfig struct {
 	// API 分组 ID。
 	// 服务类型为 [SERVICE_TYPE_TRADITIONAL] 时必填。
 	GroupId string `json:"groupId,omitempty"`
+	// 域名匹配模式。
+	// 零值时默认值 [DOMAIN_MATCH_PATTERN_EXACT]。
+	DomainMatchPattern string `json:"domainMatchPattern,omitempty"`
 	// 自定义域名（支持泛域名）。
 	Domain string `json:"domain"`
 }
@@ -116,15 +121,220 @@ func (d *SSLDeployerProvider) deployToTraditional(ctx context.Context, certPEM s
 	if d.config.GroupId == "" {
 		return errors.New("config `groupId` is required")
 	}
-	if d.config.Domain == "" {
-		return errors.New("config `domain` is required")
+
+	// 获取待部署的域名列表
+	var domains []string
+	switch d.config.DomainMatchPattern {
+	case "", DOMAIN_MATCH_PATTERN_EXACT:
+		{
+			if d.config.Domain == "" {
+				return errors.New("config `domain` is required")
+			}
+
+			domains = []string{d.config.Domain}
+		}
+
+	case DOMAIN_MATCH_PATTERN_WILDCARD:
+		{
+			if d.config.Domain == "" {
+				return errors.New("config `domain` is required")
+			}
+
+			if strings.HasPrefix(d.config.Domain, "*.") {
+				domainCandidates, err := d.getTraditionalAllDomains(ctx, d.config.GroupId)
+				if err != nil {
+					return err
+				}
+
+				domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
+					return xcerthostname.IsMatch(d.config.Domain, domain)
+				})
+				if len(domains) == 0 {
+					return errors.New("could not find any domains matched by wildcard")
+				}
+			} else {
+				domains = []string{d.config.Domain}
+			}
+		}
+
+	case DOMAIN_MATCH_PATTERN_CERTSAN:
+		{
+			certX509, err := xcert.ParseCertificateFromPEM(certPEM)
+			if err != nil {
+				return err
+			}
+
+			domainCandidates, err := d.getTraditionalAllDomains(ctx, d.config.GroupId)
+			if err != nil {
+				return err
+			}
+
+			domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
+				return certX509.VerifyHostname(domain) == nil
+			})
+			if len(domains) == 0 {
+				return errors.New("could not find any domains matched by certificate")
+			}
+		}
+
+	default:
+		return fmt.Errorf("unsupported domain match pattern: '%s'", d.config.DomainMatchPattern)
 	}
 
+	// 遍历更新域名证书
+	if len(domains) == 0 {
+		d.logger.Info("no apigw domains to deploy")
+	} else {
+		d.logger.Info("found apigw domains to deploy", slog.Any("domains", domains))
+		var errs []error
+
+		for _, domain := range domains {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			default:
+				if err := d.updateTraditionalDomainCertificate(ctx, d.config.GroupId, domain, certPEM, privkeyPEM); err != nil {
+					errs = append(errs, err)
+				}
+			}
+		}
+
+		if len(errs) > 0 {
+			return errors.Join(errs...)
+		}
+	}
+
+	return nil
+}
+
+func (d *SSLDeployerProvider) deployToCloudNative(ctx context.Context, certPEM string, privkeyPEM string) error {
+	if d.config.GatewayId == "" {
+		return errors.New("config `gatewayId` is required")
+	}
+
+	// 上传证书
+	upres, err := d.sslManager.Upload(ctx, certPEM, privkeyPEM)
+	if err != nil {
+		return fmt.Errorf("failed to upload certificate file: %w", err)
+	} else {
+		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
+	}
+
+	// 获取待部署的域名列表
+	var domains []string
+	switch d.config.DomainMatchPattern {
+	case "", DOMAIN_MATCH_PATTERN_EXACT:
+		{
+			if d.config.Domain == "" {
+				return errors.New("config `domain` is required")
+			}
+
+			domains = []string{d.config.Domain}
+		}
+
+	case DOMAIN_MATCH_PATTERN_WILDCARD:
+		{
+			if d.config.Domain == "" {
+				return errors.New("config `domain` is required")
+			}
+
+			if strings.HasPrefix(d.config.Domain, "*.") {
+				domainCandidates, err := d.getCloudNativeAllDomains(ctx, d.config.GatewayId)
+				if err != nil {
+					return err
+				}
+
+				domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
+					return xcerthostname.IsMatch(d.config.Domain, domain)
+				})
+				if len(domains) == 0 {
+					return errors.New("could not find any domains matched by wildcard")
+				}
+			} else {
+				domains = []string{d.config.Domain}
+			}
+		}
+
+	case DOMAIN_MATCH_PATTERN_CERTSAN:
+		{
+			certX509, err := xcert.ParseCertificateFromPEM(certPEM)
+			if err != nil {
+				return err
+			}
+
+			domainCandidates, err := d.getCloudNativeAllDomains(ctx, d.config.GatewayId)
+			if err != nil {
+				return err
+			}
+
+			domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
+				return certX509.VerifyHostname(domain) == nil
+			})
+			if len(domains) == 0 {
+				return errors.New("could not find any domains matched by certificate")
+			}
+		}
+
+	default:
+		return fmt.Errorf("unsupported domain match pattern: '%s'", d.config.DomainMatchPattern)
+	}
+
+	// 遍历更新域名证书
+	if len(domains) == 0 {
+		d.logger.Info("no apigw domains to deploy")
+	} else {
+		d.logger.Info("found apigw domains to deploy", slog.Any("domains", domains))
+		var errs []error
+
+		for _, domain := range domains {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			default:
+				certId := upres.ExtendedData["CertIdentifier"].(string)
+				if err := d.updateCloudNativeDomainCertificate(ctx, d.config.GatewayId, domain, certId); err != nil {
+					errs = append(errs, err)
+				}
+			}
+		}
+
+		if len(errs) > 0 {
+			return errors.Join(errs...)
+		}
+	}
+
+	return nil
+}
+
+func (d *SSLDeployerProvider) getTraditionalAllDomains(ctx context.Context, cloudGroupId string) ([]string, error) {
+	domains := make([]string, 0)
+
+	// 查询 API 分组详情
+	// REF: https://help.aliyun.com/zh/api-gateway/traditional-api-gateway/developer-reference/api-cloudapi-2016-07-14-describeapigroup
+	describeApiGroupReq := &alicloudapi.DescribeApiGroupRequest{
+		GroupId: tea.String(cloudGroupId),
+	}
+	describeApiGroupResp, err := d.sdkClients.TraditionalAPIGateway.DescribeApiGroupWithContext(ctx, describeApiGroupReq, &dara.RuntimeOptions{})
+	d.logger.Debug("sdk request 'apigateway.DescribeApiGroup'", slog.Any("request", describeApiGroupReq), slog.Any("response", describeApiGroupResp))
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute sdk request 'apigateway.DescribeApiGroup': %w", err)
+	}
+
+	for _, domainItem := range describeApiGroupResp.Body.CustomDomains.DomainItem {
+		if strings.EqualFold(tea.StringValue(domainItem.DomainBindingStatus), "BINDING") {
+			domains = append(domains, tea.StringValue(domainItem.DomainName))
+		}
+	}
+
+	return domains, nil
+}
+
+func (d *SSLDeployerProvider) updateTraditionalDomainCertificate(ctx context.Context, cloudGroupId string, domain string, certPEM, privkeyPEM string) error {
 	// 为自定义域名添加 SSL 证书
 	// REF: https://help.aliyun.com/zh/api-gateway/traditional-api-gateway/developer-reference/api-cloudapi-2016-07-14-setdomaincertificate
 	setDomainCertificateReq := &alicloudapi.SetDomainCertificateRequest{
-		GroupId:               tea.String(d.config.GroupId),
-		DomainName:            tea.String(d.config.Domain),
+		GroupId:               tea.String(cloudGroupId),
+		DomainName:            tea.String(domain),
 		CertificateName:       tea.String(fmt.Sprintf("certimate_%d", time.Now().UnixMilli())),
 		CertificateBody:       tea.String(certPEM),
 		CertificatePrivateKey: tea.String(privkeyPEM),
@@ -138,59 +348,53 @@ func (d *SSLDeployerProvider) deployToTraditional(ctx context.Context, certPEM s
 	return nil
 }
 
-func (d *SSLDeployerProvider) deployToCloudNative(ctx context.Context, certPEM string, privkeyPEM string) error {
-	if d.config.GatewayId == "" {
-		return errors.New("config `gatewayId` is required")
-	}
-	if d.config.Domain == "" {
-		return errors.New("config `domain` is required")
+func (d *SSLDeployerProvider) getCloudNativeAllDomains(ctx context.Context, cloudGatewayId string) ([]string, error) {
+	domains := make([]string, 0)
+
+	// 查询域名列表
+	// REF: https://help.aliyun.com/zh/api-gateway/cloud-native-api-gateway/developer-reference/api-apig-2024-03-27-listdomains
+	listDomainsPageNumber := 1
+	listDomainsPageSize := 10
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+
+		listDomainsReq := &aliapig.ListDomainsRequest{
+			ResourceGroupId: lo.EmptyableToPtr(d.config.ResourceGroupId),
+			GatewayId:       tea.String(cloudGatewayId),
+			PageNumber:      tea.Int32(int32(listDomainsPageNumber)),
+			PageSize:        tea.Int32(int32(listDomainsPageSize)),
+		}
+		listDomainsResp, err := d.sdkClients.CloudNativeAPIGateway.ListDomainsWithContext(ctx, listDomainsReq, make(map[string]*string), &dara.RuntimeOptions{})
+		d.logger.Debug("sdk request 'apig.ListDomains'", slog.Any("request", listDomainsReq), slog.Any("response", listDomainsResp))
+		if err != nil {
+			return nil, fmt.Errorf("failed to execute sdk request 'apig.ListDomains': %w", err)
+		}
+
+		if listDomainsResp.Body == nil || listDomainsResp.Body.Data == nil {
+			break
+		}
+
+		for _, domainItem := range listDomainsResp.Body.Data.Items {
+			if strings.EqualFold(tea.StringValue(domainItem.Status), "Published") {
+				domains = append(domains, tea.StringValue(domainItem.Name))
+			}
+		}
+
+		if len(listDomainsResp.Body.Data.Items) < listDomainsPageSize {
+			break
+		}
+
+		listDomainsPageNumber++
 	}
 
-	// 获取域名 ID
-	domainId, err := d.findCloudNativeDomainIdByDomain(ctx, d.config.Domain)
-	if err != nil {
-		return err
-	}
-
-	// 查询域名
-	// REF: https://help.aliyun.com/zh/api-gateway/cloud-native-api-gateway/developer-reference/api-apig-2024-03-27-getdomain
-	getDomainReq := &aliapig.GetDomainRequest{}
-	getDomainResp, err := d.sdkClients.CloudNativeAPIGateway.GetDomainWithContext(ctx, tea.String(domainId), getDomainReq, make(map[string]*string), &dara.RuntimeOptions{})
-	d.logger.Debug("sdk request 'apig.GetDomain'", slog.String("domainId", domainId), slog.Any("request", getDomainReq), slog.Any("response", getDomainResp))
-	if err != nil {
-		return fmt.Errorf("failed to execute sdk request 'apig.GetDomain': %w", err)
-	}
-
-	// 上传证书
-	upres, err := d.sslManager.Upload(ctx, certPEM, privkeyPEM)
-	if err != nil {
-		return fmt.Errorf("failed to upload certificate file: %w", err)
-	} else {
-		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
-	}
-
-	// 更新域名
-	// REF: https://help.aliyun.com/zh/api-gateway/cloud-native-api-gateway/developer-reference/api-apig-2024-03-27-updatedomain
-	updateDomainReq := &aliapig.UpdateDomainRequest{
-		Protocol:              tea.String("HTTPS"),
-		ForceHttps:            getDomainResp.Body.Data.ForceHttps,
-		MTLSEnabled:           getDomainResp.Body.Data.MTLSEnabled,
-		Http2Option:           getDomainResp.Body.Data.Http2Option,
-		TlsMin:                getDomainResp.Body.Data.TlsMin,
-		TlsMax:                getDomainResp.Body.Data.TlsMax,
-		TlsCipherSuitesConfig: getDomainResp.Body.Data.TlsCipherSuitesConfig,
-		CertIdentifier:        tea.String(upres.ExtendedData["CertIdentifier"].(string)),
-	}
-	updateDomainResp, err := d.sdkClients.CloudNativeAPIGateway.UpdateDomainWithContext(ctx, tea.String(domainId), updateDomainReq, make(map[string]*string), &dara.RuntimeOptions{})
-	d.logger.Debug("sdk request 'apig.UpdateDomain'", slog.String("domainId", domainId), slog.Any("request", updateDomainReq), slog.Any("response", updateDomainResp))
-	if err != nil {
-		return fmt.Errorf("failed to execute sdk request 'apig.UpdateDomain': %w", err)
-	}
-
-	return nil
+	return domains, nil
 }
 
-func (d *SSLDeployerProvider) findCloudNativeDomainIdByDomain(ctx context.Context, domain string) (string, error) {
+func (d *SSLDeployerProvider) findCloudNativeDomainIdByDomain(ctx context.Context, cloudGatewayId string, domain string) (string, error) {
 	// 查询域名列表
 	// REF: https://help.aliyun.com/zh/api-gateway/cloud-native-api-gateway/developer-reference/api-apig-2024-03-27-listdomains
 	listDomainsPageNumber := 1
@@ -204,7 +408,7 @@ func (d *SSLDeployerProvider) findCloudNativeDomainIdByDomain(ctx context.Contex
 
 		listDomainsReq := &aliapig.ListDomainsRequest{
 			ResourceGroupId: lo.EmptyableToPtr(d.config.ResourceGroupId),
-			GatewayId:       tea.String(d.config.GatewayId),
+			GatewayId:       tea.String(cloudGatewayId),
 			NameLike:        tea.String(domain),
 			PageNumber:      tea.Int32(int32(listDomainsPageNumber)),
 			PageSize:        tea.Int32(int32(listDomainsPageSize)),
@@ -233,6 +437,43 @@ func (d *SSLDeployerProvider) findCloudNativeDomainIdByDomain(ctx context.Contex
 	}
 
 	return "", fmt.Errorf("could not find domain '%s'", domain)
+}
+
+func (d *SSLDeployerProvider) updateCloudNativeDomainCertificate(ctx context.Context, cloudGatewayId string, domain string, cloudCertId string) error {
+	// 获取域名 ID
+	domainId, err := d.findCloudNativeDomainIdByDomain(ctx, cloudGatewayId, domain)
+	if err != nil {
+		return err
+	}
+
+	// 查询域名
+	// REF: https://help.aliyun.com/zh/api-gateway/cloud-native-api-gateway/developer-reference/api-apig-2024-03-27-getdomain
+	getDomainReq := &aliapig.GetDomainRequest{}
+	getDomainResp, err := d.sdkClients.CloudNativeAPIGateway.GetDomainWithContext(ctx, tea.String(domainId), getDomainReq, make(map[string]*string), &dara.RuntimeOptions{})
+	d.logger.Debug("sdk request 'apig.GetDomain'", slog.String("domainId", domainId), slog.Any("request", getDomainReq), slog.Any("response", getDomainResp))
+	if err != nil {
+		return fmt.Errorf("failed to execute sdk request 'apig.GetDomain': %w", err)
+	}
+
+	// 更新域名
+	// REF: https://help.aliyun.com/zh/api-gateway/cloud-native-api-gateway/developer-reference/api-apig-2024-03-27-updatedomain
+	updateDomainReq := &aliapig.UpdateDomainRequest{
+		Protocol:              tea.String("HTTPS"),
+		ForceHttps:            getDomainResp.Body.Data.ForceHttps,
+		MTLSEnabled:           getDomainResp.Body.Data.MTLSEnabled,
+		Http2Option:           getDomainResp.Body.Data.Http2Option,
+		TlsMin:                getDomainResp.Body.Data.TlsMin,
+		TlsMax:                getDomainResp.Body.Data.TlsMax,
+		TlsCipherSuitesConfig: getDomainResp.Body.Data.TlsCipherSuitesConfig,
+		CertIdentifier:        tea.String(cloudCertId),
+	}
+	updateDomainResp, err := d.sdkClients.CloudNativeAPIGateway.UpdateDomainWithContext(ctx, tea.String(domainId), updateDomainReq, make(map[string]*string), &dara.RuntimeOptions{})
+	d.logger.Debug("sdk request 'apig.UpdateDomain'", slog.String("domainId", domainId), slog.Any("request", updateDomainReq), slog.Any("response", updateDomainResp))
+	if err != nil {
+		return fmt.Errorf("failed to execute sdk request 'apig.UpdateDomain': %w", err)
+	}
+
+	return nil
 }
 
 func createSDKClients(accessKeyId, accessKeySecret, region string) (*wSDKClients, error) {

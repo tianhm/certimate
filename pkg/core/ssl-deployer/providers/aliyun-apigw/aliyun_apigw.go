@@ -329,25 +329,6 @@ func (d *SSLDeployerProvider) getTraditionalAllDomains(ctx context.Context, clou
 	return domains, nil
 }
 
-func (d *SSLDeployerProvider) updateTraditionalDomainCertificate(ctx context.Context, cloudGroupId string, domain string, certPEM, privkeyPEM string) error {
-	// 为自定义域名添加 SSL 证书
-	// REF: https://help.aliyun.com/zh/api-gateway/traditional-api-gateway/developer-reference/api-cloudapi-2016-07-14-setdomaincertificate
-	setDomainCertificateReq := &alicloudapi.SetDomainCertificateRequest{
-		GroupId:               tea.String(cloudGroupId),
-		DomainName:            tea.String(domain),
-		CertificateName:       tea.String(fmt.Sprintf("certimate_%d", time.Now().UnixMilli())),
-		CertificateBody:       tea.String(certPEM),
-		CertificatePrivateKey: tea.String(privkeyPEM),
-	}
-	setDomainCertificateResp, err := d.sdkClients.TraditionalAPIGateway.SetDomainCertificateWithContext(ctx, setDomainCertificateReq, &dara.RuntimeOptions{})
-	d.logger.Debug("sdk request 'apigateway.SetDomainCertificate'", slog.Any("request", setDomainCertificateReq), slog.Any("response", setDomainCertificateResp))
-	if err != nil {
-		return fmt.Errorf("failed to execute sdk request 'apigateway.SetDomainCertificate': %w", err)
-	}
-
-	return nil
-}
-
 func (d *SSLDeployerProvider) getCloudNativeAllDomains(ctx context.Context, cloudGatewayId string) ([]string, error) {
 	domains := make([]string, 0)
 
@@ -394,6 +375,62 @@ func (d *SSLDeployerProvider) getCloudNativeAllDomains(ctx context.Context, clou
 	return domains, nil
 }
 
+func (d *SSLDeployerProvider) updateTraditionalDomainCertificate(ctx context.Context, cloudGroupId string, domain string, certPEM, privkeyPEM string) error {
+	// 为自定义域名添加 SSL 证书
+	// REF: https://help.aliyun.com/zh/api-gateway/traditional-api-gateway/developer-reference/api-cloudapi-2016-07-14-setdomaincertificate
+	setDomainCertificateReq := &alicloudapi.SetDomainCertificateRequest{
+		GroupId:               tea.String(cloudGroupId),
+		DomainName:            tea.String(domain),
+		CertificateName:       tea.String(fmt.Sprintf("certimate_%d", time.Now().UnixMilli())),
+		CertificateBody:       tea.String(certPEM),
+		CertificatePrivateKey: tea.String(privkeyPEM),
+	}
+	setDomainCertificateResp, err := d.sdkClients.TraditionalAPIGateway.SetDomainCertificateWithContext(ctx, setDomainCertificateReq, &dara.RuntimeOptions{})
+	d.logger.Debug("sdk request 'apigateway.SetDomainCertificate'", slog.Any("request", setDomainCertificateReq), slog.Any("response", setDomainCertificateResp))
+	if err != nil {
+		return fmt.Errorf("failed to execute sdk request 'apigateway.SetDomainCertificate': %w", err)
+	}
+
+	return nil
+}
+
+func (d *SSLDeployerProvider) updateCloudNativeDomainCertificate(ctx context.Context, cloudGatewayId string, domain string, cloudCertId string) error {
+	// 获取域名 ID
+	domainId, err := d.findCloudNativeDomainIdByDomain(ctx, cloudGatewayId, domain)
+	if err != nil {
+		return err
+	}
+
+	// 查询域名
+	// REF: https://help.aliyun.com/zh/api-gateway/cloud-native-api-gateway/developer-reference/api-apig-2024-03-27-getdomain
+	getDomainReq := &aliapig.GetDomainRequest{}
+	getDomainResp, err := d.sdkClients.CloudNativeAPIGateway.GetDomainWithContext(ctx, tea.String(domainId), getDomainReq, make(map[string]*string), &dara.RuntimeOptions{})
+	d.logger.Debug("sdk request 'apig.GetDomain'", slog.String("domainId", domainId), slog.Any("request", getDomainReq), slog.Any("response", getDomainResp))
+	if err != nil {
+		return fmt.Errorf("failed to execute sdk request 'apig.GetDomain': %w", err)
+	}
+
+	// 更新域名
+	// REF: https://help.aliyun.com/zh/api-gateway/cloud-native-api-gateway/developer-reference/api-apig-2024-03-27-updatedomain
+	updateDomainReq := &aliapig.UpdateDomainRequest{
+		Protocol:              tea.String("HTTPS"),
+		ForceHttps:            getDomainResp.Body.Data.ForceHttps,
+		MTLSEnabled:           getDomainResp.Body.Data.MTLSEnabled,
+		Http2Option:           getDomainResp.Body.Data.Http2Option,
+		TlsMin:                getDomainResp.Body.Data.TlsMin,
+		TlsMax:                getDomainResp.Body.Data.TlsMax,
+		TlsCipherSuitesConfig: getDomainResp.Body.Data.TlsCipherSuitesConfig,
+		CertIdentifier:        tea.String(cloudCertId),
+	}
+	updateDomainResp, err := d.sdkClients.CloudNativeAPIGateway.UpdateDomainWithContext(ctx, tea.String(domainId), updateDomainReq, make(map[string]*string), &dara.RuntimeOptions{})
+	d.logger.Debug("sdk request 'apig.UpdateDomain'", slog.String("domainId", domainId), slog.Any("request", updateDomainReq), slog.Any("response", updateDomainResp))
+	if err != nil {
+		return fmt.Errorf("failed to execute sdk request 'apig.UpdateDomain': %w", err)
+	}
+
+	return nil
+}
+
 func (d *SSLDeployerProvider) findCloudNativeDomainIdByDomain(ctx context.Context, cloudGatewayId string, domain string) (string, error) {
 	// 查询域名列表
 	// REF: https://help.aliyun.com/zh/api-gateway/cloud-native-api-gateway/developer-reference/api-apig-2024-03-27-listdomains
@@ -437,43 +474,6 @@ func (d *SSLDeployerProvider) findCloudNativeDomainIdByDomain(ctx context.Contex
 	}
 
 	return "", fmt.Errorf("could not find domain '%s'", domain)
-}
-
-func (d *SSLDeployerProvider) updateCloudNativeDomainCertificate(ctx context.Context, cloudGatewayId string, domain string, cloudCertId string) error {
-	// 获取域名 ID
-	domainId, err := d.findCloudNativeDomainIdByDomain(ctx, cloudGatewayId, domain)
-	if err != nil {
-		return err
-	}
-
-	// 查询域名
-	// REF: https://help.aliyun.com/zh/api-gateway/cloud-native-api-gateway/developer-reference/api-apig-2024-03-27-getdomain
-	getDomainReq := &aliapig.GetDomainRequest{}
-	getDomainResp, err := d.sdkClients.CloudNativeAPIGateway.GetDomainWithContext(ctx, tea.String(domainId), getDomainReq, make(map[string]*string), &dara.RuntimeOptions{})
-	d.logger.Debug("sdk request 'apig.GetDomain'", slog.String("domainId", domainId), slog.Any("request", getDomainReq), slog.Any("response", getDomainResp))
-	if err != nil {
-		return fmt.Errorf("failed to execute sdk request 'apig.GetDomain': %w", err)
-	}
-
-	// 更新域名
-	// REF: https://help.aliyun.com/zh/api-gateway/cloud-native-api-gateway/developer-reference/api-apig-2024-03-27-updatedomain
-	updateDomainReq := &aliapig.UpdateDomainRequest{
-		Protocol:              tea.String("HTTPS"),
-		ForceHttps:            getDomainResp.Body.Data.ForceHttps,
-		MTLSEnabled:           getDomainResp.Body.Data.MTLSEnabled,
-		Http2Option:           getDomainResp.Body.Data.Http2Option,
-		TlsMin:                getDomainResp.Body.Data.TlsMin,
-		TlsMax:                getDomainResp.Body.Data.TlsMax,
-		TlsCipherSuitesConfig: getDomainResp.Body.Data.TlsCipherSuitesConfig,
-		CertIdentifier:        tea.String(cloudCertId),
-	}
-	updateDomainResp, err := d.sdkClients.CloudNativeAPIGateway.UpdateDomainWithContext(ctx, tea.String(domainId), updateDomainReq, make(map[string]*string), &dara.RuntimeOptions{})
-	d.logger.Debug("sdk request 'apig.UpdateDomain'", slog.String("domainId", domainId), slog.Any("request", updateDomainReq), slog.Any("response", updateDomainResp))
-	if err != nil {
-		return fmt.Errorf("failed to execute sdk request 'apig.UpdateDomain': %w", err)
-	}
-
-	return nil
 }
 
 func createSDKClients(accessKeyId, accessKeySecret, region string) (*wSDKClients, error) {

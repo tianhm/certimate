@@ -250,7 +250,7 @@ func (d *SSLDeployerProvider) updateDomainCertificate(ctx context.Context, domai
 	updateDomainMultiCertificatesReqBodyContent.CertificateType = lo.ToPtr(int32(2))
 	updateDomainMultiCertificatesReqBodyContent.ScmCertificateId = lo.ToPtr(cloudCertId)
 	updateDomainMultiCertificatesReqBodyContent.CertName = lo.ToPtr(cloudCertName)
-	updateDomainMultiCertificatesReqBodyContent = assign(updateDomainMultiCertificatesReqBodyContent, showDomainFullConfigResp.Configs)
+	updateDomainMultiCertificatesReqBodyContent = _assign(updateDomainMultiCertificatesReqBodyContent, showDomainFullConfigResp.Configs)
 	updateDomainMultiCertificatesReq := &hccdnmodel.UpdateDomainMultiCertificatesRequest{
 		EnterpriseProjectId: lo.EmptyableToPtr(d.config.EnterpriseProjectId),
 		Body: &hccdnmodel.UpdateDomainMultiCertificatesRequestBody{
@@ -296,7 +296,7 @@ func createSDKClient(accessKeyId, secretAccessKey, region string) (*internal.Cdn
 	return client, nil
 }
 
-func assign(source *hccdnmodel.UpdateDomainMultiCertificatesRequestBodyContent, target *hccdnmodel.ConfigsGetBody) *hccdnmodel.UpdateDomainMultiCertificatesRequestBodyContent {
+func _assign(source *hccdnmodel.UpdateDomainMultiCertificatesRequestBodyContent, target *hccdnmodel.ConfigsGetBody) *hccdnmodel.UpdateDomainMultiCertificatesRequestBodyContent {
 	// `UpdateDomainMultiCertificates` 中不传的字段表示使用默认值、而非保留原值，
 	// 因此这里需要把原配置中的参数重新赋值回去。
 

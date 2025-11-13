@@ -63,6 +63,49 @@ func (client *FcClient) GetCustomDomainWithContext(ctx context.Context, domainNa
 	return _result, _err
 }
 
+func (client *FcClient) ListCustomDomainsWithContext(ctx context.Context, request *alifc.ListCustomDomainsRequest, headers map[string]*string, runtime *dara.RuntimeOptions) (_result *alifc.ListCustomDomainsResponse, _err error) {
+	_err = request.Validate()
+	if _err != nil {
+		return _result, _err
+	}
+	query := map[string]interface{}{}
+
+	if !dara.IsNil(request.Limit) {
+		query["limit"] = request.Limit
+	}
+
+	if !dara.IsNil(request.NextToken) {
+		query["nextToken"] = request.NextToken
+	}
+
+	if !dara.IsNil(request.Prefix) {
+		query["prefix"] = request.Prefix
+	}
+
+	req := &openapiutilv2.OpenApiRequest{
+		Headers: headers,
+		Query:   openapiutil.Query(query),
+	}
+	params := &openapiutilv2.Params{
+		Action:      dara.String("ListCustomDomains"),
+		Version:     dara.String("2023-03-30"),
+		Protocol:    dara.String("HTTPS"),
+		Pathname:    dara.String("/2023-03-30/custom-domains"),
+		Method:      dara.String("GET"),
+		AuthType:    dara.String("AK"),
+		Style:       dara.String("ROA"),
+		ReqBodyType: dara.String("json"),
+		BodyType:    dara.String("json"),
+	}
+	_result = &alifc.ListCustomDomainsResponse{}
+	_body, _err := client.CallApiWithCtx(ctx, params, req, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_err = dara.Convert(_body, &_result)
+	return _result, _err
+}
+
 func (client *FcClient) UpdateCustomDomainWithContext(ctx context.Context, domainName *string, request *alifc.UpdateCustomDomainRequest, headers map[string]*string, runtime *dara.RuntimeOptions) (_result *alifc.UpdateCustomDomainResponse, _err error) {
 	_err = request.Validate()
 	if _err != nil {
@@ -164,6 +207,82 @@ func (client *FcopenClient) GetCustomDomainWithOptions(domainName *string, heade
 		BodyType:    tea.String("json"),
 	}
 	_result = &alifcopen.GetCustomDomainResponse{}
+	_body, _err := client.CallApi(params, req, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_err = tea.Convert(_body, &_result)
+	return _result, _err
+}
+
+func (client *FcopenClient) ListCustomDomains(request *alifcopen.ListCustomDomainsRequest) (_result *alifcopen.ListCustomDomainsResponse, _err error) {
+	runtime := &util.RuntimeOptions{}
+	headers := &alifcopen.ListCustomDomainsHeaders{}
+	_result = &alifcopen.ListCustomDomainsResponse{}
+	_body, _err := client.ListCustomDomainsWithOptions(request, headers, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_result = _body
+	return _result, _err
+}
+
+func (client *FcopenClient) ListCustomDomainsWithOptions(request *alifcopen.ListCustomDomainsRequest, headers *alifcopen.ListCustomDomainsHeaders, runtime *util.RuntimeOptions) (_result *alifcopen.ListCustomDomainsResponse, _err error) {
+	_err = util.ValidateModel(request)
+	if _err != nil {
+		return _result, _err
+	}
+	query := map[string]interface{}{}
+
+	if !tea.BoolValue(util.IsUnset(request.Limit)) {
+		query["limit"] = request.Limit
+	}
+
+	if !tea.BoolValue(util.IsUnset(request.NextToken)) {
+		query["nextToken"] = request.NextToken
+	}
+
+	if !tea.BoolValue(util.IsUnset(request.Prefix)) {
+		query["prefix"] = request.Prefix
+	}
+
+	if !tea.BoolValue(util.IsUnset(request.StartKey)) {
+		query["startKey"] = request.StartKey
+	}
+
+	realHeaders := make(map[string]*string)
+	if !tea.BoolValue(util.IsUnset(headers.CommonHeaders)) {
+		realHeaders = headers.CommonHeaders
+	}
+
+	if !tea.BoolValue(util.IsUnset(headers.XFcAccountId)) {
+		realHeaders["X-Fc-Account-Id"] = util.ToJSONString(headers.XFcAccountId)
+	}
+
+	if !tea.BoolValue(util.IsUnset(headers.XFcDate)) {
+		realHeaders["X-Fc-Date"] = util.ToJSONString(headers.XFcDate)
+	}
+
+	if !tea.BoolValue(util.IsUnset(headers.XFcTraceId)) {
+		realHeaders["X-Fc-Trace-Id"] = util.ToJSONString(headers.XFcTraceId)
+	}
+
+	req := &openapi.OpenApiRequest{
+		Headers: realHeaders,
+		Query:   openapiutil.Query(query),
+	}
+	params := &openapi.Params{
+		Action:      tea.String("ListCustomDomains"),
+		Version:     tea.String("2021-04-06"),
+		Protocol:    tea.String("HTTPS"),
+		Pathname:    tea.String("/2021-04-06/custom-domains"),
+		Method:      tea.String("GET"),
+		AuthType:    tea.String("AK"),
+		Style:       tea.String("ROA"),
+		ReqBodyType: tea.String("json"),
+		BodyType:    tea.String("json"),
+	}
+	_result = &alifcopen.ListCustomDomainsResponse{}
 	_body, _err := client.CallApi(params, req, runtime)
 	if _err != nil {
 		return _result, _err

@@ -187,8 +187,8 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 
 	// 查询域名列表
 	// REF: https://help.aliyun.com/zh/cdn/developer-reference/api-cdn-2018-05-10-describeuserdomains
-	describeUserDomainsPageNumber := int32(1)
-	describeUserDomainsPageSize := int32(500)
+	describeUserDomainsPageNumber := 1
+	describeUserDomainsPageSize := 500
 	for {
 		select {
 		case <-ctx.Done():
@@ -198,8 +198,8 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 
 		describeUserDomainsReq := &alicdn.DescribeUserDomainsRequest{
 			ResourceGroupId: lo.EmptyableToPtr(d.config.ResourceGroupId),
-			PageNumber:      tea.Int32(describeUserDomainsPageNumber),
-			PageSize:        tea.Int32(describeUserDomainsPageSize),
+			PageNumber:      tea.Int32(int32(describeUserDomainsPageNumber)),
+			PageSize:        tea.Int32(int32(describeUserDomainsPageSize)),
 		}
 		describeUserDomainsResp, err := d.sdkClient.DescribeUserDomainsWithContext(ctx, describeUserDomainsReq, &dara.RuntimeOptions{})
 		d.logger.Debug("sdk request 'cdn.DescribeUserDomains'", slog.Any("request", describeUserDomainsReq), slog.Any("response", describeUserDomainsResp))
@@ -207,22 +207,24 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 			return nil, fmt.Errorf("failed to execute sdk request 'cdn.DescribeUserDomains': %w", err)
 		}
 
-		if describeUserDomainsResp.Body.Domains != nil {
-			ignoredStatuses := []string{"offline", "checking", "check_failed", "stopping", "deleting"}
-			for _, domainInfo := range describeUserDomainsResp.Body.Domains.PageData {
-				if lo.Contains(ignoredStatuses, tea.StringValue(domainInfo.DomainStatus)) {
-					continue
-				}
-
-				domains = append(domains, tea.StringValue(domainInfo.DomainName))
-			}
-		}
-
-		if len(describeUserDomainsResp.Body.Domains.PageData) < int(describeUserDomainsPageNumber) {
+		if describeUserDomainsResp.Body == nil || describeUserDomainsResp.Body.Domains == nil {
 			break
-		} else {
-			describeUserDomainsPageNumber++
 		}
+
+		ignoredStatuses := []string{"offline", "checking", "check_failed", "stopping", "deleting"}
+		for _, domainItem := range describeUserDomainsResp.Body.Domains.PageData {
+			if lo.Contains(ignoredStatuses, tea.StringValue(domainItem.DomainStatus)) {
+				continue
+			}
+
+			domains = append(domains, tea.StringValue(domainItem.DomainName))
+		}
+
+		if len(describeUserDomainsResp.Body.Domains.PageData) < describeUserDomainsPageSize {
+			break
+		}
+
+		describeUserDomainsPageNumber++
 	}
 
 	return domains, nil

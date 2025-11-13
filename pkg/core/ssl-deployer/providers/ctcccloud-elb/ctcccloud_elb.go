@@ -111,13 +111,7 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCer
 	// 查询监听列表
 	// REF: https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=24&api=5654&data=88&isNormal=1&vid=82
 	listenerIds := make([]string, 0)
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
-		}
-
+	{
 		listListenersReq := &ctyunelb.ListListenersRequest{
 			RegionID:       lo.ToPtr(d.config.RegionId),
 			LoadBalancerID: lo.ToPtr(d.config.LoadbalancerId),
@@ -133,8 +127,6 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCer
 				listenerIds = append(listenerIds, listener.ID)
 			}
 		}
-
-		break
 	}
 
 	// 遍历更新监听证书

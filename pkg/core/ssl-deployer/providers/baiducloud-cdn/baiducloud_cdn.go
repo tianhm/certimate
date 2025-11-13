@@ -171,9 +171,9 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 
 		if listDomainsNextMarker == "" {
 			break
-		} else {
-			listDomainsMarker = listDomainsNextMarker
 		}
+
+		listDomainsMarker = listDomainsNextMarker
 	}
 
 	return domains, nil

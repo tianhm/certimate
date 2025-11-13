@@ -49,8 +49,9 @@ func TestDeploy(t *testing.T) {
 		}, "\n"))
 
 		deployer, err := provider.NewSSLDeployerProvider(&provider.SSLDeployerProviderConfig{
-			ApiToken: fApiToken,
-			Domain:   fDomain,
+			ApiToken:           fApiToken,
+			DomainMatchPattern: provider.DOMAIN_MATCH_PATTERN_EXACT,
+			Domain:             fDomain,
 		})
 		if err != nil {
 			t.Errorf("err: %+v", err)

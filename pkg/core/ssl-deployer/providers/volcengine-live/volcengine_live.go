@@ -172,8 +172,8 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 
 	// 查询域名列表
 	// REF: https://www.volcengine.com/docs/6469/1126815
-	listDomainDetailPageNum := int32(1)
-	listDomainDetailPageSize := int32(1000)
+	listDomainDetailPageNum := 1
+	listDomainDetailPageSize := 1000
 	for {
 		select {
 		case <-ctx.Done():
@@ -183,8 +183,8 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 
 		listDomainDetailReq := &velive.ListDomainDetailBody{
 			DomainStatusList: ve.Int32Slice([]int32{0}),
-			PageNum:          listDomainDetailPageNum,
-			PageSize:         listDomainDetailPageSize,
+			PageNum:          int32(listDomainDetailPageNum),
+			PageSize:         int32(listDomainDetailPageSize),
 		}
 		listDomainDetailResp, err := d.sdkClient.ListDomainDetail(ctx, listDomainDetailReq)
 		d.logger.Debug("sdk request 'live.ListDomainDetail'", slog.Any("request", listDomainDetailReq), slog.Any("response", listDomainDetailResp))
@@ -192,17 +192,19 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 			return nil, fmt.Errorf("failed to execute sdk request 'live.ListDomainDetail': %w", err)
 		}
 
-		if listDomainDetailResp.Result.DomainList != nil {
-			for _, domainInfo := range listDomainDetailResp.Result.DomainList {
-				domains = append(domains, domainInfo.Domain)
-			}
+		if listDomainDetailResp.Result == nil {
+			break
 		}
 
-		if len(listDomainDetailResp.Result.DomainList) < int(listDomainDetailPageSize) {
-			break
-		} else {
-			listDomainDetailPageNum++
+		for _, domainItem := range listDomainDetailResp.Result.DomainList {
+			domains = append(domains, domainItem.Domain)
 		}
+
+		if len(listDomainDetailResp.Result.DomainList) < listDomainDetailPageSize {
+			break
+		}
+
+		listDomainDetailPageNum++
 	}
 
 	return domains, nil

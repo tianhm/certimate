@@ -73,8 +73,8 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 	// 查询证书列表，避免重复上传
 	// REF: https://help.aliyun.com/zh/ssl-certificate/developer-reference/api-cas-2020-04-07-listusercertificateorder
 	// REF: https://help.aliyun.com/zh/ssl-certificate/developer-reference/api-cas-2020-04-07-getusercertificatedetail
-	listUserCertificateOrderPage := int64(1)
-	listUserCertificateOrderLimit := int64(50)
+	listUserCertificateOrderPage := 1
+	listUserCertificateOrderLimit := 50
 	for {
 		select {
 		case <-ctx.Done():
@@ -84,8 +84,8 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 
 		listUserCertificateOrderReq := &alicas.ListUserCertificateOrderRequest{
 			ResourceGroupId: lo.EmptyableToPtr(m.config.ResourceGroupId),
-			CurrentPage:     tea.Int64(listUserCertificateOrderPage),
-			ShowSize:        tea.Int64(listUserCertificateOrderLimit),
+			CurrentPage:     tea.Int64(int64(listUserCertificateOrderPage)),
+			ShowSize:        tea.Int64(int64(listUserCertificateOrderLimit)),
 			OrderType:       tea.String("CERT"),
 		}
 		listUserCertificateOrderResp, err := m.sdkClient.ListUserCertificateOrderWithContext(context.TODO(), listUserCertificateOrderReq, &dara.RuntimeOptions{})
@@ -94,53 +94,55 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 			return nil, fmt.Errorf("failed to execute sdk request 'cas.ListUserCertificateOrder': %w", err)
 		}
 
-		if listUserCertificateOrderResp.Body.CertificateOrderList != nil {
-			for _, certOrder := range listUserCertificateOrderResp.Body.CertificateOrderList {
-				// 先对比证书通用名称
-				if !strings.EqualFold(certX509.Subject.CommonName, tea.StringValue(certOrder.CommonName)) {
-					continue
-				}
-
-				// 再对比证书序列号
-				// 注意阿里云 CAS 会在序列号前补零，需去除后再比较
-				oldCertSN := strings.TrimLeft(tea.StringValue(certOrder.SerialNo), "0")
-				newCertSN := strings.TrimLeft(certX509.SerialNumber.Text(16), "0")
-				if !strings.EqualFold(newCertSN, oldCertSN) {
-					continue
-				}
-
-				// 最后对比证书内容
-				getUserCertificateDetailReq := &alicas.GetUserCertificateDetailRequest{
-					CertId: certOrder.CertificateId,
-				}
-				getUserCertificateDetailResp, err := m.sdkClient.GetUserCertificateDetailWithContext(context.TODO(), getUserCertificateDetailReq, &dara.RuntimeOptions{})
-				m.logger.Debug("sdk request 'cas.GetUserCertificateDetail'", slog.Any("request", getUserCertificateDetailReq), slog.Any("response", getUserCertificateDetailResp))
-				if err != nil {
-					return nil, fmt.Errorf("failed to execute sdk request 'cas.GetUserCertificateDetail': %w", err)
-				} else {
-					if !xcert.EqualCertificatesFromPEM(certPEM, tea.StringValue(getUserCertificateDetailResp.Body.Cert)) {
-						continue
-					}
-				}
-
-				// 如果以上信息都一致，则视为已存在相同证书，直接返回
-				m.logger.Info("ssl certificate already exists")
-				return &core.SSLManageUploadResult{
-					CertId:   fmt.Sprintf("%d", tea.Int64Value(certOrder.CertificateId)),
-					CertName: *certOrder.Name,
-					ExtendedData: map[string]any{
-						"InstanceId":     tea.StringValue(getUserCertificateDetailResp.Body.InstanceId),
-						"CertIdentifier": tea.StringValue(getUserCertificateDetailResp.Body.CertIdentifier),
-					},
-				}, nil
-			}
-		}
-
-		if listUserCertificateOrderResp.Body.CertificateOrderList == nil || len(listUserCertificateOrderResp.Body.CertificateOrderList) < int(listUserCertificateOrderLimit) {
+		if listUserCertificateOrderResp.Body == nil {
 			break
-		} else {
-			listUserCertificateOrderPage++
 		}
+
+		for _, certItem := range listUserCertificateOrderResp.Body.CertificateOrderList {
+			// 对比证书通用名称
+			if !strings.EqualFold(certX509.Subject.CommonName, tea.StringValue(certItem.CommonName)) {
+				continue
+			}
+
+			// 对比证书序列号
+			// 注意阿里云 CAS 会在序列号前补零，需去除后再比较
+			oldCertSN := strings.TrimLeft(tea.StringValue(certItem.SerialNo), "0")
+			newCertSN := strings.TrimLeft(certX509.SerialNumber.Text(16), "0")
+			if !strings.EqualFold(newCertSN, oldCertSN) {
+				continue
+			}
+
+			// 对比证书内容
+			getUserCertificateDetailReq := &alicas.GetUserCertificateDetailRequest{
+				CertId: certItem.CertificateId,
+			}
+			getUserCertificateDetailResp, err := m.sdkClient.GetUserCertificateDetailWithContext(context.TODO(), getUserCertificateDetailReq, &dara.RuntimeOptions{})
+			m.logger.Debug("sdk request 'cas.GetUserCertificateDetail'", slog.Any("request", getUserCertificateDetailReq), slog.Any("response", getUserCertificateDetailResp))
+			if err != nil {
+				return nil, fmt.Errorf("failed to execute sdk request 'cas.GetUserCertificateDetail': %w", err)
+			} else {
+				if !xcert.EqualCertificatesFromPEM(certPEM, tea.StringValue(getUserCertificateDetailResp.Body.Cert)) {
+					continue
+				}
+			}
+
+			// 如果以上信息都一致，则视为已存在相同证书，直接返回
+			m.logger.Info("ssl certificate already exists")
+			return &core.SSLManageUploadResult{
+				CertId:   fmt.Sprintf("%d", tea.Int64Value(certItem.CertificateId)),
+				CertName: *certItem.Name,
+				ExtendedData: map[string]any{
+					"InstanceId":     tea.StringValue(getUserCertificateDetailResp.Body.InstanceId),
+					"CertIdentifier": tea.StringValue(getUserCertificateDetailResp.Body.CertIdentifier),
+				},
+			}, nil
+		}
+
+		if len(listUserCertificateOrderResp.Body.CertificateOrderList) < listUserCertificateOrderLimit {
+			break
+		}
+
+		listUserCertificateOrderPage++
 	}
 
 	// 生成新证书名（需符合阿里云命名规则）

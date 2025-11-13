@@ -102,7 +102,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		return fmt.Errorf("dnsla: %w", err)
 	}
 
-	zone, err := d.getDNSZone(dns01.UnFqdn(authZone))
+	zone, err := d.findZone(dns01.UnFqdn(authZone))
 	if err != nil {
 		return fmt.Errorf("dnsla: error when list zones: %w", err)
 	}
@@ -149,34 +149,36 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 	return d.config.PropagationTimeout, d.config.PollingInterval
 }
 
-func (d *DNSProvider) getDNSZone(zoneName string) (*dnslasdk.DomainRecord, error) {
-	pageIndex := int32(1)
-	pageSize := int32(100)
+func (d *DNSProvider) findZone(zoneName string) (*dnslasdk.DomainRecord, error) {
+	dnslaListDomainsPageIndex := 1
+	dnslaListDomainsPageSize := 100
 	for {
 		// REF: https://www.dnsla.cn/docs/ApiDoc
 		dnslaListDomainsReq := &dnslasdk.ListDomainsRequest{
-			PageIndex: &pageIndex,
-			PageSize:  &pageSize,
+			PageIndex: lo.ToPtr(int32(dnslaListDomainsPageIndex)),
+			PageSize:  lo.ToPtr(int32(dnslaListDomainsPageSize)),
 		}
 		dnslaListDomainsResp, err := d.client.ListDomains(dnslaListDomainsReq)
 		if err != nil {
 			return nil, err
 		}
 
-		if dnslaListDomainsResp.Data != nil {
-			for _, item := range dnslaListDomainsResp.Data.Results {
-				if strings.TrimRight(item.Domain, ".") == zoneName || strings.TrimRight(item.DisplayDomain, ".") == zoneName {
-					return item, nil
-				}
-			}
-		}
-
-		if dnslaListDomainsResp.Data == nil || len(dnslaListDomainsResp.Data.Results) < int(pageSize) {
+		if dnslaListDomainsResp.Data == nil {
 			break
 		}
 
-		pageIndex++
+		for _, domainItem := range dnslaListDomainsResp.Data.Results {
+			if strings.TrimRight(domainItem.Domain, ".") == zoneName || strings.TrimRight(domainItem.DisplayDomain, ".") == zoneName {
+				return domainItem, nil
+			}
+		}
+
+		if len(dnslaListDomainsResp.Data.Results) < dnslaListDomainsPageSize {
+			break
+		}
+
+		dnslaListDomainsPageIndex++
 	}
 
-	return nil, fmt.Errorf("zone '%s' not found", zoneName)
+	return nil, fmt.Errorf("could not find zone '%s'", zoneName)
 }

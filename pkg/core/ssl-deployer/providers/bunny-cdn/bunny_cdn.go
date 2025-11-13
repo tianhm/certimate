@@ -16,7 +16,7 @@ type SSLDeployerProviderConfig struct {
 	ApiKey string `json:"apiKey"`
 	// Bunny Pull Zone ID。
 	PullZoneId string `json:"pullZoneId"`
-	// Bunny CDN Hostname（支持泛域名）。
+	// Bunny CDN Hostname。
 	Hostname string `json:"hostname"`
 }
 

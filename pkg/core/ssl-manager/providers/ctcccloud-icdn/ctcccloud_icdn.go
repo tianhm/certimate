@@ -65,8 +65,9 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 
 	// 查询证书列表，避免重复上传
 	// REF: https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=112&api=10838&data=173&isNormal=1&vid=166
-	queryCertListPage := int32(1)
-	queryCertListPerPage := int32(1000)
+	// REF: https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=112&api=10837&data=173&isNormal=1&vid=166
+	queryCertListPage := 1
+	queryCertListPerPage := 1000
 	for {
 		select {
 		case <-ctx.Done():
@@ -75,8 +76,8 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 		}
 
 		queryCertListReq := &ctyunicdn.QueryCertListRequest{
-			Page:      lo.ToPtr(queryCertListPage),
-			PerPage:   lo.ToPtr(queryCertListPerPage),
+			Page:      lo.ToPtr(int32(queryCertListPage)),
+			PerPage:   lo.ToPtr(int32(queryCertListPerPage)),
 			UsageMode: lo.ToPtr(int32(0)),
 		}
 		queryCertListResp, err := m.sdkClient.QueryCertList(queryCertListReq)
@@ -85,55 +86,55 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 			return nil, fmt.Errorf("failed to execute sdk request 'icdn.QueryCertList': %w", err)
 		}
 
-		if queryCertListResp.ReturnObj != nil {
-			for _, certRecord := range queryCertListResp.ReturnObj.Results {
-				// 对比证书通用名称
-				if !strings.EqualFold(certX509.Subject.CommonName, certRecord.CN) {
-					continue
-				}
-
-				// 对比证书扩展名称
-				if !slices.Equal(certX509.DNSNames, certRecord.SANs) {
-					continue
-				}
-
-				// 对比证书有效期
-				if !certX509.NotBefore.Equal(time.Unix(certRecord.IssueTime, 0).UTC()) {
-					continue
-				} else if !certX509.NotAfter.Equal(time.Unix(certRecord.ExpiresTime, 0).UTC()) {
-					continue
-				}
-
-				// 最后对比证书内容
-				// 查询证书详情
-				// REF: https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=112&api=10837&data=173&isNormal=1&vid=166
-				queryCertDetailReq := &ctyunicdn.QueryCertDetailRequest{
-					Id: lo.ToPtr(certRecord.Id),
-				}
-				queryCertDetailResp, err := m.sdkClient.QueryCertDetail(queryCertDetailReq)
-				m.logger.Debug("sdk request 'icdn.QueryCertDetail'", slog.Any("request", queryCertDetailReq), slog.Any("response", queryCertDetailResp))
-				if err != nil {
-					return nil, fmt.Errorf("failed to execute sdk request 'icdn.QueryCertDetail': %w", err)
-				} else if queryCertDetailResp.ReturnObj != nil && queryCertDetailResp.ReturnObj.Result != nil {
-					if !xcert.EqualCertificatesFromPEM(certPEM, queryCertDetailResp.ReturnObj.Result.Certs) {
-						continue
-					}
-				}
-
-				// 如果以上信息都一致，则视为已存在相同证书，直接返回
-				m.logger.Info("ssl certificate already exists")
-				return &core.SSLManageUploadResult{
-					CertId:   fmt.Sprintf("%d", queryCertDetailResp.ReturnObj.Result.Id),
-					CertName: queryCertDetailResp.ReturnObj.Result.Name,
-				}, nil
-			}
-		}
-
-		if queryCertListResp.ReturnObj == nil || len(queryCertListResp.ReturnObj.Results) < int(queryCertListPerPage) {
+		if queryCertListResp.ReturnObj == nil {
 			break
-		} else {
-			queryCertListPage++
 		}
+
+		for _, certItem := range queryCertListResp.ReturnObj.Results {
+			// 对比证书通用名称
+			if !strings.EqualFold(certX509.Subject.CommonName, certItem.CN) {
+				continue
+			}
+
+			// 对比证书扩展名称
+			if !slices.Equal(certX509.DNSNames, certItem.SANs) {
+				continue
+			}
+
+			// 对比证书有效期
+			if !certX509.NotBefore.Equal(time.Unix(certItem.IssueTime, 0).UTC()) {
+				continue
+			} else if !certX509.NotAfter.Equal(time.Unix(certItem.ExpiresTime, 0).UTC()) {
+				continue
+			}
+
+			// 对比证书内容
+			queryCertDetailReq := &ctyunicdn.QueryCertDetailRequest{
+				Id: lo.ToPtr(certItem.Id),
+			}
+			queryCertDetailResp, err := m.sdkClient.QueryCertDetail(queryCertDetailReq)
+			m.logger.Debug("sdk request 'icdn.QueryCertDetail'", slog.Any("request", queryCertDetailReq), slog.Any("response", queryCertDetailResp))
+			if err != nil {
+				return nil, fmt.Errorf("failed to execute sdk request 'icdn.QueryCertDetail': %w", err)
+			} else if queryCertDetailResp.ReturnObj != nil && queryCertDetailResp.ReturnObj.Result != nil {
+				if !xcert.EqualCertificatesFromPEM(certPEM, queryCertDetailResp.ReturnObj.Result.Certs) {
+					continue
+				}
+			}
+
+			// 如果以上信息都一致，则视为已存在相同证书，直接返回
+			m.logger.Info("ssl certificate already exists")
+			return &core.SSLManageUploadResult{
+				CertId:   fmt.Sprintf("%d", queryCertDetailResp.ReturnObj.Result.Id),
+				CertName: queryCertDetailResp.ReturnObj.Result.Name,
+			}, nil
+		}
+
+		if len(queryCertListResp.ReturnObj.Results) < queryCertListPerPage {
+			break
+		}
+
+		queryCertListPage++
 	}
 
 	// 生成新证书名（需符合天翼云命名规则）

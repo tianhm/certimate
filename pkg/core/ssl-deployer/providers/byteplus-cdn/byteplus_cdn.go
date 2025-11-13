@@ -155,8 +155,8 @@ func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, w
 
 	// 查询加速域名列表，获取匹配的域名
 	// REF: https://docs.byteplus.com/en/docs/byteplus-cdn/ListCdnDomains_en-us
-	listCdnDomainsPageNum := int64(1)
-	listCdnDomainsPageSize := int64(100)
+	listCdnDomainsPageNum := 1
+	listCdnDomainsPageSize := 100
 	for {
 		select {
 		case <-ctx.Done():
@@ -167,8 +167,8 @@ func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, w
 		listCdnDomainsReq := &bpcdn.ListCdnDomainsRequest{
 			Domain:   bp.String(strings.TrimPrefix(wildcardDomain, "*.")),
 			Status:   bp.String("online"),
-			PageNum:  bp.Int64(listCdnDomainsPageNum),
-			PageSize: bp.Int64(listCdnDomainsPageSize),
+			PageNum:  bp.Int64(int64(listCdnDomainsPageNum)),
+			PageSize: bp.Int64(int64(listCdnDomainsPageSize)),
 		}
 		listCdnDomainsResp, err := d.sdkClient.ListCdnDomains(listCdnDomainsReq)
 		d.logger.Debug("sdk request 'cdn.ListCdnDomains'", slog.Any("request", listCdnDomainsReq), slog.Any("response", listCdnDomainsResp))
@@ -176,17 +176,17 @@ func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, w
 			return nil, fmt.Errorf("failed to execute sdk request 'cdn.ListCdnDomains': %w", err)
 		}
 
-		for _, domainInfo := range listCdnDomainsResp.Result.Data {
-			if xcerthostname.IsMatch(wildcardDomain, domainInfo.Domain) {
-				domains = append(domains, domainInfo.Domain)
+		for _, domainItem := range listCdnDomainsResp.Result.Data {
+			if xcerthostname.IsMatch(wildcardDomain, domainItem.Domain) {
+				domains = append(domains, domainItem.Domain)
 			}
 		}
 
-		if len(listCdnDomainsResp.Result.Data) < int(listCdnDomainsPageSize) {
+		if len(listCdnDomainsResp.Result.Data) < listCdnDomainsPageSize {
 			break
-		} else {
-			listCdnDomainsPageSize++
 		}
+
+		listCdnDomainsPageSize++
 	}
 
 	return domains, nil

@@ -73,8 +73,8 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 
 	// 获取证书列表，避免重复上传
 	// REF: https://docs.aws.amazon.com/en_us/acm/latest/APIReference/API_ListCertificates.html
-	var listCertificatesNextToken *string = nil
-	var listCertificatesMaxItems int32 = 1000
+	// REF: https://docs.aws.amazon.com/en_us/acm/latest/APIReference/API_GetCertificate.html
+	listCertificatesNextToken := (*string)(nil)
 	for {
 		select {
 		case <-ctx.Done():
@@ -84,7 +84,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 
 		listCertificatesReq := &awsacm.ListCertificatesInput{
 			NextToken: listCertificatesNextToken,
-			MaxItems:  aws.Int32(listCertificatesMaxItems),
+			MaxItems:  aws.Int32(1000),
 		}
 		listCertificatesResp, err := m.sdkClient.ListCertificates(context.TODO(), listCertificatesReq)
 		m.logger.Debug("sdk request 'acm.ListCertificates'", slog.Any("request", listCertificatesReq), slog.Any("response", listCertificatesResp))
@@ -92,24 +92,23 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 			return nil, fmt.Errorf("failed to execute sdk request 'acm.ListCertificates': %w", err)
 		}
 
-		for _, certSummary := range listCertificatesResp.CertificateSummaryList {
-			// 先对比证书有效期
-			if certSummary.NotBefore == nil || !certSummary.NotBefore.Equal(certX509.NotBefore) {
+		for _, certItem := range listCertificatesResp.CertificateSummaryList {
+			// 对比证书有效期
+			if certItem.NotBefore == nil || !certItem.NotBefore.Equal(certX509.NotBefore) {
 				continue
 			}
-			if certSummary.NotAfter == nil || !certSummary.NotAfter.Equal(certX509.NotAfter) {
-				continue
-			}
-
-			// 再对比证书多域名
-			if !strings.EqualFold(strings.Join(certX509.DNSNames, ","), strings.Join(certSummary.SubjectAlternativeNameSummaries, ",")) {
+			if certItem.NotAfter == nil || !certItem.NotAfter.Equal(certX509.NotAfter) {
 				continue
 			}
 
-			// 最后对比证书内容
-			// REF: https://docs.aws.amazon.com/en_us/acm/latest/APIReference/API_GetCertificate.html
+			// 对比证书多域名
+			if !strings.EqualFold(strings.Join(certX509.DNSNames, ","), strings.Join(certItem.SubjectAlternativeNameSummaries, ",")) {
+				continue
+			}
+
+			// 对比证书内容
 			getCertificateReq := &awsacm.GetCertificateInput{
-				CertificateArn: certSummary.CertificateArn,
+				CertificateArn: certItem.CertificateArn,
 			}
 			getCertificateResp, err := m.sdkClient.GetCertificate(context.TODO(), getCertificateReq)
 			if err != nil {
@@ -123,15 +122,15 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 			// 如果以上信息都一致，则视为已存在相同证书，直接返回
 			m.logger.Info("ssl certificate already exists")
 			return &core.SSLManageUploadResult{
-				CertId: *certSummary.CertificateArn,
+				CertId: *certItem.CertificateArn,
 			}, nil
 		}
 
-		if listCertificatesResp.NextToken == nil || len(listCertificatesResp.CertificateSummaryList) < int(listCertificatesMaxItems) {
+		if len(listCertificatesResp.CertificateSummaryList) == 0 || listCertificatesResp.NextToken == nil {
 			break
-		} else {
-			listCertificatesNextToken = listCertificatesResp.NextToken
 		}
+
+		listCertificatesNextToken = listCertificatesResp.NextToken
 	}
 
 	// 导入证书

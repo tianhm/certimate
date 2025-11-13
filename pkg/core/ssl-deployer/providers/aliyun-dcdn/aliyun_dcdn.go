@@ -187,8 +187,8 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 
 	// 查询域名列表
 	// REF: https://help.aliyun.com/zh/edge-security-acceleration/dcdn/developer-reference/api-dcdn-2018-01-15-describedcdnuserdomains
-	describeUserDomainsPageNumber := int32(1)
-	describeUserDomainsPageSize := int32(500)
+	describeUserDomainsPageNumber := 1
+	describeUserDomainsPageSize := 500
 	for {
 		select {
 		case <-ctx.Done():
@@ -199,8 +199,8 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 		describeDcdnUserDomainsReq := &alidcdn.DescribeDcdnUserDomainsRequest{
 			ResourceGroupId: lo.EmptyableToPtr(d.config.ResourceGroupId),
 			CheckDomainShow: tea.Bool(true),
-			PageNumber:      tea.Int32(describeUserDomainsPageNumber),
-			PageSize:        tea.Int32(describeUserDomainsPageSize),
+			PageNumber:      tea.Int32(int32(describeUserDomainsPageNumber)),
+			PageSize:        tea.Int32(int32(describeUserDomainsPageSize)),
 		}
 		describeDcdnUserDomainsResp, err := d.sdkClient.DescribeDcdnUserDomainsWithContext(ctx, describeDcdnUserDomainsReq, &dara.RuntimeOptions{})
 		d.logger.Debug("sdk request 'dcdn.DescribeDcdnUserDomains'", slog.Any("request", describeDcdnUserDomainsReq), slog.Any("response", describeDcdnUserDomainsResp))
@@ -208,20 +208,24 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 			return nil, fmt.Errorf("failed to execute sdk request 'dcdn.DescribeDcdnUserDomains': %w", err)
 		}
 
+		if describeDcdnUserDomainsResp.Body == nil || describeDcdnUserDomainsResp.Body.Domains == nil {
+			break
+		}
+
 		ignoredStatuses := []string{"offline", "checking", "check_failed", "stopping", "deleting"}
-		for _, domainInfo := range describeDcdnUserDomainsResp.Body.Domains.PageData {
-			if lo.Contains(ignoredStatuses, tea.StringValue(domainInfo.DomainStatus)) {
+		for _, domainItem := range describeDcdnUserDomainsResp.Body.Domains.PageData {
+			if lo.Contains(ignoredStatuses, tea.StringValue(domainItem.DomainStatus)) {
 				continue
 			}
 
-			domains = append(domains, tea.StringValue(domainInfo.DomainName))
+			domains = append(domains, tea.StringValue(domainItem.DomainName))
 		}
 
-		if len(describeDcdnUserDomainsResp.Body.Domains.PageData) < int(describeUserDomainsPageNumber) {
+		if len(describeDcdnUserDomainsResp.Body.Domains.PageData) < describeUserDomainsPageNumber {
 			break
-		} else {
-			describeUserDomainsPageNumber++
 		}
+
+		describeUserDomainsPageNumber++
 	}
 
 	return domains, nil

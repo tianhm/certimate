@@ -158,8 +158,8 @@ func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, w
 
 	// 查询加速域名列表，获取匹配的域名
 	// REF: https://www.volcengine.com/docs/6454/75269
-	listCdnDomainsPageNum := int64(1)
-	listCdnDomainsPageSize := int64(100)
+	listCdnDomainsPageNum := 1
+	listCdnDomainsPageSize := 100
 	for {
 		select {
 		case <-ctx.Done():
@@ -170,8 +170,8 @@ func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, w
 		listCdnDomainsReq := &vecdn.ListCdnDomainsInput{
 			Domain:   ve.String(strings.TrimPrefix(wildcardDomain, "*.")),
 			Status:   ve.String("online"),
-			PageNum:  ve.Int64(listCdnDomainsPageNum),
-			PageSize: ve.Int64(listCdnDomainsPageSize),
+			PageNum:  ve.Int64(int64(listCdnDomainsPageNum)),
+			PageSize: ve.Int64(int64(listCdnDomainsPageSize)),
 		}
 		listCdnDomainsResp, err := d.sdkClient.ListCdnDomains(listCdnDomainsReq)
 		d.logger.Debug("sdk request 'cdn.ListCdnDomains'", slog.Any("request", listCdnDomainsReq), slog.Any("response", listCdnDomainsResp))
@@ -179,19 +179,17 @@ func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, w
 			return nil, fmt.Errorf("failed to execute sdk request 'cdn.ListCdnDomains': %w", err)
 		}
 
-		if listCdnDomainsResp.Data != nil {
-			for _, domainInfo := range listCdnDomainsResp.Data {
-				if xcerthostname.IsMatch(wildcardDomain, ve.StringValue(domainInfo.Domain)) {
-					domains = append(domains, ve.StringValue(domainInfo.Domain))
-				}
+		for _, domainItem := range listCdnDomainsResp.Data {
+			if xcerthostname.IsMatch(wildcardDomain, ve.StringValue(domainItem.Domain)) {
+				domains = append(domains, ve.StringValue(domainItem.Domain))
 			}
 		}
 
-		if len(listCdnDomainsResp.Data) < int(listCdnDomainsPageSize) {
+		if len(listCdnDomainsResp.Data) < listCdnDomainsPageSize {
 			break
-		} else {
-			listCdnDomainsPageSize++
 		}
+
+		listCdnDomainsPageSize++
 	}
 
 	if len(domains) == 0 {

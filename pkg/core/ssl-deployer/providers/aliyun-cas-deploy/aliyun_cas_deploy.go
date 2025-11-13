@@ -146,11 +146,10 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			return nil, fmt.Errorf("failed to execute sdk request 'cas.DescribeDeploymentJob': %w", err)
 		}
 
-		if describeDeploymentJobResp.Body.Status == nil || *describeDeploymentJobResp.Body.Status == "editing" {
+		status := tea.StringValue(describeDeploymentJobResp.Body.Status)
+		if status == "" || status == "editing" {
 			return nil, errors.New("unexpected aliyun deployment job status")
-		}
-
-		if *describeDeploymentJobResp.Body.Status == "success" || *describeDeploymentJobResp.Body.Status == "error" {
+		} else if status == "success" || status == "error" {
 			break
 		}
 

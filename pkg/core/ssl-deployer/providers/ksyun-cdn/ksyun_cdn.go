@@ -20,7 +20,7 @@ type SSLDeployerProviderConfig struct {
 	AccessKeyId string `json:"accessKeyId"`
 	// 金山云 SecretAccessKey。
 	SecretAccessKey string `json:"secretAccessKey"`
-	// 域名匹配模式。
+	// 域名匹配模式。暂时只支持精确匹配。
 	// 零值时默认值 [DOMAIN_MATCH_PATTERN_EXACT]。
 	DomainMatchPattern string `json:"domainMatchPattern,omitempty"`
 	// 加速域名（支持泛域名）。
@@ -83,69 +83,10 @@ func (d *SSLDeployerProvider) deployToDomain(ctx context.Context, certPEM string
 		return errors.New("config `domain` is required")
 	}
 
-	// 查询域名列表，获取域名 ID
-	// https://docs.ksyun.com/documents/198
-	var domainId string
-	getCdnDomainsPageNumber := int32(1)
-	getCdnDomainsPageSize := int32(100)
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
-		}
-
-		getCdnDomainsInput := map[string]any{
-			"PageNumber": getCdnDomainsPageNumber,
-			"PageSize":   getCdnDomainsPageSize,
-			"DomainName": d.config.Domain,
-			"FuzzyMatch": "off",
-		}
-		getCdnDomainsReq, getCdnDomainsOutput := d.sdkClient.GetCdnDomainsPostRequest(&getCdnDomainsInput)
-		getCdnDomainsErr := getCdnDomainsReq.Send()
-		d.logger.Debug("sdk request 'cdn.GetCdnDomains'", slog.Any("request", getCdnDomainsInput), slog.Any("response", getCdnDomainsOutput))
-		if getCdnDomainsErr != nil {
-			return fmt.Errorf("failed to execute sdk request 'cdn.GetCdnDomains': %w", getCdnDomainsErr)
-		}
-
-		type GetCdnDomainsResponse struct {
-			PageNumber int32 `json:"PageNumber"`
-			PageSize   int32 `json:"PageSize"`
-			TotalCount int32 `json:"TotalCount"`
-			Domains    []*struct {
-				DomainId     string `json:"DomainId"`
-				DomainName   string `json:"DomainName"`
-				Cname        string `json:"Cname"`
-				CdnType      string `json:"CdnType"`
-				CreatedTime  string `json:"CreatedTime"`
-				ModifiedTime string `json:"ModifiedTime"`
-				Region       string `json:"Region"`
-			} `json:"Domains"`
-		}
-		var getCdnDomainsResp *GetCdnDomainsResponse
-		mapstructure.Decode(getCdnDomainsOutput, &getCdnDomainsResp)
-
-		if getCdnDomainsResp != nil {
-			for _, domainItem := range getCdnDomainsResp.Domains {
-				if strings.EqualFold(domainItem.DomainName, d.config.Domain) {
-					domainId = domainItem.DomainId
-					break
-				}
-			}
-
-			if domainId != "" {
-				break
-			}
-		}
-
-		if getCdnDomainsResp == nil || len(getCdnDomainsResp.Domains) < int(getCdnDomainsPageSize) {
-			break
-		} else {
-			getCdnDomainsPageNumber++
-		}
-	}
-	if domainId == "" {
-		return errors.New("domain not found")
+	// 获取域名 ID
+	domainId, err := d.findDomainIdByDomain(ctx, d.config.Domain)
+	if err != nil {
+		return err
 	}
 
 	if err := d.updateDomainCertificate(ctx, domainId, certPEM, privkeyPEM); err != nil {
@@ -176,6 +117,67 @@ func (d *SSLDeployerProvider) deployToCertificate(ctx context.Context, certPEM s
 	}
 
 	return nil
+}
+
+func (d *SSLDeployerProvider) findDomainIdByDomain(ctx context.Context, domain string) (string, error) {
+	// 查询域名列表
+	// https://docs.ksyun.com/documents/198
+	getCdnDomainsPageNumber := 1
+	getCdnDomainsPageSize := 100
+	for {
+		select {
+		case <-ctx.Done():
+			return "", ctx.Err()
+		default:
+		}
+
+		getCdnDomainsInput := map[string]any{
+			"PageNumber": getCdnDomainsPageNumber,
+			"PageSize":   getCdnDomainsPageSize,
+			"DomainName": domain,
+			"FuzzyMatch": "off",
+		}
+		getCdnDomainsReq, getCdnDomainsOutput := d.sdkClient.GetCdnDomainsPostRequest(&getCdnDomainsInput)
+		getCdnDomainsErr := getCdnDomainsReq.Send()
+		d.logger.Debug("sdk request 'cdn.GetCdnDomains'", slog.Any("request", getCdnDomainsInput), slog.Any("response", getCdnDomainsOutput))
+		if getCdnDomainsErr != nil {
+			return "", fmt.Errorf("failed to execute sdk request 'cdn.GetCdnDomains': %w", getCdnDomainsErr)
+		}
+
+		type GetCdnDomainsResponse struct {
+			PageNumber int32 `json:"PageNumber"`
+			PageSize   int32 `json:"PageSize"`
+			TotalCount int32 `json:"TotalCount"`
+			Domains    []*struct {
+				DomainId     string `json:"DomainId"`
+				DomainName   string `json:"DomainName"`
+				Cname        string `json:"Cname"`
+				CdnType      string `json:"CdnType"`
+				CreatedTime  string `json:"CreatedTime"`
+				ModifiedTime string `json:"ModifiedTime"`
+				Region       string `json:"Region"`
+			} `json:"Domains"`
+		}
+		var getCdnDomainsResp *GetCdnDomainsResponse
+		mapstructure.Decode(getCdnDomainsOutput, &getCdnDomainsResp)
+		if getCdnDomainsResp == nil {
+			break
+		}
+
+		for _, domainItem := range getCdnDomainsResp.Domains {
+			if strings.EqualFold(domainItem.DomainName, domain) {
+				return domainItem.DomainId, nil
+			}
+		}
+
+		if len(getCdnDomainsResp.Domains) < getCdnDomainsPageSize {
+			break
+		}
+
+		getCdnDomainsPageNumber++
+	}
+
+	return "", fmt.Errorf("could not find domain '%s'", domain)
 }
 
 func (d *SSLDeployerProvider) updateDomainCertificate(ctx context.Context, domainId string, certPEM string, privkeyPEM string) error {

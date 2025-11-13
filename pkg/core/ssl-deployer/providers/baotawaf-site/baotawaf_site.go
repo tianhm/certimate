@@ -68,46 +68,10 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		d.config.SitePort = 443
 	}
 
-	// 查询网站列表，获取网站 ID
-	// REF: https://support.huaweicloud.com/api-waf/ListHost.html
-	siteId := ""
-	getSitListPage := int32(1)
-	getSitListPageSize := int32(100)
-	for {
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		default:
-		}
-
-		getSiteListReq := &btwafsdk.GetSiteListRequest{
-			SiteName: lo.ToPtr(d.config.SiteName),
-			Page:     lo.ToPtr(getSitListPage),
-			PageSize: lo.ToPtr(getSitListPageSize),
-		}
-		getSiteListResp, err := d.sdkClient.GetSiteList(getSiteListReq)
-		d.logger.Debug("sdk request 'bt.GetSiteList'", slog.Any("request", getSiteListReq), slog.Any("response", getSiteListResp))
-		if err != nil {
-			return nil, fmt.Errorf("failed to execute sdk request 'bt.GetSiteList': %w", err)
-		}
-
-		if getSiteListResp.Result != nil && getSiteListResp.Result.List != nil {
-			for _, siteItem := range getSiteListResp.Result.List {
-				if siteItem.SiteName == d.config.SiteName {
-					siteId = siteItem.SiteId
-					break
-				}
-			}
-		}
-
-		if getSiteListResp.Result == nil || len(getSiteListResp.Result.List) < int(getSitListPageSize) {
-			break
-		} else {
-			getSitListPage++
-		}
-	}
-	if siteId == "" {
-		return nil, errors.New("site not found")
+	// 获取网站 ID
+	siteId, err := d.findSiteIdByName(ctx, d.config.SiteName)
+	if err != nil {
+		return nil, err
 	}
 
 	// 修改站点配置
@@ -130,6 +94,48 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	}
 
 	return &core.SSLDeployResult{}, nil
+}
+
+func (d *SSLDeployerProvider) findSiteIdByName(ctx context.Context, siteName string) (string, error) {
+	// 查询网站列表
+	getSiteListPage := 1
+	getSiteListPageSize := 100
+	for {
+		select {
+		case <-ctx.Done():
+			return "", ctx.Err()
+		default:
+		}
+
+		getSiteListReq := &btwafsdk.GetSiteListRequest{
+			SiteName: lo.ToPtr(d.config.SiteName),
+			Page:     lo.ToPtr(int32(getSiteListPage)),
+			PageSize: lo.ToPtr(int32(getSiteListPageSize)),
+		}
+		getSiteListResp, err := d.sdkClient.GetSiteList(getSiteListReq)
+		d.logger.Debug("sdk request 'bt.GetSiteList'", slog.Any("request", getSiteListReq), slog.Any("response", getSiteListResp))
+		if err != nil {
+			return "", fmt.Errorf("failed to execute sdk request 'bt.GetSiteList': %w", err)
+		}
+
+		if getSiteListResp.Result == nil {
+			break
+		}
+
+		for _, siteItem := range getSiteListResp.Result.List {
+			if siteItem.SiteName == d.config.SiteName {
+				return siteItem.SiteId, nil
+			}
+		}
+
+		if len(getSiteListResp.Result.List) < getSiteListPageSize {
+			break
+		}
+
+		getSiteListPage++
+	}
+
+	return "", fmt.Errorf("could not find site '%s'", siteName)
 }
 
 func createSDKClient(serverUrl, apiKey string, skipTlsVerify bool) (*btwafsdk.Client, error) {

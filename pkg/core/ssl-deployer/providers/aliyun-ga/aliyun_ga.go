@@ -119,8 +119,8 @@ func (d *SSLDeployerProvider) deployToAccelerator(ctx context.Context, cloudCert
 	// 查询 HTTPS 监听列表
 	// REF: https://help.aliyun.com/zh/ga/developer-reference/api-ga-2019-11-20-listlisteners
 	listenerIds := make([]string, 0)
-	listListenersPageNumber := int32(1)
-	listListenersPageSize := int32(50)
+	listListenersPageNumber := 1
+	listListenersPageSize := 50
 	for {
 		select {
 		case <-ctx.Done():
@@ -131,8 +131,8 @@ func (d *SSLDeployerProvider) deployToAccelerator(ctx context.Context, cloudCert
 		listListenersReq := &aliga.ListListenersRequest{
 			RegionId:      tea.String("cn-hangzhou"),
 			AcceleratorId: tea.String(d.config.AcceleratorId),
-			PageNumber:    tea.Int32(listListenersPageNumber),
-			PageSize:      tea.Int32(listListenersPageSize),
+			PageNumber:    tea.Int32(int32(listListenersPageNumber)),
+			PageSize:      tea.Int32(int32(listListenersPageSize)),
 		}
 		listListenersResp, err := d.sdkClient.ListListeners(listListenersReq)
 		d.logger.Debug("sdk request 'ga.ListListeners'", slog.Any("request", listListenersReq), slog.Any("response", listListenersResp))
@@ -140,19 +140,21 @@ func (d *SSLDeployerProvider) deployToAccelerator(ctx context.Context, cloudCert
 			return fmt.Errorf("failed to execute sdk request 'ga.ListListeners': %w", err)
 		}
 
-		if listListenersResp.Body.Listeners != nil {
-			for _, listener := range listListenersResp.Body.Listeners {
-				if strings.EqualFold(tea.StringValue(listener.Protocol), "https") {
-					listenerIds = append(listenerIds, tea.StringValue(listener.ListenerId))
-				}
+		if listListenersResp.Body == nil {
+			break
+		}
+
+		for _, listener := range listListenersResp.Body.Listeners {
+			if strings.EqualFold(tea.StringValue(listener.Protocol), "https") {
+				listenerIds = append(listenerIds, tea.StringValue(listener.ListenerId))
 			}
 		}
 
-		if len(listListenersResp.Body.Listeners) < int(listListenersPageSize) {
+		if len(listListenersResp.Body.Listeners) < listListenersPageSize {
 			break
-		} else {
-			listListenersPageNumber++
 		}
+
+		listListenersPageNumber++
 	}
 
 	// 遍历更新监听证书
@@ -200,9 +202,9 @@ func (d *SSLDeployerProvider) deployToListener(ctx context.Context, cloudCertId 
 func (d *SSLDeployerProvider) updateListenerCertificate(ctx context.Context, cloudAcceleratorId string, cloudListenerId string, cloudCertId string) error {
 	// 查询监听绑定的证书列表
 	// REF: https://help.aliyun.com/zh/ga/developer-reference/api-ga-2019-11-20-listlistenercertificates
-	var listenerDefaultCertificate *aliga.ListListenerCertificatesResponseBodyCertificates
-	var listenerAdditionalCertificates []*aliga.ListListenerCertificatesResponseBodyCertificates = make([]*aliga.ListListenerCertificatesResponseBodyCertificates, 0)
-	var listListenerCertificatesNextToken *string
+	listenerDefaultCertificate := (*aliga.ListListenerCertificatesResponseBodyCertificates)(nil)
+	listenerAdditionalCertificates := make([]*aliga.ListListenerCertificatesResponseBodyCertificates, 0)
+	listListenerCertificatesNextToken := (*string)(nil)
 	for {
 		listListenerCertificatesReq := &aliga.ListListenerCertificatesRequest{
 			RegionId:      tea.String("cn-hangzhou"),
@@ -217,21 +219,23 @@ func (d *SSLDeployerProvider) updateListenerCertificate(ctx context.Context, clo
 			return fmt.Errorf("failed to execute sdk request 'ga.ListListenerCertificates': %w", err)
 		}
 
-		if listListenerCertificatesResp.Body.Certificates != nil {
-			for _, certificate := range listListenerCertificatesResp.Body.Certificates {
-				if tea.BoolValue(certificate.IsDefault) {
-					listenerDefaultCertificate = certificate
-				} else {
-					listenerAdditionalCertificates = append(listenerAdditionalCertificates, certificate)
-				}
+		if listListenerCertificatesResp.Body == nil {
+			break
+		}
+
+		for _, certItem := range listListenerCertificatesResp.Body.Certificates {
+			if tea.BoolValue(certItem.IsDefault) {
+				listenerDefaultCertificate = certItem
+			} else {
+				listenerAdditionalCertificates = append(listenerAdditionalCertificates, certItem)
 			}
 		}
 
-		if listListenerCertificatesResp.Body.NextToken == nil {
+		if len(listListenerCertificatesResp.Body.Certificates) == 0 || listListenerCertificatesResp.Body.NextToken == nil {
 			break
-		} else {
-			listListenerCertificatesNextToken = listListenerCertificatesResp.Body.NextToken
 		}
+
+		listListenerCertificatesNextToken = listListenerCertificatesResp.Body.NextToken
 	}
 
 	if d.config.Domain == "" {

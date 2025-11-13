@@ -69,14 +69,8 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 
 	// 查询证书列表，避免重复上传
 	// REF: https://www.volcengine.com/docs/6454/125709
-	listCertInfoPageNum := int32(1)
-	listCertInfoPageSize := int32(100)
-	listCertInfoTotal := 0
-	listCertInfoReq := &vecdn.ListCertInfoInput{
-		Source:   ve.String("volc_cert_center"),
-		PageNum:  ve.Int32(listCertInfoPageNum),
-		PageSize: ve.Int32(listCertInfoPageSize),
-	}
+	listCertInfoPageNum := 1
+	listCertInfoPageSize := 100
 	for {
 		select {
 		case <-ctx.Done():
@@ -84,40 +78,43 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 		default:
 		}
 
+		listCertInfoReq := &vecdn.ListCertInfoInput{
+			Source:   ve.String("volc_cert_center"),
+			PageNum:  ve.Int32(int32(listCertInfoPageNum)),
+			PageSize: ve.Int32(int32(listCertInfoPageSize)),
+		}
 		listCertInfoResp, err := m.sdkClient.ListCertInfo(listCertInfoReq)
 		m.logger.Debug("sdk request 'cdn.ListCertInfo'", slog.Any("request", listCertInfoReq), slog.Any("response", listCertInfoResp))
 		if err != nil {
 			return nil, fmt.Errorf("failed to execute sdk request 'cdn.ListCertInfo': %w", err)
 		}
 
-		if listCertInfoResp.CertInfo != nil {
-			for _, certInfo := range listCertInfoResp.CertInfo {
-				fingerprintSha1 := sha1.Sum(certX509.Raw)
-				if !strings.EqualFold(hex.EncodeToString(fingerprintSha1[:]), ve.StringValue(certInfo.CertFingerprint.Sha1)) {
-					continue
-				}
-
-				fingerprintSha256 := sha256.Sum256(certX509.Raw)
-				if !strings.EqualFold(hex.EncodeToString(fingerprintSha256[:]), ve.StringValue(certInfo.CertFingerprint.Sha256)) {
-					continue
-				}
-
-				// 如果已存在相同证书，直接返回
-				m.logger.Info("ssl certificate already exists")
-				return &core.SSLManageUploadResult{
-					CertId:   ve.StringValue(certInfo.CertId),
-					CertName: ve.StringValue(certInfo.Desc),
-				}, nil
+		for _, certItem := range listCertInfoResp.CertInfo {
+			// 对比证书 SHA-1 摘要
+			fingerprintSha1 := sha1.Sum(certX509.Raw)
+			if !strings.EqualFold(hex.EncodeToString(fingerprintSha1[:]), ve.StringValue(certItem.CertFingerprint.Sha1)) {
+				continue
 			}
+
+			// 对比证书 SHA-256 摘要
+			fingerprintSha256 := sha256.Sum256(certX509.Raw)
+			if !strings.EqualFold(hex.EncodeToString(fingerprintSha256[:]), ve.StringValue(certItem.CertFingerprint.Sha256)) {
+				continue
+			}
+
+			// 如果以上信息都一致，则视为已存在相同证书，直接返回
+			m.logger.Info("ssl certificate already exists")
+			return &core.SSLManageUploadResult{
+				CertId:   ve.StringValue(certItem.CertId),
+				CertName: ve.StringValue(certItem.Desc),
+			}, nil
 		}
 
-		listCertInfoLen := len(listCertInfoResp.CertInfo)
-		if listCertInfoLen < int(listCertInfoPageSize) || int(ve.Int64Value(listCertInfoResp.Total)) <= listCertInfoTotal+listCertInfoLen {
+		if len(listCertInfoResp.CertInfo) < listCertInfoPageSize {
 			break
-		} else {
-			listCertInfoPageNum++
-			listCertInfoTotal += listCertInfoLen
 		}
+
+		listCertInfoPageNum++
 	}
 
 	// 生成新证书名（需符合火山引擎命名规则）

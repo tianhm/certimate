@@ -170,8 +170,8 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 
 	// 查询域名列表
 	// REF: https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=108&api=11307&data=161&isNormal=1&vid=154
-	queryDomainListPage := int32(1)
-	queryDomainListPageSize := int32(100)
+	queryDomainListPage := 1
+	queryDomainListPageSize := 100
 	for {
 		select {
 		case <-ctx.Done():
@@ -180,8 +180,8 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 		}
 
 		queryDomainListReq := &ctyuncdn.QueryDomainListRequest{
-			Page:        lo.ToPtr(queryDomainListPage),
-			PageSize:    lo.ToPtr(queryDomainListPageSize),
+			Page:        lo.ToPtr(int32(queryDomainListPage)),
+			PageSize:    lo.ToPtr(int32(queryDomainListPageSize)),
 			ProductCode: lo.ToPtr("020"),
 		}
 		queryDomainListResp, err := d.sdkClient.QueryDomainList(queryDomainListReq)
@@ -190,26 +190,28 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 			return nil, fmt.Errorf("failed to execute sdk request 'cdn.QueryDomainList': %w", err)
 		}
 
-		if queryDomainListResp.ReturnObj != nil {
-			filteredProductCodes := []string{"001", "003", "004", "008"}
-			ignoredStatuses := []int32{1, 5, 6, 7, 8, 9, 11, 12}
-			for _, domainInfo := range queryDomainListResp.ReturnObj.Results {
-				if !lo.Contains(filteredProductCodes, domainInfo.ProductCode) {
-					continue
-				}
-				if lo.Contains(ignoredStatuses, domainInfo.Status) {
-					continue
-				}
-
-				domains = append(domains, domainInfo.Domain)
-			}
-		}
-
-		if queryDomainListResp.ReturnObj == nil || len(queryDomainListResp.ReturnObj.Results) < int(queryDomainListPageSize) {
+		if queryDomainListResp.ReturnObj == nil {
 			break
-		} else {
-			queryDomainListPage++
 		}
+
+		filteredProductCodes := []string{"001", "003", "004", "008"}
+		ignoredStatuses := []int32{1, 5, 6, 7, 8, 9, 11, 12}
+		for _, domainItem := range queryDomainListResp.ReturnObj.Results {
+			if !lo.Contains(filteredProductCodes, domainItem.ProductCode) {
+				continue
+			}
+			if lo.Contains(ignoredStatuses, domainItem.Status) {
+				continue
+			}
+
+			domains = append(domains, domainItem.Domain)
+		}
+
+		if len(queryDomainListResp.ReturnObj.Results) < queryDomainListPageSize {
+			break
+		}
+
+		queryDomainListPage++
 	}
 
 	return domains, nil

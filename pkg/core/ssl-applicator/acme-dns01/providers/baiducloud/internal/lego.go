@@ -145,31 +145,31 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 }
 
 func (d *DNSProvider) findDNSRecord(zoneName, subDomain, tokenValue string) (*bcedns.Record, error) {
-	pageMarker := ""
-	pageSize := 1000
+	bceListRecordPageMarker := ""
 	for {
 		// REF: https://cloud.baidu.com/doc/DNS/s/El4s7lssr#%E6%9F%A5%E8%AF%A2%E8%A7%A3%E6%9E%90%E8%AE%B0%E5%BD%95%E5%88%97%E8%A1%A8
 		bceListRecordReq := &bcedns.ListRecordRequest{}
 		bceListRecordReq.Rr = subDomain
-		bceListRecordReq.Marker = pageMarker
-		bceListRecordReq.MaxKeys = pageSize
+		bceListRecordReq.Marker = bceListRecordPageMarker
+		bceListRecordReq.MaxKeys = 1000
 
-		ceListRecordResp, err := d.client.ListRecord(zoneName, bceListRecordReq)
+		bceListRecordResp, err := d.client.ListRecord(zoneName, bceListRecordReq)
 		if err != nil {
 			return nil, err
 		}
 
-		for _, record := range ceListRecordResp.Records {
+		for _, record := range bceListRecordResp.Records {
 			if record.Type == "TXT" && record.Rr == subDomain && record.Value == tokenValue {
 				return &record, nil
 			}
 		}
 
-		pageMarker = ceListRecordResp.NextMarker
-		if pageMarker == "" {
+		if bceListRecordResp.NextMarker == "" {
 			break
 		}
+
+		bceListRecordPageMarker = bceListRecordResp.NextMarker
 	}
 
-	return nil, errors.New("record not found")
+	return nil, errors.New("could not find record")
 }

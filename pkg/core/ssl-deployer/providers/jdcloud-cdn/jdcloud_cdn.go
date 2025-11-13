@@ -193,19 +193,19 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 		}
 
 		ignoredStatuses := []string{"offline"}
-		for _, domainInfo := range getDomainListResp.Result.Domains {
-			if lo.Contains(ignoredStatuses, domainInfo.Status) {
+		for _, domainItem := range getDomainListResp.Result.Domains {
+			if lo.Contains(ignoredStatuses, domainItem.Status) {
 				continue
 			}
 
-			domains = append(domains, domainInfo.Domain)
+			domains = append(domains, domainItem.Domain)
 		}
 
 		if len(getDomainListResp.Result.Domains) < getDomainListPageSize {
 			break
-		} else {
-			getDomainListPageNumber++
 		}
+
+		getDomainListPageNumber++
 	}
 
 	return domains, nil

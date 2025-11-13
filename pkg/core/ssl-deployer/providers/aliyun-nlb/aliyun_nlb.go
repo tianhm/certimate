@@ -133,8 +133,7 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCer
 	// 查询 TCPSSL 监听列表
 	// REF: https://help.aliyun.com/zh/slb/network-load-balancer/developer-reference/api-nlb-2022-04-30-listlisteners
 	listenerIds := make([]string, 0)
-	listListenersLimit := int32(100)
-	var listListenersToken *string = nil
+	listListenersToken := (*string)(nil)
 	for {
 		select {
 		case <-ctx.Done():
@@ -143,9 +142,9 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCer
 		}
 
 		listListenersReq := &alinlb.ListListenersRequest{
-			MaxResults:       tea.Int32(listListenersLimit),
 			NextToken:        listListenersToken,
-			LoadBalancerIds:  []*string{tea.String(d.config.LoadbalancerId)},
+			MaxResults:       tea.Int32(100),
+			LoadBalancerIds:  tea.StringSlice([]string{d.config.LoadbalancerId}),
 			ListenerProtocol: tea.String("TCPSSL"),
 		}
 		listListenersResp, err := d.sdkClient.ListListenersWithContext(context.TODO(), listListenersReq, &dara.RuntimeOptions{})
@@ -154,17 +153,19 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCer
 			return fmt.Errorf("failed to execute sdk request 'nlb.ListListeners': %w", err)
 		}
 
-		if listListenersResp.Body.Listeners != nil {
-			for _, listener := range listListenersResp.Body.Listeners {
-				listenerIds = append(listenerIds, tea.StringValue(listener.ListenerId))
-			}
+		if listListenersResp.Body == nil {
+			break
+		}
+
+		for _, listener := range listListenersResp.Body.Listeners {
+			listenerIds = append(listenerIds, tea.StringValue(listener.ListenerId))
 		}
 
 		if len(listListenersResp.Body.Listeners) == 0 || listListenersResp.Body.NextToken == nil {
 			break
-		} else {
-			listListenersToken = listListenersResp.Body.NextToken
 		}
+
+		listListenersToken = listListenersResp.Body.NextToken
 	}
 
 	// 遍历更新监听证书

@@ -132,8 +132,7 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCer
 	// 查询 HTTPS 监听列表
 	// REF: https://help.aliyun.com/zh/slb/classic-load-balancer/developer-reference/api-slb-2014-05-15-describeloadbalancerlisteners
 	listenerPorts := make([]int32, 0)
-	describeLoadBalancerListenersLimit := int32(100)
-	var describeLoadBalancerListenersToken *string = nil
+	describeLoadBalancerListenersToken := (*string)(nil)
 	for {
 		select {
 		case <-ctx.Done():
@@ -143,9 +142,9 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCer
 
 		describeLoadBalancerListenersReq := &alislb.DescribeLoadBalancerListenersRequest{
 			RegionId:         tea.String(d.config.Region),
-			MaxResults:       tea.Int32(describeLoadBalancerListenersLimit),
 			NextToken:        describeLoadBalancerListenersToken,
-			LoadBalancerId:   []*string{tea.String(d.config.LoadbalancerId)},
+			MaxResults:       tea.Int32(100),
+			LoadBalancerId:   tea.StringSlice([]string{d.config.LoadbalancerId}),
 			ListenerProtocol: tea.String("https"),
 		}
 		describeLoadBalancerListenersResp, err := d.sdkClient.DescribeLoadBalancerListeners(describeLoadBalancerListenersReq)
@@ -154,17 +153,19 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCer
 			return fmt.Errorf("failed to execute sdk request 'slb.DescribeLoadBalancerListeners': %w", err)
 		}
 
-		if describeLoadBalancerListenersResp.Body.Listeners != nil {
-			for _, listener := range describeLoadBalancerListenersResp.Body.Listeners {
-				listenerPorts = append(listenerPorts, *listener.ListenerPort)
-			}
+		if describeLoadBalancerListenersResp.Body == nil {
+			break
+		}
+
+		for _, listener := range describeLoadBalancerListenersResp.Body.Listeners {
+			listenerPorts = append(listenerPorts, *listener.ListenerPort)
 		}
 
 		if len(describeLoadBalancerListenersResp.Body.Listeners) == 0 || describeLoadBalancerListenersResp.Body.NextToken == nil {
 			break
-		} else {
-			describeLoadBalancerListenersToken = describeLoadBalancerListenersResp.Body.NextToken
 		}
+
+		describeLoadBalancerListenersToken = describeLoadBalancerListenersResp.Body.NextToken
 	}
 
 	// 遍历更新监听证书

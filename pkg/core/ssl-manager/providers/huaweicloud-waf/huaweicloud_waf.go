@@ -70,8 +70,8 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 	// 查询已有证书，避免重复上传
 	// REF: https://support.huaweicloud.com/api-waf/ListCertificates.html
 	// REF: https://support.huaweicloud.com/api-waf/ShowCertificate.html
-	listCertificatesPage := int32(1)
-	listCertificatesPageSize := int32(100)
+	listCertificatesPage := 1
+	listCertificatesPageSize := 100
 	for {
 		select {
 		case <-ctx.Done():
@@ -81,8 +81,8 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 
 		listCertificatesReq := &hcwafmodel.ListCertificatesRequest{
 			EnterpriseProjectId: lo.EmptyableToPtr(m.config.EnterpriseProjectId),
-			Page:                lo.ToPtr(listCertificatesPage),
-			Pagesize:            lo.ToPtr(listCertificatesPageSize),
+			Page:                lo.ToPtr(int32(listCertificatesPage)),
+			Pagesize:            lo.ToPtr(int32(listCertificatesPageSize)),
 		}
 		listCertificatesResp, err := m.sdkClient.ListCertificates(listCertificatesReq)
 		m.logger.Debug("sdk request 'waf.ShowCertificate'", slog.Any("request", listCertificatesReq), slog.Any("response", listCertificatesResp))
@@ -90,34 +90,36 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 			return nil, fmt.Errorf("failed to execute sdk request 'waf.ListCertificates': %w", err)
 		}
 
-		if listCertificatesResp.Items != nil {
-			for _, certItem := range *listCertificatesResp.Items {
-				showCertificateReq := &hcwafmodel.ShowCertificateRequest{
-					EnterpriseProjectId: lo.EmptyableToPtr(m.config.EnterpriseProjectId),
-					CertificateId:       certItem.Id,
-				}
-				showCertificateResp, err := m.sdkClient.ShowCertificate(showCertificateReq)
-				m.logger.Debug("sdk request 'waf.ShowCertificate'", slog.Any("request", showCertificateReq), slog.Any("response", showCertificateResp))
-				if err != nil {
-					return nil, fmt.Errorf("failed to execute sdk request 'waf.ShowCertificate': %w", err)
-				}
+		if listCertificatesResp.Items == nil {
+			break
+		}
 
-				// 如果已存在相同证书，直接返回
-				if xcert.EqualCertificatesFromPEM(certPEM, lo.FromPtr(showCertificateResp.Content)) {
-					m.logger.Info("ssl certificate already exists")
-					return &core.SSLManageUploadResult{
-						CertId:   certItem.Id,
-						CertName: certItem.Name,
-					}, nil
-				}
+		for _, certItem := range *listCertificatesResp.Items {
+			showCertificateReq := &hcwafmodel.ShowCertificateRequest{
+				EnterpriseProjectId: lo.EmptyableToPtr(m.config.EnterpriseProjectId),
+				CertificateId:       certItem.Id,
+			}
+			showCertificateResp, err := m.sdkClient.ShowCertificate(showCertificateReq)
+			m.logger.Debug("sdk request 'waf.ShowCertificate'", slog.Any("request", showCertificateReq), slog.Any("response", showCertificateResp))
+			if err != nil {
+				return nil, fmt.Errorf("failed to execute sdk request 'waf.ShowCertificate': %w", err)
+			}
+
+			// 如果已存在相同证书，直接返回
+			if xcert.EqualCertificatesFromPEM(certPEM, lo.FromPtr(showCertificateResp.Content)) {
+				m.logger.Info("ssl certificate already exists")
+				return &core.SSLManageUploadResult{
+					CertId:   certItem.Id,
+					CertName: certItem.Name,
+				}, nil
 			}
 		}
 
-		if listCertificatesResp.Items == nil || len(*listCertificatesResp.Items) < int(listCertificatesPageSize) {
+		if len(*listCertificatesResp.Items) < listCertificatesPageSize {
 			break
-		} else {
-			listCertificatesPage++
 		}
+
+		listCertificatesPage++
 	}
 
 	// 生成新证书名（需符合华为云命名规则）

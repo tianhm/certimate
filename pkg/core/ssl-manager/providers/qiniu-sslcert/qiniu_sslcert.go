@@ -69,7 +69,6 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 
 	// 查询已有证书，避免重复上传
 	getSslCertListMarker := ""
-	getSslCertListLimit := int32(200)
 	for {
 		select {
 		case <-ctx.Done():
@@ -77,62 +76,60 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 		default:
 		}
 
-		getSslCertListResp, err := m.sdkClient.GetSslCertList(context.TODO(), getSslCertListMarker, getSslCertListLimit)
+		getSslCertListResp, err := m.sdkClient.GetSslCertList(context.TODO(), getSslCertListMarker, 200)
 		m.logger.Debug("sdk request 'sslcert.GetList'", slog.Any("request.marker", getSslCertListMarker), slog.Any("response", getSslCertListResp))
 		if err != nil {
 			return nil, fmt.Errorf("failed to execute sdk request 'sslcert.GetList': %w", err)
 		}
 
-		if getSslCertListResp.Certs != nil {
-			for _, sslCert := range getSslCertListResp.Certs {
-				// 先对比证书通用名称
-				if !strings.EqualFold(certX509.Subject.CommonName, sslCert.CommonName) {
-					continue
-				}
-
-				// 再对比证书多域名
-				if !slices.Equal(certX509.DNSNames, sslCert.DnsNames) {
-					continue
-				}
-
-				// 再对比证书有效期
-				if certX509.NotBefore.Unix() != sslCert.NotBefore || certX509.NotAfter.Unix() != sslCert.NotAfter {
-					continue
-				}
-
-				// 最后对比证书公钥算法
-				switch certX509.PublicKeyAlgorithm {
-				case x509.RSA:
-					if !strings.EqualFold(sslCert.Encrypt, "RSA") {
-						continue
-					}
-				case x509.ECDSA:
-					if !strings.EqualFold(sslCert.Encrypt, "ECDSA") {
-						continue
-					}
-				case x509.Ed25519:
-					if !strings.EqualFold(sslCert.Encrypt, "ED25519") {
-						continue
-					}
-				default:
-					// 未知算法，跳过
-					continue
-				}
-
-				// 如果以上信息都一致，则视为已存在相同证书，直接返回
-				m.logger.Info("ssl certificate already exists")
-				return &core.SSLManageUploadResult{
-					CertId:   sslCert.CertID,
-					CertName: sslCert.Name,
-				}, nil
+		for _, sslItem := range getSslCertListResp.Certs {
+			// 对比证书通用名称
+			if !strings.EqualFold(certX509.Subject.CommonName, sslItem.CommonName) {
+				continue
 			}
+
+			// 对比证书多域名
+			if !slices.Equal(certX509.DNSNames, sslItem.DnsNames) {
+				continue
+			}
+
+			// 对比证书有效期
+			if certX509.NotBefore.Unix() != sslItem.NotBefore || certX509.NotAfter.Unix() != sslItem.NotAfter {
+				continue
+			}
+
+			// 对比证书公钥算法
+			switch certX509.PublicKeyAlgorithm {
+			case x509.RSA:
+				if !strings.EqualFold(sslItem.Encrypt, "RSA") {
+					continue
+				}
+			case x509.ECDSA:
+				if !strings.EqualFold(sslItem.Encrypt, "ECDSA") {
+					continue
+				}
+			case x509.Ed25519:
+				if !strings.EqualFold(sslItem.Encrypt, "ED25519") {
+					continue
+				}
+			default:
+				// 未知算法，跳过
+				continue
+			}
+
+			// 如果以上信息都一致，则视为已存在相同证书，直接返回
+			m.logger.Info("ssl certificate already exists")
+			return &core.SSLManageUploadResult{
+				CertId:   sslItem.CertID,
+				CertName: sslItem.Name,
+			}, nil
 		}
 
-		if len(getSslCertListResp.Certs) < int(getSslCertListLimit) || getSslCertListResp.Marker == "" {
+		if len(getSslCertListResp.Certs) == 0 || getSslCertListResp.Marker == "" {
 			break
-		} else {
-			getSslCertListMarker = getSslCertListResp.Marker
 		}
+
+		getSslCertListMarker = getSslCertListResp.Marker
 	}
 
 	// 上传新证书

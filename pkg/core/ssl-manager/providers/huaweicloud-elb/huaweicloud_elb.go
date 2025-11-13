@@ -69,8 +69,7 @@ func (m *SSLManagerProvider) SetLogger(logger *slog.Logger) {
 func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkeyPEM string) (*core.SSLManageUploadResult, error) {
 	// 查询已有证书，避免重复上传
 	// REF: https://support.huaweicloud.com/api-elb/ListCertificates.html
-	listCertificatesLimit := int32(2000)
-	var listCertificatesMarker *string = nil
+	listCertificatesMarker := (*string)(nil)
 	for {
 		select {
 		case <-ctx.Done():
@@ -79,9 +78,9 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 		}
 
 		listCertificatesReq := &hcelbmodel.ListCertificatesRequest{
-			Limit:  lo.ToPtr(listCertificatesLimit),
 			Marker: listCertificatesMarker,
-			Type:   &[]string{"server"},
+			Limit:  lo.ToPtr(int32(2000)),
+			Type:   lo.ToPtr([]string{"server"}),
 		}
 		listCertificatesResp, err := m.sdkClient.ListCertificates(listCertificatesReq)
 		m.logger.Debug("sdk request 'elb.ListCertificates'", slog.Any("request", listCertificatesReq), slog.Any("response", listCertificatesResp))
@@ -89,24 +88,26 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 			return nil, fmt.Errorf("failed to execute sdk request 'elb.ListCertificates': %w", err)
 		}
 
-		if listCertificatesResp.Certificates != nil {
-			for _, certInfo := range *listCertificatesResp.Certificates {
-				// 如果已存在相同证书，直接返回
-				if xcert.EqualCertificatesFromPEM(certPEM, certInfo.Certificate) {
-					m.logger.Info("ssl certificate already exists")
-					return &core.SSLManageUploadResult{
-						CertId:   certInfo.Id,
-						CertName: certInfo.Name,
-					}, nil
-				}
+		if listCertificatesResp.Certificates == nil {
+			break
+		}
+
+		for _, certItem := range *listCertificatesResp.Certificates {
+			// 如果已存在相同证书，直接返回
+			if xcert.EqualCertificatesFromPEM(certPEM, certItem.Certificate) {
+				m.logger.Info("ssl certificate already exists")
+				return &core.SSLManageUploadResult{
+					CertId:   certItem.Id,
+					CertName: certItem.Name,
+				}, nil
 			}
 		}
 
-		if listCertificatesResp.Certificates == nil || len(*listCertificatesResp.Certificates) < int(listCertificatesLimit) {
+		if len(*listCertificatesResp.Certificates) == 0 || listCertificatesResp.PageInfo.NextMarker == nil {
 			break
-		} else {
-			listCertificatesMarker = listCertificatesResp.PageInfo.NextMarker
 		}
+
+		listCertificatesMarker = listCertificatesResp.PageInfo.NextMarker
 	}
 
 	// 获取项目 ID

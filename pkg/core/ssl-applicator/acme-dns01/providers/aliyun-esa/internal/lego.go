@@ -106,7 +106,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 	}
 
 	siteName := dns01.UnFqdn(authZone)
-	siteID, err := d.getSiteId(siteName)
+	siteID, err := d.findSiteIdByName(siteName)
 	if err != nil {
 		return fmt.Errorf("alicloud-esa: could not find site for zone %q: %w", siteName, err)
 	}
@@ -158,17 +158,17 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 	return d.config.PropagationTimeout, d.config.PollingInterval
 }
 
-func (d *DNSProvider) getSiteId(siteName string) (int64, error) {
-	pageNumber := 1
-	pageSize := 500
+func (d *DNSProvider) findSiteIdByName(siteName string) (int64, error) {
+	aliListSitesPageNumber := 1
+	aliListSitesPageSize := 500
 	for {
 		// REF: https://www.alibabacloud.com/help/en/edge-security-acceleration/esa/api-esa-2024-09-10-listsites
 		aliListSitesReq := &aliesa.ListSitesRequest{
 			SiteName:       tea.String(siteName),
 			SiteSearchType: tea.String("exact"),
-			PageNumber:     tea.Int32(int32(pageNumber)),
-			PageSize:       tea.Int32(int32(pageSize)),
 			AccessType:     tea.String("NS"),
+			PageNumber:     tea.Int32(int32(aliListSitesPageNumber)),
+			PageSize:       tea.Int32(int32(aliListSitesPageSize)),
 		}
 		aliListSitesResp, err := d.client.ListSites(aliListSitesReq)
 		if err != nil {
@@ -177,20 +177,20 @@ func (d *DNSProvider) getSiteId(siteName string) (int64, error) {
 
 		if aliListSitesResp.Body == nil {
 			break
-		} else {
-			for _, site := range aliListSitesResp.Body.Sites {
-				if *site.GetSiteName() == siteName {
-					return *site.GetSiteId(), nil
-				}
-			}
-
-			if len(aliListSitesResp.Body.Sites) < pageSize {
-				break
-			}
-
-			pageNumber++
 		}
+
+		for _, siteItem := range aliListSitesResp.Body.Sites {
+			if *siteItem.GetSiteName() == siteName {
+				return *siteItem.GetSiteId(), nil
+			}
+		}
+
+		if len(aliListSitesResp.Body.Sites) < aliListSitesPageSize {
+			break
+		}
+
+		aliListSitesPageNumber++
 	}
 
-	return 0, errors.New("site not found")
+	return 0, fmt.Errorf("could not find site '%s'", siteName)
 }

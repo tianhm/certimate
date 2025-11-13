@@ -156,11 +156,11 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCer
 			}
 		}
 
-		if len(describeListenersResp.Result.Listeners) < int(describeListenersPageSize) {
+		if len(describeListenersResp.Result.Listeners) < describeListenersPageSize {
 			break
-		} else {
-			describeListenersPageNumber++
 		}
+
+		describeListenersPageNumber++
 	}
 
 	// 遍历更新监听器证书
@@ -236,7 +236,7 @@ func (d *SSLDeployerProvider) updateListenerCertificate(ctx context.Context, clo
 			return extCertSpec.Domain == d.config.Domain
 		})
 		if len(extCertSpecs) == 0 {
-			return errors.New("extension certificate spec not found")
+			return errors.New("could not find any extension certificates")
 		}
 
 		// 批量修改扩展证书

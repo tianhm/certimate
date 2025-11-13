@@ -10,6 +10,7 @@ import (
 	"github.com/certimate-go/certimate/pkg/core"
 	rainyunsdk "github.com/certimate-go/certimate/pkg/sdk3rd/rainyun"
 	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
+	"github.com/samber/lo"
 )
 
 type SSLManagerProviderConfig struct {
@@ -52,7 +53,7 @@ func (m *SSLManagerProvider) SetLogger(logger *slog.Logger) {
 
 func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkeyPEM string) (*core.SSLManageUploadResult, error) {
 	// 避免重复上传
-	if res, err := m.findCertIfExists(ctx, certPEM); err != nil {
+	if res, err := m.tryFindCert(ctx, certPEM); err != nil {
 		return nil, err
 	} else if res != nil {
 		m.logger.Info("ssl certificate already exists")
@@ -72,16 +73,16 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 	}
 
 	// 获取刚刚上传证书 ID
-	if res, err := m.findCertIfExists(ctx, certPEM); err != nil {
+	if res, err := m.tryFindCert(ctx, certPEM); err != nil {
 		return nil, err
 	} else if res == nil {
-		return nil, errors.New("no ssl certificate found, may be upload failed")
+		return nil, errors.New("could not find ssl certificate, may be upload failed")
 	} else {
 		return res, nil
 	}
 }
 
-func (m *SSLManagerProvider) findCertIfExists(ctx context.Context, certPEM string) (*core.SSLManageUploadResult, error) {
+func (m *SSLManagerProvider) tryFindCert(ctx context.Context, certPEM string) (*core.SSLManageUploadResult, error) {
 	// 解析证书内容
 	certX509, err := xcert.ParseCertificateFromPEM(certPEM)
 	if err != nil {
@@ -91,8 +92,8 @@ func (m *SSLManagerProvider) findCertIfExists(ctx context.Context, certPEM strin
 	// 获取 SSL 证书列表
 	// REF: https://apifox.com/apidoc/shared/a4595cc8-44c5-4678-a2a3-eed7738dab03/api-69943046
 	// REF: https://apifox.com/apidoc/shared/a4595cc8-44c5-4678-a2a3-eed7738dab03/api-69943048
-	sslCenterListPage := int32(1)
-	sslCenterListPerPage := int32(100)
+	sslCenterListPage := 1
+	sslCenterListPerPage := 100
 	for {
 		select {
 		case <-ctx.Done():
@@ -104,8 +105,8 @@ func (m *SSLManagerProvider) findCertIfExists(ctx context.Context, certPEM strin
 			Filters: &rainyunsdk.SslCenterListFilters{
 				Domain: &certX509.Subject.CommonName,
 			},
-			Page:    &sslCenterListPage,
-			PerPage: &sslCenterListPerPage,
+			Page:    lo.ToPtr(int32(sslCenterListPage)),
+			PerPage: lo.ToPtr(int32(sslCenterListPerPage)),
 		}
 		sslCenterListResp, err := m.sdkClient.SslCenterList(sslCenterListReq)
 		m.logger.Debug("sdk request 'sslcenter.List'", slog.Any("request", sslCenterListReq), slog.Any("response", sslCenterListResp))
@@ -113,40 +114,42 @@ func (m *SSLManagerProvider) findCertIfExists(ctx context.Context, certPEM strin
 			return nil, fmt.Errorf("failed to execute sdk request 'sslcenter.List': %w", err)
 		}
 
-		if sslCenterListResp.Data != nil && sslCenterListResp.Data.Records != nil {
-			for _, sslRecord := range sslCenterListResp.Data.Records {
-				// 先对比证书的多域名
-				if sslRecord.Domain != strings.Join(certX509.DNSNames, ", ") {
-					continue
-				}
-
-				// 再对比证书的有效期
-				if sslRecord.StartDate != certX509.NotBefore.Unix() || sslRecord.ExpireDate != certX509.NotAfter.Unix() {
-					continue
-				}
-
-				// 最后对比证书内容
-				sslCenterGetResp, err := m.sdkClient.SslCenterGet(sslRecord.ID)
-				if err != nil {
-					return nil, fmt.Errorf("failed to execute sdk request 'sslcenter.Get': %w", err)
-				} else {
-					if !xcert.EqualCertificatesFromPEM(certPEM, sslCenterGetResp.Data.Cert) {
-						continue
-					}
-				}
-
-				// 如果以上信息都一致，则视为已存在相同证书，直接返回
-				return &core.SSLManageUploadResult{
-					CertId: fmt.Sprintf("%d", sslRecord.ID),
-				}, nil
-			}
-		}
-
-		if sslCenterListResp.Data == nil || len(sslCenterListResp.Data.Records) < int(sslCenterListPerPage) {
+		if sslCenterListResp.Data == nil {
 			break
-		} else {
-			sslCenterListPage++
 		}
+
+		for _, sslItem := range sslCenterListResp.Data.Records {
+			// 对比证书的多域名
+			if sslItem.Domain != strings.Join(certX509.DNSNames, ", ") {
+				continue
+			}
+
+			// 对比证书的有效期
+			if sslItem.StartDate != certX509.NotBefore.Unix() || sslItem.ExpireDate != certX509.NotAfter.Unix() {
+				continue
+			}
+
+			// 对比证书内容
+			sslCenterGetResp, err := m.sdkClient.SslCenterGet(sslItem.ID)
+			if err != nil {
+				return nil, fmt.Errorf("failed to execute sdk request 'sslcenter.Get': %w", err)
+			} else {
+				if !xcert.EqualCertificatesFromPEM(certPEM, sslCenterGetResp.Data.Cert) {
+					continue
+				}
+			}
+
+			// 如果以上信息都一致，则视为已存在相同证书，直接返回
+			return &core.SSLManageUploadResult{
+				CertId: fmt.Sprintf("%d", sslItem.ID),
+			}, nil
+		}
+
+		if len(sslCenterListResp.Data.Records) < sslCenterListPerPage {
+			break
+		}
+
+		sslCenterListPage++
 	}
 
 	return nil, nil

@@ -195,11 +195,12 @@ func (d *SSLDeployerProvider) getAllDomainsInZone(ctx context.Context, zoneId st
 			return nil, fmt.Errorf("failed to execute sdk request 'teo.DescribeAccelerationDomains': %w", err)
 		}
 
-		for _, accelerationDomain := range describeAccelerationDomainsResp.Response.AccelerationDomains {
-			if accelerationDomain == nil || accelerationDomain.DomainName == nil {
+		for _, domainItem := range describeAccelerationDomainsResp.Response.AccelerationDomains {
+			if domainItem == nil || domainItem.DomainName == nil {
 				continue
 			}
-			domainsInZone = append(domainsInZone, *accelerationDomain.DomainName)
+
+			domainsInZone = append(domainsInZone, *domainItem.DomainName)
 		}
 
 		if len(describeAccelerationDomainsResp.Response.AccelerationDomains) < pageSize {

@@ -146,52 +146,10 @@ func (d *SSLDeployerProvider) deployToCloudNative(ctx context.Context, certPEM s
 		return errors.New("config `domain` is required")
 	}
 
-	// 查询域名列表，获取域名 ID
-	// REF: https://help.aliyun.com/zh/api-gateway/cloud-native-api-gateway/developer-reference/api-apig-2024-03-27-listdomains
-	var domainId string
-	listDomainsPageNumber := int32(1)
-	listDomainsPageSize := int32(10)
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
-		}
-
-		listDomainsReq := &aliapig.ListDomainsRequest{
-			ResourceGroupId: lo.EmptyableToPtr(d.config.ResourceGroupId),
-			GatewayId:       tea.String(d.config.GatewayId),
-			NameLike:        tea.String(d.config.Domain),
-			PageNumber:      tea.Int32(listDomainsPageNumber),
-			PageSize:        tea.Int32(listDomainsPageSize),
-		}
-		listDomainsResp, err := d.sdkClients.CloudNativeAPIGateway.ListDomainsWithContext(context.TODO(), listDomainsReq, make(map[string]*string), &dara.RuntimeOptions{})
-		d.logger.Debug("sdk request 'apig.ListDomains'", slog.Any("request", listDomainsReq), slog.Any("response", listDomainsResp))
-		if err != nil {
-			return fmt.Errorf("failed to execute sdk request 'apig.ListDomains': %w", err)
-		}
-
-		if listDomainsResp.Body.Data.Items != nil {
-			for _, domainInfo := range listDomainsResp.Body.Data.Items {
-				if strings.EqualFold(tea.StringValue(domainInfo.Name), d.config.Domain) {
-					domainId = tea.StringValue(domainInfo.DomainId)
-					break
-				}
-			}
-
-			if domainId != "" {
-				break
-			}
-		}
-
-		if listDomainsResp.Body.Data.Items == nil || len(listDomainsResp.Body.Data.Items) < int(listDomainsPageSize) {
-			break
-		} else {
-			listDomainsPageNumber++
-		}
-	}
-	if domainId == "" {
-		return errors.New("domain not found")
+	// 获取域名 ID
+	domainId, err := d.findCloudNativeDomainIdByDomain(ctx, d.config.Domain)
+	if err != nil {
+		return err
 	}
 
 	// 查询域名
@@ -230,6 +188,51 @@ func (d *SSLDeployerProvider) deployToCloudNative(ctx context.Context, certPEM s
 	}
 
 	return nil
+}
+
+func (d *SSLDeployerProvider) findCloudNativeDomainIdByDomain(ctx context.Context, domain string) (string, error) {
+	// 查询域名列表
+	// REF: https://help.aliyun.com/zh/api-gateway/cloud-native-api-gateway/developer-reference/api-apig-2024-03-27-listdomains
+	listDomainsPageNumber := 1
+	listDomainsPageSize := 10
+	for {
+		select {
+		case <-ctx.Done():
+			return "", ctx.Err()
+		default:
+		}
+
+		listDomainsReq := &aliapig.ListDomainsRequest{
+			ResourceGroupId: lo.EmptyableToPtr(d.config.ResourceGroupId),
+			GatewayId:       tea.String(d.config.GatewayId),
+			NameLike:        tea.String(d.config.Domain),
+			PageNumber:      tea.Int32(int32(listDomainsPageNumber)),
+			PageSize:        tea.Int32(int32(listDomainsPageSize)),
+		}
+		listDomainsResp, err := d.sdkClients.CloudNativeAPIGateway.ListDomainsWithContext(context.TODO(), listDomainsReq, make(map[string]*string), &dara.RuntimeOptions{})
+		d.logger.Debug("sdk request 'apig.ListDomains'", slog.Any("request", listDomainsReq), slog.Any("response", listDomainsResp))
+		if err != nil {
+			return "", fmt.Errorf("failed to execute sdk request 'apig.ListDomains': %w", err)
+		}
+
+		if listDomainsResp.Body == nil || listDomainsResp.Body.Data == nil {
+			break
+		}
+
+		for _, domainItem := range listDomainsResp.Body.Data.Items {
+			if strings.EqualFold(tea.StringValue(domainItem.Name), d.config.Domain) {
+				return tea.StringValue(domainItem.DomainId), nil
+			}
+		}
+
+		if len(listDomainsResp.Body.Data.Items) < listDomainsPageSize {
+			break
+		}
+
+		listDomainsPageNumber++
+	}
+
+	return "", fmt.Errorf("could not find domain '%s'", domain)
 }
 
 func createSDKClients(accessKeyId, accessKeySecret, region string) (*wSDKClients, error) {

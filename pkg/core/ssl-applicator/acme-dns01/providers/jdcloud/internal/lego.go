@@ -101,7 +101,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		return fmt.Errorf("jdcloud: %w", err)
 	}
 
-	zone, err := d.getDNSZone(dns01.UnFqdn(authZone))
+	zone, err := d.findZone(dns01.UnFqdn(authZone))
 	if err != nil {
 		return fmt.Errorf("jdcloud: error when list zones: %w", err)
 	}
@@ -144,7 +144,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 		return fmt.Errorf("jdcloud: unknown record ID for '%s'", info.EffectiveFQDN)
 	}
 
-	zone, err := d.getDNSZone(dns01.UnFqdn(authZone))
+	zone, err := d.findZone(dns01.UnFqdn(authZone))
 	if err != nil {
 		return fmt.Errorf("jdcloud: error when list zones: %w", err)
 	}
@@ -166,15 +166,15 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 	return d.config.PropagationTimeout, d.config.PollingInterval
 }
 
-func (d *DNSProvider) getDNSZone(zoneName string) (*jddnsmodel.DomainInfo, error) {
-	pageNumber := 1
-	pageSize := 10
+func (d *DNSProvider) findZone(zoneName string) (*jddnsmodel.DomainInfo, error) {
+	jddnsDescribeDomainsPageNumber := 1
+	jddnsDescribeDomainsPageSize := 10
 	for {
 		// REF: https://docs.jdcloud.com/cn/jd-cloud-dns/api/describedomains
 		jddnsDescribeDomainsReq := jddns.NewDescribeDomainsRequestWithoutParam()
 		jddnsDescribeDomainsReq.SetRegionId(d.config.RegionId)
-		jddnsDescribeDomainsReq.SetPageNumber(pageNumber)
-		jddnsDescribeDomainsReq.SetPageSize(pageSize)
+		jddnsDescribeDomainsReq.SetPageNumber(jddnsDescribeDomainsPageNumber)
+		jddnsDescribeDomainsReq.SetPageSize(jddnsDescribeDomainsPageSize)
 		jddnsDescribeDomainsReq.SetDomainName(zoneName)
 
 		jddnsDescribeDomainsResp, err := d.client.DescribeDomains(jddnsDescribeDomainsReq)
@@ -182,18 +182,18 @@ func (d *DNSProvider) getDNSZone(zoneName string) (*jddnsmodel.DomainInfo, error
 			return nil, err
 		}
 
-		for _, item := range jddnsDescribeDomainsResp.Result.DataList {
-			if item.DomainName == zoneName {
-				return &item, nil
+		for _, domainItem := range jddnsDescribeDomainsResp.Result.DataList {
+			if domainItem.DomainName == zoneName {
+				return &domainItem, nil
 			}
 		}
 
-		if len(jddnsDescribeDomainsResp.Result.DataList) < pageSize {
+		if len(jddnsDescribeDomainsResp.Result.DataList) < jddnsDescribeDomainsPageSize {
 			break
 		}
 
-		pageNumber++
+		jddnsDescribeDomainsPageNumber++
 	}
 
-	return nil, fmt.Errorf("jdcloud: zone %s not found", zoneName)
+	return nil, fmt.Errorf("could not find zone '%s'", zoneName)
 }

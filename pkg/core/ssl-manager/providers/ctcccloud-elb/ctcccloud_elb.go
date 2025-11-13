@@ -68,13 +68,13 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute sdk request 'elb.ListCertificates': %w", err)
 	} else {
-		for _, certRecord := range listCertificatesResp.ReturnObj {
+		for _, certItem := range listCertificatesResp.ReturnObj {
 			// 如果已存在相同证书，直接返回
-			if xcert.EqualCertificatesFromPEM(certPEM, certRecord.Certificate) {
+			if xcert.EqualCertificatesFromPEM(certPEM, certItem.Certificate) {
 				m.logger.Info("ssl certificate already exists")
 				return &core.SSLManageUploadResult{
-					CertId:   certRecord.ID,
-					CertName: certRecord.Name,
+					CertId:   certItem.ID,
+					CertName: certItem.Name,
 				}, nil
 			}
 		}

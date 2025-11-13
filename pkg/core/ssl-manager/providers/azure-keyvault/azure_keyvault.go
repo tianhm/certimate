@@ -86,35 +86,35 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 			return nil, fmt.Errorf("failed to execute sdk request 'keyvault.GetCertificates': %w", err)
 		}
 
-		for _, certProp := range page.Value {
-			// 先对比证书有效期
-			if certProp.Attributes == nil {
+		for _, certItem := range page.Value {
+			// 对比证书有效期
+			if certItem.Attributes == nil {
 				continue
 			}
-			if certProp.Attributes.NotBefore == nil || !certProp.Attributes.NotBefore.Equal(certX509.NotBefore) {
+			if certItem.Attributes.NotBefore == nil || !certItem.Attributes.NotBefore.Equal(certX509.NotBefore) {
 				continue
 			}
-			if certProp.Attributes.Expires == nil || !certProp.Attributes.Expires.Equal(certX509.NotAfter) {
+			if certItem.Attributes.Expires == nil || !certItem.Attributes.Expires.Equal(certX509.NotAfter) {
 				continue
 			}
 
-			// 再对比 Tag 中的通用名称
-			if v, ok := certProp.Tags[TAG_CERTCN]; !ok || v == nil {
+			// 对比 Tag 中的通用名称
+			if v, ok := certItem.Tags[TAG_CERTCN]; !ok || v == nil {
 				continue
 			} else if *v != certCN {
 				continue
 			}
 
-			// 再对比 Tag 中的序列号
-			if v, ok := certProp.Tags[TAG_CERTSN]; !ok || v == nil {
+			// 对比 Tag 中的序列号
+			if v, ok := certItem.Tags[TAG_CERTSN]; !ok || v == nil {
 				continue
 			} else if *v != certSN {
 				continue
 			}
 
-			// 最后对比证书内容
-			getCertificateResp, err := m.sdkClient.GetCertificate(context.TODO(), certProp.ID.Name(), certProp.ID.Version(), nil)
-			m.logger.Debug("sdk request 'keyvault.GetCertificate'", slog.String("request.certificateName", certProp.ID.Name()), slog.String("request.certificateVersion", certProp.ID.Version()), slog.Any("response", getCertificateResp))
+			// 对比证书内容
+			getCertificateResp, err := m.sdkClient.GetCertificate(context.TODO(), certItem.ID.Name(), certItem.ID.Version(), nil)
+			m.logger.Debug("sdk request 'keyvault.GetCertificate'", slog.String("request.certificateName", certItem.ID.Name()), slog.String("request.certificateVersion", certItem.ID.Version()), slog.Any("response", getCertificateResp))
 			if err != nil {
 				return nil, fmt.Errorf("failed to execute sdk request 'keyvault.GetCertificate': %w", err)
 			} else {
@@ -126,8 +126,8 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 			// 如果以上信息都一致，则视为已存在相同证书，直接返回
 			m.logger.Info("ssl certificate already exists")
 			return &core.SSLManageUploadResult{
-				CertId:   string(*certProp.ID),
-				CertName: certProp.ID.Name(),
+				CertId:   string(*certItem.ID),
+				CertName: certItem.ID.Name(),
 			}, nil
 		}
 	}

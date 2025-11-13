@@ -185,8 +185,8 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 
 	// 查询域名列表
 	// REF: https://support.huaweicloud.com/api-cdn/ListDomains.html
-	listDomainsPageNumber := int32(1)
-	listDomainsPageSize := int32(100)
+	listDomainsPageNumber := 1
+	listDomainsPageSize := 100
 	for {
 		select {
 		case <-ctx.Done():
@@ -196,8 +196,8 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 
 		listDomainsReq := &hccdnmodel.ListDomainsRequest{
 			EnterpriseProjectId: lo.EmptyableToPtr(d.config.EnterpriseProjectId),
-			PageNumber:          lo.ToPtr(listDomainsPageNumber),
-			PageSize:            lo.ToPtr(listDomainsPageSize),
+			PageNumber:          lo.ToPtr(int32(listDomainsPageNumber)),
+			PageSize:            lo.ToPtr(int32(listDomainsPageSize)),
 		}
 		listDomainsResp, err := d.sdkClient.ListDomains(listDomainsReq)
 		d.logger.Debug("sdk request 'cdn.ListDomains'", slog.Any("request", listDomainsReq), slog.Any("response", listDomainsResp))
@@ -205,22 +205,24 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 			return nil, fmt.Errorf("failed to execute sdk request 'cdn.ListDomains': %w", err)
 		}
 
-		if listDomainsResp.Domains != nil {
-			ignoredStatuses := []string{"offline", "checking", "check_failed", "deleting"}
-			for _, domainInfo := range *listDomainsResp.Domains {
-				if lo.Contains(ignoredStatuses, lo.FromPtr(domainInfo.DomainStatus)) {
-					continue
-				}
-
-				domains = append(domains, lo.FromPtr(domainInfo.DomainName))
-			}
-		}
-
-		if listDomainsResp.Domains == nil || len(*listDomainsResp.Domains) < int(listDomainsPageSize) {
+		if listDomainsResp.Domains == nil {
 			break
-		} else {
-			listDomainsPageNumber++
 		}
+
+		ignoredStatuses := []string{"offline", "checking", "check_failed", "deleting"}
+		for _, domainItem := range *listDomainsResp.Domains {
+			if lo.Contains(ignoredStatuses, lo.FromPtr(domainItem.DomainStatus)) {
+				continue
+			}
+
+			domains = append(domains, lo.FromPtr(domainItem.DomainName))
+		}
+
+		if len(*listDomainsResp.Domains) < listDomainsPageSize {
+			break
+		}
+
+		listDomainsPageNumber++
 	}
 
 	return domains, nil

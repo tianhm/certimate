@@ -67,27 +67,27 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute sdk request 'cert.ListCertDetail': %w", err)
 	} else {
-		for _, certDetail := range listCertDetail.Certs {
-			// 先对比证书通用名称
-			if !strings.EqualFold(certX509.Subject.CommonName, certDetail.CertCommonName) {
+		for _, certItem := range listCertDetail.Certs {
+			// 对比证书通用名称
+			if !strings.EqualFold(certX509.Subject.CommonName, certItem.CertCommonName) {
 				continue
 			}
 
-			// 再对比证书有效期
-			oldCertNotBefore, _ := time.Parse("2006-01-02T15:04:05Z", certDetail.CertStartTime)
-			oldCertNotAfter, _ := time.Parse("2006-01-02T15:04:05Z", certDetail.CertStopTime)
+			// 对比证书有效期
+			oldCertNotBefore, _ := time.Parse("2006-01-02T15:04:05Z", certItem.CertStartTime)
+			oldCertNotAfter, _ := time.Parse("2006-01-02T15:04:05Z", certItem.CertStopTime)
 			if !certX509.NotBefore.Equal(oldCertNotBefore) || !certX509.NotAfter.Equal(oldCertNotAfter) {
 				continue
 			}
 
-			// 再对比证书多域名
-			if certDetail.CertDNSNames != strings.Join(certX509.DNSNames, ",") {
+			// 对比证书多域名
+			if certItem.CertDNSNames != strings.Join(certX509.DNSNames, ",") {
 				continue
 			}
 
-			// 最后对比证书内容
-			getCertDetailResp, err := m.sdkClient.GetCertRawData(certDetail.CertId)
-			m.logger.Debug("sdk request 'cert.GetCertRawData'", slog.Any("certId", certDetail.CertId), slog.Any("response", getCertDetailResp))
+			// 对比证书内容
+			getCertDetailResp, err := m.sdkClient.GetCertRawData(certItem.CertId)
+			m.logger.Debug("sdk request 'cert.GetCertRawData'", slog.Any("certId", certItem.CertId), slog.Any("response", getCertDetailResp))
 			if err != nil {
 				return nil, fmt.Errorf("failed to execute sdk request 'cert.GetCertRawData': %w", err)
 			} else {
@@ -99,8 +99,8 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 			// 如果以上信息都一致，则视为已存在相同证书，直接返回
 			m.logger.Info("ssl certificate already exists")
 			return &core.SSLManageUploadResult{
-				CertId:   certDetail.CertId,
-				CertName: certDetail.CertName,
+				CertId:   certItem.CertId,
+				CertName: certItem.CertName,
 			}, nil
 		}
 	}

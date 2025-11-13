@@ -170,8 +170,8 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 
 	// 查询域名列表
 	// REF: https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=112&api=10852&data=173&isNormal=1&vid=166
-	queryDomainsPage := int32(1)
-	queryDomainsPageSize := int32(100)
+	queryDomainsPage := 1
+	queryDomainsPageSize := 100
 	for {
 		select {
 		case <-ctx.Done():
@@ -180,8 +180,8 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 		}
 
 		queryDomainListReq := &ctyunicdn.QueryDomainListRequest{
-			Page:        lo.ToPtr(queryDomainsPage),
-			PageSize:    lo.ToPtr(queryDomainsPageSize),
+			Page:        lo.ToPtr(int32(queryDomainsPage)),
+			PageSize:    lo.ToPtr(int32(queryDomainsPageSize)),
 			ProductCode: lo.ToPtr("006"),
 		}
 		queryDomainListResp, err := d.sdkClient.QueryDomainList(queryDomainListReq)
@@ -190,22 +190,24 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 			return nil, fmt.Errorf("failed to execute sdk request 'cdn.QueryDomainList': %w", err)
 		}
 
-		if queryDomainListResp.ReturnObj != nil {
-			ignoredStatuses := []int32{1, 5, 6, 7, 8, 9, 11, 12}
-			for _, domainInfo := range queryDomainListResp.ReturnObj.Results {
-				if lo.Contains(ignoredStatuses, domainInfo.Status) {
-					continue
-				}
-
-				domains = append(domains, domainInfo.Domain)
-			}
-		}
-
-		if queryDomainListResp.ReturnObj == nil || len(queryDomainListResp.ReturnObj.Results) < int(queryDomainsPageSize) {
+		if queryDomainListResp.ReturnObj == nil {
 			break
-		} else {
-			queryDomainsPage++
 		}
+
+		ignoredStatuses := []int32{1, 5, 6, 7, 8, 9, 11, 12}
+		for _, domainItem := range queryDomainListResp.ReturnObj.Results {
+			if lo.Contains(ignoredStatuses, domainItem.Status) {
+				continue
+			}
+
+			domains = append(domains, domainItem.Domain)
+		}
+
+		if len(queryDomainListResp.ReturnObj.Results) < queryDomainsPageSize {
+			break
+		}
+
+		queryDomainsPage++
 	}
 
 	return domains, nil

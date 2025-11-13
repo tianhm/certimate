@@ -58,42 +58,10 @@ func (d *SSLDeployerProvider) SetLogger(logger *slog.Logger) {
 }
 
 func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privkeyPEM string) (*core.SSLDeployResult, error) {
-	// 查询域名列表
-	// REF: https://docs.jdcloud.com/cn/video-on-demand/api/listdomains
-	var domainId int
-	listDomainsPageNumber := 1
-	listDomainsPageSize := 100
-	for {
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		default:
-		}
-
-		listDomainsReq := jdvod.NewListDomainsRequestWithoutParam()
-		listDomainsReq.SetPageNumber(listDomainsPageNumber)
-		listDomainsReq.SetPageSize(listDomainsPageSize)
-		listDomainsResp, err := d.sdkClient.ListDomains(listDomainsReq)
-		d.logger.Debug("sdk request 'vod.ListDomains'", slog.Any("request", listDomainsReq), slog.Any("response", listDomainsResp))
-		if err != nil {
-			return nil, fmt.Errorf("failed to execute sdk request 'vod.ListDomains': %w", err)
-		}
-
-		for _, domainInfo := range listDomainsResp.Result.Content {
-			if domainInfo.Name == d.config.Domain {
-				domainId, _ = strconv.Atoi(domainInfo.Id)
-				break
-			}
-		}
-
-		if len(listDomainsResp.Result.Content) < listDomainsPageSize {
-			break
-		} else {
-			listDomainsPageNumber++
-		}
-	}
-	if domainId == 0 {
-		return nil, errors.New("domain not found")
+	// 获取域名 ID
+	domainId, err := d.findDomainIdByDomain(ctx, d.config.Domain)
+	if err != nil {
+		return nil, err
 	}
 
 	// 查询域名 SSL 配置
@@ -123,6 +91,44 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	}
 
 	return &core.SSLDeployResult{}, nil
+}
+
+func (d *SSLDeployerProvider) findDomainIdByDomain(ctx context.Context, domain string) (int, error) {
+	// 查询域名列表
+	// REF: https://docs.jdcloud.com/cn/video-on-demand/api/listdomains
+	listDomainsPageNumber := 1
+	listDomainsPageSize := 100
+	for {
+		select {
+		case <-ctx.Done():
+			return 0, ctx.Err()
+		default:
+		}
+
+		listDomainsReq := jdvod.NewListDomainsRequestWithoutParam()
+		listDomainsReq.SetPageNumber(listDomainsPageNumber)
+		listDomainsReq.SetPageSize(listDomainsPageSize)
+		listDomainsResp, err := d.sdkClient.ListDomains(listDomainsReq)
+		d.logger.Debug("sdk request 'vod.ListDomains'", slog.Any("request", listDomainsReq), slog.Any("response", listDomainsResp))
+		if err != nil {
+			return 0, fmt.Errorf("failed to execute sdk request 'vod.ListDomains': %w", err)
+		}
+
+		for _, domainItem := range listDomainsResp.Result.Content {
+			if domainItem.Name == d.config.Domain {
+				domainId, _ := strconv.Atoi(domainItem.Id)
+				return domainId, nil
+			}
+		}
+
+		if len(listDomainsResp.Result.Content) < listDomainsPageSize {
+			break
+		}
+
+		listDomainsPageNumber++
+	}
+
+	return 0, fmt.Errorf("could not find domain '%s'", domain)
 }
 
 func createSDKClient(accessKeyId, accessKeySecret string) (*internal.VodClient, error) {

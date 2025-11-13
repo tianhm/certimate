@@ -8,6 +8,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/samber/lo"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile"
 	tcssl "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/ssl/v20191205"
@@ -163,21 +164,11 @@ func (d *SSLDeployerProvider) executeUpdateCertificateInstance(ctx context.Conte
 		if describeHostUpdateRecordDetailResp.Response.TotalCount == nil {
 			return errors.New("unexpected tencentcloud deployment job status")
 		} else {
-			if describeHostUpdateRecordDetailResp.Response.PendingTotalCount != nil {
-				pendingCount = *describeHostUpdateRecordDetailResp.Response.PendingTotalCount
-			}
-			if describeHostUpdateRecordDetailResp.Response.RunningTotalCount != nil {
-				runningCount = *describeHostUpdateRecordDetailResp.Response.RunningTotalCount
-			}
-			if describeHostUpdateRecordDetailResp.Response.SuccessTotalCount != nil {
-				succeededCount = *describeHostUpdateRecordDetailResp.Response.SuccessTotalCount
-			}
-			if describeHostUpdateRecordDetailResp.Response.FailedTotalCount != nil {
-				failedCount = *describeHostUpdateRecordDetailResp.Response.FailedTotalCount
-			}
-			if describeHostUpdateRecordDetailResp.Response.TotalCount != nil {
-				totalCount = *describeHostUpdateRecordDetailResp.Response.TotalCount
-			}
+			pendingCount = lo.FromPtr(describeHostUpdateRecordDetailResp.Response.PendingTotalCount)
+			runningCount = lo.FromPtr(describeHostUpdateRecordDetailResp.Response.RunningTotalCount)
+			succeededCount = lo.FromPtr(describeHostUpdateRecordDetailResp.Response.SuccessTotalCount)
+			failedCount = lo.FromPtr(describeHostUpdateRecordDetailResp.Response.FailedTotalCount)
+			totalCount = lo.FromPtr(describeHostUpdateRecordDetailResp.Response.TotalCount)
 
 			if succeededCount+failedCount == totalCount {
 				if failedCount > 0 {
@@ -250,18 +241,10 @@ func (d *SSLDeployerProvider) executeUploadUpdateCertificateInstance(ctx context
 			return errors.New("unexpected tencentcloud deployment job status")
 		} else {
 			for _, record := range describeHostUploadUpdateRecordDetailResp.Response.DeployRecordDetail {
-				if record.RunningTotalCount != nil {
-					runningCount = *record.RunningTotalCount
-				}
-				if record.SuccessTotalCount != nil {
-					succeededCount = *record.SuccessTotalCount
-				}
-				if record.FailedTotalCount != nil {
-					failedCount = *record.FailedTotalCount
-				}
-				if record.TotalCount != nil {
-					totalCount = *record.TotalCount
-				}
+				runningCount += lo.FromPtr(record.RunningTotalCount)
+				succeededCount += lo.FromPtr(record.SuccessTotalCount)
+				failedCount += lo.FromPtr(record.FailedTotalCount)
+				totalCount += lo.FromPtr(record.TotalCount)
 			}
 
 			if succeededCount+failedCount == totalCount {

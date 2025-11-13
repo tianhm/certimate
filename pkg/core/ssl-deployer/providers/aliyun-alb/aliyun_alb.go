@@ -144,8 +144,7 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCer
 	// 查询 HTTPS 监听列表
 	// REF: https://help.aliyun.com/zh/slb/application-load-balancer/developer-reference/api-alb-2020-06-16-listlisteners
 	listenerIds := make([]string, 0)
-	listListenersLimit := int32(100)
-	var listListenersToken *string = nil
+	listListenersToken := (*string)(nil)
 	for {
 		select {
 		case <-ctx.Done():
@@ -154,9 +153,9 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCer
 		}
 
 		listListenersReq := &alialb.ListListenersRequest{
-			MaxResults:       tea.Int32(listListenersLimit),
 			NextToken:        listListenersToken,
-			LoadBalancerIds:  []*string{tea.String(d.config.LoadbalancerId)},
+			MaxResults:       tea.Int32(100),
+			LoadBalancerIds:  tea.StringSlice([]string{d.config.LoadbalancerId}),
 			ListenerProtocol: tea.String("HTTPS"),
 		}
 		listListenersResp, err := d.sdkClients.ALB.ListListenersWithContext(context.TODO(), listListenersReq, &dara.RuntimeOptions{})
@@ -165,17 +164,19 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCer
 			return fmt.Errorf("failed to execute sdk request 'alb.ListListeners': %w", err)
 		}
 
-		if listListenersResp.Body.Listeners != nil {
-			for _, listener := range listListenersResp.Body.Listeners {
-				listenerIds = append(listenerIds, tea.StringValue(listener.ListenerId))
-			}
+		if listListenersResp.Body == nil {
+			break
+		}
+
+		for _, listener := range listListenersResp.Body.Listeners {
+			listenerIds = append(listenerIds, tea.StringValue(listener.ListenerId))
 		}
 
 		if len(listListenersResp.Body.Listeners) == 0 || listListenersResp.Body.NextToken == nil {
 			break
-		} else {
-			listListenersToken = listListenersResp.Body.NextToken
 		}
+
+		listListenersToken = listListenersResp.Body.NextToken
 	}
 
 	// 查询 QUIC 监听列表
@@ -189,9 +190,9 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCer
 		}
 
 		listListenersReq := &alialb.ListListenersRequest{
-			MaxResults:       tea.Int32(listListenersLimit),
 			NextToken:        listListenersToken,
-			LoadBalancerIds:  []*string{tea.String(d.config.LoadbalancerId)},
+			MaxResults:       tea.Int32(100),
+			LoadBalancerIds:  tea.StringSlice([]string{d.config.LoadbalancerId}),
 			ListenerProtocol: tea.String("QUIC"),
 		}
 		listListenersResp, err := d.sdkClients.ALB.ListListenersWithContext(context.TODO(), listListenersReq, &dara.RuntimeOptions{})
@@ -200,17 +201,19 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCer
 			return fmt.Errorf("failed to execute sdk request 'alb.ListListeners': %w", err)
 		}
 
-		if listListenersResp.Body.Listeners != nil {
-			for _, listener := range listListenersResp.Body.Listeners {
-				listenerIds = append(listenerIds, tea.StringValue(listener.ListenerId))
-			}
+		if listListenersResp.Body == nil {
+			break
+		}
+
+		for _, listener := range listListenersResp.Body.Listeners {
+			listenerIds = append(listenerIds, tea.StringValue(listener.ListenerId))
 		}
 
 		if len(listListenersResp.Body.Listeners) == 0 || listListenersResp.Body.NextToken == nil {
 			break
-		} else {
-			listListenersToken = listListenersResp.Body.NextToken
 		}
+
+		listListenersToken = listListenersResp.Body.NextToken
 	}
 
 	// 遍历更新监听证书
@@ -286,8 +289,7 @@ func (d *SSLDeployerProvider) updateListenerCertificate(ctx context.Context, clo
 		// 查询监听证书列表
 		// REF: https://help.aliyun.com/zh/slb/application-load-balancer/developer-reference/api-alb-2020-06-16-listlistenercertificates
 		listenerCertificates := make([]alialb.ListListenerCertificatesResponseBodyCertificates, 0)
-		listListenerCertificatesLimit := int32(100)
-		var listListenerCertificatesToken *string = nil
+		listListenerCertificatesToken := (*string)(nil)
 		for {
 			select {
 			case <-ctx.Done():
@@ -297,7 +299,7 @@ func (d *SSLDeployerProvider) updateListenerCertificate(ctx context.Context, clo
 
 			listListenerCertificatesReq := &alialb.ListListenerCertificatesRequest{
 				NextToken:       listListenerCertificatesToken,
-				MaxResults:      tea.Int32(listListenerCertificatesLimit),
+				MaxResults:      tea.Int32(100),
 				ListenerId:      tea.String(cloudListenerId),
 				CertificateType: tea.String("Server"),
 			}
@@ -307,17 +309,19 @@ func (d *SSLDeployerProvider) updateListenerCertificate(ctx context.Context, clo
 				return fmt.Errorf("failed to execute sdk request 'alb.ListListenerCertificates': %w", err)
 			}
 
-			if listListenerCertificatesResp.Body.Certificates != nil {
-				for _, listenerCertificate := range listListenerCertificatesResp.Body.Certificates {
-					listenerCertificates = append(listenerCertificates, *listenerCertificate)
-				}
+			if listListenerCertificatesResp.Body == nil {
+				break
+			}
+
+			for _, listenerCertificate := range listListenerCertificatesResp.Body.Certificates {
+				listenerCertificates = append(listenerCertificates, *listenerCertificate)
 			}
 
 			if len(listListenerCertificatesResp.Body.Certificates) == 0 || listListenerCertificatesResp.Body.NextToken == nil {
 				break
-			} else {
-				listListenerCertificatesToken = listListenerCertificatesResp.Body.NextToken
 			}
+
+			listListenerCertificatesToken = listListenerCertificatesResp.Body.NextToken
 		}
 
 		// 查询监听证书，并找出需要解除关联的证书

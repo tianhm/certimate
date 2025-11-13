@@ -1,4 +1,4 @@
-package qiniukodo_test
+package upyunfile_test
 
 import (
 	"context"
@@ -8,25 +8,25 @@ import (
 	"strings"
 	"testing"
 
-	provider "github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/qiniu-kodo"
+	provider "github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/upyun-file"
 )
 
 var (
 	fInputCertPath string
 	fInputKeyPath  string
-	fAccessKey     string
-	fSecretKey     string
+	fUsername      string
+	fPassword      string
 	fBucket        string
 	fDomain        string
 )
 
 func init() {
-	argsPrefix := "CERTIMATE_SSLDEPLOYER_QINIUKODO_"
+	argsPrefix := "CERTIMATE_SSLDEPLOYER_UPYUNFILE_"
 
 	flag.StringVar(&fInputCertPath, argsPrefix+"INPUTCERTPATH", "", "")
 	flag.StringVar(&fInputKeyPath, argsPrefix+"INPUTKEYPATH", "", "")
-	flag.StringVar(&fAccessKey, argsPrefix+"ACCESSKEY", "", "")
-	flag.StringVar(&fSecretKey, argsPrefix+"SECRETKEY", "", "")
+	flag.StringVar(&fUsername, argsPrefix+"USERNAME", "", "")
+	flag.StringVar(&fPassword, argsPrefix+"PASSWORD", "", "")
 	flag.StringVar(&fBucket, argsPrefix+"BUCKET", "", "")
 	flag.StringVar(&fDomain, argsPrefix+"DOMAIN", "", "")
 }
@@ -34,13 +34,13 @@ func init() {
 /*
 Shell command to run this test:
 
-	go test -v ./qiniu_kodo_test.go -args \
-	--CERTIMATE_SSLDEPLOYER_QINIUKODO_INPUTCERTPATH="/path/to/your-input-cert.pem" \
-	--CERTIMATE_SSLDEPLOYER_QINIUKODO_INPUTKEYPATH="/path/to/your-input-key.pem" \
-	--CERTIMATE_SSLDEPLOYER_QINIUKODO_ACCESSKEY="your-access-key" \
-	--CERTIMATE_SSLDEPLOYER_QINIUKODO_SECRETKEY="your-secret-key" \
-	--CERTIMATE_SSLDEPLOYER_QINIUKODO_BUCKET="your-bucket" \
-	--CERTIMATE_SSLDEPLOYER_QINIUKODO_DOMAIN="example.com"
+	go test -v ./upyun_file_test.go -args \
+	--CERTIMATE_SSLDEPLOYER_UPYUNFILE_INPUTCERTPATH="/path/to/your-input-cert.pem" \
+	--CERTIMATE_SSLDEPLOYER_UPYUNFILE_INPUTKEYPATH="/path/to/your-input-key.pem" \
+	--CERTIMATE_SSLDEPLOYER_UPYUNFILE_USERNAME="your-username" \
+	--CERTIMATE_SSLDEPLOYER_UPYUNFILE_PASSWORD="your-password" \
+	--CERTIMATE_SSLDEPLOYER_UPYUNFILE_BUCKET="your-bucket" \
+	--CERTIMATE_SSLDEPLOYER_UPYUNFILE_DOMAIN="example.com"
 */
 func TestDeploy(t *testing.T) {
 	flag.Parse()
@@ -50,17 +50,17 @@ func TestDeploy(t *testing.T) {
 			"args:",
 			fmt.Sprintf("INPUTCERTPATH: %v", fInputCertPath),
 			fmt.Sprintf("INPUTKEYPATH: %v", fInputKeyPath),
-			fmt.Sprintf("ACCESSKEY: %v", fAccessKey),
-			fmt.Sprintf("SECRETKEY: %v", fSecretKey),
+			fmt.Sprintf("USERNAME: %v", fUsername),
+			fmt.Sprintf("PASSWORD: %v", fPassword),
 			fmt.Sprintf("BUCKET: %v", fBucket),
 			fmt.Sprintf("DOMAIN: %v", fDomain),
 		}, "\n"))
 
 		deployer, err := provider.NewSSLDeployerProvider(&provider.SSLDeployerProviderConfig{
-			AccessKey: fAccessKey,
-			SecretKey: fSecretKey,
-			Bucket:    fBucket,
-			Domain:    fDomain,
+			Username: fUsername,
+			Password: fPassword,
+			Bucket:   fBucket,
+			Domain:   fDomain,
 		})
 		if err != nil {
 			t.Errorf("err: %+v", err)

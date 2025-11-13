@@ -5,7 +5,7 @@ import (
 
 	"github.com/certimate-go/certimate/internal/domain"
 	"github.com/certimate-go/certimate/pkg/core"
-	upyuncdn "github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/upyun-cdn"
+	upyunfile "github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/upyun-file"
 	xmaps "github.com/certimate-go/certimate/pkg/utils/maps"
 )
 
@@ -16,9 +16,10 @@ func init() {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
-		provider, err := upyuncdn.NewSSLDeployerProvider(&upyuncdn.SSLDeployerProviderConfig{
+		provider, err := upyunfile.NewSSLDeployerProvider(&upyunfile.SSLDeployerProviderConfig{
 			Username: credentials.Username,
 			Password: credentials.Password,
+			Bucket:   xmaps.GetString(options.ProviderExtendedConfig, "bucket"),
 			Domain:   xmaps.GetString(options.ProviderExtendedConfig, "domain"),
 		})
 		return provider, err

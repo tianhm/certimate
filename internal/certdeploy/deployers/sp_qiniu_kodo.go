@@ -19,6 +19,7 @@ func init() {
 		provider, err := qiniukodo.NewSSLDeployerProvider(&qiniukodo.SSLDeployerProviderConfig{
 			AccessKey: credentials.AccessKey,
 			SecretKey: credentials.SecretKey,
+			Bucket:    xmaps.GetString(options.ProviderExtendedConfig, "bucket"),
 			Domain:    xmaps.GetString(options.ProviderExtendedConfig, "domain"),
 		})
 		return provider, err

@@ -18,6 +18,8 @@ type SSLDeployerProviderConfig struct {
 	AccessKey string `json:"accessKey"`
 	// 七牛云 SecretKey。
 	SecretKey string `json:"secretKey"`
+	// 存储桶名。暂时无用。
+	Bucket string `json:"bucket"`
 	// 自定义域名（不支持泛域名）。
 	Domain string `json:"domain"`
 }

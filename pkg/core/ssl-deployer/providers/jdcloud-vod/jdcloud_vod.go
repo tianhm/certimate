@@ -130,7 +130,7 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 
 	// 查询域名列表
 	// REF: https://docs.jdcloud.com/cn/video-on-demand/api/listdomains
-	listPageNumber := 1
+	listDomainsPageNumber := 1
 	listDomainsPageSize := 100
 	for {
 		select {
@@ -140,7 +140,7 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 		}
 
 		listDomainsReq := jdvod.NewListDomainsRequestWithoutParam()
-		listDomainsReq.SetPageNumber(listPageNumber)
+		listDomainsReq.SetPageNumber(listDomainsPageNumber)
 		listDomainsReq.SetPageSize(listDomainsPageSize)
 		listDomainsResp, err := d.sdkClient.ListDomains(listDomainsReq)
 		d.logger.Debug("sdk request 'vod.ListDomains'", slog.Any("request", listDomainsReq), slog.Any("response", listDomainsResp))
@@ -161,7 +161,7 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 			break
 		}
 
-		listPageNumber++
+		listDomainsPageNumber++
 	}
 
 	return domains, nil

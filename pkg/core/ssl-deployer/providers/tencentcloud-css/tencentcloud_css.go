@@ -15,6 +15,7 @@ import (
 	"github.com/certimate-go/certimate/pkg/core"
 	"github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/tencentcloud-css/internal"
 	sslmgrsp "github.com/certimate-go/certimate/pkg/core/ssl-manager/providers/tencentcloud-ssl"
+	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
 )
 
 type SSLDeployerProviderConfig struct {
@@ -24,6 +25,9 @@ type SSLDeployerProviderConfig struct {
 	SecretKey string `json:"secretKey"`
 	// 腾讯云接口端点。
 	Endpoint string `json:"endpoint,omitempty"`
+	// 域名匹配模式。
+	// 零值时默认值 [DOMAIN_MATCH_PATTERN_EXACT]。
+	DomainMatchPattern string `json:"domainMatchPattern,omitempty"`
 	// 直播播放域名（不支持泛域名）。
 	Domain string `json:"domain"`
 }
@@ -77,10 +81,6 @@ func (d *SSLDeployerProvider) SetLogger(logger *slog.Logger) {
 }
 
 func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privkeyPEM string) (*core.SSLDeployResult, error) {
-	if d.config.Domain == "" {
-		return nil, errors.New("config `domain` is required")
-	}
-
 	// 上传证书
 	upres, err := d.sslManager.Upload(ctx, certPEM, privkeyPEM)
 	if err != nil {
@@ -89,15 +89,51 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
 	}
 
-	// 绑定证书对应的播放域名
+	// 获取待部署的域名列表
+	var domains []string
+	switch d.config.DomainMatchPattern {
+	case "", DOMAIN_MATCH_PATTERN_EXACT:
+		{
+			if d.config.Domain == "" {
+				return nil, errors.New("config `domain` is required")
+			}
+
+			domains = []string{d.config.Domain}
+		}
+
+	case DOMAIN_MATCH_PATTERN_CERTSAN:
+		{
+			certX509, err := xcert.ParseCertificateFromPEM(certPEM)
+			if err != nil {
+				return nil, err
+			}
+
+			domainCandidates, err := d.getAllDomains(ctx)
+			if err != nil {
+				return nil, err
+			}
+
+			domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
+				return certX509.VerifyHostname(domain) == nil
+			})
+			if len(domains) == 0 {
+				return nil, errors.New("could not find any domains matched by certificate")
+			}
+		}
+
+	default:
+		return nil, fmt.Errorf("unsupported domain match pattern: '%s'", d.config.DomainMatchPattern)
+	}
+
+	// 批量绑定证书对应的播放域名
 	// REF: https://cloud.tencent.com/document/api/267/78655
 	modifyLiveDomainCertBindingsReq := tclive.NewModifyLiveDomainCertBindingsRequest()
-	modifyLiveDomainCertBindingsReq.DomainInfos = []*tclive.LiveCertDomainInfo{
-		{
-			DomainName: common.StringPtr(d.config.Domain),
+	modifyLiveDomainCertBindingsReq.DomainInfos = lo.Map(domains, func(domain string, _ int) *tclive.LiveCertDomainInfo {
+		return &tclive.LiveCertDomainInfo{
+			DomainName: common.StringPtr(domain),
 			Status:     common.Int64Ptr(1),
-		},
-	}
+		}
+	})
 	modifyLiveDomainCertBindingsReq.CloudCertId = common.StringPtr(upres.CertId)
 	modifyLiveDomainCertBindingsResp, err := d.sdkClient.ModifyLiveDomainCertBindings(modifyLiveDomainCertBindingsReq)
 	d.logger.Debug("sdk request 'live.ModifyLiveDomainCertBindings'", slog.Any("request", modifyLiveDomainCertBindingsReq), slog.Any("response", modifyLiveDomainCertBindingsResp))
@@ -106,6 +142,49 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	}
 
 	return &core.SSLDeployResult{}, nil
+}
+
+func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, error) {
+	domains := make([]string, 0)
+
+	// 查询域名列表
+	// REF: https://cloud.tencent.com/document/api/267/33856
+	describeLiveDomainsPageNum := 1
+	describeLiveDomainsPageSize := 100
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+
+		describeLiveDomainsReq := tclive.NewDescribeLiveDomainsRequest()
+		describeLiveDomainsReq.DomainStatus = common.Uint64Ptr(1)
+		describeLiveDomainsReq.DomainType = common.Uint64Ptr(1)
+		describeLiveDomainsReq.PageNum = common.Uint64Ptr(uint64(describeLiveDomainsPageNum))
+		describeLiveDomainsReq.PageSize = common.Uint64Ptr(uint64(describeLiveDomainsPageSize))
+		describeLiveDomainsResp, err := d.sdkClient.DescribeLiveDomains(describeLiveDomainsReq)
+		d.logger.Debug("sdk request 'live.DescribeLiveDomains'", slog.Any("request", describeLiveDomainsReq), slog.Any("response", describeLiveDomainsResp))
+		if err != nil {
+			return nil, fmt.Errorf("failed to execute sdk request 'live.DescribeLiveDomains': %w", err)
+		}
+
+		if describeLiveDomainsResp.Response == nil {
+			break
+		}
+
+		for _, domainItem := range describeLiveDomainsResp.Response.DomainList {
+			domains = append(domains, *domainItem.Name)
+		}
+
+		if len(describeLiveDomainsResp.Response.DomainList) < describeLiveDomainsPageSize {
+			break
+		}
+
+		describeLiveDomainsPageNum++
+	}
+
+	return domains, nil
 }
 
 func createSDKClient(secretId, secretKey, endpoint string) (*internal.LiveClient, error) {

@@ -156,7 +156,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, wildcardDomain string) ([]string, error) {
 	domains := make([]string, 0)
 
-	// 遍历获取加速域名列表，获取匹配的域名
+	// 查询加速域名列表，获取匹配的域名
 	// REF: https://www.volcengine.com/docs/6454/75269
 	listCdnDomainsPageNum := int64(1)
 	listCdnDomainsPageSize := int64(100)

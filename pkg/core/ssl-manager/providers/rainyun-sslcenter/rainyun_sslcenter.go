@@ -51,7 +51,7 @@ func (m *SSLManagerProvider) SetLogger(logger *slog.Logger) {
 }
 
 func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkeyPEM string) (*core.SSLManageUploadResult, error) {
-	// 遍历证书列表，避免重复上传
+	// 避免重复上传
 	if res, err := m.findCertIfExists(ctx, certPEM); err != nil {
 		return nil, err
 	} else if res != nil {
@@ -71,7 +71,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 		return nil, fmt.Errorf("failed to execute sdk request 'sslcenter.Create': %w", err)
 	}
 
-	// 遍历证书列表，获取刚刚上传证书 ID
+	// 获取刚刚上传证书 ID
 	if res, err := m.findCertIfExists(ctx, certPEM); err != nil {
 		return nil, err
 	} else if res == nil {
@@ -88,7 +88,7 @@ func (m *SSLManagerProvider) findCertIfExists(ctx context.Context, certPEM strin
 		return nil, err
 	}
 
-	// 遍历 SSL 证书列表
+	// 获取 SSL 证书列表
 	// REF: https://apifox.com/apidoc/shared/a4595cc8-44c5-4678-a2a3-eed7738dab03/api-69943046
 	// REF: https://apifox.com/apidoc/shared/a4595cc8-44c5-4678-a2a3-eed7738dab03/api-69943048
 	sslCenterListPage := int32(1)

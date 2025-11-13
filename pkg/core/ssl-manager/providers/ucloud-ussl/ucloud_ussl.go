@@ -115,7 +115,7 @@ func (m *SSLManagerProvider) findCertIfExists(ctx context.Context, certPEM strin
 		return nil, err
 	}
 
-	// 遍历获取用户证书列表
+	// 查询用户证书列表
 	// REF: https://docs.ucloud.cn/api/usslcertificate-api/get_certificate_list
 	// REF: https://docs.ucloud.cn/api/usslcertificate-api/download_certificate
 	getCertificateListPage := int(1)

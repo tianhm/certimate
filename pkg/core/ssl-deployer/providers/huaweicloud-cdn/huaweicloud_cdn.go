@@ -183,7 +183,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, error) {
 	domains := make([]string, 0)
 
-	// 遍历查询域名列表
+	// 查询域名列表
 	// REF: https://support.huaweicloud.com/api-cdn/ListDomains.html
 	listDomainsPageNumber := int32(1)
 	listDomainsPageSize := int32(100)

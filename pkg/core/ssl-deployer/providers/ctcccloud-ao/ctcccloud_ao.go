@@ -169,7 +169,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, error) {
 	domains := make([]string, 0)
 
-	// 遍历查询域名列表
+	// 查询域名列表
 	// REF: https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=113&api=13816&data=174&isNormal=1&vid=167
 	queryDomainsPage := int32(1)
 	queryDomainsPageSize := int32(100)

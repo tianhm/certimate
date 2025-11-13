@@ -68,7 +68,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		d.config.SitePort = 443
 	}
 
-	// 遍历获取网站列表，获取网站 ID
+	// 查询网站列表，获取网站 ID
 	// REF: https://support.huaweicloud.com/api-waf/ListHost.html
 	siteId := ""
 	getSitListPage := int32(1)

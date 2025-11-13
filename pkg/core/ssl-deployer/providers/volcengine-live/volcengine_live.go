@@ -170,7 +170,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, error) {
 	domains := make([]string, 0)
 
-	// 遍历查询域名列表
+	// 查询域名列表
 	// REF: https://www.volcengine.com/docs/6469/1126815
 	listDomainDetailPageNum := int32(1)
 	listDomainDetailPageSize := int32(1000)

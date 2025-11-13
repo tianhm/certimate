@@ -185,7 +185,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, error) {
 	domains := make([]string, 0)
 
-	// 遍历查询域名列表
+	// 查询域名列表
 	// REF: https://help.aliyun.com/zh/edge-security-acceleration/dcdn/developer-reference/api-dcdn-2018-01-15-describedcdnuserdomains
 	describeUserDomainsPageNumber := int32(1)
 	describeUserDomainsPageSize := int32(500)

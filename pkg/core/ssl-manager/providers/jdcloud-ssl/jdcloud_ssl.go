@@ -71,7 +71,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 	privkeyPEM = strings.ReplaceAll(privkeyPEM, "\n", "\r\n")
 	privkeyPEM = privkeyPEM + "\r\n"
 
-	// 遍历查看证书列表，避免重复上传
+	// 查看证书列表
 	// REF: https://docs.jdcloud.com/cn/ssl-certificate/api/describecerts
 	describeCertsPageNumber := 1
 	describeCertsPageSize := 10

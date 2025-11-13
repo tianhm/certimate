@@ -60,7 +60,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 		return nil, err
 	}
 
-	// 遍历证书列表，避免重复上传
+	// 查看证书列表
 	// REF: https://cloud.baidu.com/doc/Reference/s/Gjwvz27xu#35-%E6%9F%A5%E7%9C%8B%E8%AF%81%E4%B9%A6%E5%88%97%E8%A1%A8%E8%AF%A6%E6%83%85
 	listCertDetail, err := m.sdkClient.ListCertDetail()
 	m.logger.Debug("sdk request 'cert.ListCertDetail'", slog.Any("response", listCertDetail))

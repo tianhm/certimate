@@ -320,7 +320,7 @@ func (d *SSLDeployerProvider) updateListenerCertificate(ctx context.Context, clo
 			}
 		}
 
-		// 遍历查询监听证书，并找出需要解除关联的证书
+		// 查询监听证书，并找出需要解除关联的证书
 		// REF: https://help.aliyun.com/zh/slb/application-load-balancer/developer-reference/api-alb-2020-06-16-listlistenercertificates
 		// REF: https://help.aliyun.com/zh/ssl-certificate/developer-reference/api-cas-2020-04-07-getusercertificatedetail
 		certificateIsAlreadyAssociated := false

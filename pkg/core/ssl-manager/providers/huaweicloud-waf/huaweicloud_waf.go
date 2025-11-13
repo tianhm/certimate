@@ -67,7 +67,7 @@ func (m *SSLManagerProvider) SetLogger(logger *slog.Logger) {
 }
 
 func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkeyPEM string) (*core.SSLManageUploadResult, error) {
-	// 遍历查询已有证书，避免重复上传
+	// 查询已有证书，避免重复上传
 	// REF: https://support.huaweicloud.com/api-waf/ListCertificates.html
 	// REF: https://support.huaweicloud.com/api-waf/ShowCertificate.html
 	listCertificatesPage := int32(1)

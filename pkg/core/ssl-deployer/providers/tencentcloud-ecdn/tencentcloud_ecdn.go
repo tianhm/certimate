@@ -162,7 +162,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 func (d *SSLDeployerProvider) getMatchedDomainsByWildcard(ctx context.Context, wildcardDomain string) ([]string, error) {
 	domains := make([]string, 0)
 
-	// 遍历查询域名基本信息，获取匹配的域名
+	// 查询域名基本信息，获取匹配的域名
 	// REF: https://cloud.tencent.com/document/api/228/41118
 	describeDomainsOffset := int64(0)
 	describeDomainsLimit := int64(100)

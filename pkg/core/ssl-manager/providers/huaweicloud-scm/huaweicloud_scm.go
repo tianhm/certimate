@@ -70,7 +70,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 		return nil, err
 	}
 
-	// 遍历查询已有证书，避免重复上传
+	// 查询已有证书，避免重复上传
 	// REF: https://support.huaweicloud.com/api-ccm/ListCertificates.html
 	// REF: https://support.huaweicloud.com/api-ccm/ExportCertificate_0.html
 	listCertificatesLimit := int32(50)

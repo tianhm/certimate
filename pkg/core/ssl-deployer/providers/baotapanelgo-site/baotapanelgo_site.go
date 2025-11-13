@@ -74,7 +74,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		return nil, fmt.Errorf("failed to execute sdk request 'bt.PanelGetConfig': %w", err)
 	}
 
-	// 遍历查询网站列表，获取网站 ID
+	// 查询网站列表，获取网站 ID
 	var siteId int32
 	datalistGetDataListPage := int32(1)
 	datalistGetDataListLimit := int32(10)

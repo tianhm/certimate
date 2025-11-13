@@ -172,7 +172,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, error) {
 	domains := make([]string, 0)
 
-	// 遍历查询域名列表
+	// 查询域名列表
 	// REF: https://docs.jdcloud.com/cn/cdn/api/getdomainlist
 	getDomainListPageNumber := 1
 	getDomainListPageSize := 50

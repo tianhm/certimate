@@ -171,7 +171,7 @@ func (d *SSLDeployerProvider) deployToCloudServer(ctx context.Context, certPEM s
 		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
 	}
 
-	// 遍历查询云模式防护域名列表，获取防护域名 ID
+	// 查询云模式防护域名列表，获取防护域名 ID
 	// REF: https://support.huaweicloud.com/api-waf/ListHost.html
 	hostId := ""
 	listHostPage := int32(1)
@@ -246,7 +246,7 @@ func (d *SSLDeployerProvider) deployToPremiumHost(ctx context.Context, certPEM s
 		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
 	}
 
-	// 遍历查询独享模式域名列表，获取防护域名 ID
+	// 查询独享模式域名列表，获取防护域名 ID
 	// REF: https://support.huaweicloud.com/api-waf/ListPremiumHost.html
 	hostId := ""
 	listPremiumHostPage := int32(1)

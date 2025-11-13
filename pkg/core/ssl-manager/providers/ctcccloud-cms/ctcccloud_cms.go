@@ -58,7 +58,7 @@ func (m *SSLManagerProvider) SetLogger(logger *slog.Logger) {
 }
 
 func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkeyPEM string) (*core.SSLManageUploadResult, error) {
-	// 遍历证书列表，避免重复上传
+	// 避免重复上传
 	if res, _ := m.findCertIfExists(ctx, certPEM); res != nil {
 		return res, nil
 	}
@@ -98,7 +98,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 		return nil, fmt.Errorf("failed to execute sdk request 'cms.UploadCertificate': %w", err)
 	}
 
-	// 遍历证书列表，获取刚刚上传证书 ID
+	// 获取刚刚上传证书 ID
 	if res, err := m.findCertIfExists(ctx, certPEM); err != nil {
 		return nil, err
 	} else if res == nil {

@@ -67,7 +67,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 	// 生成新证书名（需符合七牛云命名规则）
 	certName := fmt.Sprintf("certimate-%d", time.Now().UnixMilli())
 
-	// 遍历查询已有证书，避免重复上传
+	// 查询已有证书，避免重复上传
 	getSslCertListMarker := ""
 	getSslCertListLimit := int32(200)
 	for {

@@ -151,7 +151,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, error) {
 	domains := make([]string, 0)
 
-	// 遍历查询域名列表
+	// 查询域名列表
 	// REF: https://cloud.baidu.com/doc/CDN/s/sjwvyewt1
 	listDomainsMarker := ""
 	for {

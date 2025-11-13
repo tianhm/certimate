@@ -83,7 +83,7 @@ func (d *SSLDeployerProvider) deployToDomain(ctx context.Context, certPEM string
 		return errors.New("config `domain` is required")
 	}
 
-	// 遍历查询域名列表，获取域名 ID
+	// 查询域名列表，获取域名 ID
 	// https://docs.ksyun.com/documents/198
 	var domainId string
 	getCdnDomainsPageNumber := int32(1)

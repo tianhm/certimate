@@ -146,7 +146,7 @@ func (d *SSLDeployerProvider) deployToCloudNative(ctx context.Context, certPEM s
 		return errors.New("config `domain` is required")
 	}
 
-	// 遍历查询域名列表，获取域名 ID
+	// 查询域名列表，获取域名 ID
 	// REF: https://help.aliyun.com/zh/api-gateway/cloud-native-api-gateway/developer-reference/api-apig-2024-03-27-listdomains
 	var domainId string
 	listDomainsPageNumber := int32(1)

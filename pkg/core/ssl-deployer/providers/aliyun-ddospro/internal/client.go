@@ -92,3 +92,41 @@ func (client *DdoscooClient) AssociateWebCertWithContext(ctx context.Context, re
 	_err = dara.Convert(_body, &_result)
 	return _result, _err
 }
+
+func (client *DdoscooClient) DescribeDomainsWithContext(ctx context.Context, request *aliddoscoo.DescribeDomainsRequest, runtime *dara.RuntimeOptions) (_result *aliddoscoo.DescribeDomainsResponse, _err error) {
+	_err = request.Validate()
+	if _err != nil {
+		return _result, _err
+	}
+	query := map[string]interface{}{}
+
+	if !dara.IsNil(request.InstanceIds) {
+		query["InstanceIds"] = request.InstanceIds
+	}
+
+	if !dara.IsNil(request.ResourceGroupId) {
+		query["ResourceGroupId"] = request.ResourceGroupId
+	}
+
+	req := &openapiutil.OpenApiRequest{
+		Query: openapiutil.Query(query),
+	}
+	params := &openapiutil.Params{
+		Action:      dara.String("DescribeDomains"),
+		Version:     dara.String("2020-01-01"),
+		Protocol:    dara.String("HTTPS"),
+		Pathname:    dara.String("/"),
+		Method:      dara.String("POST"),
+		AuthType:    dara.String("AK"),
+		Style:       dara.String("RPC"),
+		ReqBodyType: dara.String("formData"),
+		BodyType:    dara.String("json"),
+	}
+	_result = &aliddoscoo.DescribeDomainsResponse{}
+	_body, _err := client.CallApiWithCtx(ctx, params, req, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_err = dara.Convert(_body, &_result)
+	return _result, _err
+}

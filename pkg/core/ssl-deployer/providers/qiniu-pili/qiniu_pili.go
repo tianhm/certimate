@@ -121,9 +121,9 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 
 	// 遍历更新域名证书
 	if len(domains) == 0 {
-		d.logger.Info("no cdn domains to deploy")
+		d.logger.Info("no pili domains to deploy")
 	} else {
-		d.logger.Info("found cdn domains to deploy", slog.Any("domains", domains))
+		d.logger.Info("found pili domains to deploy", slog.Any("domains", domains))
 		var errs []error
 
 		for _, domain := range domains {

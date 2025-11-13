@@ -116,9 +116,9 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 
 	// 遍历更新域名证书
 	if len(domains) == 0 {
-		d.logger.Info("no icdn domains to deploy")
+		d.logger.Info("no lvdn domains to deploy")
 	} else {
-		d.logger.Info("found icdn domains to deploy", slog.Any("domains", domains))
+		d.logger.Info("found lvdn domains to deploy", slog.Any("domains", domains))
 		var errs []error
 
 		for _, domain := range domains {

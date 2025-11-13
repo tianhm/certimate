@@ -152,7 +152,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			case <-ctx.Done():
 				return nil, ctx.Err()
 			default:
-				if err := d.updateDomainCertificate(ctx, domain, upres.CertId, upres.CertName); err != nil {
+				if err := d.updateDomainCertificate(ctx, domain, upres.CertName); err != nil {
 					errs = append(errs, err)
 				}
 			}
@@ -214,7 +214,7 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 	return domains, nil
 }
 
-func (d *SSLDeployerProvider) updateDomainCertificate(ctx context.Context, domain string, cloudCertId, cloudCertName string) error {
+func (d *SSLDeployerProvider) updateDomainCertificate(ctx context.Context, domain string, cloudCertName string) error {
 	// 域名基础及加速配置查询
 	// REF: https://eop.ctyun.cn/ebp/ctapiDocument/search?sid=113&api=13412&data=174&isNormal=1&vid=167
 	getDomainConfigReq := &ctyunao.GetDomainConfigRequest{

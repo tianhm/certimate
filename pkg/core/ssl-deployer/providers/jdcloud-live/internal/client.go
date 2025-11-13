@@ -33,6 +33,25 @@ func NewLiveClient(credential *core.Credential) *LiveClient {
 	}
 }
 
+func (c *LiveClient) DescribeLiveDomains(request *live.DescribeLiveDomainsRequest) (*live.DescribeLiveDomainsResponse, error) {
+	if request == nil {
+		return nil, errors.New("Request object is nil.")
+	}
+	resp, err := c.Send(request, c.ServiceName)
+	if err != nil {
+		return nil, err
+	}
+
+	jdResp := &live.DescribeLiveDomainsResponse{}
+	err = json.Unmarshal(resp, jdResp)
+	if err != nil {
+		c.Logger.Log(core.LogError, "Unmarshal json failed, resp: %s", string(resp))
+		return nil, err
+	}
+
+	return jdResp, err
+}
+
 func (c *LiveClient) SetLiveDomainCertificate(request *live.SetLiveDomainCertificateRequest) (*live.SetLiveDomainCertificateResponse, error) {
 	if request == nil {
 		return nil, errors.New("Request object is nil.")

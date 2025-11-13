@@ -218,7 +218,7 @@ func (d *SSLDeployerProvider) updateDomainCertificate(ctx context.Context, domai
 	// REF: https://help.aliyun.com/zh/vod/developer-reference/api-vod-2017-03-21-setvoddomainsslcertificate
 	certId, _ := strconv.ParseInt(cloudCertId, 10, 64)
 	setVodDomainSSLCertificateReq := &alivod.SetVodDomainSSLCertificateRequest{
-		DomainName: tea.String(d.config.Domain),
+		DomainName: tea.String(domain),
 		CertType:   tea.String("cas"),
 		CertId:     tea.Int64(certId),
 		CertName:   tea.String(cloudCertName),

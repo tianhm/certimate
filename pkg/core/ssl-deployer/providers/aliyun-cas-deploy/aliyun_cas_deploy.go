@@ -102,7 +102,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			ShowSize:    tea.Int32(1),
 			CurrentPage: tea.Int32(1),
 		}
-		listContactResp, err := d.sdkClient.ListContactWithContext(context.TODO(), listContactReq, &dara.RuntimeOptions{})
+		listContactResp, err := d.sdkClient.ListContactWithContext(ctx, listContactReq, &dara.RuntimeOptions{})
 		d.logger.Debug("sdk request 'cas.ListContact'", slog.Any("request", listContactReq), slog.Any("response", listContactResp))
 		if err != nil {
 			return nil, fmt.Errorf("failed to execute sdk request 'cas.ListContact': %w", err)
@@ -122,7 +122,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		ResourceIds: tea.String(strings.Join(d.config.ResourceIds, ",")),
 		ContactIds:  tea.String(strings.Join(contactIds, ",")),
 	}
-	createDeploymentJobResp, err := d.sdkClient.CreateDeploymentJobWithContext(context.TODO(), createDeploymentJobReq, &dara.RuntimeOptions{})
+	createDeploymentJobResp, err := d.sdkClient.CreateDeploymentJobWithContext(ctx, createDeploymentJobReq, &dara.RuntimeOptions{})
 	d.logger.Debug("sdk request 'cas.CreateDeploymentJob'", slog.Any("request", createDeploymentJobReq), slog.Any("response", createDeploymentJobResp))
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute sdk request 'cas.CreateDeploymentJob': %w", err)
@@ -140,7 +140,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		describeDeploymentJobReq := &alicas.DescribeDeploymentJobRequest{
 			JobId: createDeploymentJobResp.Body.JobId,
 		}
-		describeDeploymentJobResp, err := d.sdkClient.DescribeDeploymentJobWithContext(context.TODO(), describeDeploymentJobReq, &dara.RuntimeOptions{})
+		describeDeploymentJobResp, err := d.sdkClient.DescribeDeploymentJobWithContext(ctx, describeDeploymentJobReq, &dara.RuntimeOptions{})
 		d.logger.Debug("sdk request 'cas.DescribeDeploymentJob'", slog.Any("request", describeDeploymentJobReq), slog.Any("response", describeDeploymentJobResp))
 		if err != nil {
 			return nil, fmt.Errorf("failed to execute sdk request 'cas.DescribeDeploymentJob': %w", err)

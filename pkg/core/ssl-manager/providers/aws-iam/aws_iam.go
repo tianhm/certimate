@@ -92,7 +92,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 		if m.config.CertificatePath != "" {
 			listServerCertificatesReq.PathPrefix = aws.String(m.config.CertificatePath)
 		}
-		listServerCertificatesResp, err := m.sdkClient.ListServerCertificates(context.TODO(), listServerCertificatesReq)
+		listServerCertificatesResp, err := m.sdkClient.ListServerCertificates(ctx, listServerCertificatesReq)
 		m.logger.Debug("sdk request 'iam.ListServerCertificates'", slog.Any("request", listServerCertificatesReq), slog.Any("response", listServerCertificatesResp))
 		if err != nil {
 			return nil, fmt.Errorf("failed to execute sdk request 'iam.ListServerCertificates': %w", err)
@@ -113,7 +113,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 			getServerCertificateReq := &awsiam.GetServerCertificateInput{
 				ServerCertificateName: certItem.ServerCertificateName,
 			}
-			getServerCertificateResp, err := m.sdkClient.GetServerCertificate(context.TODO(), getServerCertificateReq)
+			getServerCertificateResp, err := m.sdkClient.GetServerCertificate(ctx, getServerCertificateReq)
 			if err != nil {
 				return nil, fmt.Errorf("failed to execute sdk request 'iam.GetServerCertificate': %w", err)
 			} else {
@@ -152,7 +152,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 	if m.config.CertificatePath == "" {
 		uploadServerCertificateReq.Path = aws.String("/")
 	}
-	uploadServerCertificateResp, err := m.sdkClient.UploadServerCertificate(context.TODO(), uploadServerCertificateReq)
+	uploadServerCertificateResp, err := m.sdkClient.UploadServerCertificate(ctx, uploadServerCertificateReq)
 	m.logger.Debug("sdk request 'iam.UploadServerCertificate'", slog.Any("request", uploadServerCertificateReq), slog.Any("response", uploadServerCertificateResp))
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute sdk request 'iam.UploadServerCertificate': %w", err)

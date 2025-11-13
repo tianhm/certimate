@@ -243,7 +243,7 @@ func (d *SSLDeployerProvider) updateDomainCertificate(ctx context.Context, domai
 			Else(tea.String("ap-southeast-1")),
 		SSLProtocol: tea.String("on"),
 	}
-	setCdnDomainSSLCertificateResp, err := d.sdkClient.SetCdnDomainSSLCertificateWithContext(context.TODO(), setCdnDomainSSLCertificateReq, &dara.RuntimeOptions{})
+	setCdnDomainSSLCertificateResp, err := d.sdkClient.SetCdnDomainSSLCertificateWithContext(ctx, setCdnDomainSSLCertificateReq, &dara.RuntimeOptions{})
 	d.logger.Debug("sdk request 'cdn.SetCdnDomainSSLCertificate'", slog.Any("request", setCdnDomainSSLCertificateReq), slog.Any("response", setCdnDomainSSLCertificateResp))
 	if err != nil {
 		return fmt.Errorf("failed to execute sdk request 'cdn.SetCdnDomainSSLCertificate': %w", err)

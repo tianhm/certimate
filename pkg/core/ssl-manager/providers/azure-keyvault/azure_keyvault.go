@@ -113,7 +113,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 			}
 
 			// 对比证书内容
-			getCertificateResp, err := m.sdkClient.GetCertificate(context.TODO(), certItem.ID.Name(), certItem.ID.Version(), nil)
+			getCertificateResp, err := m.sdkClient.GetCertificate(ctx, certItem.ID.Name(), certItem.ID.Version(), nil)
 			m.logger.Debug("sdk request 'keyvault.GetCertificate'", slog.String("request.certificateName", certItem.ID.Name()), slog.String("request.certificateVersion", certItem.ID.Version()), slog.Any("response", getCertificateResp))
 			if err != nil {
 				return nil, fmt.Errorf("failed to execute sdk request 'keyvault.GetCertificate': %w", err)
@@ -157,7 +157,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 			TAG_CERTSN: to.Ptr(certSN),
 		},
 	}
-	importCertificateResp, err := m.sdkClient.ImportCertificate(context.TODO(), certName, importCertificateParams, nil)
+	importCertificateResp, err := m.sdkClient.ImportCertificate(ctx, certName, importCertificateParams, nil)
 	m.logger.Debug("sdk request 'keyvault.ImportCertificate'", slog.String("request.certificateName", certName), slog.Any("request.parameters", importCertificateParams), slog.Any("response", importCertificateResp))
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute sdk request 'keyvault.ImportCertificate': %w", err)

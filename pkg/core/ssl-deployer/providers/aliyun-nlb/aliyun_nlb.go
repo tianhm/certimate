@@ -124,7 +124,7 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCer
 	getLoadBalancerAttributeReq := &alinlb.GetLoadBalancerAttributeRequest{
 		LoadBalancerId: tea.String(d.config.LoadbalancerId),
 	}
-	getLoadBalancerAttributeResp, err := d.sdkClient.GetLoadBalancerAttributeWithContext(context.TODO(), getLoadBalancerAttributeReq, &dara.RuntimeOptions{})
+	getLoadBalancerAttributeResp, err := d.sdkClient.GetLoadBalancerAttributeWithContext(ctx, getLoadBalancerAttributeReq, &dara.RuntimeOptions{})
 	d.logger.Debug("sdk request 'nlb.GetLoadBalancerAttribute'", slog.Any("request", getLoadBalancerAttributeReq), slog.Any("response", getLoadBalancerAttributeResp))
 	if err != nil {
 		return fmt.Errorf("failed to execute sdk request 'nlb.GetLoadBalancerAttribute': %w", err)
@@ -147,7 +147,7 @@ func (d *SSLDeployerProvider) deployToLoadbalancer(ctx context.Context, cloudCer
 			LoadBalancerIds:  tea.StringSlice([]string{d.config.LoadbalancerId}),
 			ListenerProtocol: tea.String("TCPSSL"),
 		}
-		listListenersResp, err := d.sdkClient.ListListenersWithContext(context.TODO(), listListenersReq, &dara.RuntimeOptions{})
+		listListenersResp, err := d.sdkClient.ListListenersWithContext(ctx, listListenersReq, &dara.RuntimeOptions{})
 		d.logger.Debug("sdk request 'nlb.ListListeners'", slog.Any("request", listListenersReq), slog.Any("response", listListenersResp))
 		if err != nil {
 			return fmt.Errorf("failed to execute sdk request 'nlb.ListListeners': %w", err)
@@ -213,7 +213,7 @@ func (d *SSLDeployerProvider) updateListenerCertificate(ctx context.Context, clo
 	getListenerAttributeReq := &alinlb.GetListenerAttributeRequest{
 		ListenerId: tea.String(cloudListenerId),
 	}
-	getListenerAttributeResp, err := d.sdkClient.GetListenerAttributeWithContext(context.TODO(), getListenerAttributeReq, &dara.RuntimeOptions{})
+	getListenerAttributeResp, err := d.sdkClient.GetListenerAttributeWithContext(ctx, getListenerAttributeReq, &dara.RuntimeOptions{})
 	d.logger.Debug("sdk request 'nlb.GetListenerAttribute'", slog.Any("request", getListenerAttributeReq), slog.Any("response", getListenerAttributeResp))
 	if err != nil {
 		return fmt.Errorf("failed to execute sdk request 'nlb.GetListenerAttribute': %w", err)
@@ -225,7 +225,7 @@ func (d *SSLDeployerProvider) updateListenerCertificate(ctx context.Context, clo
 		ListenerId:     tea.String(cloudListenerId),
 		CertificateIds: []*string{tea.String(cloudCertId)},
 	}
-	updateListenerAttributeResp, err := d.sdkClient.UpdateListenerAttributeWithContext(context.TODO(), updateListenerAttributeReq, &dara.RuntimeOptions{})
+	updateListenerAttributeResp, err := d.sdkClient.UpdateListenerAttributeWithContext(ctx, updateListenerAttributeReq, &dara.RuntimeOptions{})
 	d.logger.Debug("sdk request 'nlb.UpdateListenerAttribute'", slog.Any("request", updateListenerAttributeReq), slog.Any("response", updateListenerAttributeResp))
 	if err != nil {
 		return fmt.Errorf("failed to execute sdk request 'nlb.UpdateListenerAttribute': %w", err)

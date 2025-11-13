@@ -98,7 +98,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			CertificateChain: ([]byte)(intermediaCertPEM),
 			PrivateKey:       ([]byte)(privkeyPEM),
 		}
-		importCertificateResp, err := d.sdkClient.ImportCertificate(context.TODO(), importCertificateReq)
+		importCertificateResp, err := d.sdkClient.ImportCertificate(ctx, importCertificateReq)
 		d.logger.Debug("sdk request 'acm.ImportCertificate'", slog.Any("request", importCertificateReq), slog.Any("response", importCertificateResp))
 		if err != nil {
 			return nil, fmt.Errorf("failed to execute sdk request 'acm.ImportCertificate': %w", err)

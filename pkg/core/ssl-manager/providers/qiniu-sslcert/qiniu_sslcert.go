@@ -76,7 +76,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 		default:
 		}
 
-		getSslCertListResp, err := m.sdkClient.GetSslCertList(context.TODO(), getSslCertListMarker, 200)
+		getSslCertListResp, err := m.sdkClient.GetSslCertList(ctx, getSslCertListMarker, 200)
 		m.logger.Debug("sdk request 'sslcert.GetList'", slog.Any("request.marker", getSslCertListMarker), slog.Any("response", getSslCertListResp))
 		if err != nil {
 			return nil, fmt.Errorf("failed to execute sdk request 'sslcert.GetList': %w", err)
@@ -134,7 +134,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 
 	// 上传新证书
 	// REF: https://developer.qiniu.com/fusion/8593/interface-related-certificate
-	uploadSslCertResp, err := m.sdkClient.UploadSslCert(context.TODO(), certName, certX509.Subject.CommonName, certPEM, privkeyPEM)
+	uploadSslCertResp, err := m.sdkClient.UploadSslCert(ctx, certName, certX509.Subject.CommonName, certPEM, privkeyPEM)
 	m.logger.Debug("sdk request 'sslcert.Upload'", slog.Any("response", uploadSslCertResp))
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute sdk request 'sslcert.Upload': %w", err)

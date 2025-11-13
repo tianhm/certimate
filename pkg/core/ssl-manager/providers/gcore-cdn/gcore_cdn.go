@@ -62,7 +62,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 		Automated:      false,
 		ValidateRootCA: false,
 	}
-	createCertificateResp, err := m.sdkClient.Create(context.TODO(), createCertificateReq)
+	createCertificateResp, err := m.sdkClient.Create(ctx, createCertificateReq)
 	m.logger.Debug("sdk request 'sslcerts.Create'", slog.Any("request", createCertificateReq), slog.Any("response", createCertificateResp))
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute sdk request 'sslcerts.Create': %w", err)

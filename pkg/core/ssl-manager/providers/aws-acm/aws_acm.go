@@ -86,7 +86,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 			NextToken: listCertificatesNextToken,
 			MaxItems:  aws.Int32(1000),
 		}
-		listCertificatesResp, err := m.sdkClient.ListCertificates(context.TODO(), listCertificatesReq)
+		listCertificatesResp, err := m.sdkClient.ListCertificates(ctx, listCertificatesReq)
 		m.logger.Debug("sdk request 'acm.ListCertificates'", slog.Any("request", listCertificatesReq), slog.Any("response", listCertificatesResp))
 		if err != nil {
 			return nil, fmt.Errorf("failed to execute sdk request 'acm.ListCertificates': %w", err)
@@ -110,7 +110,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 			getCertificateReq := &awsacm.GetCertificateInput{
 				CertificateArn: certItem.CertificateArn,
 			}
-			getCertificateResp, err := m.sdkClient.GetCertificate(context.TODO(), getCertificateReq)
+			getCertificateResp, err := m.sdkClient.GetCertificate(ctx, getCertificateReq)
 			if err != nil {
 				return nil, fmt.Errorf("failed to execute sdk request 'acm.GetCertificate': %w", err)
 			} else {
@@ -140,7 +140,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 		CertificateChain: ([]byte)(intermediaCertPEM),
 		PrivateKey:       ([]byte)(privkeyPEM),
 	}
-	importCertificateResp, err := m.sdkClient.ImportCertificate(context.TODO(), importCertificateReq)
+	importCertificateResp, err := m.sdkClient.ImportCertificate(ctx, importCertificateReq)
 	m.logger.Debug("sdk request 'acm.ImportCertificate'", slog.Any("request", importCertificateReq), slog.Any("response", importCertificateResp))
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute sdk request 'acm.ImportCertificate': %w", err)

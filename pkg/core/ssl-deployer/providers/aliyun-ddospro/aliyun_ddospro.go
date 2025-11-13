@@ -99,7 +99,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		Domain:         tea.String(d.config.Domain),
 		CertIdentifier: tea.String(upres.ExtendedData["CertIdentifier"].(string)),
 	}
-	associateWebCertResp, err := d.sdkClient.AssociateWebCertWithContext(context.TODO(), associateWebCertReq, &dara.RuntimeOptions{})
+	associateWebCertResp, err := d.sdkClient.AssociateWebCertWithContext(ctx, associateWebCertReq, &dara.RuntimeOptions{})
 	d.logger.Debug("sdk request 'dcdn.AssociateWebCert'", slog.Any("request", associateWebCertReq), slog.Any("response", associateWebCertResp))
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute sdk request 'dcdn.AssociateWebCert': %w", err)

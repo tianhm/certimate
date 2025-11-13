@@ -96,7 +96,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	} else {
 		// 获取证书
 		// REF: https://api.gcore.com/docs/cdn#tag/SSL-certificates/paths/~1cdn~1sslData~1%7Bssl_id%7D/get
-		getCertificateDetailResp, err := d.sdkClients.SSLCerts.Get(context.TODO(), d.config.CertificateId)
+		getCertificateDetailResp, err := d.sdkClients.SSLCerts.Get(ctx, d.config.CertificateId)
 		d.logger.Debug("sdk request 'sslcerts.Get'", slog.Int64("sslId", d.config.CertificateId), slog.Any("response", getCertificateDetailResp))
 		if err != nil {
 			return nil, fmt.Errorf("failed to execute sdk request 'sslcerts.Get': %w", err)
@@ -110,7 +110,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			PrivateKey:     privkeyPEM,
 			ValidateRootCA: false,
 		}
-		changeCertificateResp, err := d.sdkClients.SSLCerts.Update(context.TODO(), getCertificateDetailResp.ID, changeCertificateReq)
+		changeCertificateResp, err := d.sdkClients.SSLCerts.Update(ctx, getCertificateDetailResp.ID, changeCertificateReq)
 		d.logger.Debug("sdk request 'sslcerts.Update'", slog.Int64("sslId", getCertificateDetailResp.ID), slog.Any("request", changeCertificateReq), slog.Any("response", changeCertificateResp))
 		if err != nil {
 			return nil, fmt.Errorf("failed to execute sdk request 'sslcerts.Update': %w", err)
@@ -121,7 +121,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 
 	// 获取 CDN 资源详情
 	// REF: https://api.gcore.com/docs/cdn#tag/CDN-resources/paths/~1cdn~1resources~1%7Bresource_id%7D/get
-	getResourceResp, err := d.sdkClients.Resources.Get(context.TODO(), d.config.ResourceId)
+	getResourceResp, err := d.sdkClients.Resources.Get(ctx, d.config.ResourceId)
 	d.logger.Debug("sdk request 'resources.Get'", slog.Any("resourceId", d.config.ResourceId), slog.Any("response", getResourceResp))
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute sdk request 'resources.Get': %w", err)
@@ -146,7 +146,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	if getResourceResp.ProxySSLData != 0 {
 		updateResourceReq.ProxySSLData = &getResourceResp.ProxySSLData
 	}
-	updateResourceResp, err := d.sdkClients.Resources.Update(context.TODO(), d.config.ResourceId, updateResourceReq)
+	updateResourceResp, err := d.sdkClients.Resources.Update(ctx, d.config.ResourceId, updateResourceReq)
 	d.logger.Debug("sdk request 'resources.Update'", slog.Int64("resourceId", d.config.ResourceId), slog.Any("request", updateResourceReq), slog.Any("response", updateResourceResp))
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute sdk request 'resources.Update': %w", err)

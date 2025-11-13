@@ -88,7 +88,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 			ShowSize:        tea.Int64(int64(listUserCertificateOrderLimit)),
 			OrderType:       tea.String("CERT"),
 		}
-		listUserCertificateOrderResp, err := m.sdkClient.ListUserCertificateOrderWithContext(context.TODO(), listUserCertificateOrderReq, &dara.RuntimeOptions{})
+		listUserCertificateOrderResp, err := m.sdkClient.ListUserCertificateOrderWithContext(ctx, listUserCertificateOrderReq, &dara.RuntimeOptions{})
 		m.logger.Debug("sdk request 'cas.ListUserCertificateOrder'", slog.Any("request", listUserCertificateOrderReq), slog.Any("response", listUserCertificateOrderResp))
 		if err != nil {
 			return nil, fmt.Errorf("failed to execute sdk request 'cas.ListUserCertificateOrder': %w", err)
@@ -116,7 +116,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 			getUserCertificateDetailReq := &alicas.GetUserCertificateDetailRequest{
 				CertId: certItem.CertificateId,
 			}
-			getUserCertificateDetailResp, err := m.sdkClient.GetUserCertificateDetailWithContext(context.TODO(), getUserCertificateDetailReq, &dara.RuntimeOptions{})
+			getUserCertificateDetailResp, err := m.sdkClient.GetUserCertificateDetailWithContext(ctx, getUserCertificateDetailReq, &dara.RuntimeOptions{})
 			m.logger.Debug("sdk request 'cas.GetUserCertificateDetail'", slog.Any("request", getUserCertificateDetailReq), slog.Any("response", getUserCertificateDetailResp))
 			if err != nil {
 				return nil, fmt.Errorf("failed to execute sdk request 'cas.GetUserCertificateDetail': %w", err)
@@ -156,7 +156,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 		Cert:            tea.String(certPEM),
 		Key:             tea.String(privkeyPEM),
 	}
-	uploadUserCertificateResp, err := m.sdkClient.UploadUserCertificateWithContext(context.TODO(), uploadUserCertificateReq, &dara.RuntimeOptions{})
+	uploadUserCertificateResp, err := m.sdkClient.UploadUserCertificateWithContext(ctx, uploadUserCertificateReq, &dara.RuntimeOptions{})
 	m.logger.Debug("sdk request 'cas.UploadUserCertificate'", slog.Any("request", uploadUserCertificateReq), slog.Any("response", uploadUserCertificateResp))
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute sdk request 'cas.UploadUserCertificate': %w", err)
@@ -168,7 +168,7 @@ func (m *SSLManagerProvider) Upload(ctx context.Context, certPEM string, privkey
 		CertId:     uploadUserCertificateResp.Body.CertId,
 		CertFilter: tea.Bool(true),
 	}
-	getUserCertificateDetailResp, err := m.sdkClient.GetUserCertificateDetailWithContext(context.TODO(), getUserCertificateDetailReq, &dara.RuntimeOptions{})
+	getUserCertificateDetailResp, err := m.sdkClient.GetUserCertificateDetailWithContext(ctx, getUserCertificateDetailReq, &dara.RuntimeOptions{})
 	m.logger.Debug("sdk request 'cas.GetUserCertificateDetail'", slog.Any("request", getUserCertificateDetailReq), slog.Any("response", getUserCertificateDetailResp))
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute sdk request 'cas.GetUserCertificateDetail': %w", err)

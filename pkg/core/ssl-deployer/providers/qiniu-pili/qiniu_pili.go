@@ -85,7 +85,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 		Domain:   d.config.Domain,
 		CertName: upres.CertName,
 	}
-	err = d.sdkClient.SetDomainCert(context.TODO(), setDomainCertReq)
+	err = d.sdkClient.SetDomainCert(ctx, setDomainCertReq)
 	d.logger.Debug("sdk request 'pili.SetDomainCert'", slog.Any("request", setDomainCertReq))
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute sdk request 'pili.SetDomainCert': %w", err)

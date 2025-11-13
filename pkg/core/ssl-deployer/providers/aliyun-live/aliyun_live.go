@@ -219,7 +219,7 @@ func (d *SSLDeployerProvider) updateDomainCertificate(ctx context.Context, domai
 		SSLPub:      tea.String(certPEM),
 		SSLPri:      tea.String(privkeyPEM),
 	}
-	setLiveDomainSSLCertificateResp, err := d.sdkClient.SetLiveDomainCertificateWithContext(context.TODO(), setLiveDomainSSLCertificateReq, &dara.RuntimeOptions{})
+	setLiveDomainSSLCertificateResp, err := d.sdkClient.SetLiveDomainCertificateWithContext(ctx, setLiveDomainSSLCertificateReq, &dara.RuntimeOptions{})
 	d.logger.Debug("sdk request 'live.SetLiveDomainCertificate'", slog.Any("request", setLiveDomainSSLCertificateReq), slog.Any("response", setLiveDomainSSLCertificateResp))
 	if err != nil {
 		return fmt.Errorf("failed to execute sdk request 'live.SetLiveDomainCertificate': %w", err)

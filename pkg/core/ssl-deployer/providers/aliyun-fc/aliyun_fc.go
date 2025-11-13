@@ -97,7 +97,7 @@ func (d *SSLDeployerProvider) deployToFC3(ctx context.Context, certPEM string, p
 
 	// 获取自定义域名
 	// REF: https://help.aliyun.com/zh/functioncompute/fc-3-0/developer-reference/api-fc-2023-03-30-getcustomdomain
-	getCustomDomainResp, err := d.sdkClients.FC3.GetCustomDomainWithContext(context.TODO(), tea.String(d.config.Domain), make(map[string]*string), &dara.RuntimeOptions{})
+	getCustomDomainResp, err := d.sdkClients.FC3.GetCustomDomainWithContext(ctx, tea.String(d.config.Domain), make(map[string]*string), &dara.RuntimeOptions{})
 	d.logger.Debug("sdk request 'fc.GetCustomDomain'", slog.Any("response", getCustomDomainResp))
 	if err != nil {
 		return fmt.Errorf("failed to execute sdk request 'fc.GetCustomDomain': %w", err)
@@ -119,7 +119,7 @@ func (d *SSLDeployerProvider) deployToFC3(ctx context.Context, certPEM string, p
 	if tea.StringValue(updateCustomDomainReq.Body.Protocol) == "HTTP" {
 		updateCustomDomainReq.Body.Protocol = tea.String("HTTP,HTTPS")
 	}
-	updateCustomDomainResp, err := d.sdkClients.FC3.UpdateCustomDomainWithContext(context.TODO(), tea.String(d.config.Domain), updateCustomDomainReq, make(map[string]*string), &dara.RuntimeOptions{})
+	updateCustomDomainResp, err := d.sdkClients.FC3.UpdateCustomDomainWithContext(ctx, tea.String(d.config.Domain), updateCustomDomainReq, make(map[string]*string), &dara.RuntimeOptions{})
 	d.logger.Debug("sdk request 'fc.UpdateCustomDomain'", slog.Any("request", updateCustomDomainReq), slog.Any("response", updateCustomDomainResp))
 	if err != nil {
 		return fmt.Errorf("failed to execute sdk request 'fc.UpdateCustomDomain': %w", err)

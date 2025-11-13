@@ -182,7 +182,7 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 		default:
 		}
 
-		getDomainListResp, err := d.sdkClient.GetDomainList(context.TODO(), getDomainListMarker, 100)
+		getDomainListResp, err := d.sdkClient.GetDomainList(ctx, getDomainListMarker, 100)
 		d.logger.Debug("sdk request 'cdn.GetDomainList'", slog.String("request.marker", getDomainListMarker), slog.Any("response", getDomainListResp))
 		if err != nil {
 			return nil, fmt.Errorf("failed to execute sdk request 'cdn.GetDomainList': %w", err)
@@ -210,7 +210,7 @@ func (d *SSLDeployerProvider) getAllDomains(ctx context.Context) ([]string, erro
 func (d *SSLDeployerProvider) updateDomainCertificate(ctx context.Context, domain string, cloudCertId string) error {
 	// 获取域名信息
 	// REF: https://developer.qiniu.com/fusion/4246/the-domain-name
-	getDomainInfoResp, err := d.sdkClient.GetDomainInfo(context.TODO(), domain)
+	getDomainInfoResp, err := d.sdkClient.GetDomainInfo(ctx, domain)
 	d.logger.Debug("sdk request 'cdn.GetDomainInfo'", slog.String("request.domain", domain), slog.Any("response", getDomainInfoResp))
 	if err != nil {
 		return fmt.Errorf("failed to execute sdk request 'cdn.GetDomainInfo': %w", err)
@@ -220,13 +220,13 @@ func (d *SSLDeployerProvider) updateDomainCertificate(ctx context.Context, domai
 	// 如果已启用，修改域名证书；否则，启用 HTTPS
 	// REF: https://developer.qiniu.com/fusion/4246/the-domain-name
 	if getDomainInfoResp.Https == nil || getDomainInfoResp.Https.CertID == "" {
-		enableDomainHttpsResp, err := d.sdkClient.EnableDomainHttps(context.TODO(), domain, cloudCertId, true, true)
+		enableDomainHttpsResp, err := d.sdkClient.EnableDomainHttps(ctx, domain, cloudCertId, true, true)
 		d.logger.Debug("sdk request 'cdn.EnableDomainHttps'", slog.String("request.domain", domain), slog.String("request.certId", cloudCertId), slog.Any("response", enableDomainHttpsResp))
 		if err != nil {
 			return fmt.Errorf("failed to execute sdk request 'cdn.EnableDomainHttps': %w", err)
 		}
 	} else if getDomainInfoResp.Https.CertID != cloudCertId {
-		modifyDomainHttpsConfResp, err := d.sdkClient.ModifyDomainHttpsConf(context.TODO(), domain, cloudCertId, getDomainInfoResp.Https.ForceHttps, getDomainInfoResp.Https.Http2Enable)
+		modifyDomainHttpsConfResp, err := d.sdkClient.ModifyDomainHttpsConf(ctx, domain, cloudCertId, getDomainInfoResp.Https.ForceHttps, getDomainInfoResp.Https.Http2Enable)
 		d.logger.Debug("sdk request 'cdn.ModifyDomainHttpsConf'", slog.String("request.domain", domain), slog.String("request.certId", cloudCertId), slog.Any("response", modifyDomainHttpsConfResp))
 		if err != nil {
 			return fmt.Errorf("failed to execute sdk request 'cdn.ModifyDomainHttpsConf': %w", err)

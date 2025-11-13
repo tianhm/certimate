@@ -71,14 +71,14 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 
 	// 获取节点信息
 	// REF: https://pve.proxmox.com/pve-docs/api-viewer/index.html#/nodes/{node}
-	node, err := d.sdkClient.Node(context.TODO(), d.config.NodeName)
+	node, err := d.sdkClient.Node(ctx, d.config.NodeName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get node '%s': %w", d.config.NodeName, err)
 	}
 
 	// 上传自定义证书
 	// REF: https://pve.proxmox.com/pve-docs/api-viewer/index.html#/nodes/{node}/certificates/custom
-	err = node.UploadCustomCertificate(context.TODO(), &proxmox.CustomCertificate{
+	err = node.UploadCustomCertificate(ctx, &proxmox.CustomCertificate{
 		Certificates: certPEM,
 		Key:          privkeyPEM,
 		Force:        true,

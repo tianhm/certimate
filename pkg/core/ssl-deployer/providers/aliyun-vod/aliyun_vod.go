@@ -105,7 +105,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 			Else(tea.String("ap-southeast-1")),
 		SSLProtocol: tea.String("on"),
 	}
-	setVodDomainSSLCertificateResp, err := d.sdkClient.SetVodDomainSSLCertificateWithContext(context.TODO(), setVodDomainSSLCertificateReq, &dara.RuntimeOptions{})
+	setVodDomainSSLCertificateResp, err := d.sdkClient.SetVodDomainSSLCertificateWithContext(ctx, setVodDomainSSLCertificateReq, &dara.RuntimeOptions{})
 	d.logger.Debug("sdk request 'live.SetVodDomainSSLCertificate'", slog.Any("request", setVodDomainSSLCertificateReq), slog.Any("response", setVodDomainSSLCertificateResp))
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute sdk request 'live.SetVodDomainSSLCertificate': %w", err)

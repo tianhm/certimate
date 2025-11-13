@@ -141,7 +141,7 @@ func (d *SSLDeployerProvider) deployToTraditional(ctx context.Context, certPEM s
 			}
 
 			if strings.HasPrefix(d.config.Domain, "*.") {
-				domainCandidates, err := d.getTraditionalAllDomains(ctx, d.config.GroupId)
+				domainCandidates, err := d.getTraditionalAllDomainsByGroupId(ctx, d.config.GroupId)
 				if err != nil {
 					return err
 				}
@@ -164,7 +164,7 @@ func (d *SSLDeployerProvider) deployToTraditional(ctx context.Context, certPEM s
 				return err
 			}
 
-			domainCandidates, err := d.getTraditionalAllDomains(ctx, d.config.GroupId)
+			domainCandidates, err := d.getTraditionalAllDomainsByGroupId(ctx, d.config.GroupId)
 			if err != nil {
 				return err
 			}
@@ -239,7 +239,7 @@ func (d *SSLDeployerProvider) deployToCloudNative(ctx context.Context, certPEM s
 			}
 
 			if strings.HasPrefix(d.config.Domain, "*.") {
-				domainCandidates, err := d.getCloudNativeAllDomains(ctx, d.config.GatewayId)
+				domainCandidates, err := d.getCloudNativeAllDomainsByGatewayId(ctx, d.config.GatewayId)
 				if err != nil {
 					return err
 				}
@@ -262,7 +262,7 @@ func (d *SSLDeployerProvider) deployToCloudNative(ctx context.Context, certPEM s
 				return err
 			}
 
-			domainCandidates, err := d.getCloudNativeAllDomains(ctx, d.config.GatewayId)
+			domainCandidates, err := d.getCloudNativeAllDomainsByGatewayId(ctx, d.config.GatewayId)
 			if err != nil {
 				return err
 			}
@@ -306,7 +306,7 @@ func (d *SSLDeployerProvider) deployToCloudNative(ctx context.Context, certPEM s
 	return nil
 }
 
-func (d *SSLDeployerProvider) getTraditionalAllDomains(ctx context.Context, cloudGroupId string) ([]string, error) {
+func (d *SSLDeployerProvider) getTraditionalAllDomainsByGroupId(ctx context.Context, cloudGroupId string) ([]string, error) {
 	domains := make([]string, 0)
 
 	// 查询 API 分组详情
@@ -329,7 +329,7 @@ func (d *SSLDeployerProvider) getTraditionalAllDomains(ctx context.Context, clou
 	return domains, nil
 }
 
-func (d *SSLDeployerProvider) getCloudNativeAllDomains(ctx context.Context, cloudGatewayId string) ([]string, error) {
+func (d *SSLDeployerProvider) getCloudNativeAllDomainsByGatewayId(ctx context.Context, cloudGatewayId string) ([]string, error) {
 	domains := make([]string, 0)
 
 	// 查询域名列表

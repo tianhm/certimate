@@ -225,7 +225,7 @@ func (d *SSLDeployerProvider) findDomainIdByDomain(ctx context.Context, domain s
 		}
 
 		for _, domainItem := range listDomainsResp.Result.Content {
-			if domainItem.Name == d.config.Domain {
+			if domainItem.Name == domain {
 				domainId, _ := strconv.Atoi(domainItem.Id)
 				return domainId, nil
 			}

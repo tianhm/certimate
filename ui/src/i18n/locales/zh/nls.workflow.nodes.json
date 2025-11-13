@@ -197,7 +197,7 @@
   "workflow_node.deploy.form.shared_domain_match_pattern.option.exact.label": "精确匹配",
   "workflow_node.deploy.form.shared_domain_match_pattern.option.wildcard.label": "通配符匹配（泛域名）",
   "workflow_node.deploy.form.shared_domain_match_pattern.option.certsan.label": "根据证书自动匹配",
-  "workflow_node.deploy.form.shared_domain_match_pattern.help_wildcard": "注意：对于泛解析的站点，<strong>精确匹配</strong>一个泛域名仅包含该站点本身、不包括相关子域名站点。",
+  "workflow_node.deploy.form.shared_domain_match_pattern.help_wildcard": "注意：对于支持泛解析的站点，<strong>精确匹配</strong>一个泛域名仅包含该站点本身、不包括相关子域名站点。",
   "workflow_node.deploy.form.1panel_console_auto_restart.label": "部署后自动重启 1Panel 服务",
   "workflow_node.deploy.form.1panel_site_node_name.label": "1Panel 子节点名称（可选）",
   "workflow_node.deploy.form.1panel_site_node_name.placeholder": "请输入 1Panel 子节点名称",

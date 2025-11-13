@@ -17,10 +17,11 @@ func init() {
 		}
 
 		provider, err := aliyunlive.NewSSLDeployerProvider(&aliyunlive.SSLDeployerProviderConfig{
-			AccessKeyId:     credentials.AccessKeyId,
-			AccessKeySecret: credentials.AccessKeySecret,
-			Region:          xmaps.GetString(options.ProviderExtendedConfig, "region"),
-			Domain:          xmaps.GetString(options.ProviderExtendedConfig, "domain"),
+			AccessKeyId:        credentials.AccessKeyId,
+			AccessKeySecret:    credentials.AccessKeySecret,
+			Region:             xmaps.GetString(options.ProviderExtendedConfig, "region"),
+			DomainMatchPattern: xmaps.GetString(options.ProviderExtendedConfig, "domainMatchPattern"),
+			Domain:             xmaps.GetString(options.ProviderExtendedConfig, "domain"),
 		})
 		return provider, err
 	})

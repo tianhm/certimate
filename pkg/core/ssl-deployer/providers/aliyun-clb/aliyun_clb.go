@@ -255,7 +255,7 @@ func (d *SSLDeployerProvider) updateListenerCertificate(ctx context.Context, clo
 			return fmt.Errorf("failed to execute sdk request 'slb.DescribeDomainExtensions': %w", err)
 		}
 
-		// 遍历修改扩展域名
+		// 遍历修改扩展域名证书
 		// REF: https://help.aliyun.com/zh/slb/classic-load-balancer/developer-reference/api-slb-2014-05-15-setdomainextensionattribute
 		if describeDomainExtensionsResp.Body.DomainExtensions != nil && describeDomainExtensionsResp.Body.DomainExtensions.DomainExtension != nil {
 			var errs []error

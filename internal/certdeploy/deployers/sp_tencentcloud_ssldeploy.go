@@ -20,12 +20,12 @@ func init() {
 		}
 
 		provider, err := tencentcloudssldeploy.NewSSLDeployerProvider(&tencentcloudssldeploy.SSLDeployerProviderConfig{
-			SecretId:     credentials.SecretId,
-			SecretKey:    credentials.SecretKey,
-			Endpoint:     xmaps.GetString(options.ProviderExtendedConfig, "endpoint"),
-			Region:       xmaps.GetString(options.ProviderExtendedConfig, "region"),
-			ResourceType: xmaps.GetString(options.ProviderExtendedConfig, "resourceType"),
-			ResourceIds:  lo.Filter(strings.Split(xmaps.GetString(options.ProviderExtendedConfig, "resourceIds"), ";"), func(s string, _ int) bool { return s != "" }),
+			SecretId:        credentials.SecretId,
+			SecretKey:       credentials.SecretKey,
+			Endpoint:        xmaps.GetString(options.ProviderExtendedConfig, "endpoint"),
+			Region:          xmaps.GetString(options.ProviderExtendedConfig, "region"),
+			ResourceProduct: xmaps.GetString(options.ProviderExtendedConfig, "resourceProduct"),
+			ResourceIds:     lo.Filter(strings.Split(xmaps.GetString(options.ProviderExtendedConfig, "resourceIds"), ";"), func(s string, _ int) bool { return s != "" }),
 		})
 		return provider, err
 	})

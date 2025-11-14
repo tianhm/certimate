@@ -29,9 +29,9 @@ type SSLDeployerProviderConfig struct {
 	CertificateId string `json:"certificateId"`
 	// 是否替换原有证书（即保持原证书 ID 不变）。
 	IsReplaced bool `json:"isReplaced,omitempty"`
-	// 云资源类型数组。
-	ResourceTypes []string `json:"resourceTypes"`
-	// 云资源地域数组。
+	// 云产品类型数组。
+	ResourceProducts []string `json:"resourceProducts"`
+	// 云产品地域数组。
 	ResourceRegions []string `json:"resourceRegions"`
 }
 
@@ -85,8 +85,8 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	if d.config.CertificateId == "" {
 		return nil, errors.New("config `certificateId` is required")
 	}
-	if len(d.config.ResourceTypes) == 0 {
-		return nil, errors.New("config `resourceTypes` is required")
+	if len(d.config.ResourceProducts) == 0 {
+		return nil, errors.New("config `resourceProducts` is required")
 	}
 
 	if d.config.IsReplaced {
@@ -124,8 +124,8 @@ func (d *SSLDeployerProvider) executeUpdateCertificateInstance(ctx context.Conte
 		updateCertificateInstanceReq := tcssl.NewUpdateCertificateInstanceRequest()
 		updateCertificateInstanceReq.OldCertificateId = common.StringPtr(d.config.CertificateId)
 		updateCertificateInstanceReq.CertificateId = common.StringPtr(upres.CertId)
-		updateCertificateInstanceReq.ResourceTypes = common.StringPtrs(d.config.ResourceTypes)
-		updateCertificateInstanceReq.ResourceTypesRegions = wrapResourceTypeRegions(d.config.ResourceTypes, d.config.ResourceRegions)
+		updateCertificateInstanceReq.ResourceTypes = common.StringPtrs(d.config.ResourceProducts)
+		updateCertificateInstanceReq.ResourceTypesRegions = wrapResourceProductRegions(d.config.ResourceProducts, d.config.ResourceRegions)
 		updateCertificateInstanceResp, err := d.sdkClient.UpdateCertificateInstance(updateCertificateInstanceReq)
 		d.logger.Debug("sdk request 'ssl.UpdateCertificateInstance'", slog.Any("request", updateCertificateInstanceReq), slog.Any("response", updateCertificateInstanceResp))
 		if err != nil {
@@ -200,8 +200,8 @@ func (d *SSLDeployerProvider) executeUploadUpdateCertificateInstance(ctx context
 		uploadUpdateCertificateInstanceReq.OldCertificateId = common.StringPtr(d.config.CertificateId)
 		uploadUpdateCertificateInstanceReq.CertificatePublicKey = common.StringPtr(certPEM)
 		uploadUpdateCertificateInstanceReq.CertificatePrivateKey = common.StringPtr(privkeyPEM)
-		uploadUpdateCertificateInstanceReq.ResourceTypes = common.StringPtrs(d.config.ResourceTypes)
-		uploadUpdateCertificateInstanceReq.ResourceTypesRegions = wrapResourceTypeRegions(d.config.ResourceTypes, d.config.ResourceRegions)
+		uploadUpdateCertificateInstanceReq.ResourceTypes = common.StringPtrs(d.config.ResourceProducts)
+		uploadUpdateCertificateInstanceReq.ResourceTypesRegions = wrapResourceProductRegions(d.config.ResourceProducts, d.config.ResourceRegions)
 		uploadUpdateCertificateInstanceResp, err := d.sdkClient.UploadUpdateCertificateInstance(uploadUpdateCertificateInstanceReq)
 		d.logger.Debug("sdk request 'ssl.UploadUpdateCertificateInstance'", slog.Any("request", uploadUpdateCertificateInstanceReq), slog.Any("response", uploadUpdateCertificateInstanceResp))
 		if err != nil {
@@ -278,19 +278,19 @@ func createSDKClient(secretId, secretKey, endpoint string) (*internal.SslClient,
 	return client, nil
 }
 
-func wrapResourceTypeRegions(resourceTypes, resourceRegions []string) []*tcssl.ResourceTypeRegions {
-	if len(resourceTypes) == 0 || len(resourceRegions) == 0 {
+func wrapResourceProductRegions(resourceProducts, resourceRegions []string) []*tcssl.ResourceTypeRegions {
+	if len(resourceProducts) == 0 || len(resourceRegions) == 0 {
 		return nil
 	}
 
-	// 仅以下云资源类型支持地域
-	resourceTypesRequireRegion := []string{"apigateway", "clb", "cos", "tcb", "tke", "tse", "waf"}
+	// 仅以下云产品类型支持地域
+	resourceProductsRequireRegion := []string{"apigateway", "clb", "cos", "tcb", "tke", "tse", "waf"}
 
 	temp := make([]*tcssl.ResourceTypeRegions, 0)
-	for _, resourceType := range resourceTypes {
-		if slices.Contains(resourceTypesRequireRegion, resourceType) {
+	for _, resourceProduct := range resourceProducts {
+		if slices.Contains(resourceProductsRequireRegion, resourceProduct) {
 			temp = append(temp, &tcssl.ResourceTypeRegions{
-				ResourceType: common.StringPtr(resourceType),
+				ResourceType: common.StringPtr(resourceProduct),
 				Regions:      common.StringPtrs(resourceRegions),
 			})
 		}

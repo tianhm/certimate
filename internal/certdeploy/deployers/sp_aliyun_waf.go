@@ -22,7 +22,11 @@ func init() {
 			ResourceGroupId: credentials.ResourceGroupId,
 			Region:          xmaps.GetString(options.ProviderExtendedConfig, "region"),
 			ServiceVersion:  xmaps.GetOrDefaultString(options.ProviderExtendedConfig, "serviceVersion", "3.0"),
+			ServiceType:     xmaps.GetString(options.ProviderExtendedConfig, "serviceType"),
 			InstanceId:      xmaps.GetString(options.ProviderExtendedConfig, "instanceId"),
+			ResourceProduct: xmaps.GetString(options.ProviderExtendedConfig, "resourceProduct"),
+			ResourceId:      xmaps.GetString(options.ProviderExtendedConfig, "resourceId"),
+			ResourcePort:    xmaps.GetOrDefaultInt32(options.ProviderExtendedConfig, "resourcePort", 443),
 			Domain:          xmaps.GetString(options.ProviderExtendedConfig, "domain"),
 		})
 		return provider, err

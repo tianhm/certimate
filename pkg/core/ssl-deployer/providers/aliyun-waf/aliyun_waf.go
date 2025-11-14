@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"time"
 
 	aliopen "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	"github.com/alibabacloud-go/tea/dara"
@@ -28,10 +29,22 @@ type SSLDeployerProviderConfig struct {
 	// 阿里云地域。
 	Region string `json:"region"`
 	// 服务版本。
+	// 可取值 "3.0"。
 	ServiceVersion string `json:"serviceVersion"`
+	// 服务类型。
+	ServiceType string `json:"serviceType"`
 	// WAF 实例 ID。
 	InstanceId string `json:"instanceId"`
-	// 接入域名（支持泛域名）。
+	// 云产品类型。
+	// 服务类型为 [SERVICE_TYPE_CLOUDRESOURCE] 时必填。
+	ResourceProduct string `json:"resourceProduct,omitempty"`
+	// 云产品资源 ID。
+	// 服务类型为 [SERVICE_TYPE_CLOUDRESOURCE] 时必填。
+	ResourceId string `json:"resourceId,omitempty"`
+	// 云产品资源端口。
+	// 服务类型为 [SERVICE_TYPE_CLOUDRESOURCE] 时必填。
+	ResourcePort int32 `json:"resourcePort,omitempty"`
+	// 扩展域名（支持泛域名）。
 	Domain string `json:"domain,omitempty"`
 }
 
@@ -85,10 +98,6 @@ func (d *SSLDeployerProvider) SetLogger(logger *slog.Logger) {
 }
 
 func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privkeyPEM string) (*core.SSLDeployResult, error) {
-	if d.config.InstanceId == "" {
-		return nil, errors.New("config `instanceId` is required")
-	}
-
 	switch d.config.ServiceVersion {
 	case "3", "3.0":
 		if err := d.deployToWAF3(ctx, certPEM, privkeyPEM); err != nil {
@@ -103,6 +112,10 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 }
 
 func (d *SSLDeployerProvider) deployToWAF3(ctx context.Context, certPEM string, privkeyPEM string) error {
+	if d.config.InstanceId == "" {
+		return errors.New("config `instanceId` is required")
+	}
+
 	// 上传证书
 	upres, err := d.sslManager.Upload(ctx, certPEM, privkeyPEM)
 	if err != nil {
@@ -111,8 +124,180 @@ func (d *SSLDeployerProvider) deployToWAF3(ctx context.Context, certPEM string, 
 		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
 	}
 
+	// 根据接入方式决定部署方式
+	switch d.config.ServiceType {
+	case SERVICE_TYPE_CLOUDRESOURCE:
+		certId := upres.ExtendedData["CertIdentifier"].(string)
+		if err := d.deployToWAF3WithCloudResource(ctx, certId); err != nil {
+			return err
+		}
+
+	case SERVICE_TYPE_CNAME:
+		certId := upres.ExtendedData["CertIdentifier"].(string)
+		if err := d.deployToWAF3WithCNAME(ctx, certId); err != nil {
+			return err
+		}
+
+	default:
+		return fmt.Errorf("unsupported service version '%s'", d.config.ServiceVersion)
+	}
+
+	return nil
+}
+
+func (d *SSLDeployerProvider) deployToWAF3WithCloudResource(ctx context.Context, cloudCertId string) error {
+	if d.config.ResourceProduct == "" {
+		return errors.New("config `resourceProduct` is required")
+	}
+	if d.config.ResourceId == "" {
+		return errors.New("config `resourceId` is required")
+	}
+	if d.config.ResourcePort == 0 {
+		d.config.ResourcePort = 443
+	}
+
+	// 查询已同步的云产品资产
+	// REF: https://www.alibabacloud.com/help/zh/waf/web-application-firewall-3-0/developer-reference/api-waf-openapi-2021-10-01-describeproductinstances
+	var resourceInstance *aliwaf.DescribeProductInstancesResponseBodyProductInstances
+	var resourceInstancePort *aliwaf.DescribeProductInstancesResponseBodyProductInstancesResourcePorts
+	describeProductInstancesReq := &aliwaf.DescribeProductInstancesRequest{
+		ResourceManagerResourceGroupId: lo.EmptyableToPtr(d.config.ResourceGroupId),
+		RegionId:                       tea.String(d.config.Region),
+		InstanceId:                     tea.String(d.config.InstanceId),
+		ResourceProduct:                tea.String(d.config.ResourceProduct),
+		ResourceInstanceId:             tea.String(d.config.ResourceId),
+	}
+	describeProductInstancesResp, err := d.sdkClient.DescribeProductInstancesWithContext(ctx, describeProductInstancesReq, &dara.RuntimeOptions{})
+	d.logger.Debug("sdk request 'waf.DescribeProductInstances'", slog.Any("request", describeProductInstancesReq), slog.Any("response", describeProductInstancesResp))
+	if err != nil {
+		return fmt.Errorf("failed to execute sdk request 'waf.DescribeProductInstances': %w", err)
+	} else if len(describeProductInstancesResp.Body.ProductInstances) == 0 {
+		return fmt.Errorf("cloud not find waf '%s' cloud resource '%s %s'", d.config.InstanceId, d.config.ResourceProduct, d.config.ResourceId)
+	} else {
+		resourceInstance = describeProductInstancesResp.Body.ProductInstances[0]
+
+		resourceInstancePort, _ = lo.Find(resourceInstance.ResourcePorts, func(p *aliwaf.DescribeProductInstancesResponseBodyProductInstancesResourcePorts) bool {
+			return tea.Int32Value(p.Port) == d.config.ResourcePort
+		})
+		if resourceInstancePort == nil {
+			return fmt.Errorf("could not find waf '%s' cloud resource '%s %s:%d'", d.config.InstanceId, d.config.ResourceProduct, d.config.ResourceId, d.config.ResourcePort)
+		}
+	}
+
+	// 查询云产品实例的证书列表
+	var resourceInstanceCertificates []*aliwaf.DescribeResourceInstanceCertsResponseBodyCerts = make([]*aliwaf.DescribeResourceInstanceCertsResponseBodyCerts, 0)
+	describeResourceInstanceCertsPageNumber := 1
+	describeResourceInstanceCertsPageSize := 10
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+
+		describeResourceInstanceCertsReq := &aliwaf.DescribeResourceInstanceCertsRequest{
+			ResourceManagerResourceGroupId: lo.EmptyableToPtr(d.config.ResourceGroupId),
+			InstanceId:                     tea.String(d.config.InstanceId),
+			ResourceInstanceId:             tea.String(d.config.ResourceId),
+			PageNumber:                     tea.Int64(int64(describeResourceInstanceCertsPageNumber)),
+			PageSize:                       tea.Int64(int64(describeResourceInstanceCertsPageSize)),
+		}
+		describeResourceInstanceCertsResp, err := d.sdkClient.DescribeResourceInstanceCertsWithContext(ctx, describeResourceInstanceCertsReq, &dara.RuntimeOptions{})
+		d.logger.Debug("sdk request 'waf.DescribeResourceInstanceCerts'", slog.Any("request", describeResourceInstanceCertsReq), slog.Any("response", describeResourceInstanceCertsResp))
+		if err != nil {
+			return fmt.Errorf("failed to execute sdk request 'wafw.DescribeResourceInstanceCerts': %w", err)
+		}
+
+		if describeResourceInstanceCertsResp.Body == nil {
+			break
+		}
+
+		resourceInstanceCertificates = append(resourceInstanceCertificates, describeResourceInstanceCertsResp.Body.Certs...)
+
+		if len(describeResourceInstanceCertsResp.Body.Certs) < describeResourceInstanceCertsPageSize {
+			break
+		}
+
+		describeResourceInstanceCertsPageNumber++
+	}
+
+	// 生成请求参数
+	modifyCloudResourceReq := &aliwaf.ModifyCloudResourceRequest{
+		ResourceManagerResourceGroupId: lo.EmptyableToPtr(d.config.ResourceGroupId),
+		RegionId:                       tea.String(d.config.Region),
+		Listen: &aliwaf.ModifyCloudResourceRequestListen{
+			ResourceProduct:    resourceInstance.ResourceProduct,
+			ResourceInstanceId: resourceInstance.ResourceInstanceId,
+			Protocol:           tea.String("https"),
+			Port:               resourceInstancePort.Port,
+			Certificates: lo.Map(resourceInstancePort.Certificates, func(c *aliwaf.DescribeProductInstancesResponseBodyProductInstancesResourcePortsCertificates, _ int) *aliwaf.ModifyCloudResourceRequestListenCertificates {
+				return &aliwaf.ModifyCloudResourceRequestListenCertificates{
+					CertificateId: c.CertificateId,
+					AppliedType:   c.AppliedType,
+				}
+			}),
+		},
+	}
 	if d.config.Domain == "" {
-		// 未指定接入域名，只需替换默认证书即可
+		// 未指定扩展域名，只需替换默认证书
+		const certAppliedTypeDefault = "default"
+		for _, certItem := range modifyCloudResourceReq.Listen.Certificates {
+			if tea.StringValue(certItem.AppliedType) == certAppliedTypeDefault &&
+				tea.StringValue(certItem.CertificateId) == cloudCertId {
+				return nil
+			}
+		}
+
+		modifyCloudResourceReq.Listen.Certificates = lo.Filter(modifyCloudResourceReq.Listen.Certificates, func(c *aliwaf.ModifyCloudResourceRequestListenCertificates, _ int) bool {
+			return tea.StringValue(c.AppliedType) != certAppliedTypeDefault
+		})
+		modifyCloudResourceReq.Listen.Certificates = append(modifyCloudResourceReq.Listen.Certificates, &aliwaf.ModifyCloudResourceRequestListenCertificates{
+			CertificateId: tea.String(cloudCertId),
+			AppliedType:   tea.String(certAppliedTypeDefault),
+		})
+	} else {
+		// 指定扩展域名，需替换扩展证书
+		const certAppliedTypeExtension = "extension"
+
+		modifyCloudResourceReq.Listen.Certificates = append(modifyCloudResourceReq.Listen.Certificates, &aliwaf.ModifyCloudResourceRequestListenCertificates{
+			CertificateId: tea.String(cloudCertId),
+			AppliedType:   tea.String(certAppliedTypeExtension),
+		})
+	}
+
+	// 过滤掉不存在或已过期的证书，防止接口报错
+	modifyCloudResourceReq.Listen.Certificates = lo.Filter(modifyCloudResourceReq.Listen.Certificates, func(c *aliwaf.ModifyCloudResourceRequestListenCertificates, _ int) bool {
+		if tea.StringValue(c.CertificateId) == cloudCertId {
+			return true
+		}
+
+		resourceInstanceCert, _ := lo.Find(resourceInstanceCertificates, func(r *aliwaf.DescribeResourceInstanceCertsResponseBodyCerts) bool {
+			cId := tea.StringValue(c.CertificateId)
+			rId := tea.StringValue(r.CertIdentifier)
+			return cId == rId || strings.Split(cId, "-")[0] == strings.Split(rId, "-")[0]
+		})
+		if resourceInstanceCert != nil {
+			certNotAfter := time.Unix(tea.Int64Value(resourceInstanceCert.AfterDate)/1000, 0)
+			return certNotAfter.After(time.Now())
+		}
+
+		return false
+	})
+
+	// 修改云产品接入的配置
+	// REF: https://www.alibabacloud.com/help/zh/waf/web-application-firewall-3-0/developer-reference/api-waf-openapi-2021-10-01-modifycloudresource
+	modifyCloudResourceResp, err := d.sdkClient.ModifyCloudResourceWithContext(ctx, modifyCloudResourceReq, &dara.RuntimeOptions{})
+	d.logger.Debug("sdk request 'waf.ModifyCloudResource'", slog.Any("request", modifyCloudResourceReq), slog.Any("response", modifyCloudResourceResp))
+	if err != nil {
+		return fmt.Errorf("failed to execute sdk request 'waf.ModifyCloudResource': %w", err)
+	}
+
+	return nil
+}
+
+func (d *SSLDeployerProvider) deployToWAF3WithCNAME(ctx context.Context, cloudCertId string) error {
+	if d.config.Domain == "" {
+		// 未指定扩展域名，只需替换默认证书
 
 		// 查询默认 SSL/TLS 设置
 		// REF: https://help.aliyun.com/zh/waf/web-application-firewall-3-0/developer-reference/api-waf-openapi-2021-10-01-describedefaulthttps
@@ -133,7 +318,7 @@ func (d *SSLDeployerProvider) deployToWAF3(ctx context.Context, certPEM string, 
 			ResourceManagerResourceGroupId: lo.EmptyableToPtr(d.config.ResourceGroupId),
 			RegionId:                       tea.String(d.config.Region),
 			InstanceId:                     tea.String(d.config.InstanceId),
-			CertId:                         tea.String(upres.ExtendedData["CertIdentifier"].(string)),
+			CertId:                         tea.String(cloudCertId),
 			TLSVersion:                     tea.String("tlsv1"),
 			EnableTLSv3:                    tea.Bool(true),
 		}
@@ -151,7 +336,7 @@ func (d *SSLDeployerProvider) deployToWAF3(ctx context.Context, certPEM string, 
 			return fmt.Errorf("failed to execute sdk request 'waf.ModifyDefaultHttps': %w", err)
 		}
 	} else {
-		// 指定接入域名
+		// 指定扩展域名，需替换扩展证书
 
 		// 查询 CNAME 接入详情
 		// REF: https://help.aliyun.com/zh/waf/web-application-firewall-3-0/developer-reference/api-waf-openapi-2021-10-01-describedomaindetail
@@ -172,7 +357,7 @@ func (d *SSLDeployerProvider) deployToWAF3(ctx context.Context, certPEM string, 
 			RegionId:   tea.String(d.config.Region),
 			InstanceId: tea.String(d.config.InstanceId),
 			Domain:     tea.String(d.config.Domain),
-			Listen:     &aliwaf.ModifyDomainRequestListen{CertId: tea.String(upres.ExtendedData["CertIdentifier"].(string))},
+			Listen:     &aliwaf.ModifyDomainRequestListen{CertId: tea.String(cloudCertId)},
 			Redirect:   &aliwaf.ModifyDomainRequestRedirect{Loadbalance: tea.String("iphash")},
 		}
 		modifyDomainReq = _assign(modifyDomainReq, describeDomainDetailResp.Body)

@@ -32,6 +32,16 @@ const BizDeployNodeConfigFieldsProviderAliyunAPIGW = () => {
   return (
     <>
       <Form.Item
+        name={[parentNamePath, "region"]}
+        initialValue={initialValues.region}
+        label={t("workflow_node.deploy.form.aliyun_apigw_region.label")}
+        rules={[formRule]}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.aliyun_apigw_region.tooltip") }}></span>}
+      >
+        <Input placeholder={t("workflow_node.deploy.form.aliyun_apigw_region.placeholder")} />
+      </Form.Item>
+
+      <Form.Item
         name={[parentNamePath, "serviceType"]}
         initialValue={initialValues.serviceType}
         label={t("workflow_node.deploy.form.aliyun_apigw_service_type.label")}
@@ -45,16 +55,6 @@ const BizDeployNodeConfigFieldsProviderAliyunAPIGW = () => {
             {t("workflow_node.deploy.form.aliyun_apigw_service_type.option.traditional.label")}
           </Select.Option>
         </Select>
-      </Form.Item>
-
-      <Form.Item
-        name={[parentNamePath, "region"]}
-        initialValue={initialValues.region}
-        label={t("workflow_node.deploy.form.aliyun_apigw_region.label")}
-        rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.aliyun_apigw_region.tooltip") }}></span>}
-      >
-        <Input placeholder={t("workflow_node.deploy.form.aliyun_apigw_region.placeholder")} />
       </Form.Item>
 
       <Show when={fieldServiceType === SERVICE_TYPE_CLOUDNATIVE}>

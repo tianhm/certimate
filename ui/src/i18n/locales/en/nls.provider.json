@@ -2,6 +2,7 @@
   "provider.1panel": "1Panel",
   "provider.1panel.console": "1Panel - Console itself",
   "provider.1panel.site": "1Panel - Website",
+  "provider.35cn": "35.cn",
   "provider.acmeca": "ACME Custom CA Endpoint",
   "provider.acmedns": "ACME-DNS",
   "provider.acmehttpreq": "ACME Custom HTTP Endpoint",

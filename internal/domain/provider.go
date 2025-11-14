@@ -10,6 +10,7 @@ NOTICE: If you add new constant, please keep ASCII order.
 */
 const (
 	AccessProviderType1Panel              = AccessProviderType("1panel")
+	AccessProviderType35cn                = AccessProviderType("35cn")
 	AccessProviderTypeACMECA              = AccessProviderType("acmeca")
 	AccessProviderTypeACMEDNS             = AccessProviderType("acmedns")
 	AccessProviderTypeACMEHttpReq         = AccessProviderType("acmehttpreq")
@@ -141,6 +142,7 @@ ACME DNS-01 提供商常量值。
 NOTICE: If you add new constant, please keep ASCII order.
 */
 const (
+	ACMEDns01ProviderType35cn              = ACMEDns01ProviderType(AccessProviderType35cn)
 	ACMEDns01ProviderTypeACMEDNS           = ACMEDns01ProviderType(AccessProviderTypeACMEDNS)
 	ACMEDns01ProviderTypeACMEHttpReq       = ACMEDns01ProviderType(AccessProviderTypeACMEHttpReq)
 	ACMEDns01ProviderTypeAkamai            = ACMEDns01ProviderType(AccessProviderTypeAkamai) // 兼容旧值，等同于 [ACMEDns01ProviderTypeAkamaiEdgeDNS]

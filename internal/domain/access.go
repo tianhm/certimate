@@ -22,6 +22,11 @@ type AccessConfigFor1Panel struct {
 	AllowInsecureConnections bool   `json:"allowInsecureConnections,omitempty"`
 }
 
+type AccessConfigFor35cn struct {
+	Username    string `json:"username"`
+	ApiPassword string `json:"apiPassword"`
+}
+
 type AccessConfigForACMEExternalAccountBinding struct {
 	EabKid     string `json:"eabKid,omitempty"`
 	EabHmacKey string `json:"eabHmacKey,omitempty"`

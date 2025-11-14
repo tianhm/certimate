@@ -26,9 +26,9 @@ type SSLDeployerProviderConfig struct {
 	Endpoint string `json:"endpoint,omitempty"`
 	// 腾讯云地域。
 	Region string `json:"region"`
-	// 云资源类型。
-	ResourceType string `json:"resourceType"`
-	// 云资源 ID 数组。
+	// 云产品类型。
+	ResourceProduct string `json:"resourceProduct"`
+	// 云产品资源 ID 数组。
 	ResourceIds []string `json:"resourceIds,omitempty"`
 }
 
@@ -79,8 +79,8 @@ func (d *SSLDeployerProvider) SetLogger(logger *slog.Logger) {
 }
 
 func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privkeyPEM string) (*core.SSLDeployResult, error) {
-	if d.config.ResourceType == "" {
-		return nil, errors.New("config `resourceType` is required")
+	if d.config.ResourceProduct == "" {
+		return nil, errors.New("config `resourceProduct` is required")
 	}
 	if len(d.config.ResourceIds) == 0 {
 		return nil, errors.New("config `resourceIds` is required")
@@ -98,7 +98,7 @@ func (d *SSLDeployerProvider) Deploy(ctx context.Context, certPEM string, privke
 	// REF: https://cloud.tencent.com/document/api/400/91667
 	deployCertificateInstanceReq := tcssl.NewDeployCertificateInstanceRequest()
 	deployCertificateInstanceReq.CertificateId = common.StringPtr(upres.CertId)
-	deployCertificateInstanceReq.ResourceType = common.StringPtr(d.config.ResourceType)
+	deployCertificateInstanceReq.ResourceType = common.StringPtr(d.config.ResourceProduct)
 	deployCertificateInstanceReq.InstanceIdList = common.StringPtrs(d.config.ResourceIds)
 	deployCertificateInstanceReq.Status = common.Int64Ptr(1)
 	deployCertificateInstanceResp, err := d.sdkClient.DeployCertificateInstance(deployCertificateInstanceReq)

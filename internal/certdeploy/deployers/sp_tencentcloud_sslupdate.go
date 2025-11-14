@@ -20,13 +20,13 @@ func init() {
 		}
 
 		provider, err := tencentcloudsslupdate.NewSSLDeployerProvider(&tencentcloudsslupdate.SSLDeployerProviderConfig{
-			SecretId:        credentials.SecretId,
-			SecretKey:       credentials.SecretKey,
-			Endpoint:        xmaps.GetString(options.ProviderExtendedConfig, "endpoint"),
-			CertificateId:   xmaps.GetString(options.ProviderExtendedConfig, "certificateId"),
-			IsReplaced:      xmaps.GetBool(options.ProviderExtendedConfig, "isReplaced"),
-			ResourceTypes:   lo.Filter(strings.Split(xmaps.GetString(options.ProviderExtendedConfig, "resourceTypes"), ";"), func(s string, _ int) bool { return s != "" }),
-			ResourceRegions: lo.Filter(strings.Split(xmaps.GetString(options.ProviderExtendedConfig, "resourceRegions"), ";"), func(s string, _ int) bool { return s != "" }),
+			SecretId:         credentials.SecretId,
+			SecretKey:        credentials.SecretKey,
+			Endpoint:         xmaps.GetString(options.ProviderExtendedConfig, "endpoint"),
+			CertificateId:    xmaps.GetString(options.ProviderExtendedConfig, "certificateId"),
+			IsReplaced:       xmaps.GetBool(options.ProviderExtendedConfig, "isReplaced"),
+			ResourceProducts: lo.Filter(strings.Split(xmaps.GetString(options.ProviderExtendedConfig, "resourceProducts"), ";"), func(s string, _ int) bool { return s != "" }),
+			ResourceRegions:  lo.Filter(strings.Split(xmaps.GetString(options.ProviderExtendedConfig, "resourceRegions"), ";"), func(s string, _ int) bool { return s != "" }),
 		})
 		return provider, err
 	})

@@ -46,9 +46,9 @@ Shell command to run this test:
 	--CERTIMATE_SSLDEPLOYER_ALIYUNAPIGW_ACCESSKEYID="your-access-key-id" \
 	--CERTIMATE_SSLDEPLOYER_ALIYUNAPIGW_ACCESSKEYSECRET="your-access-key-secret" \
 	--CERTIMATE_SSLDEPLOYER_ALIYUNAPIGW_REGION="cn-hangzhou" \
+	--CERTIMATE_SSLDEPLOYER_ALIYUNAPIGW_SERVICETYPE="cloudnative" \
 	--CERTIMATE_SSLDEPLOYER_ALIYUNAPIGW_GATEWAYID="your-api-gateway-id" \
 	--CERTIMATE_SSLDEPLOYER_ALIYUNAPIGW_GROUPID="your-api-group-id" \
-	--CERTIMATE_SSLDEPLOYER_ALIYUNAPIGW_SERVICETYPE="cloudnative" \
 	--CERTIMATE_SSLDEPLOYER_ALIYUNAPIGW_DOMAIN="example.com"
 */
 func TestDeploy(t *testing.T) {
@@ -62,9 +62,9 @@ func TestDeploy(t *testing.T) {
 			fmt.Sprintf("ACCESSKEYID: %v", fAccessKeyId),
 			fmt.Sprintf("ACCESSKEYSECRET: %v", fAccessKeySecret),
 			fmt.Sprintf("REGION: %v", fRegion),
+			fmt.Sprintf("SERVICETYPE: %v", fServiceType),
 			fmt.Sprintf("GATEWAYID: %v", fGatewayId),
 			fmt.Sprintf("GROUPID: %v", fGroupId),
-			fmt.Sprintf("SERVICETYPE: %v", fServiceType),
 			fmt.Sprintf("DOMAIN: %v", fDomain),
 		}, "\n"))
 

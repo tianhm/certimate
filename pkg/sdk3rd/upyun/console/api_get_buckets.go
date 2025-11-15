@@ -2,20 +2,21 @@ package console
 
 import (
 	"context"
-	"fmt"
 	"net/http"
+
+	qs "github.com/google/go-querystring/query"
 )
 
 type GetBucketsRequest struct {
-	BucketName    string `json:"status"`
-	BusinessType  string `json:"business_type"`
-	Type          string `json:"type"`
-	Status        string `json:"state"`
-	Tag           string `json:"tag"`
-	IsSecurityCDN bool   `json:"security_cdn"`
-	WithDomains   bool   `json:"with_domains"`
-	Page          int32  `json:"page"`
-	PerPage       int32  `json:"perPage"`
+	BucketName    string `json:"status" url:"bucket_name"`
+	BusinessType  string `json:"business_type" url:"business_type"`
+	Type          string `json:"type" url:"type"`
+	Status        string `json:"state" url:"state"`
+	Tag           string `json:"tag" url:"tag"`
+	IsSecurityCDN bool   `json:"security_cdn" url:"security_cdn"`
+	WithDomains   bool   `json:"with_domains" url:"with_domains"`
+	Page          int32  `json:"page" url:"page"`
+	PerPage       int32  `json:"perPage" url:"perPage"`
 }
 
 type GetBucketsResponse struct {
@@ -64,15 +65,12 @@ func (c *Client) GetBucketsWithContext(ctx context.Context, req *GetBucketsReque
 	if err != nil {
 		return nil, err
 	} else {
-		httpreq.SetQueryParam("bucket_name", req.BucketName)
-		httpreq.SetQueryParam("business_type", req.BusinessType)
-		httpreq.SetQueryParam("type", req.Type)
-		httpreq.SetQueryParam("state", req.Status)
-		httpreq.SetQueryParam("tag", req.Tag)
-		httpreq.SetQueryParam("security_cdn", fmt.Sprintf("%v", req.IsSecurityCDN))
-		httpreq.SetQueryParam("with_domains", fmt.Sprintf("%v", req.WithDomains))
-		httpreq.SetQueryParam("page", fmt.Sprintf("%d", req.Page))
-		httpreq.SetQueryParam("perPage", fmt.Sprintf("%d", req.PerPage))
+		values, err := qs.Values(req)
+		if err != nil {
+			return nil, err
+		}
+
+		httpreq.SetQueryParamsFromValues(values)
 		httpreq.SetContext(ctx)
 	}
 

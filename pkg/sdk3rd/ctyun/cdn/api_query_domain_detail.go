@@ -3,12 +3,14 @@ package cdn
 import (
 	"context"
 	"net/http"
+
+	qs "github.com/google/go-querystring/query"
 )
 
 type QueryDomainDetailRequest struct {
-	Domain        *string `json:"domain,omitempty"`
-	ProductCode   *string `json:"product_code,omitempty"`
-	FunctionNames *string `json:"function_names,omitempty"`
+	Domain        *string `json:"domain,omitempty" url:"domain,omitempty"`
+	ProductCode   *string `json:"product_code,omitempty" url:"product_code,omitempty"`
+	FunctionNames *string `json:"function_names,omitempty" url:"function_names,omitempty"`
 }
 
 type QueryDomainDetailResponse struct {
@@ -26,16 +28,12 @@ func (c *Client) QueryDomainDetailWithContext(ctx context.Context, req *QueryDom
 	if err != nil {
 		return nil, err
 	} else {
-		if req.Domain != nil {
-			httpreq.SetQueryParam("domain", *req.Domain)
-		}
-		if req.ProductCode != nil {
-			httpreq.SetQueryParam("product_code", *req.ProductCode)
-		}
-		if req.FunctionNames != nil {
-			httpreq.SetQueryParam("function_names", *req.FunctionNames)
+		values, err := qs.Values(req)
+		if err != nil {
+			return nil, err
 		}
 
+		httpreq.SetQueryParamsFromValues(values)
 		httpreq.SetContext(ctx)
 	}
 

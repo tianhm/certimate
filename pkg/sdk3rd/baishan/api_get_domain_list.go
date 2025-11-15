@@ -3,14 +3,15 @@ package baishan
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
+
+	qs "github.com/google/go-querystring/query"
 )
 
 type GetDomainListRequest struct {
-	PageNumber   *int32  `json:"page_number,omitempty"`
-	PageSize     *int32  `json:"page_size,omitempty"`
-	DomainStatus *string `json:"domain_status,omitempty"`
+	PageNumber   *int32  `json:"page_number,omitempty" url:"page_number,omitempty"`
+	PageSize     *int32  `json:"page_size,omitempty" url:"page_size,omitempty"`
+	DomainStatus *string `json:"domain_status,omitempty" url:"domain_status,omitempty"`
 }
 
 type GetDomainListResponse struct {
@@ -33,16 +34,12 @@ func (c *Client) GetDomainListWithContext(ctx context.Context, req *GetDomainLis
 	if err != nil {
 		return nil, err
 	} else {
-		if req.PageNumber != nil {
-			httpreq.SetQueryParam("page_number", fmt.Sprintf("%d", *req.PageNumber))
-		}
-		if req.PageSize != nil {
-			httpreq.SetQueryParam("page_number", fmt.Sprintf("%d", *req.PageSize))
-		}
-		if req.DomainStatus != nil {
-			httpreq.SetQueryParam("domain_status", *req.DomainStatus)
+		values, err := qs.Values(req)
+		if err != nil {
+			return nil, err
 		}
 
+		httpreq.SetQueryParamsFromValues(values)
 		httpreq.SetContext(ctx)
 	}
 

@@ -52,7 +52,7 @@ func TestNotify(t *testing.T) {
 			fmt.Sprintf("PASSWORD: %v", fPassword),
 		}, "\n"))
 
-		notifier, err := provider.NewNotifierProvider(&provider.NotifierProviderConfig{
+		notifier, err := provider.NewNotifier(&provider.NotifierConfig{
 			ServerUrl: fServerUrl,
 			ChannelId: fChannelId,
 			Username:  fUsername,

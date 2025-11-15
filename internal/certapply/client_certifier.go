@@ -18,7 +18,7 @@ import (
 	"github.com/go-acme/lego/v4/log"
 	"github.com/samber/lo"
 
-	"github.com/certimate-go/certimate/internal/certapply/applicators"
+	"github.com/certimate-go/certimate/internal/certapply/certifiers"
 	"github.com/certimate-go/certimate/internal/domain"
 )
 
@@ -97,12 +97,12 @@ func (c *ACMEClient) sendObtainCertificateRequest(request *ObtainCertificateRequ
 	switch request.ChallengeType {
 	case "dns-01":
 		{
-			providerFactory, err := applicators.ACMEDns01Registries.Get(domain.ACMEDns01ProviderType(request.Provider))
+			providerFactory, err := certifiers.ACMEDns01Registries.Get(domain.ACMEDns01ProviderType(request.Provider))
 			if err != nil {
 				return nil, err
 			}
 
-			provider, err := providerFactory(&applicators.ProviderFactoryOptions{
+			provider, err := providerFactory(&certifiers.ProviderFactoryOptions{
 				ProviderAccessConfig:   request.ProviderAccessConfig,
 				ProviderExtendedConfig: request.ProviderExtendedConfig,
 				DnsPropagationTimeout:  request.DnsPropagationTimeout,
@@ -130,12 +130,12 @@ func (c *ACMEClient) sendObtainCertificateRequest(request *ObtainCertificateRequ
 
 	case "http-01":
 		{
-			providerFactory, err := applicators.ACMEHttp01Registries.Get(domain.ACMEHttp01ProviderType(request.Provider))
+			providerFactory, err := certifiers.ACMEHttp01Registries.Get(domain.ACMEHttp01ProviderType(request.Provider))
 			if err != nil {
 				return nil, err
 			}
 
-			provider, err := providerFactory(&applicators.ProviderFactoryOptions{
+			provider, err := providerFactory(&certifiers.ProviderFactoryOptions{
 				ProviderAccessConfig:   request.ProviderAccessConfig,
 				ProviderExtendedConfig: request.ProviderExtendedConfig,
 			})

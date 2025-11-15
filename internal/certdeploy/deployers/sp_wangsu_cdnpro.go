@@ -4,19 +4,19 @@ import (
 	"fmt"
 
 	"github.com/certimate-go/certimate/internal/domain"
-	"github.com/certimate-go/certimate/pkg/core"
-	wangsucdnpro "github.com/certimate-go/certimate/pkg/core/ssl-deployer/providers/wangsu-cdnpro"
+	"github.com/certimate-go/certimate/pkg/core/deployer"
+	wangsucdnpro "github.com/certimate-go/certimate/pkg/core/deployer/providers/wangsu-cdnpro"
 	xmaps "github.com/certimate-go/certimate/pkg/utils/maps"
 )
 
 func init() {
-	Registries.MustRegister(domain.DeploymentProviderTypeWangsuCDNPro, func(options *ProviderFactoryOptions) (core.SSLDeployer, error) {
+	Registries.MustRegister(domain.DeploymentProviderTypeWangsuCDNPro, func(options *ProviderFactoryOptions) (deployer.Provider, error) {
 		credentials := domain.AccessConfigForWangsu{}
 		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
-		provider, err := wangsucdnpro.NewSSLDeployerProvider(&wangsucdnpro.SSLDeployerProviderConfig{
+		provider, err := wangsucdnpro.NewDeployer(&wangsucdnpro.DeployerConfig{
 			AccessKeyId:        credentials.AccessKeyId,
 			AccessKeySecret:    credentials.AccessKeySecret,
 			ApiKey:             credentials.ApiKey,

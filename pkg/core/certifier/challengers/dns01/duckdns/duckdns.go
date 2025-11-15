@@ -4,8 +4,9 @@ import (
 	"errors"
 	"time"
 
-	"github.com/certimate-go/certimate/pkg/core/certifier"
 	"github.com/go-acme/lego/v4/providers/dns/duckdns"
+
+	"github.com/certimate-go/certimate/pkg/core/certifier"
 )
 
 type ChallengerConfig struct {

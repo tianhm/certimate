@@ -6,8 +6,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/certimate-go/certimate/pkg/core/certifier"
 	"github.com/go-acme/lego/v4/providers/dns/rfc2136"
+
+	"github.com/certimate-go/certimate/pkg/core/certifier"
 )
 
 type ChallengerConfig struct {

@@ -3,8 +3,9 @@
 import (
 	"errors"
 
-	"github.com/certimate-go/certimate/pkg/core/certifier"
 	"github.com/go-acme/lego/v4/providers/http/webroot"
+
+	"github.com/certimate-go/certimate/pkg/core/certifier"
 )
 
 type ChallengerConfig struct {

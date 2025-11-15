@@ -49,7 +49,7 @@ func TestDeploy(t *testing.T) {
 			fmt.Sprintf("PASSWORD: %v", fPassword),
 		}, "\n"))
 
-		sslmanager, err := provider.NewCertmgr(&provider.CertmgrConfig{
+		provider, err := provider.NewCertmgr(&provider.CertmgrConfig{
 			Username: fUsername,
 			Password: fPassword,
 		})
@@ -60,7 +60,7 @@ func TestDeploy(t *testing.T) {
 
 		fInputCertData, _ := os.ReadFile(fInputCertPath)
 		fInputKeyData, _ := os.ReadFile(fInputKeyPath)
-		res, err := sslmanager.Upload(context.Background(), string(fInputCertData), string(fInputKeyData))
+		res, err := provider.Upload(context.Background(), string(fInputCertData), string(fInputKeyData))
 		if err != nil {
 			t.Errorf("err: %+v", err)
 			return

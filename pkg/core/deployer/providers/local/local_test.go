@@ -72,7 +72,7 @@ func TestDeploy(t *testing.T) {
 			fmt.Sprintf("POSTCOMMAND: %v", fPostCommand),
 		}, "\n"))
 
-		deployer, err := provider.NewDeployer(&provider.DeployerConfig{
+		provider, err := provider.NewDeployer(&provider.DeployerConfig{
 			OutputFormat:   provider.OUTPUT_FORMAT_PEM,
 			OutputCertPath: fOutputCertPath + ".pem",
 			OutputKeyPath:  fOutputKeyPath + ".pem",
@@ -87,7 +87,7 @@ func TestDeploy(t *testing.T) {
 
 		fInputCertData, _ := os.ReadFile(fInputCertPath)
 		fInputKeyData, _ := os.ReadFile(fInputKeyPath)
-		res, err := deployer.Deploy(context.Background(), string(fInputCertData), string(fInputKeyData))
+		res, err := provider.Deploy(context.Background(), string(fInputCertData), string(fInputKeyData))
 		if err != nil {
 			t.Errorf("err: %+v", err)
 			return
@@ -123,7 +123,7 @@ func TestDeploy(t *testing.T) {
 			fmt.Sprintf("PFXPASSWORD: %v", fPfxPassword),
 		}, "\n"))
 
-		deployer, err := provider.NewDeployer(&provider.DeployerConfig{
+		provider, err := provider.NewDeployer(&provider.DeployerConfig{
 			OutputFormat:   provider.OUTPUT_FORMAT_PFX,
 			OutputCertPath: fOutputCertPath + ".pfx",
 			PfxPassword:    fPfxPassword,
@@ -135,7 +135,7 @@ func TestDeploy(t *testing.T) {
 
 		fInputCertData, _ := os.ReadFile(fInputCertPath)
 		fInputKeyData, _ := os.ReadFile(fInputKeyPath)
-		res, err := deployer.Deploy(context.Background(), string(fInputCertData), string(fInputKeyData))
+		res, err := provider.Deploy(context.Background(), string(fInputCertData), string(fInputKeyData))
 		if err != nil {
 			t.Errorf("err: %+v", err)
 			return
@@ -164,7 +164,7 @@ func TestDeploy(t *testing.T) {
 			fmt.Sprintf("JKSSTOREPASS: %v", fJksStorepass),
 		}, "\n"))
 
-		deployer, err := provider.NewDeployer(&provider.DeployerConfig{
+		provider, err := provider.NewDeployer(&provider.DeployerConfig{
 			OutputFormat:   provider.OUTPUT_FORMAT_JKS,
 			OutputCertPath: fOutputCertPath + ".jks",
 			JksAlias:       fJksAlias,
@@ -178,7 +178,7 @@ func TestDeploy(t *testing.T) {
 
 		fInputCertData, _ := os.ReadFile(fInputCertPath)
 		fInputKeyData, _ := os.ReadFile(fInputKeyPath)
-		res, err := deployer.Deploy(context.Background(), string(fInputCertData), string(fInputKeyData))
+		res, err := provider.Deploy(context.Background(), string(fInputCertData), string(fInputKeyData))
 		if err != nil {
 			t.Errorf("err: %+v", err)
 			return

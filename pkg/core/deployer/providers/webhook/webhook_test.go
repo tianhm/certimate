@@ -52,7 +52,7 @@ func TestDeploy(t *testing.T) {
 			fmt.Sprintf("WEBHOOKDATA: %v", fWebhookData),
 		}, "\n"))
 
-		deployer, err := provider.NewDeployer(&provider.DeployerConfig{
+		provider, err := provider.NewDeployer(&provider.DeployerConfig{
 			WebhookUrl:  fWebhookUrl,
 			WebhookData: fWebhookData,
 			Method:      "POST",
@@ -68,7 +68,7 @@ func TestDeploy(t *testing.T) {
 
 		fInputCertData, _ := os.ReadFile(fInputCertPath)
 		fInputKeyData, _ := os.ReadFile(fInputKeyPath)
-		res, err := deployer.Deploy(context.Background(), string(fInputCertData), string(fInputKeyData))
+		res, err := provider.Deploy(context.Background(), string(fInputCertData), string(fInputKeyData))
 		if err != nil {
 			t.Errorf("err: %+v", err)
 			return

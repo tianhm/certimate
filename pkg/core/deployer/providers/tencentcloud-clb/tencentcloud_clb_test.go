@@ -62,7 +62,7 @@ func TestDeploy(t *testing.T) {
 			fmt.Sprintf("LOADBALANCERID: %v", fLoadbalancerId),
 		}, "\n"))
 
-		deployer, err := provider.NewDeployer(&provider.DeployerConfig{
+		provider, err := provider.NewDeployer(&provider.DeployerConfig{
 			SecretId:       fSecretId,
 			SecretKey:      fSecretKey,
 			Region:         fRegion,
@@ -76,7 +76,7 @@ func TestDeploy(t *testing.T) {
 
 		fInputCertData, _ := os.ReadFile(fInputCertPath)
 		fInputKeyData, _ := os.ReadFile(fInputKeyPath)
-		res, err := deployer.Deploy(context.Background(), string(fInputCertData), string(fInputKeyData))
+		res, err := provider.Deploy(context.Background(), string(fInputCertData), string(fInputKeyData))
 		if err != nil {
 			t.Errorf("err: %+v", err)
 			return
@@ -97,7 +97,7 @@ func TestDeploy(t *testing.T) {
 			fmt.Sprintf("LISTENERID: %v", fListenerId),
 		}, "\n"))
 
-		deployer, err := provider.NewDeployer(&provider.DeployerConfig{
+		provider, err := provider.NewDeployer(&provider.DeployerConfig{
 			SecretId:       fSecretId,
 			SecretKey:      fSecretKey,
 			Region:         fRegion,
@@ -112,7 +112,7 @@ func TestDeploy(t *testing.T) {
 
 		fInputCertData, _ := os.ReadFile(fInputCertPath)
 		fInputKeyData, _ := os.ReadFile(fInputKeyPath)
-		res, err := deployer.Deploy(context.Background(), string(fInputCertData), string(fInputKeyData))
+		res, err := provider.Deploy(context.Background(), string(fInputCertData), string(fInputKeyData))
 		if err != nil {
 			t.Errorf("err: %+v", err)
 			return
@@ -134,7 +134,7 @@ func TestDeploy(t *testing.T) {
 			fmt.Sprintf("DOMAIN: %v", fDomain),
 		}, "\n"))
 
-		deployer, err := provider.NewDeployer(&provider.DeployerConfig{
+		provider, err := provider.NewDeployer(&provider.DeployerConfig{
 			SecretId:       fSecretId,
 			SecretKey:      fSecretKey,
 			Region:         fRegion,
@@ -150,7 +150,7 @@ func TestDeploy(t *testing.T) {
 
 		fInputCertData, _ := os.ReadFile(fInputCertPath)
 		fInputKeyData, _ := os.ReadFile(fInputKeyPath)
-		res, err := deployer.Deploy(context.Background(), string(fInputCertData), string(fInputKeyData))
+		res, err := provider.Deploy(context.Background(), string(fInputCertData), string(fInputKeyData))
 		if err != nil {
 			t.Errorf("err: %+v", err)
 			return

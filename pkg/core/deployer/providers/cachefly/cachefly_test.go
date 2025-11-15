@@ -44,7 +44,7 @@ func TestDeploy(t *testing.T) {
 			fmt.Sprintf("APITOKEN: %v", fApiToken),
 		}, "\n"))
 
-		deployer, err := provider.NewDeployer(&provider.DeployerConfig{
+		provider, err := provider.NewDeployer(&provider.DeployerConfig{
 			ApiToken: fApiToken,
 		})
 		if err != nil {
@@ -54,7 +54,7 @@ func TestDeploy(t *testing.T) {
 
 		fInputCertData, _ := os.ReadFile(fInputCertPath)
 		fInputKeyData, _ := os.ReadFile(fInputKeyPath)
-		res, err := deployer.Deploy(context.Background(), string(fInputCertData), string(fInputKeyData))
+		res, err := provider.Deploy(context.Background(), string(fInputCertData), string(fInputKeyData))
 		if err != nil {
 			t.Errorf("err: %+v", err)
 			return

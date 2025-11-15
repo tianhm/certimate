@@ -63,7 +63,7 @@ func TestDeploy(t *testing.T) {
 			fmt.Sprintf("INSTANCEID: %v", fInstanceId),
 		}, "\n"))
 
-		deployer, err := provider.NewDeployer(&provider.DeployerConfig{
+		provider, err := provider.NewDeployer(&provider.DeployerConfig{
 			SecretId:   fSecretId,
 			SecretKey:  fSecretKey,
 			Region:     fRegion,
@@ -78,7 +78,7 @@ func TestDeploy(t *testing.T) {
 
 		fInputCertData, _ := os.ReadFile(fInputCertPath)
 		fInputKeyData, _ := os.ReadFile(fInputKeyPath)
-		res, err := deployer.Deploy(context.Background(), string(fInputCertData), string(fInputKeyData))
+		res, err := provider.Deploy(context.Background(), string(fInputCertData), string(fInputKeyData))
 		if err != nil {
 			t.Errorf("err: %+v", err)
 			return

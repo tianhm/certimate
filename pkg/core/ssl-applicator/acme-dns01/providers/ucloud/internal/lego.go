@@ -48,7 +48,7 @@ type DNSProvider struct {
 func NewDefaultConfig() *Config {
 	return &Config{
 		TTL:                env.GetOrDefaultInt(EnvTTL, 600),
-		PropagationTimeout: env.GetOrDefaultSecond(EnvPropagationTimeout, 2*time.Minute),
+		PropagationTimeout: env.GetOrDefaultSecond(EnvPropagationTimeout, 10*time.Minute),
 		PollingInterval:    env.GetOrDefaultSecond(EnvPollingInterval, dns01.DefaultPollingInterval),
 		HTTPTimeout:        env.GetOrDefaultSecond(EnvHTTPTimeout, 30*time.Second),
 	}
@@ -57,7 +57,7 @@ func NewDefaultConfig() *Config {
 func NewDNSProvider() (*DNSProvider, error) {
 	values, err := env.Get(EnvPrivateKey, EnvPublicKey, EnvProjectId)
 	if err != nil {
-		return nil, fmt.Errorf("ucloud-udnr: %w", err)
+		return nil, fmt.Errorf("ucloud: %w", err)
 	}
 
 	config := NewDefaultConfig()
@@ -70,7 +70,7 @@ func NewDNSProvider() (*DNSProvider, error) {
 
 func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 	if config == nil {
-		return nil, errors.New("ucloud-udnr: the configuration of the DNS provider is nil")
+		return nil, errors.New("ucloud: the configuration of the DNS provider is nil")
 	}
 
 	cfg := ucloud.NewConfig()
@@ -91,7 +91,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
-		return fmt.Errorf("ucloud-udnr: could not find zone for domain %q: %w", domain, err)
+		return fmt.Errorf("ucloud: could not find zone for domain %q: %w", domain, err)
 	}
 
 	// REF: https://docs.ucloud.cn/api/udnr-api/udnr_domain_dns_add
@@ -105,7 +105,7 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 		udnrDomainDNSAddReq.SetProjectId(d.config.ProjectId)
 	}
 	if _, err := d.client.AddDomainDNS(udnrDomainDNSAddReq); err != nil {
-		return fmt.Errorf("ucloud-udnr: error when create record: %w", err)
+		return fmt.Errorf("ucloud: error when create record: %w", err)
 	}
 
 	return nil
@@ -116,7 +116,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 
 	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
-		return fmt.Errorf("ucloud-udnr: could not find zone for domain %q: %w", domain, err)
+		return fmt.Errorf("ucloud: could not find zone for domain %q: %w", domain, err)
 	}
 
 	// REF: https://docs.ucloud.cn/api/udnr-api/udnr_domain_dns_query
@@ -127,7 +127,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	}
 	udnrDomainDNSQueryResp, err := d.client.QueryDomainDNS(udnrDomainDNSQueryReq)
 	if err != nil {
-		return fmt.Errorf("ucloud-udnr: error when list records: %w", err)
+		return fmt.Errorf("ucloud: error when list records: %w", err)
 	}
 
 	// REF: https://docs.ucloud.cn/api/udnr-api/udnr_delete_dns_record
@@ -143,7 +143,7 @@ func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 			}
 			_, err := d.client.DeleteDomainDNS(udnrDomainDNSDeleteReq)
 			if err != nil {
-				return fmt.Errorf("ucloud-udnr: error when delete record: %w", err)
+				return fmt.Errorf("ucloud: error when delete record: %w", err)
 			}
 			break
 		}

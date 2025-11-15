@@ -6,7 +6,7 @@ import (
 	"github.com/go-acme/lego/v4/challenge"
 
 	"github.com/certimate-go/certimate/internal/domain"
-	udnr "github.com/certimate-go/certimate/pkg/core/ssl-applicator/acme-dns01/providers/ucloud-udnr"
+	"github.com/certimate-go/certimate/pkg/core/ssl-applicator/acme-dns01/providers/ucloud"
 	xmaps "github.com/certimate-go/certimate/pkg/utils/maps"
 )
 
@@ -17,7 +17,7 @@ func init() {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
-		provider, err := udnr.NewChallengeProvider(&udnr.ChallengeProviderConfig{
+		provider, err := ucloud.NewChallengeProvider(&ucloud.ChallengeProviderConfig{
 			PrivateKey:            credentials.PrivateKey,
 			PublicKey:             credentials.PublicKey,
 			ProjectId:             credentials.ProjectId,
@@ -26,4 +26,6 @@ func init() {
 		})
 		return provider, err
 	})
+
+	ACMEDns01Registries.MustRegisterAlias(domain.ACMEDns01ProviderTypeUCloud, domain.ACMEDns01ProviderTypeUCloudUDNR)
 }

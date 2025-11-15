@@ -396,6 +396,11 @@ type AccessConfigForProxmoxVE struct {
 	AllowInsecureConnections bool   `json:"allowInsecureConnections,omitempty"`
 }
 
+type AccessConfigForQingCloud struct {
+	AccessKeyId     string `json:"accessKeyId"`
+	SecretAccessKey string `json:"secretAccessKey"`
+}
+
 type AccessConfigForQiniu struct {
 	AccessKey string `json:"accessKey"`
 	SecretKey string `json:"secretKey"`

@@ -139,6 +139,8 @@
   "provider.porkbun": "Porkbun",
   "provider.powerdns": "PowerDNS",
   "provider.proxmoxve": "Proxmox VE",
+  "provider.qingcloud": "青云",
+  "provider.qingcloud.dns": "青云 - 云解析 DNS",
   "provider.qiniu": "七牛云",
   "provider.qiniu.cdn": "七牛云 - 内容分发网络 CDN",
   "provider.qiniu.kodo": "七牛云 - 对象存储 Kodo",

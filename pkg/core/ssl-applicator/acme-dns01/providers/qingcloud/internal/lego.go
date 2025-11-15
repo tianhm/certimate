@@ -11,14 +11,14 @@ import (
 	"github.com/go-acme/lego/v4/platform/config/env"
 	"github.com/samber/lo"
 
-	xinnetsdk "github.com/certimate-go/certimate/pkg/sdk3rd/xinnet"
+	qingcloudsdk "github.com/certimate-go/certimate/pkg/sdk3rd/qingcloud/dns"
 )
 
 const (
 	envNamespace = "DNSLA_"
 
-	EnvAgentId   = envNamespace + "AGENT_ID"
-	EnvAppSecret = envNamespace + "APP_SECRET"
+	EnvAccessKey    = envNamespace + "ACCESS_KEY"
+	EnvAccessSecret = envNamespace + "ACCESS_SECRET"
 
 	EnvTTL                = envNamespace + "TTL"
 	EnvPropagationTimeout = envNamespace + "PROPAGATION_TIMEOUT"
@@ -29,8 +29,8 @@ const (
 var _ challenge.ProviderTimeout = (*DNSProvider)(nil)
 
 type Config struct {
-	AgentID   string
-	AppSecret string
+	AccessKey    string
+	AccessSecret string
 
 	PropagationTimeout time.Duration
 	PollingInterval    time.Duration
@@ -39,7 +39,7 @@ type Config struct {
 }
 
 type DNSProvider struct {
-	client *xinnetsdk.Client
+	client *qingcloudsdk.Client
 	config *Config
 
 	recordIDs   map[string]*int64
@@ -48,32 +48,32 @@ type DNSProvider struct {
 
 func NewDefaultConfig() *Config {
 	return &Config{
-		TTL:                env.GetOrDefaultInt(EnvTTL, 600),
-		PropagationTimeout: env.GetOrDefaultSecond(EnvPropagationTimeout, 10*time.Minute),
+		TTL:                env.GetOrDefaultInt(EnvTTL, dns01.DefaultTTL),
+		PropagationTimeout: env.GetOrDefaultSecond(EnvPropagationTimeout, dns01.DefaultPropagationTimeout),
 		PollingInterval:    env.GetOrDefaultSecond(EnvPollingInterval, dns01.DefaultPollingInterval),
 		HTTPTimeout:        env.GetOrDefaultSecond(EnvHTTPTimeout, 30*time.Second),
 	}
 }
 
 func NewDNSProvider() (*DNSProvider, error) {
-	values, err := env.Get(EnvAgentId, EnvAppSecret)
+	values, err := env.Get(EnvAccessKey, EnvAccessSecret)
 	if err != nil {
-		return nil, fmt.Errorf("xinnet: %w", err)
+		return nil, fmt.Errorf("qingcloud: %w", err)
 	}
 
 	config := NewDefaultConfig()
-	config.AgentID = values[EnvAgentId]
-	config.AppSecret = values[EnvAppSecret]
+	config.AccessKey = values[EnvAccessKey]
+	config.AccessSecret = values[EnvAccessSecret]
 
 	return NewDNSProviderConfig(config)
 }
 
 func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 	if config == nil {
-		return nil, errors.New("xinnet: the configuration of the DNS provider is nil")
+		return nil, errors.New("qingcloud: the configuration of the DNS provider is nil")
 	}
 
-	client, err := xinnetsdk.NewClient(config.AgentID, config.AppSecret)
+	client, err := qingcloudsdk.NewClient(config.AccessKey, config.AccessSecret)
 	if err != nil {
 		return nil, err
 	} else {
@@ -93,25 +93,37 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 
 	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
 	if err != nil {
-		return fmt.Errorf("xinnet: could not find zone for domain %q: %w", domain, err)
+		return fmt.Errorf("qingcloud: could not find zone for domain %q: %w", domain, err)
 	}
 
-	// REF: https://apidoc.xin.cn/doc-7283900
-	xinnetDnsCreateReq := &xinnetsdk.DnsCreateRequest{
-		DomainName: lo.ToPtr(dns01.UnFqdn(authZone)),
-		RecordName: lo.ToPtr(dns01.UnFqdn(info.EffectiveFQDN)),
+	// REF: https://docsv4.qingcloud.com/user_guide/development_docs/api/api_list/dns/record/#_createrecord
+	qingcloudCreateRecordReq := &qingcloudsdk.CreateRecordRequest{
+		ZoneName:   lo.ToPtr(authZone),
+		DomainName: lo.ToPtr(info.EffectiveFQDN),
+		ViewId:     lo.ToPtr(int32(0)),
 		Type:       lo.ToPtr("TXT"),
-		Value:      lo.ToPtr(info.Value),
-		Line:       lo.ToPtr("默认"),
 		Ttl:        lo.ToPtr(int32(d.config.TTL)),
+		Records: []*qingcloudsdk.CreateRecordRequestRecord{
+			{
+				Values: []*qingcloudsdk.CreateRecordRequestRecordValue{
+					{
+						Value:  lo.ToPtr(info.Value),
+						Status: lo.ToPtr(int32(1)),
+					},
+				},
+				Weight: lo.ToPtr(int32(0)),
+			},
+		},
+		Mode:      lo.ToPtr(int32(1)),
+		AutoMerge: lo.ToPtr(int32(1)),
 	}
-	xinnetDnsCreateResp, err := d.client.DnsCreate(xinnetDnsCreateReq)
+	qingcloudCreateRecordResp, err := d.client.CreateRecord(qingcloudCreateRecordReq)
 	if err != nil {
-		return fmt.Errorf("xinnet: error when create record: %w", err)
+		return fmt.Errorf("qingcloud: error when create record: %w", err)
 	}
 
 	d.recordIDsMu.Lock()
-	d.recordIDs[token] = xinnetDnsCreateResp.Data
+	d.recordIDs[token] = qingcloudCreateRecordResp.DomainRecordId
 	d.recordIDsMu.Unlock()
 
 	return nil
@@ -120,25 +132,16 @@ func (d *DNSProvider) Present(domain, token, keyAuth string) error {
 func (d *DNSProvider) CleanUp(domain, token, keyAuth string) error {
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	authZone, err := dns01.FindZoneByFqdn(info.EffectiveFQDN)
-	if err != nil {
-		return fmt.Errorf("xinnet: could not find zone for domain %q: %w", domain, err)
-	}
-
 	d.recordIDsMu.Lock()
 	recordID, ok := d.recordIDs[token]
 	d.recordIDsMu.Unlock()
 	if !ok {
-		return fmt.Errorf("xinnet: unknown record ID for '%s'", info.EffectiveFQDN)
+		return fmt.Errorf("qingcloud: unknown record ID for '%s'", info.EffectiveFQDN)
 	}
 
-	// REF: https://apidoc.xin.cn/doc-7283901
-	xinnetDnsDeleteReq := &xinnetsdk.DnsDeleteRequest{
-		DomainName: lo.ToPtr(dns01.UnFqdn(authZone)),
-		RecordId:   recordID,
-	}
-	if _, err := d.client.DnsDelete(xinnetDnsDeleteReq); err != nil {
-		return fmt.Errorf("xinnet: error when delete record: %w", err)
+	// REF: https://docsv4.qingcloud.com/user_guide/development_docs/api/api_list/dns/record/#_deleterecord
+	if _, err := d.client.DeleteRecord([]*int64{recordID}); err != nil {
+		return fmt.Errorf("qingcloud: error when delete record: %w", err)
 	}
 
 	return nil

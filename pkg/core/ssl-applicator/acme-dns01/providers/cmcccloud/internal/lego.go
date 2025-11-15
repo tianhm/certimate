@@ -54,7 +54,7 @@ func NewDefaultConfig() *Config {
 		ReadTimeout:        env.GetOrDefaultInt(EnvReadTimeout, 30),
 		ConnectTimeout:     env.GetOrDefaultInt(EnvConnectTimeout, 30),
 		TTL:                env.GetOrDefaultInt(EnvTTL, 600),
-		PropagationTimeout: env.GetOrDefaultSecond(EnvPropagationTimeout, 2*time.Minute),
+		PropagationTimeout: env.GetOrDefaultSecond(EnvPropagationTimeout, 10*time.Minute),
 		PollingInterval:    env.GetOrDefaultSecond(EnvPollingInterval, dns01.DefaultPollingInterval),
 	}
 }

@@ -1,14 +1,13 @@
-package xinnet
+package dns
 
 import (
 	"crypto/hmac"
 	"crypto/sha256"
-	"encoding/hex"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
-	"strings"
+	"net/url"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -18,68 +17,48 @@ type Client struct {
 	client *resty.Client
 }
 
-func NewClient(agentId, appSecret string) (*Client, error) {
-	if agentId == "" {
-		return nil, fmt.Errorf("sdkerr: unset agentId")
+func NewClient(accessKeyId, secretAccessKey string) (*Client, error) {
+	if accessKeyId == "" {
+		return nil, fmt.Errorf("sdkerr: unset accessKeyId")
 	}
-	if appSecret == "" {
-		return nil, fmt.Errorf("sdkerr: unset appSecret")
+	if secretAccessKey == "" {
+		return nil, fmt.Errorf("sdkerr: unset secretAccessKey")
 	}
 
 	client := resty.New().
-		SetBaseURL("https://apiv2.xinnet.com/api").
+		SetBaseURL("http://api.routewize.com").
 		SetHeader("Accept", "application/json").
 		SetHeader("Content-Type", "application/json").
+		SetHeader("Host", "api.routewize.com").
 		SetHeader("User-Agent", "certimate").
 		SetPreRequestHook(func(c *resty.Client, req *http.Request) error {
-			// 生成时间戳
-			timestamp := time.Now().UTC().Format("20060102T150405Z")
+			// 生成时间
+			date := time.Now().UTC().Format(time.RFC1123)
 
-			// 获取请求路径，注意结尾必须是 "/"
-			urlPath := "/"
+			// 获取请求谓词
+			verb := req.Method
+
+			// 获取访问资源
+			canonicalizedResource := "/"
 			if req.URL != nil {
-				urlPath = req.URL.Path
-
-				if !strings.HasSuffix(urlPath, "/") {
-					urlPath += "/"
+				canonicalizedResource = req.URL.Path
+				if req.URL.RawQuery != "" {
+					values, _ := url.ParseQuery(req.URL.RawQuery)
+					canonicalizedResource += "?" + values.Encode()
 				}
-			}
-
-			// 获取请求方法
-			requestMethod := req.Method
-
-			// 获取请求体
-			requestBody := ""
-			if req.Body != nil {
-				reader, err := req.GetBody()
-				if err != nil {
-					return err
-				}
-
-				defer reader.Close()
-
-				payloadb, err := io.ReadAll(reader)
-				if err != nil {
-					return err
-				}
-
-				requestBody = string(payloadb)
 			}
 
 			// 计算签名
-			algorithm := "HMAC-SHA256"
-			stringToSign := algorithm + "\n" +
-				timestamp + "\n" +
-				requestMethod + "\n" +
-				urlPath + "\n" +
-				requestBody
-			h := hmac.New(sha256.New, []byte(appSecret))
+			stringToSign := verb + "\n" +
+				date + "\n" +
+				canonicalizedResource
+			h := hmac.New(sha256.New, []byte(secretAccessKey))
 			h.Write([]byte(stringToSign))
-			signature := hex.EncodeToString(h.Sum(nil))
+			sign := base64.StdEncoding.EncodeToString(h.Sum(nil))
 
 			// 设置请求头
-			req.Header.Set("timestamp", timestamp)
-			req.Header.Set("authorization", fmt.Sprintf("%s Access=%s, Signature=%s", algorithm, agentId, signature))
+			req.Header.Set("Date", date)
+			req.Header.Set("Authorization", fmt.Sprintf("QC-HMAC-SHA256 %s:%s", accessKeyId, sign))
 
 			return nil
 		})
@@ -92,13 +71,16 @@ func (c *Client) SetTimeout(timeout time.Duration) *Client {
 	return c
 }
 
-func (c *Client) newRequest(path string) (*resty.Request, error) {
+func (c *Client) newRequest(method string, path string) (*resty.Request, error) {
+	if method == "" {
+		return nil, fmt.Errorf("sdkerr: unset method")
+	}
 	if path == "" {
 		return nil, fmt.Errorf("sdkerr: unset path")
 	}
 
 	req := c.client.R()
-	req.Method = http.MethodPost
+	req.Method = method
 	req.URL = path
 	return req, nil
 }
@@ -138,8 +120,8 @@ func (c *Client) doRequestWithResult(req *resty.Request, res apiResponse) (*rest
 		if err := json.Unmarshal(resp.Body(), &res); err != nil {
 			return resp, fmt.Errorf("sdkerr: failed to unmarshal response: %w", err)
 		} else {
-			if tcode := res.GetCode(); tcode != "0" {
-				return resp, fmt.Errorf("sdkerr: code='%s', msg='%s'", tcode, res.GetMessage())
+			if tcode := res.GetCode(); tcode != 0 {
+				return resp, fmt.Errorf("sdkerr: code='%d', message='%s'", tcode, res.GetMessage())
 			}
 		}
 	}

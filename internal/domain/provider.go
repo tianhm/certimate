@@ -85,7 +85,7 @@ const (
 	AccessProviderTypePowerDNS            = AccessProviderType("powerdns")
 	AccessProviderTypeProxmoxVE           = AccessProviderType("proxmoxve")
 	AccessProviderTypeQiniu               = AccessProviderType("qiniu")
-	AccessProviderTypeQingCloud           = AccessProviderType("qingcloud") // 青云（预留）
+	AccessProviderTypeQingCloud           = AccessProviderType("qingcloud")
 	AccessProviderTypeRainYun             = AccessProviderType("rainyun")
 	AccessProviderTypeRatPanel            = AccessProviderType("ratpanel")
 	AccessProviderTypeRFC2136             = AccessProviderType("rfc2136")
@@ -197,6 +197,8 @@ const (
 	ACMEDns01ProviderTypeOVHcloud          = ACMEDns01ProviderType(AccessProviderTypeOVHcloud)
 	ACMEDns01ProviderTypePorkbun           = ACMEDns01ProviderType(AccessProviderTypePorkbun)
 	ACMEDns01ProviderTypePowerDNS          = ACMEDns01ProviderType(AccessProviderTypePowerDNS)
+	ACMEDns01ProviderTypeQingCloud         = ACMEDns01ProviderType(AccessProviderTypeQingCloud) // 兼容旧值，等同于 [ACMEDns01ProviderTypeQingCloudDNS]
+	ACMEDns01ProviderTypeQingCloudDNS      = ACMEDns01ProviderType(AccessProviderTypeQingCloud + "-dns")
 	ACMEDns01ProviderTypeRainYun           = ACMEDns01ProviderType(AccessProviderTypeRainYun)
 	ACMEDns01ProviderTypeRFC2136           = ACMEDns01ProviderType(AccessProviderTypeRFC2136)
 	ACMEDns01ProviderTypeSpaceship         = ACMEDns01ProviderType(AccessProviderTypeSpaceship)
@@ -204,6 +206,7 @@ const (
 	ACMEDns01ProviderTypeTencentCloud      = ACMEDns01ProviderType(AccessProviderTypeTencentCloud) // 兼容旧值，等同于 [ACMEDns01ProviderTypeTencentCloudDNS]
 	ACMEDns01ProviderTypeTencentCloudDNS   = ACMEDns01ProviderType(AccessProviderTypeTencentCloud + "-dns")
 	ACMEDns01ProviderTypeTencentCloudEO    = ACMEDns01ProviderType(AccessProviderTypeTencentCloud + "-eo")
+	ACMEDns01ProviderTypeUCloud            = ACMEDns01ProviderType(AccessProviderTypeUCloud) // 兼容旧值，等同于 [ACMEDns01ProviderTypeUCloudUDNR]
 	ACMEDns01ProviderTypeUCloudUDNR        = ACMEDns01ProviderType(AccessProviderTypeUCloud + "-udnr")
 	ACMEDns01ProviderTypeVercel            = ACMEDns01ProviderType(AccessProviderTypeVercel)
 	ACMEDns01ProviderTypeVolcEngine        = ACMEDns01ProviderType(AccessProviderTypeVolcEngine) // 兼容旧值，等同于 [ACMEDns01ProviderTypeVolcEngineDNS]

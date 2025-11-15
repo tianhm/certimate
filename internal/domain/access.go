@@ -528,6 +528,11 @@ type AccessConfigForWestcn struct {
 	ApiPassword string `json:"apiPassword"`
 }
 
+type AccessConfigForXinnet struct {
+	AgentId     string `json:"agentId"`
+	ApiPassword string `json:"apiPassword"`
+}
+
 type AccessConfigForZeroSSL struct {
 	AccessConfigForACMEExternalAccountBinding
 }

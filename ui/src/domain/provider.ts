@@ -111,6 +111,7 @@ export const ACCESS_PROVIDERS = Object.freeze({
   WEBHOOK: "webhook",
   WECOMBOT: "wecombot",
   WESTCN: "westcn",
+  XINNET: "xinnet",
   ZEROSSL: "zerossl",
 } as const);
 
@@ -214,6 +215,7 @@ export const accessProvidersMap: Map<AccessProvider["type"] | string, AccessProv
       [ACCESS_PROVIDERS.CMCCCLOUD, "provider.cmcccloud", "/imgs/providers/cmcccloud.svg", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.WESTCN, "provider.westcn", "/imgs/providers/westcn.svg", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS["35CN"], "provider.35cn", "/imgs/providers/35cn.png", [ACCESS_USAGES.DNS]],
+      [ACCESS_PROVIDERS.XINNET, "provider.xinnet", "/imgs/providers/xinnet.png", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.POWERDNS, "provider.powerdns", "/imgs/providers/powerdns.svg", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.TECHNITIUMDNS, "provider.technitiumdns", "/imgs/providers/technitiumdns.png", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.RFC2136, "provider.rfc2136", "/imgs/providers/rfc.png", [ACCESS_USAGES.DNS]],
@@ -376,6 +378,7 @@ export const ACME_DNS01_PROVIDERS = Object.freeze({
   VOLCENGINE_DNS: `${ACCESS_PROVIDERS.VOLCENGINE}-dns`,
   VULTR: `${ACCESS_PROVIDERS.VULTR}`,
   WESTCN: `${ACCESS_PROVIDERS.WESTCN}`,
+  XINNET: `${ACCESS_PROVIDERS.XINNET}`,
 } as const);
 
 export type ACMEDns01ProviderType = (typeof ACME_DNS01_PROVIDERS)[keyof typeof ACME_DNS01_PROVIDERS];
@@ -440,6 +443,7 @@ export const acmeDns01ProvidersMap: Map<ACMEDns01Provider["type"] | string, ACME
       [ACME_DNS01_PROVIDERS.UCLOUD_UDNR, "provider.ucloud.udnr"],
       [ACME_DNS01_PROVIDERS.WESTCN, "provider.westcn"],
       [ACME_DNS01_PROVIDERS["35CN"], "provider.35cn"],
+      [ACME_DNS01_PROVIDERS.XINNET, "provider.xinnet"],
       [ACME_DNS01_PROVIDERS.POWERDNS, "provider.powerdns"],
       [ACME_DNS01_PROVIDERS.TECHNITIUMDNS, "provider.technitiumdns"],
       [ACME_DNS01_PROVIDERS.RFC2136, "provider.rfc2136"],

@@ -108,6 +108,7 @@ const (
 	AccessProviderTypeWebhook             = AccessProviderType("webhook")
 	AccessProviderTypeWeComBot            = AccessProviderType("wecombot")
 	AccessProviderTypeWestcn              = AccessProviderType("westcn")
+	AccessProviderTypeXinnet              = AccessProviderType("xinnet")
 	AccessProviderTypeZeroSSL             = AccessProviderType("zerossl")
 )
 
@@ -209,6 +210,7 @@ const (
 	ACMEDns01ProviderTypeVolcEngineDNS     = ACMEDns01ProviderType(AccessProviderTypeVolcEngine + "-dns")
 	ACMEDns01ProviderTypeVultr             = ACMEDns01ProviderType(AccessProviderTypeVultr)
 	ACMEDns01ProviderTypeWestcn            = ACMEDns01ProviderType(AccessProviderTypeWestcn)
+	ACMEDns01ProviderTypeXinnet            = ACMEDns01ProviderType(AccessProviderTypeXinnet)
 )
 
 type ACMEHttp01ProviderType string

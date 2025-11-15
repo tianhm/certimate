@@ -7,7 +7,7 @@ import Tips from "@/components/Tips";
 
 import { useFormNestedFieldsContext } from "./_context";
 
-const AccessConfigFormFieldsProvider35cn = () => {
+const AccessConfigFormFieldsProviderXinnet = () => {
   const { i18n, t } = useTranslation();
 
   const { parentNamePath } = useFormNestedFieldsContext();
@@ -19,21 +19,21 @@ const AccessConfigFormFieldsProvider35cn = () => {
 
   return (
     <>
-      <Form.Item name={[parentNamePath, "username"]} initialValue={initialValues.username} label={t("access.form.35cn_username.label")} rules={[formRule]}>
-        <Input autoComplete="new-password" placeholder={t("access.form.35cn_username.placeholder")} />
+      <Form.Item name={[parentNamePath, "agentId"]} initialValue={initialValues.agentId} label={t("access.form.xinnet_agent_id.label")} rules={[formRule]}>
+        <Input autoComplete="new-password" placeholder={t("access.form.xinnet_agent_id.placeholder")} />
       </Form.Item>
 
       <Form.Item
         name={[parentNamePath, "apiPassword"]}
         initialValue={initialValues.apiPassword}
-        label={t("access.form.35cn_api_password.label")}
+        label={t("access.form.xinnet_api_password.label")}
         rules={[formRule]}
       >
-        <Input.Password autoComplete="new-password" placeholder={t("access.form.35cn_api_password.placeholder")} />
+        <Input.Password autoComplete="new-password" placeholder={t("access.form.xinnet_api_password.placeholder")} />
       </Form.Item>
 
       <Form.Item>
-        <Tips message={<span dangerouslySetInnerHTML={{ __html: t("access.form.35cn_agent.guide") }}></span>} />
+        <Tips message={<span dangerouslySetInnerHTML={{ __html: t("access.form.xinnet_agent.guide") }}></span>} />
       </Form.Item>
     </>
   );
@@ -41,7 +41,7 @@ const AccessConfigFormFieldsProvider35cn = () => {
 
 const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   return {
-    username: "",
+    agentId: "",
     apiPassword: "",
   };
 };
@@ -50,12 +50,12 @@ const getSchema = ({ i18n = getI18n() }: { i18n: ReturnType<typeof getI18n> }) =
   const { t } = i18n;
 
   return z.object({
-    username: z.string().nonempty(t("access.form.35cn_username.placeholder")),
-    apiPassword: z.string().nonempty(t("access.form.35cn_api_password.placeholder")),
+    agentId: z.string().nonempty(t("access.form.xinnet_agent_id.placeholder")),
+    apiPassword: z.string().nonempty(t("access.form.xinnet_api_password.placeholder")),
   });
 };
 
-const _default = Object.assign(AccessConfigFormFieldsProvider35cn, {
+const _default = Object.assign(AccessConfigFormFieldsProviderXinnet, {
   getInitialValues,
   getSchema,
 });

@@ -200,6 +200,7 @@
   "provider.webhook": "Webhook",
   "provider.wecombot": "WeCom Bot",
   "provider.westcn": "West.cn",
+  "provider.xinnet": "Xinnet",
   "provider.zerossl": "ZeroSSL",
 
   "provider.category.all": "All",

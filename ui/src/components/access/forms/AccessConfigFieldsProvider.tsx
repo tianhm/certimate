@@ -95,6 +95,7 @@ import AccessConfigFieldsProviderWangsu from "./AccessConfigFieldsProviderWangsu
 import AccessConfigFieldsProviderWebhook from "./AccessConfigFieldsProviderWebhook";
 import AccessConfigFieldsProviderWeComBot from "./AccessConfigFieldsProviderWeComBot";
 import AccessConfigFieldsProviderWestcn from "./AccessConfigFieldsProviderWestcn";
+import AccessConfigFieldsProviderXinnet from "./AccessConfigFieldsProviderXinnet";
 import AccessConfigFieldsProviderZeroSSL from "./AccessConfigFieldsProviderZeroSSL";
 
 const providerComponentMap: Partial<Record<AccessProviderType, React.ComponentType<any>>> = {
@@ -195,6 +196,7 @@ const providerComponentMap: Partial<Record<AccessProviderType, React.ComponentTy
   [ACCESS_PROVIDERS.WEBHOOK]: AccessConfigFieldsProviderWebhook,
   [ACCESS_PROVIDERS.WECOMBOT]: AccessConfigFieldsProviderWeComBot,
   [ACCESS_PROVIDERS.WESTCN]: AccessConfigFieldsProviderWestcn,
+  [ACCESS_PROVIDERS.XINNET]: AccessConfigFieldsProviderXinnet,
   [ACCESS_PROVIDERS.ZEROSSL]: AccessConfigFieldsProviderZeroSSL,
 };
 

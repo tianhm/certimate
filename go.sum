@@ -340,6 +340,8 @@ github.com/go-acme/lego/v4 v4.28.0 h1:URKsCcybo7SjqqZckeBcDN9Vl29/bKS///75tcNkMH
 github.com/go-acme/lego/v4 v4.28.0/go.mod h1:bzjilr03IgbaOwlH396hq5W56Bi0/uoRwW/JM8hP7m4=
 github.com/go-acme/tencentclouddnspod v1.1.10 h1:ERVJ4mc3cT4Nb3+n6H/c1AwZnChGBqLoymE0NVYscKI=
 github.com/go-acme/tencentclouddnspod v1.1.10/go.mod h1:Bo/0YQJ/99FM+44HmCQkByuptX1tJsJ9V14MGV/2Qco=
+github.com/go-acme/tencentedgdeone v1.1.48 h1:WLyLBsRVhSLFmtbEFXk0naLODSQn7X6J0Fc/qR8xVUk=
+github.com/go-acme/tencentedgdeone v1.1.48/go.mod h1:mu6tA+bPhlSd+CKUfzRikE0mfxmTlBI6dVTn9LY9dRI=
 github.com/go-cmd/cmd v1.4.3 h1:6y3G+3UqPerXvPcXvj+5QNPHT02BUw7p6PsqRxLNA7Y=
 github.com/go-cmd/cmd v1.4.3/go.mod h1:u3hxg/ry+D5kwh8WvUkHLAMe2zQCaXd00t35WfQaOFk=
 github.com/go-gl/glfw v0.0.0-20190409004039-e6da0acd62b1/go.mod h1:vR7hzQXu2zJy9AVAgeJqvqgH9Q5CA+iKCZ2gyEVpxRU=
@@ -837,6 +839,7 @@ github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.1.10/go.mod h
 github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.1.13/go.mod h1:r5r4xbfxSaeR04b166HGsBa/R4U3SueirEUpXGuw+Q0=
 github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.1.28/go.mod h1:r5r4xbfxSaeR04b166HGsBa/R4U3SueirEUpXGuw+Q0=
 github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.1.36/go.mod h1:r5r4xbfxSaeR04b166HGsBa/R4U3SueirEUpXGuw+Q0=
+github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.1.48/go.mod h1:r5r4xbfxSaeR04b166HGsBa/R4U3SueirEUpXGuw+Q0=
 github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.1.49/go.mod h1:r5r4xbfxSaeR04b166HGsBa/R4U3SueirEUpXGuw+Q0=
 github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.1.52 h1:GtExKpiqbmmOq9ojeBYR6M1vgVL27s14GIDkjmgAX8A=
 github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.1.52/go.mod h1:r5r4xbfxSaeR04b166HGsBa/R4U3SueirEUpXGuw+Q0=

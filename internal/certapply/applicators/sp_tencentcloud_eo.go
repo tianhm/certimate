@@ -20,7 +20,6 @@ func init() {
 		provider, err := teo.NewChallengeProvider(&teo.ChallengeProviderConfig{
 			SecretId:              credentials.SecretId,
 			SecretKey:             credentials.SecretKey,
-			ZoneId:                xmaps.GetString(options.ProviderExtendedConfig, "zoneId"),
 			DnsPropagationTimeout: options.DnsPropagationTimeout,
 			DnsTTL:                options.DnsTTL,
 		})

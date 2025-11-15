@@ -3,6 +3,8 @@ import { Form, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
+import Tips from "@/components/Tips";
+
 import { useFormNestedFieldsContext } from "./_context";
 
 const AccessConfigFormFieldsProvider35cn = () => {
@@ -17,13 +19,7 @@ const AccessConfigFormFieldsProvider35cn = () => {
 
   return (
     <>
-      <Form.Item
-        name={[parentNamePath, "username"]}
-        initialValue={initialValues.username}
-        label={t("access.form.35cn_username.label")}
-        rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.35cn_username.tooltip") }}></span>}
-      >
+      <Form.Item name={[parentNamePath, "username"]} initialValue={initialValues.username} label={t("access.form.35cn_username.label")} rules={[formRule]}>
         <Input autoComplete="new-password" placeholder={t("access.form.35cn_username.placeholder")} />
       </Form.Item>
 
@@ -32,9 +28,12 @@ const AccessConfigFormFieldsProvider35cn = () => {
         initialValue={initialValues.apiPassword}
         label={t("access.form.35cn_api_password.label")}
         rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("access.form.35cn_api_password.tooltip") }}></span>}
       >
         <Input.Password autoComplete="new-password" placeholder={t("access.form.35cn_api_password.placeholder")} />
+      </Form.Item>
+
+      <Form.Item>
+        <Tips message={<span dangerouslySetInnerHTML={{ __html: t("access.form.35cn_agent.guide") }}></span>} />
       </Form.Item>
     </>
   );

@@ -396,6 +396,11 @@ type AccessConfigForProxmoxVE struct {
 	AllowInsecureConnections bool   `json:"allowInsecureConnections,omitempty"`
 }
 
+type AccessConfigForQingCloud struct {
+	AccessKeyId     string `json:"accessKeyId"`
+	SecretAccessKey string `json:"secretAccessKey"`
+}
+
 type AccessConfigForQiniu struct {
 	AccessKey string `json:"accessKey"`
 	SecretKey string `json:"secretKey"`
@@ -525,6 +530,11 @@ type AccessConfigForWeComBot struct {
 
 type AccessConfigForWestcn struct {
 	Username    string `json:"username"`
+	ApiPassword string `json:"apiPassword"`
+}
+
+type AccessConfigForXinnet struct {
+	AgentId     string `json:"agentId"`
 	ApiPassword string `json:"apiPassword"`
 }
 

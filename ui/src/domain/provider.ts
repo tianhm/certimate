@@ -88,6 +88,7 @@ export const ACCESS_PROVIDERS = Object.freeze({
   PORKBUN: "porkbun",
   POWERDNS: "powerdns",
   PROXMOXVE: "proxmoxve",
+  QINGCLOUD: "qingcloud",
   QINIU: "qiniu",
   RAINYUN: "rainyun",
   RATPANEL: "ratpanel",
@@ -111,6 +112,7 @@ export const ACCESS_PROVIDERS = Object.freeze({
   WEBHOOK: "webhook",
   WECOMBOT: "wecombot",
   WESTCN: "westcn",
+  XINNET: "xinnet",
   ZEROSSL: "zerossl",
 } as const);
 
@@ -212,8 +214,10 @@ export const accessProvidersMap: Map<AccessProvider["type"] | string, AccessProv
       [ACCESS_PROVIDERS.VERCEL, "provider.vercel", "/imgs/providers/vercel.svg", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.VULTR, "provider.vultr", "/imgs/providers/vultr.svg", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.CMCCCLOUD, "provider.cmcccloud", "/imgs/providers/cmcccloud.svg", [ACCESS_USAGES.DNS]],
+      [ACCESS_PROVIDERS.QINGCLOUD, "provider.qingcloud", "/imgs/providers/qingcloud.svg", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.WESTCN, "provider.westcn", "/imgs/providers/westcn.svg", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS["35CN"], "provider.35cn", "/imgs/providers/35cn.png", [ACCESS_USAGES.DNS]],
+      [ACCESS_PROVIDERS.XINNET, "provider.xinnet", "/imgs/providers/xinnet.png", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.POWERDNS, "provider.powerdns", "/imgs/providers/powerdns.svg", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.TECHNITIUMDNS, "provider.technitiumdns", "/imgs/providers/technitiumdns.png", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.RFC2136, "provider.rfc2136", "/imgs/providers/rfc.png", [ACCESS_USAGES.DNS]],
@@ -363,9 +367,12 @@ export const ACME_DNS01_PROVIDERS = Object.freeze({
   OVHCLOUD: `${ACCESS_PROVIDERS.OVHCLOUD}`,
   PORKBUN: `${ACCESS_PROVIDERS.PORKBUN}`,
   POWERDNS: `${ACCESS_PROVIDERS.POWERDNS}`,
+  QINGCLOUD: `${ACCESS_PROVIDERS.QINGCLOUD}`, // 兼容旧值，等同于 `QINGCLOUD_DNS`
+  QINGCLOUD_DNS: `${ACCESS_PROVIDERS.QINGCLOUD}-dns`,
   RAINYUN: `${ACCESS_PROVIDERS.RAINYUN}`,
   RFC2136: `${ACCESS_PROVIDERS.RFC2136}`,
   SPACESHIP: `${ACCESS_PROVIDERS.SPACESHIP}`,
+  UCLOUD: `${ACCESS_PROVIDERS.UCLOUD}`, // 兼容旧值，等同于 `UCLOUD_UDNR`
   UCLOUD_UDNR: `${ACCESS_PROVIDERS.UCLOUD}-udnr`,
   TECHNITIUMDNS: `${ACCESS_PROVIDERS.TECHNITIUMDNS}`,
   TENCENTCLOUD: `${ACCESS_PROVIDERS.TENCENTCLOUD}`, // 兼容旧值，等同于 `TENCENTCLOUD_DNS`
@@ -376,6 +383,7 @@ export const ACME_DNS01_PROVIDERS = Object.freeze({
   VOLCENGINE_DNS: `${ACCESS_PROVIDERS.VOLCENGINE}-dns`,
   VULTR: `${ACCESS_PROVIDERS.VULTR}`,
   WESTCN: `${ACCESS_PROVIDERS.WESTCN}`,
+  XINNET: `${ACCESS_PROVIDERS.XINNET}`,
 } as const);
 
 export type ACMEDns01ProviderType = (typeof ACME_DNS01_PROVIDERS)[keyof typeof ACME_DNS01_PROVIDERS];
@@ -438,8 +446,10 @@ export const acmeDns01ProvidersMap: Map<ACMEDns01Provider["type"] | string, ACME
       [ACME_DNS01_PROVIDERS.CTCCCLOUD_SMARTDNS, "provider.ctcccloud.smartdns"],
       [ACME_DNS01_PROVIDERS.RAINYUN, "provider.rainyun"],
       [ACME_DNS01_PROVIDERS.UCLOUD_UDNR, "provider.ucloud.udnr"],
+      [ACME_DNS01_PROVIDERS.QINGCLOUD_DNS, "provider.qingcloud.dns"],
       [ACME_DNS01_PROVIDERS.WESTCN, "provider.westcn"],
       [ACME_DNS01_PROVIDERS["35CN"], "provider.35cn"],
+      [ACME_DNS01_PROVIDERS.XINNET, "provider.xinnet"],
       [ACME_DNS01_PROVIDERS.POWERDNS, "provider.powerdns"],
       [ACME_DNS01_PROVIDERS.TECHNITIUMDNS, "provider.technitiumdns"],
       [ACME_DNS01_PROVIDERS.RFC2136, "provider.rfc2136"],

@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	querystring "github.com/google/go-querystring/query"
+	qs "github.com/google/go-querystring/query"
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
@@ -75,7 +75,7 @@ type DnsRecordID struct {
 }
 
 func (c *DnsClient) AddRecord(ctx context.Context, record DnsRecord) (int, error) {
-	values, err := querystring.Values(record)
+	values, err := qs.Values(record)
 	if err != nil {
 		return 0, err
 	}

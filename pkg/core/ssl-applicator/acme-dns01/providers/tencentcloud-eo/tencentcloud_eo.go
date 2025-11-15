@@ -4,14 +4,14 @@ import (
 	"errors"
 	"time"
 
+	"github.com/go-acme/lego/v4/providers/dns/edgeone"
+
 	"github.com/certimate-go/certimate/pkg/core"
-	"github.com/certimate-go/certimate/pkg/core/ssl-applicator/acme-dns01/providers/tencentcloud-eo/internal"
 )
 
 type ChallengeProviderConfig struct {
 	SecretId              string `json:"secretId"`
 	SecretKey             string `json:"secretKey"`
-	ZoneId                string `json:"zoneId"`
 	DnsPropagationTimeout int    `json:"dnsPropagationTimeout,omitempty"`
 	DnsTTL                int    `json:"dnsTTL,omitempty"`
 }
@@ -21,12 +21,9 @@ func NewChallengeProvider(config *ChallengeProviderConfig) (core.ACMEChallenger,
 		return nil, errors.New("the configuration of the acme challenge provider is nil")
 	}
 
-	// 没有使用 github.com/go-acme/lego/v4/providers/dns/edgeone
-	// 因为该实现存在一些问题
-	providerConfig := internal.NewDefaultConfig()
+	providerConfig := edgeone.NewDefaultConfig()
 	providerConfig.SecretID = config.SecretId
 	providerConfig.SecretKey = config.SecretKey
-	providerConfig.ZoneID = config.ZoneId
 	if config.DnsPropagationTimeout != 0 {
 		providerConfig.PropagationTimeout = time.Duration(config.DnsPropagationTimeout) * time.Second
 	}
@@ -34,7 +31,7 @@ func NewChallengeProvider(config *ChallengeProviderConfig) (core.ACMEChallenger,
 		providerConfig.TTL = config.DnsTTL
 	}
 
-	provider, err := internal.NewDNSProviderConfig(providerConfig)
+	provider, err := edgeone.NewDNSProviderConfig(providerConfig)
 	if err != nil {
 		return nil, err
 	}

@@ -31,6 +31,38 @@ func init() {
 
 					provider := nodeCfg["provider"]
 					switch provider {
+					case "aliyun-waf":
+						{
+							if nodeCfg["providerConfig"] != nil {
+								providerCfg := nodeCfg["providerConfig"].(map[string]any)
+								providerCfg["serviceType"] = "cname"
+								nodeCfg["providerConfig"] = providerCfg
+
+								node.Data["config"] = nodeCfg
+								_changed = true
+								return
+							}
+						}
+
+					case "baishan-cdn":
+					case "ksyun-cdn":
+					case "rainyun-rcdn":
+						{
+							if nodeCfg["providerConfig"] != nil {
+								providerCfg := nodeCfg["providerConfig"].(map[string]any)
+								if providerCfg["certificateId"] != nil && providerCfg["certificateId"].(string) != "" {
+									providerCfg["resourceType"] = "certificate"
+								} else {
+									providerCfg["resourceType"] = "domain"
+								}
+								nodeCfg["providerConfig"] = providerCfg
+
+								node.Data["config"] = nodeCfg
+								_changed = true
+								return
+							}
+						}
+
 					case "tencentcloud-ssldeploy":
 						{
 							if nodeCfg["providerConfig"] != nil {
@@ -51,19 +83,6 @@ func init() {
 								providerCfg := nodeCfg["providerConfig"].(map[string]any)
 								providerCfg["resourceProducts"] = providerCfg["resourceTypes"]
 								delete(providerCfg, "resourceTypes")
-								nodeCfg["providerConfig"] = providerCfg
-
-								node.Data["config"] = nodeCfg
-								_changed = true
-								return
-							}
-						}
-
-					case "aliyun-waf":
-						{
-							if nodeCfg["providerConfig"] != nil {
-								providerCfg := nodeCfg["providerConfig"].(map[string]any)
-								providerCfg["serviceType"] = "cname"
 								nodeCfg["providerConfig"] = providerCfg
 
 								node.Data["config"] = nodeCfg

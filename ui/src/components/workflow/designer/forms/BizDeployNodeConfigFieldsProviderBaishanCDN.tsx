@@ -1,11 +1,15 @@
 import { getI18n, useTranslation } from "react-i18next";
-import { Form, Input, Radio } from "antd";
+import { Form, Input, Radio, Select } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
+import Show from "@/components/Show";
 import { validDomainName } from "@/utils/validators";
 
 import { useFormNestedFieldsContext } from "./_context";
+
+const RESOURCE_TYPE_DOMAIN = "domain" as const;
+const RESOURCE_TYPE_CERTIFICATE = "certificate" as const;
 
 const DOMAIN_MATCH_PATTERN_EXACT = "exact" as const;
 
@@ -20,57 +24,78 @@ const BizDeployNodeConfigFieldsProviderBaishanCDN = () => {
   const formInst = Form.useFormInstance();
   const initialValues = getInitialValues();
 
+  const fieldResourceType = Form.useWatch([parentNamePath, "resourceType"], formInst);
   const fieldDomainMatchPattern = Form.useWatch([parentNamePath, "domainMatchPattern"], { form: formInst, preserve: true });
 
   return (
     <>
       <Form.Item
-        name={[parentNamePath, "domainMatchPattern"]}
-        initialValue={initialValues.domainMatchPattern}
-        label={t("workflow_node.deploy.form.shared_domain_match_pattern.label")}
-        extra={
-          fieldDomainMatchPattern === DOMAIN_MATCH_PATTERN_EXACT ? (
-            <span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.shared_domain_match_pattern.help_wildcard") }}></span>
-          ) : (
-            void 0
-          )
-        }
+        name={[parentNamePath, "resourceType"]}
+        initialValue={initialValues.resourceType}
+        label={t("workflow_node.deploy.form.baishan_cdn_resource_type.label")}
         rules={[formRule]}
       >
-        <Radio.Group
-          options={[DOMAIN_MATCH_PATTERN_EXACT].map((s) => ({
-            key: s,
-            label: t(`workflow_node.deploy.form.shared_domain_match_pattern.option.${s}.label`),
-            value: s,
-          }))}
-        />
+        <Select placeholder={t("workflow_node.deploy.form.baishan_cdn_resource_type.placeholder")}>
+          <Select.Option key={RESOURCE_TYPE_DOMAIN} value={RESOURCE_TYPE_DOMAIN}>
+            {t("workflow_node.deploy.form.baishan_cdn_resource_type.option.domain.label")}
+          </Select.Option>
+          <Select.Option key={RESOURCE_TYPE_CERTIFICATE} value={RESOURCE_TYPE_CERTIFICATE}>
+            {t("workflow_node.deploy.form.baishan_cdn_resource_type.option.certificate.label")}
+          </Select.Option>
+        </Select>
       </Form.Item>
 
-      <Form.Item
-        name={[parentNamePath, "domain"]}
-        initialValue={initialValues.domain}
-        label={t("workflow_node.deploy.form.baishan_cdn_domain.label")}
-        rules={[formRule]}
-      >
-        <Input placeholder={t("workflow_node.deploy.form.baishan_cdn_domain.placeholder")} />
-      </Form.Item>
+      <Show when={fieldResourceType === RESOURCE_TYPE_DOMAIN}>
+        <Form.Item
+          name={[parentNamePath, "domainMatchPattern"]}
+          initialValue={initialValues.domainMatchPattern}
+          label={t("workflow_node.deploy.form.shared_domain_match_pattern.label")}
+          extra={
+            fieldDomainMatchPattern === DOMAIN_MATCH_PATTERN_EXACT ? (
+              <span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.shared_domain_match_pattern.help_wildcard") }}></span>
+            ) : (
+              void 0
+            )
+          }
+          rules={[formRule]}
+        >
+          <Radio.Group
+            options={[DOMAIN_MATCH_PATTERN_EXACT].map((s) => ({
+              key: s,
+              label: t(`workflow_node.deploy.form.shared_domain_match_pattern.option.${s}.label`),
+              value: s,
+            }))}
+          />
+        </Form.Item>
 
-      <Form.Item
-        name={[parentNamePath, "certificateId"]}
-        initialValue={initialValues.certificateId}
-        label={t("workflow_node.deploy.form.baishan_cdn_certificate_id.label")}
-        extra={t("workflow_node.deploy.form.baishan_cdn_certificate_id.help")}
-        rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.baishan_cdn_certificate_id.tooltip") }}></span>}
-      >
-        <Input allowClear type="number" placeholder={t("workflow_node.deploy.form.baishan_cdn_certificate_id.placeholder")} />
-      </Form.Item>
+        <Form.Item
+          name={[parentNamePath, "domain"]}
+          initialValue={initialValues.domain}
+          label={t("workflow_node.deploy.form.baishan_cdn_domain.label")}
+          rules={[formRule]}
+        >
+          <Input placeholder={t("workflow_node.deploy.form.baishan_cdn_domain.placeholder")} />
+        </Form.Item>
+      </Show>
+
+      <Show when={fieldResourceType === RESOURCE_TYPE_CERTIFICATE}>
+        <Form.Item
+          name={[parentNamePath, "certificateId"]}
+          initialValue={initialValues.certificateId}
+          label={t("workflow_node.deploy.form.baishan_cdn_certificate_id.label")}
+          rules={[formRule]}
+          tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.baishan_cdn_certificate_id.tooltip") }}></span>}
+        >
+          <Input allowClear type="number" placeholder={t("workflow_node.deploy.form.baishan_cdn_certificate_id.placeholder")} />
+        </Form.Item>
+      </Show>
     </>
   );
 };
 
 const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   return {
+    resourceType: RESOURCE_TYPE_DOMAIN,
     domainMatchPattern: DOMAIN_MATCH_PATTERN_EXACT,
     domain: "",
   };
@@ -81,31 +106,50 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
 
   return z
     .object({
+      resourceType: z.literal([RESOURCE_TYPE_DOMAIN, RESOURCE_TYPE_CERTIFICATE], t("workflow_node.deploy.form.baishan_cdn_resource_type.placeholder")),
       domainMatchPattern: z.string().nonempty(t("workflow_node.deploy.form.shared_domain_match_pattern.placeholder")).default(DOMAIN_MATCH_PATTERN_EXACT),
       domain: z.string().nullish(),
-      certificateId: z
-        .union([z.string(), z.number().int()])
-        .nullish()
-        .refine((v) => {
-          if (!v) return true;
-          return /^\d+$/.test(v + "") && +v > 0;
-        }, t("workflow_node.deploy.form.baishan_cdn_certificate_id.placeholder")),
+      certificateId: z.union([z.string(), z.number().int()]).nullish(),
     })
     .superRefine((values, ctx) => {
-      if (values.domainMatchPattern) {
-        switch (values.domainMatchPattern) {
-          case DOMAIN_MATCH_PATTERN_EXACT:
-            {
-              if (!validDomainName(values.domain!, { allowWildcard: true })) {
-                ctx.addIssue({
-                  code: "custom",
-                  message: t("common.errmsg.domain_invalid"),
-                  path: ["domain"],
-                });
-              }
+      switch (values.resourceType) {
+        case RESOURCE_TYPE_DOMAIN:
+          {
+            if (!values.domainMatchPattern) {
+              ctx.addIssue({
+                code: "custom",
+                message: t("workflow_node.deploy.form.shared_domain_match_pattern.placeholder"),
+                path: ["domainMatchPattern"],
+              });
             }
-            break;
-        }
+
+            switch (values.domainMatchPattern) {
+              case DOMAIN_MATCH_PATTERN_EXACT:
+                {
+                  if (!validDomainName(values.domain!, { allowWildcard: true })) {
+                    ctx.addIssue({
+                      code: "custom",
+                      message: t("common.errmsg.domain_invalid"),
+                      path: ["domain"],
+                    });
+                  }
+                }
+                break;
+            }
+          }
+          break;
+
+        case RESOURCE_TYPE_CERTIFICATE:
+          {
+            if (!values.certificateId) {
+              ctx.addIssue({
+                code: "custom",
+                message: t("workflow_node.deploy.form.baishan_cdn_certificate_id.placeholder"),
+                path: ["certificateId"],
+              });
+            }
+          }
+          break;
       }
     });
 };

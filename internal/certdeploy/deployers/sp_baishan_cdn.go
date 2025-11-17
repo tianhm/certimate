@@ -18,6 +18,7 @@ func init() {
 
 		provider, err := baishancdn.NewDeployer(&baishancdn.DeployerConfig{
 			ApiToken:           credentials.ApiToken,
+			ResourceType:       xmaps.GetString(options.ProviderExtendedConfig, "resourceType"),
 			DomainMatchPattern: xmaps.GetString(options.ProviderExtendedConfig, "domainMatchPattern"),
 			Domain:             xmaps.GetString(options.ProviderExtendedConfig, "domain"),
 			CertificateId:      xmaps.GetString(options.ProviderExtendedConfig, "certificateId"),

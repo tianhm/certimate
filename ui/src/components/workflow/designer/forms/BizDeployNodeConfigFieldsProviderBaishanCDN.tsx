@@ -32,17 +32,16 @@ const BizDeployNodeConfigFieldsProviderBaishanCDN = () => {
       <Form.Item
         name={[parentNamePath, "resourceType"]}
         initialValue={initialValues.resourceType}
-        label={t("workflow_node.deploy.form.baishan_cdn_resource_type.label")}
+        label={t("workflow_node.deploy.form.shared_resource_type.label")}
         rules={[formRule]}
       >
-        <Select placeholder={t("workflow_node.deploy.form.baishan_cdn_resource_type.placeholder")}>
-          <Select.Option key={RESOURCE_TYPE_DOMAIN} value={RESOURCE_TYPE_DOMAIN}>
-            {t("workflow_node.deploy.form.baishan_cdn_resource_type.option.domain.label")}
-          </Select.Option>
-          <Select.Option key={RESOURCE_TYPE_CERTIFICATE} value={RESOURCE_TYPE_CERTIFICATE}>
-            {t("workflow_node.deploy.form.baishan_cdn_resource_type.option.certificate.label")}
-          </Select.Option>
-        </Select>
+        <Select
+          options={[RESOURCE_TYPE_DOMAIN, RESOURCE_TYPE_CERTIFICATE].map((s) => ({
+            value: s,
+            label: t(`workflow_node.deploy.form.baishan_cdn_resource_type.option.${s}.label`),
+          }))}
+          placeholder={t("workflow_node.deploy.form.shared_resource_type.placeholder")}
+        />
       </Form.Item>
 
       <Show when={fieldResourceType === RESOURCE_TYPE_DOMAIN}>
@@ -106,7 +105,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
 
   return z
     .object({
-      resourceType: z.literal([RESOURCE_TYPE_DOMAIN, RESOURCE_TYPE_CERTIFICATE], t("workflow_node.deploy.form.baishan_cdn_resource_type.placeholder")),
+      resourceType: z.literal([RESOURCE_TYPE_DOMAIN, RESOURCE_TYPE_CERTIFICATE], t("workflow_node.deploy.form.shared_resource_type.placeholder")),
       domainMatchPattern: z.string().nonempty(t("workflow_node.deploy.form.shared_domain_match_pattern.placeholder")).default(DOMAIN_MATCH_PATTERN_EXACT),
       domain: z.string().nullish(),
       certificateId: z.union([z.string(), z.number().int()]).nullish(),

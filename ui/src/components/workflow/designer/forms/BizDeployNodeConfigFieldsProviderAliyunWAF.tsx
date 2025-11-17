@@ -55,14 +55,13 @@ const BizDeployNodeConfigFieldsProviderAliyunWAF = () => {
         label={t("workflow_node.deploy.form.aliyun_waf_service_type.label")}
         rules={[formRule]}
       >
-        <Select placeholder={t("workflow_node.deploy.form.aliyun_waf_service_type.placeholder")}>
-          <Select.Option key={SERVICE_TYPE_CLOUDRESOURCE} value={SERVICE_TYPE_CLOUDRESOURCE}>
-            {t("workflow_node.deploy.form.aliyun_waf_service_type.option.cloudresource.label")}
-          </Select.Option>
-          <Select.Option key={SERVICE_TYPE_CNAME} value={SERVICE_TYPE_CNAME}>
-            {t("workflow_node.deploy.form.aliyun_waf_service_type.option.cname.label")}
-          </Select.Option>
-        </Select>
+        <Select
+          options={[SERVICE_TYPE_CLOUDRESOURCE, SERVICE_TYPE_CNAME].map((s) => ({
+            value: s,
+            label: t(`workflow_node.deploy.form.aliyun_waf_service_type.option.${s}.label`),
+          }))}
+          placeholder={t("workflow_node.deploy.form.aliyun_waf_service_type.placeholder")}
+        />
       </Form.Item>
 
       <Form.Item

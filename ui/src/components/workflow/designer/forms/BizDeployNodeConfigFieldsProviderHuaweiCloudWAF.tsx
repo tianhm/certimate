@@ -40,20 +40,16 @@ const BizDeployNodeConfigFieldsProviderHuaweiCloudWAF = () => {
       <Form.Item
         name={[parentNamePath, "resourceType"]}
         initialValue={initialValues.resourceType}
-        label={t("workflow_node.deploy.form.huaweicloud_waf_resource_type.label")}
+        label={t("workflow_node.deploy.form.shared_resource_type.label")}
         rules={[formRule]}
       >
-        <Select placeholder={t("workflow_node.deploy.form.huaweicloud_waf_resource_type.placeholder")}>
-          <Select.Option key={RESOURCE_TYPE_CLOUDSERVER} value={RESOURCE_TYPE_CLOUDSERVER}>
-            {t("workflow_node.deploy.form.huaweicloud_waf_resource_type.option.cloudserver.label")}
-          </Select.Option>
-          <Select.Option key={RESOURCE_TYPE_PREMIUMHOST} value={RESOURCE_TYPE_PREMIUMHOST}>
-            {t("workflow_node.deploy.form.huaweicloud_waf_resource_type.option.premiumhost.label")}
-          </Select.Option>
-          <Select.Option key={RESOURCE_TYPE_CERTIFICATE} value={RESOURCE_TYPE_CERTIFICATE}>
-            {t("workflow_node.deploy.form.huaweicloud_waf_resource_type.option.certificate.label")}
-          </Select.Option>
-        </Select>
+        <Select
+          options={[RESOURCE_TYPE_CLOUDSERVER, RESOURCE_TYPE_PREMIUMHOST, RESOURCE_TYPE_CERTIFICATE].map((s) => ({
+            value: s,
+            label: t(`workflow_node.deploy.form.huaweicloud_waf_resource_type.option.${s}.label`),
+          }))}
+          placeholder={t("workflow_node.deploy.form.shared_resource_type.placeholder")}
+        />
       </Form.Item>
 
       <Show when={fieldResourceType === RESOURCE_TYPE_CLOUDSERVER || fieldResourceType === RESOURCE_TYPE_PREMIUMHOST}>
@@ -96,7 +92,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
       region: z.string().nonempty(t("workflow_node.deploy.form.huaweicloud_waf_region.placeholder")),
       resourceType: z.literal(
         [RESOURCE_TYPE_CLOUDSERVER, RESOURCE_TYPE_PREMIUMHOST, RESOURCE_TYPE_CERTIFICATE],
-        t("workflow_node.deploy.form.huaweicloud_waf_resource_type.placeholder")
+        t("workflow_node.deploy.form.shared_resource_type.placeholder")
       ),
       certificateId: z.string().nullish(),
       domain: z.string().nullish(),

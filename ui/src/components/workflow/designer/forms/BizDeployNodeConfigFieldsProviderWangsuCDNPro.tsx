@@ -7,9 +7,6 @@ import { validDomainName } from "@/utils/validators";
 
 import { useFormNestedFieldsContext } from "./_context";
 
-const ENVIRONMENT_PRODUCTION = "production" as const;
-const ENVIRONMENT_STAGING = "stating" as const;
-
 const DOMAIN_MATCH_PATTERN_EXACT = "exact" as const;
 
 const BizDeployNodeConfigFieldsProviderWangsuCDNPro = () => {
@@ -34,10 +31,10 @@ const BizDeployNodeConfigFieldsProviderWangsuCDNPro = () => {
         rules={[formRule]}
       >
         <Select placeholder={t("workflow_node.deploy.form.wangsu_cdnpro_environment.placeholder")}>
-          <Select.Option key={ENVIRONMENT_PRODUCTION} value={ENVIRONMENT_PRODUCTION}>
+          <Select.Option key="production" value="production">
             {t("workflow_node.deploy.form.wangsu_cdnpro_environment.option.production.label")}
           </Select.Option>
-          <Select.Option key={ENVIRONMENT_STAGING} value={ENVIRONMENT_STAGING}>
+          <Select.Option key="stating" value="stating">
             {t("workflow_node.deploy.form.wangsu_cdnpro_environment.option.staging.label")}
           </Select.Option>
         </Select>
@@ -100,7 +97,7 @@ const BizDeployNodeConfigFieldsProviderWangsuCDNPro = () => {
 
 const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   return {
-    environment: ENVIRONMENT_PRODUCTION,
+    environment: "production",
     domainMatchPattern: DOMAIN_MATCH_PATTERN_EXACT,
     domain: "",
   };
@@ -111,7 +108,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
 
   return z
     .object({
-      environment: z.literal([ENVIRONMENT_PRODUCTION, ENVIRONMENT_STAGING], t("workflow_node.deploy.form.wangsu_cdnpro_environment.placeholder")),
+      environment: z.literal(["production", "staging"], t("workflow_node.deploy.form.wangsu_cdnpro_environment.placeholder")),
       domainMatchPattern: z.string().nonempty(t("workflow_node.deploy.form.shared_domain_match_pattern.placeholder")).default(DOMAIN_MATCH_PATTERN_EXACT),
       domain: z.string().nullish(),
       certificateId: z.string().nullish(),

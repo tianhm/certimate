@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"strings"
 
+	"github.com/samber/lo"
 	vedcdn "github.com/volcengine/volcengine-go-sdk/service/dcdn"
 	ve "github.com/volcengine/volcengine-go-sdk/volcengine"
 	vesession "github.com/volcengine/volcengine-go-sdk/volcengine/session"
@@ -15,6 +16,8 @@ import (
 	mcertmgr "github.com/certimate-go/certimate/pkg/core/certmgr/providers/volcengine-certcenter"
 	"github.com/certimate-go/certimate/pkg/core/deployer"
 	"github.com/certimate-go/certimate/pkg/core/deployer/providers/volcengine-dcdn/internal"
+	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
+	xcerthostname "github.com/certimate-go/certimate/pkg/utils/cert/hostname"
 )
 
 type DeployerConfig struct {
@@ -24,7 +27,7 @@ type DeployerConfig struct {
 	AccessKeySecret string `json:"accessKeySecret"`
 	// 火山引擎地域。
 	Region string `json:"region"`
-	// 域名匹配模式。暂时只支持精确匹配。
+	// 域名匹配模式。
 	// 零值时默认值 [DOMAIN_MATCH_PATTERN_EXACT]。
 	DomainMatchPattern string `json:"domainMatchPattern,omitempty"`
 	// 加速域名（支持泛域名）。
@@ -100,6 +103,51 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM string, privkeyPEM string
 			domains = []string{domain}
 		}
 
+	case DOMAIN_MATCH_PATTERN_WILDCARD:
+		{
+			if d.config.Domain == "" {
+				return nil, errors.New("config `domain` is required")
+			}
+
+			if strings.HasPrefix(d.config.Domain, "*.") {
+				domainCandidates, err := d.getAllDomains(ctx)
+				if err != nil {
+					return nil, err
+				}
+
+				domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
+					return xcerthostname.IsMatch(d.config.Domain, domain) ||
+						strings.TrimPrefix(d.config.Domain, "*") == strings.TrimPrefix(domain, "*")
+				})
+				if len(domains) == 0 {
+					return nil, errors.New("could not find any domains matched by wildcard")
+				}
+			} else {
+				domains = []string{d.config.Domain}
+			}
+		}
+
+	case DOMAIN_MATCH_PATTERN_CERTSAN:
+		{
+			certX509, err := xcert.ParseCertificateFromPEM(certPEM)
+			if err != nil {
+				return nil, err
+			}
+
+			domainCandidates, err := d.getAllDomains(ctx)
+			if err != nil {
+				return nil, err
+			}
+
+			domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
+				return certX509.VerifyHostname(domain) == nil ||
+					strings.TrimPrefix(d.config.Domain, "*") == strings.TrimPrefix(domain, "*")
+			})
+			if len(domains) == 0 {
+				return nil, errors.New("could not find any domains matched by certificate")
+			}
+		}
+
 	default:
 		return nil, fmt.Errorf("unsupported domain match pattern: '%s'", d.config.DomainMatchPattern)
 	}
@@ -118,6 +166,49 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM string, privkeyPEM string
 	}
 
 	return &deployer.DeployResult{}, nil
+}
+
+func (d *Deployer) getAllDomains(ctx context.Context) ([]string, error) {
+	domains := make([]string, 0)
+
+	// 查询域名配置列表
+	// https://www.volcengine.com/docs/6559/1171745
+	listDomainConfigPageNumber := 1
+	listDomainConfigPageSize := 100
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+
+		listDomainConfigReq := &vedcdn.ListDomainConfigInput{
+			PageNumber: ve.Int32(int32(listDomainConfigPageNumber)),
+			PageSize:   ve.Int32(int32(listDomainConfigPageSize)),
+		}
+		listDomainConfigResp, err := d.sdkClient.ListDomainConfig(listDomainConfigReq)
+		d.logger.Debug("sdk request 'dcdn.ListDomainConfig'", slog.Any("request", listDomainConfigReq), slog.Any("response", listDomainConfigResp))
+		if err != nil {
+			return nil, fmt.Errorf("failed to execute sdk request 'dcdn.ListDomainConfig': %w", err)
+		}
+
+		ignoredStatuses := []string{"Stop"}
+		for _, domainItem := range listDomainConfigResp.DomainList {
+			if lo.Contains(ignoredStatuses, *domainItem.Status) {
+				continue
+			}
+
+			domains = append(domains, *domainItem.Domain)
+		}
+
+		if len(listDomainConfigResp.DomainList) < listDomainConfigPageSize {
+			break
+		}
+
+		listDomainConfigPageNumber++
+	}
+
+	return domains, nil
 }
 
 func createSDKClient(accessKeyId, accessKeySecret, region string) (*internal.DcdnClient, error) {

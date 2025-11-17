@@ -8,6 +8,8 @@ import { validDomainName } from "@/utils/validators";
 import { useFormNestedFieldsContext } from "./_context";
 
 const DOMAIN_MATCH_PATTERN_EXACT = "exact" as const;
+const DOMAIN_MATCH_PATTERN_WILDCARD = "wildcard" as const;
+const DOMAIN_MATCH_PATTERN_CERTSAN = "certsan" as const;
 
 const BizDeployNodeConfigFieldsProviderVolcEngineDCDN = () => {
   const { i18n, t } = useTranslation();
@@ -38,7 +40,7 @@ const BizDeployNodeConfigFieldsProviderVolcEngineDCDN = () => {
         rules={[formRule]}
       >
         <Radio.Group
-          options={[DOMAIN_MATCH_PATTERN_EXACT].map((s) => ({
+          options={[DOMAIN_MATCH_PATTERN_EXACT, DOMAIN_MATCH_PATTERN_WILDCARD, DOMAIN_MATCH_PATTERN_CERTSAN].map((s) => ({
             key: s,
             label: t(`workflow_node.deploy.form.shared_domain_match_pattern.option.${s}.label`),
             value: s,
@@ -77,6 +79,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
       if (values.domainMatchPattern) {
         switch (values.domainMatchPattern) {
           case DOMAIN_MATCH_PATTERN_EXACT:
+          case DOMAIN_MATCH_PATTERN_WILDCARD:
             {
               if (!validDomainName(values.domain!, { allowWildcard: true })) {
                 ctx.addIssue({

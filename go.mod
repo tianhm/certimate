@@ -46,6 +46,7 @@ require (
 	github.com/go-resty/resty/v2 v2.16.5
 	github.com/go-viper/mapstructure/v2 v2.4.0
 	github.com/google/go-querystring v1.1.0
+	github.com/holubovskyi/apisix-client-go v1.4.1
 	github.com/huaweicloud/huaweicloud-sdk-go-v3 v0.1.175
 	github.com/jdcloud-api/jdcloud-sdk-go v1.64.0
 	github.com/kong/go-kong v0.69.0

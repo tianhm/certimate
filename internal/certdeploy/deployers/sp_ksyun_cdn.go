@@ -19,6 +19,7 @@ func init() {
 		provider, err := ksyuncdn.NewDeployer(&ksyuncdn.DeployerConfig{
 			AccessKeyId:        credentials.AccessKeyId,
 			SecretAccessKey:    credentials.SecretAccessKey,
+			ResourceType:       xmaps.GetString(options.ProviderExtendedConfig, "resourceType"),
 			DomainMatchPattern: xmaps.GetString(options.ProviderExtendedConfig, "domainMatchPattern"),
 			Domain:             xmaps.GetString(options.ProviderExtendedConfig, "domain"),
 			CertificateId:      xmaps.GetString(options.ProviderExtendedConfig, "certificateId"),

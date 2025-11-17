@@ -78,3 +78,27 @@ func (c *DcdnClient) CreateCertBindRequest(input *dcdn.CreateCertBindInput) (req
 
 	return
 }
+
+func (c *DcdnClient) ListDomainConfig(input *dcdn.ListDomainConfigInput) (*dcdn.ListDomainConfigOutput, error) {
+	req, out := c.ListDomainConfigRequest(input)
+	return out, req.Send()
+}
+
+func (c *DcdnClient) ListDomainConfigRequest(input *dcdn.ListDomainConfigInput) (req *request.Request, output *dcdn.ListDomainConfigOutput) {
+	op := &request.Operation{
+		Name:       "ListDomainConfig",
+		HTTPMethod: "POST",
+		HTTPPath:   "/",
+	}
+
+	if input == nil {
+		input = &dcdn.ListDomainConfigInput{}
+	}
+
+	output = &dcdn.ListDomainConfigOutput{}
+	req = c.newRequest(op, input, output)
+
+	req.HTTPRequest.Header.Set("Content-Type", "application/json; charset=utf-8")
+
+	return
+}

@@ -109,7 +109,7 @@ func (m *Certmgr) Upload(ctx context.Context, certPEM string, privkeyPEM string)
 					continue
 				}
 			case x509.Ed25519:
-				if !strings.EqualFold(sslItem.Encrypt, "ED25519") {
+				if !strings.EqualFold(sslItem.Encrypt, "Ed25519") {
 					continue
 				}
 			default:

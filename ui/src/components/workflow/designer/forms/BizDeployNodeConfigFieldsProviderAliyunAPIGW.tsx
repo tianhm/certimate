@@ -47,14 +47,13 @@ const BizDeployNodeConfigFieldsProviderAliyunAPIGW = () => {
         label={t("workflow_node.deploy.form.aliyun_apigw_service_type.label")}
         rules={[formRule]}
       >
-        <Select placeholder={t("workflow_node.deploy.form.aliyun_apigw_service_type.placeholder")}>
-          <Select.Option key={SERVICE_TYPE_CLOUDNATIVE} value={SERVICE_TYPE_CLOUDNATIVE}>
-            {t("workflow_node.deploy.form.aliyun_apigw_service_type.option.cloudnative.label")}
-          </Select.Option>
-          <Select.Option key={SERVICE_TYPE_TRADITIONAL} value={SERVICE_TYPE_TRADITIONAL}>
-            {t("workflow_node.deploy.form.aliyun_apigw_service_type.option.traditional.label")}
-          </Select.Option>
-        </Select>
+        <Select
+          options={[SERVICE_TYPE_CLOUDNATIVE, SERVICE_TYPE_CLOUDNATIVE].map((s) => ({
+            value: s,
+            label: t(`workflow_node.deploy.form.aliyun_apigw_service_type.option.${s}.label`),
+          }))}
+          placeholder={t("workflow_node.deploy.form.aliyun_apigw_service_type.placeholder")}
+        />
       </Form.Item>
 
       <Show when={fieldServiceType === SERVICE_TYPE_CLOUDNATIVE}>

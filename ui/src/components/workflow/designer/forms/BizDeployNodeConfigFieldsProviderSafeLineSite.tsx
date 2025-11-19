@@ -33,7 +33,7 @@ const BizDeployNodeConfigFieldsProviderSafeLine = () => {
         <Select
           options={[RESOURCE_TYPE_CERTIFICATE].map((s) => ({
             value: s,
-            label: t(`workflow_node.deploy.form.safeline_resource_type.option.${s}.label`),
+            label: t(`workflow_node.deploy.form.safeline_site_resource_type.option.${s}.label`),
           }))}
           placeholder={t("workflow_node.deploy.form.shared_resource_type.placeholder")}
         />
@@ -43,11 +43,11 @@ const BizDeployNodeConfigFieldsProviderSafeLine = () => {
         <Form.Item
           name={[parentNamePath, "certificateId"]}
           initialValue={initialValues.certificateId}
-          label={t("workflow_node.deploy.form.safeline_certificate_id.label")}
+          label={t("workflow_node.deploy.form.safeline_site_certificate_id.label")}
           rules={[formRule]}
-          tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.safeline_certificate_id.tooltip") }}></span>}
+          tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.safeline_site_certificate_id.tooltip") }}></span>}
         >
-          <Input type="number" placeholder={t("workflow_node.deploy.form.safeline_certificate_id.placeholder")} />
+          <Input type="number" placeholder={t("workflow_node.deploy.form.safeline_site_certificate_id.placeholder")} />
         </Form.Item>
       </Show>
     </>
@@ -76,7 +76,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
             if (!res.success) {
               ctx.addIssue({
                 code: "custom",
-                message: t("workflow_node.deploy.form.safeline_certificate_id.placeholder"),
+                message: t("workflow_node.deploy.form.safeline_site_certificate_id.placeholder"),
                 path: ["certificateId"],
               });
             }

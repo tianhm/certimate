@@ -61,7 +61,6 @@ func TestDeploy(t *testing.T) {
 			ApiKey:                   fApiKey,
 			AllowInsecureConnections: true,
 			SiteType:                 fSiteType,
-			SiteName:                 fSiteName,
 			SiteNames:                []string{fSiteName},
 		})
 		if err != nil {

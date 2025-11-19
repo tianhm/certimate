@@ -21,7 +21,7 @@ type DeployerConfig struct {
 	// 是否允许不安全的连接。
 	AllowInsecureConnections bool `json:"allowInsecureConnections,omitempty"`
 	// 网站名称。
-	SiteName string `json:"siteName"`
+	SiteNames []string `json:"siteNames"`
 }
 
 type Deployer struct {
@@ -58,23 +58,43 @@ func (d *Deployer) SetLogger(logger *slog.Logger) {
 }
 
 func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*deployer.DeployResult, error) {
-	if d.config.SiteName == "" {
-		return nil, errors.New("config `siteName` is required")
+	if len(d.config.SiteNames) == 0 {
+		return nil, errors.New("config `siteNames` is required")
 	}
 
+	// 遍历更新域名证书
+	var errs []error
+	for _, siteName := range d.config.SiteNames {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+			if err := d.updateSiteCertificate(ctx, siteName, certPEM, privkeyPEM); err != nil {
+				errs = append(errs, err)
+			}
+		}
+	}
+	if len(errs) > 0 {
+		return nil, errors.Join(errs...)
+	}
+
+	return &deployer.DeployResult{}, nil
+}
+
+func (d *Deployer) updateSiteCertificate(ctx context.Context, siteName string, certPEM, privkeyPEM string) error {
 	// 设置站点 SSL 证书
 	setWebsiteCertReq := &ratpanelsdk.SetWebsiteCertRequest{
-		SiteName:    d.config.SiteName,
+		SiteName:    siteName,
 		Certificate: certPEM,
 		PrivateKey:  privkeyPEM,
 	}
 	setWebsiteCertResp, err := d.sdkClient.SetWebsiteCert(setWebsiteCertReq)
 	d.logger.Debug("sdk request 'ratpanel.SetWebsiteCert'", slog.Any("request", setWebsiteCertReq), slog.Any("response", setWebsiteCertResp))
 	if err != nil {
-		return nil, fmt.Errorf("failed to execute sdk request 'ratpanel.SetWebsiteCert': %w", err)
+		return fmt.Errorf("failed to execute sdk request 'ratpanel.SetWebsiteCert': %w", err)
 	}
 
-	return &deployer.DeployResult{}, nil
+	return nil
 }
 
 func createSDKClient(serverUrl string, accessTokenId int64, accessToken string, skipTlsVerify bool) (*ratpanelsdk.Client, error) {

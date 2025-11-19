@@ -1,4 +1,4 @@
-package safeline_test
+package safelinesite_test
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	provider "github.com/certimate-go/certimate/pkg/core/deployer/providers/safeline"
+	provider "github.com/certimate-go/certimate/pkg/core/deployer/providers/safeline-site"
 )
 
 var (
@@ -20,7 +20,7 @@ var (
 )
 
 func init() {
-	argsPrefix := "SAFELINE_"
+	argsPrefix := "SAFELINESITE_"
 
 	flag.StringVar(&fInputCertPath, argsPrefix+"INPUTCERTPATH", "", "")
 	flag.StringVar(&fInputKeyPath, argsPrefix+"INPUTKEYPATH", "", "")
@@ -32,12 +32,12 @@ func init() {
 /*
 Shell command to run this test:
 
-	go test -v ./safeline_test.go -args \
-	--SAFELINE_INPUTCERTPATH="/path/to/your-input-cert.pem" \
-	--SAFELINE_INPUTKEYPATH="/path/to/your-input-key.pem" \
-	--SAFELINE_SERVERURL="http://127.0.0.1:9443" \
-	--SAFELINE_APITOKEN="your-api-token" \
-	--SAFELINE_CERTIFICATEID="your-certificate-id"
+	go test -v ./safeline_site_test.go -args \
+	--SAFELINESITE_INPUTCERTPATH="/path/to/your-input-cert.pem" \
+	--SAFELINESITE_INPUTKEYPATH="/path/to/your-input-key.pem" \
+	--SAFELINESITE_SERVERURL="http://127.0.0.1:9443" \
+	--SAFELINESITE_APITOKEN="your-api-token" \
+	--SAFELINESITE_CERTIFICATEID="your-certificate-id"
 */
 func TestDeploy(t *testing.T) {
 	flag.Parse()
@@ -57,7 +57,7 @@ func TestDeploy(t *testing.T) {
 			ApiToken:                 fApiToken,
 			AllowInsecureConnections: true,
 			ResourceType:             provider.RESOURCE_TYPE_CERTIFICATE,
-			CertificateId:            int32(fCertificateId),
+			CertificateId:            fCertificateId,
 		})
 		if err != nil {
 			t.Errorf("err: %+v", err)

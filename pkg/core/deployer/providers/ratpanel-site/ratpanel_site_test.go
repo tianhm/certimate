@@ -61,7 +61,7 @@ func TestDeploy(t *testing.T) {
 			AccessTokenId:            fAccessTokenId,
 			AccessToken:              fAccessToken,
 			AllowInsecureConnections: true,
-			SiteName:                 fSiteName,
+			SiteNames:                []string{fSiteName},
 		})
 		if err != nil {
 			t.Errorf("err: %+v", err)

@@ -7,19 +7,15 @@ import (
 )
 
 type WebsiteHttpsPostRequest struct {
-	WebsiteID       int64    `json:"websiteId"`
-	Enable          bool     `json:"enable"`
-	Type            string   `json:"type"`
-	WebsiteSSLID    int64    `json:"websiteSSLId"`
-	PrivateKey      string   `json:"privateKey"`
-	Certificate     string   `json:"certificate"`
-	PrivateKeyPath  string   `json:"privateKeyPath"`
-	CertificatePath string   `json:"certificatePath"`
-	ImportType      string   `json:"importType"`
-	HttpConfig      string   `json:"httpConfig"`
-	SSLProtocol     []string `json:"SSLProtocol"`
-	Algorithm       string   `json:"algorithm"`
-	Hsts            bool     `json:"hsts"`
+	WebsiteID    int64    `json:"websiteId"`
+	Enable       bool     `json:"enable"`
+	Type         string   `json:"type"`
+	WebsiteSSLID int64    `json:"websiteSSLId"`
+	HttpConfig   string   `json:"httpConfig"`
+	SSLProtocol  []string `json:"SSLProtocol"`
+	Algorithm    string   `json:"algorithm"`
+	Hsts         bool     `json:"hsts"`
+	Http3        bool     `json:"http3"`
 }
 
 type WebsiteHttpsPostResponse struct {

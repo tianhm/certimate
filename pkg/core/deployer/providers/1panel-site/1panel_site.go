@@ -13,6 +13,7 @@ import (
 	"github.com/certimate-go/certimate/pkg/core/deployer"
 	onepanelsdk "github.com/certimate-go/certimate/pkg/sdk3rd/1panel"
 	onepanelsdk2 "github.com/certimate-go/certimate/pkg/sdk3rd/1panel/v2"
+	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
 )
 
 type DeployerConfig struct {
@@ -30,8 +31,11 @@ type DeployerConfig struct {
 	NodeName string `json:"nodeName,omitempty"`
 	// 部署资源类型。
 	ResourceType string `json:"resourceType"`
+	// 域名匹配模式。
+	// 零值时默认值 [WEBSITE_MATCH_PATTERN_EXACT]。
+	WebsiteMatchPattern string `json:"websiteMatchPattern,omitempty"`
 	// 网站 ID。
-	// 部署资源类型为 [RESOURCE_TYPE_WEBSITE] 时必填。
+	// 部署资源类型为 [RESOURCE_TYPE_WEBSITE]、且匹配模式非 [WEBSITE_MATCH_PATTERN_CERTSAN] 时必填。
 	WebsiteId int64 `json:"websiteId,omitempty"`
 	// 证书 ID。
 	// 部署资源类型为 [RESOURCE_TYPE_CERTIFICATE] 时必填。
@@ -106,10 +110,6 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*dep
 }
 
 func (d *Deployer) deployToWebsite(ctx context.Context, certPEM, privkeyPEM string) error {
-	if d.config.WebsiteId == 0 {
-		return errors.New("config `websiteId` is required")
-	}
-
 	// 上传证书
 	upres, err := d.sdkCertmgr.Upload(ctx, certPEM, privkeyPEM)
 	if err != nil {
@@ -118,65 +118,54 @@ func (d *Deployer) deployToWebsite(ctx context.Context, certPEM, privkeyPEM stri
 		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
 	}
 
-	switch sdkClient := d.sdkClient.(type) {
-	case *onepanelsdk.Client:
+	// 获取待部署的网站列表
+	var websiteIds []int64
+	switch d.config.WebsiteMatchPattern {
+	case "", WEBSITE_MATCH_PATTERN_SPECIFIED:
 		{
-			// 获取网站 HTTPS 配置
-			websiteHttpsGetResp, err := sdkClient.WebsiteHttpsGet(d.config.WebsiteId)
-			d.logger.Debug("sdk request '1panel.WebsiteHttpsGet'", slog.Int64("websiteId", d.config.WebsiteId), slog.Any("response", websiteHttpsGetResp))
-			if err != nil {
-				return fmt.Errorf("failed to execute sdk request '1panel.WebsiteHttpsGet': %w", err)
+			if d.config.WebsiteId == 0 {
+				return errors.New("config `websiteId` is required")
 			}
 
-			// 修改网站 HTTPS 配置
-			sslId, _ := strconv.ParseInt(upres.CertId, 10, 64)
-			websiteHttpsPostReq := &onepanelsdk.WebsiteHttpsPostRequest{
-				WebsiteID:    d.config.WebsiteId,
-				Type:         "existed",
-				WebsiteSSLID: sslId,
-				Enable:       websiteHttpsGetResp.Data.Enable,
-				HttpConfig:   websiteHttpsGetResp.Data.HttpConfig,
-				SSLProtocol:  websiteHttpsGetResp.Data.SSLProtocol,
-				Algorithm:    websiteHttpsGetResp.Data.Algorithm,
-				Hsts:         websiteHttpsGetResp.Data.Hsts,
-			}
-			websiteHttpsPostResp, err := sdkClient.WebsiteHttpsPost(d.config.WebsiteId, websiteHttpsPostReq)
-			d.logger.Debug("sdk request '1panel.WebsiteHttpsPost'", slog.Int64("websiteId", d.config.WebsiteId), slog.Any("request", websiteHttpsPostReq), slog.Any("response", websiteHttpsPostResp))
-			if err != nil {
-				return fmt.Errorf("failed to execute sdk request '1panel.WebsiteHttpsPost': %w", err)
-			}
+			websiteIds = []int64{d.config.WebsiteId}
 		}
 
-	case *onepanelsdk2.Client:
+	case WEBSITE_MATCH_PATTERN_CERTSAN:
 		{
-			// 获取网站 HTTPS 配置
-			websiteHttpsGetResp, err := sdkClient.WebsiteHttpsGet(d.config.WebsiteId)
-			d.logger.Debug("sdk request '1panel.WebsiteHttpsGet'", slog.Int64("websiteId", d.config.WebsiteId), slog.Any("response", websiteHttpsGetResp))
+			websiteIdCandidates, err := d.getMatchedWebsiteIdsByCertificate(ctx, certPEM)
 			if err != nil {
-				return fmt.Errorf("failed to execute sdk request '1panel.WebsiteHttpsGet': %w", err)
+				return err
 			}
 
-			// 修改网站 HTTPS 配置
-			sslId, _ := strconv.ParseInt(upres.CertId, 10, 64)
-			websiteHttpsPostReq := &onepanelsdk2.WebsiteHttpsPostRequest{
-				WebsiteID:    d.config.WebsiteId,
-				Type:         "existed",
-				WebsiteSSLID: sslId,
-				Enable:       websiteHttpsGetResp.Data.Enable,
-				HttpConfig:   websiteHttpsGetResp.Data.HttpConfig,
-				SSLProtocol:  websiteHttpsGetResp.Data.SSLProtocol,
-				Algorithm:    websiteHttpsGetResp.Data.Algorithm,
-				Hsts:         websiteHttpsGetResp.Data.Hsts,
-			}
-			websiteHttpsPostResp, err := sdkClient.WebsiteHttpsPost(d.config.WebsiteId, websiteHttpsPostReq)
-			d.logger.Debug("sdk request '1panel.WebsiteHttpsPost'", slog.Int64("websiteId", d.config.WebsiteId), slog.Any("request", websiteHttpsPostReq), slog.Any("response", websiteHttpsPostResp))
-			if err != nil {
-				return fmt.Errorf("failed to execute sdk request '1panel.WebsiteHttpsPost': %w", err)
-			}
+			websiteIds = websiteIdCandidates
 		}
 
 	default:
-		panic("unreachable")
+		return fmt.Errorf("unsupported website match pattern: '%s'", d.config.WebsiteMatchPattern)
+	}
+
+	// 遍历更新网站证书
+	if len(websiteIds) == 0 {
+		d.logger.Info("no websites to deploy")
+	} else {
+		d.logger.Info("found websites to deploy", slog.Any("websiteIds", websiteIds))
+		var errs []error
+
+		websiteSSLId, _ := strconv.ParseInt(upres.CertId, 10, 64)
+		for _, websiteId := range websiteIds {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			default:
+				if err := d.updateWebsiteCertificate(ctx, websiteId, websiteSSLId); err != nil {
+					errs = append(errs, err)
+				}
+			}
+		}
+
+		if len(errs) > 0 {
+			return errors.Join(errs...)
+		}
 	}
 
 	return nil
@@ -193,6 +182,211 @@ func (d *Deployer) deployToCertificate(ctx context.Context, certPEM, privkeyPEM 
 		return fmt.Errorf("failed to replace certificate file: %w", err)
 	} else {
 		d.logger.Info("ssl certificate replaced", slog.Any("result", opres))
+	}
+
+	return nil
+}
+
+func (d *Deployer) getMatchedWebsiteIdsByCertificate(ctx context.Context, certPEM string) ([]int64, error) {
+	var websiteIds []int64
+
+	certX509, err := xcert.ParseCertificateFromPEM(certPEM)
+	if err != nil {
+		return nil, err
+	}
+
+	switch sdkClient := d.sdkClient.(type) {
+	case *onepanelsdk.Client:
+		{
+			websiteSearchPage := 1
+			websiteSearchPageSize := 100
+			for {
+				select {
+				case <-ctx.Done():
+					return nil, ctx.Err()
+				default:
+				}
+				websiteSearchReq := &onepanelsdk.WebsiteSearchRequest{
+					Order:    "ascending",
+					OrderBy:  "primary_domain",
+					Page:     int32(websiteSearchPage),
+					PageSize: int32(websiteSearchPageSize),
+				}
+				websiteSearchResp, err := sdkClient.WebsiteSearch(websiteSearchReq)
+				d.logger.Debug("sdk request '1panel.WebsiteSearch'", slog.Any("request", websiteSearchReq), slog.Any("response", websiteSearchResp))
+				if err != nil {
+					return nil, fmt.Errorf("failed to execute sdk request '1panel.WebsiteSearch': %w", err)
+				}
+
+				if websiteSearchResp.Data == nil {
+					break
+				}
+
+				for _, websiteItem := range websiteSearchResp.Data.Items {
+					if certX509.VerifyHostname(websiteItem.PrimaryDomain) != nil {
+						continue
+					}
+
+					websiteGetResp, err := sdkClient.WebsiteGet(websiteItem.ID)
+					d.logger.Debug("sdk request '1panel.WebsiteGet'", slog.Int64("websiteId", websiteItem.ID), slog.Any("response", websiteGetResp))
+					if err != nil {
+						return nil, fmt.Errorf("failed to execute sdk request '1panel.WebsiteGet': %w", err)
+					}
+
+					for _, domainInfo := range websiteGetResp.Data.Domains {
+						if domainInfo.SSL {
+							websiteIds = append(websiteIds, websiteItem.ID)
+							break
+						}
+					}
+				}
+
+				if len(websiteSearchResp.Data.Items) < websiteSearchPageSize {
+					break
+				}
+
+				websiteSearchPage++
+			}
+		}
+
+	case *onepanelsdk2.Client:
+		{
+			websiteSearchPage := 1
+			websiteSearchPageSize := 100
+			for {
+				select {
+				case <-ctx.Done():
+					return nil, ctx.Err()
+				default:
+				}
+
+				websiteSearchReq := &onepanelsdk2.WebsiteSearchRequest{
+					Order:    "ascending",
+					OrderBy:  "primary_domain",
+					Page:     int32(websiteSearchPage),
+					PageSize: int32(websiteSearchPageSize),
+				}
+				websiteSearchResp, err := sdkClient.WebsiteSearch(websiteSearchReq)
+				d.logger.Debug("sdk request '1panel.WebsiteSearch'", slog.Any("request", websiteSearchReq), slog.Any("response", websiteSearchResp))
+				if err != nil {
+					return nil, fmt.Errorf("failed to execute sdk request '1panel.WebsiteSearch': %w", err)
+				}
+
+				if websiteSearchResp.Data == nil {
+					break
+				}
+
+				for _, websiteItem := range websiteSearchResp.Data.Items {
+					if certX509.VerifyHostname(websiteItem.PrimaryDomain) != nil {
+						continue
+					}
+
+					websiteGetResp, err := sdkClient.WebsiteGet(websiteItem.ID)
+					d.logger.Debug("sdk request '1panel.WebsiteGet'", slog.Int64("websiteId", websiteItem.ID), slog.Any("response", websiteGetResp))
+					if err != nil {
+						return nil, fmt.Errorf("failed to execute sdk request '1panel.WebsiteGet': %w", err)
+					}
+
+					for _, domainInfo := range websiteGetResp.Data.Domains {
+						if domainInfo.SSL {
+							websiteIds = append(websiteIds, websiteItem.ID)
+							break
+						}
+					}
+				}
+
+				if len(websiteSearchResp.Data.Items) < websiteSearchPageSize {
+					break
+				}
+
+				websiteSearchPage++
+			}
+		}
+
+	default:
+		panic("unreachable")
+	}
+
+	if len(websiteIds) == 0 {
+		return nil, errors.New("could not find any websites matched by certificate")
+	}
+
+	return websiteIds, nil
+}
+
+func (d *Deployer) updateWebsiteCertificate(ctx context.Context, websiteId int64, websiteSSLId int64) error {
+	switch sdkClient := d.sdkClient.(type) {
+	case *onepanelsdk.Client:
+		{
+			// 获取网站 HTTPS 配置
+			websiteHttpsGetResp, err := sdkClient.WebsiteHttpsGet(websiteId)
+			d.logger.Debug("sdk request '1panel.WebsiteHttpsGet'", slog.Int64("websiteId", websiteId), slog.Any("response", websiteHttpsGetResp))
+			if err != nil {
+				return fmt.Errorf("failed to execute sdk request '1panel.WebsiteHttpsGet': %w", err)
+			} else {
+				if websiteHttpsGetResp.Data.Enable && websiteHttpsGetResp.Data.WebsiteSSLID == websiteSSLId {
+					return nil
+				}
+			}
+
+			// 修改网站 HTTPS 配置
+			websiteHttpsPostReq := &onepanelsdk.WebsiteHttpsPostRequest{
+				WebsiteID:    websiteId,
+				Type:         "existed",
+				WebsiteSSLID: websiteSSLId,
+				Enable:       true,
+				HttpConfig:   websiteHttpsGetResp.Data.HttpConfig,
+				SSLProtocol:  websiteHttpsGetResp.Data.SSLProtocol,
+				Algorithm:    websiteHttpsGetResp.Data.Algorithm,
+				Hsts:         websiteHttpsGetResp.Data.Hsts,
+			}
+			if websiteHttpsPostReq.HttpConfig == "" {
+				websiteHttpsPostReq.HttpConfig = "HTTPToHTTPS"
+			}
+			websiteHttpsPostResp, err := sdkClient.WebsiteHttpsPost(websiteId, websiteHttpsPostReq)
+			d.logger.Debug("sdk request '1panel.WebsiteHttpsPost'", slog.Int64("websiteId", websiteId), slog.Any("request", websiteHttpsPostReq), slog.Any("response", websiteHttpsPostResp))
+			if err != nil {
+				return fmt.Errorf("failed to execute sdk request '1panel.WebsiteHttpsPost': %w", err)
+			}
+		}
+
+	case *onepanelsdk2.Client:
+		{
+			// 获取网站 HTTPS 配置
+			websiteHttpsGetResp, err := sdkClient.WebsiteHttpsGet(websiteId)
+			d.logger.Debug("sdk request '1panel.WebsiteHttpsGet'", slog.Int64("websiteId", websiteId), slog.Any("response", websiteHttpsGetResp))
+			if err != nil {
+				return fmt.Errorf("failed to execute sdk request '1panel.WebsiteHttpsGet': %w", err)
+			} else {
+				if websiteHttpsGetResp.Data.Enable && websiteHttpsGetResp.Data.WebsiteSSLID == websiteSSLId {
+					return nil
+				}
+			}
+
+			// 修改网站 HTTPS 配置
+			websiteHttpsPostReq := &onepanelsdk2.WebsiteHttpsPostRequest{
+				WebsiteID:    websiteId,
+				Type:         "existed",
+				WebsiteSSLID: websiteSSLId,
+				Enable:       true,
+				HttpConfig:   websiteHttpsGetResp.Data.HttpConfig,
+				SSLProtocol:  websiteHttpsGetResp.Data.SSLProtocol,
+				Algorithm:    websiteHttpsGetResp.Data.Algorithm,
+				Hsts:         websiteHttpsGetResp.Data.Hsts,
+				Http3:        websiteHttpsGetResp.Data.Http3,
+			}
+			if websiteHttpsPostReq.HttpConfig == "" {
+				websiteHttpsPostReq.HttpConfig = "HTTPToHTTPS"
+			}
+			websiteHttpsPostResp, err := sdkClient.WebsiteHttpsPost(websiteId, websiteHttpsPostReq)
+			d.logger.Debug("sdk request '1panel.WebsiteHttpsPost'", slog.Int64("websiteId", websiteId), slog.Any("request", websiteHttpsPostReq), slog.Any("response", websiteHttpsPostResp))
+			if err != nil {
+				return fmt.Errorf("failed to execute sdk request '1panel.WebsiteHttpsPost': %w", err)
+			}
+		}
+
+	default:
+		panic("unreachable")
 	}
 
 	return nil

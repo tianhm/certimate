@@ -10,11 +10,13 @@ type WebsiteHttpsGetResponse struct {
 	apiResponseBase
 
 	Data *struct {
-		Enable      bool     `json:"enable"`
-		HttpConfig  string   `json:"httpConfig"`
-		SSLProtocol []string `json:"SSLProtocol"`
-		Algorithm   string   `json:"algorithm"`
-		Hsts        bool     `json:"hsts"`
+		Enable       bool     `json:"enable"`
+		HttpConfig   string   `json:"httpConfig"`
+		WebsiteSSLID int64    `json:"websiteSSLId"`
+		SSLProtocol  []string `json:"SSLProtocol"`
+		Algorithm    string   `json:"algorithm"`
+		Hsts         bool     `json:"hsts"`
+		Http3        bool     `json:"http3"`
 	} `json:"data,omitempty"`
 }
 

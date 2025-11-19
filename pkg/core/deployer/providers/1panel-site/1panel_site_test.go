@@ -62,6 +62,7 @@ func TestDeploy(t *testing.T) {
 			ApiKey:                   fApiKey,
 			AllowInsecureConnections: true,
 			ResourceType:             provider.RESOURCE_TYPE_WEBSITE,
+			WebsiteMatchPattern:      provider.WEBSITE_MATCH_PATTERN_SPECIFIED,
 			WebsiteId:                fWebsiteId,
 		})
 		if err != nil {

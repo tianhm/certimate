@@ -42,12 +42,12 @@ var _ certmgr.Provider = (*Certmgr)(nil)
 
 func NewCertmgr(config *CertmgrConfig) (*Certmgr, error) {
 	if config == nil {
-		return nil, errors.New("the configuration of the ssl manager provider is nil")
+		return nil, errors.New("the configuration of the certmgr provider is nil")
 	}
 
 	client, err := createSDKClient(config.AccessKeyId, config.AccessKeySecret, config.Region)
 	if err != nil {
-		return nil, fmt.Errorf("could not create sdk client: %w", err)
+		return nil, fmt.Errorf("could not create client: %w", err)
 	}
 
 	return &Certmgr{
@@ -57,15 +57,15 @@ func NewCertmgr(config *CertmgrConfig) (*Certmgr, error) {
 	}, nil
 }
 
-func (m *Certmgr) SetLogger(logger *slog.Logger) {
+func (c *Certmgr) SetLogger(logger *slog.Logger) {
 	if logger == nil {
-		m.logger = slog.New(slog.DiscardHandler)
+		c.logger = slog.New(slog.DiscardHandler)
 	} else {
-		m.logger = logger
+		c.logger = logger
 	}
 }
 
-func (m *Certmgr) Upload(ctx context.Context, certPEM string, privkeyPEM string) (*certmgr.UploadResult, error) {
+func (c *Certmgr) Upload(ctx context.Context, certPEM, privkeyPEM string) (*certmgr.UploadResult, error) {
 	// 解析证书内容
 	certX509, err := xcert.ParseCertificateFromPEM(certPEM)
 	if err != nil {
@@ -75,11 +75,11 @@ func (m *Certmgr) Upload(ctx context.Context, certPEM string, privkeyPEM string)
 	// 查询证书列表，避免重复上传
 	// REF: https://help.aliyun.com/zh/slb/classic-load-balancer/developer-reference/api-slb-2014-05-15-describeservercertificates
 	describeServerCertificatesReq := &alislb.DescribeServerCertificatesRequest{
-		ResourceGroupId: lo.EmptyableToPtr(m.config.ResourceGroupId),
-		RegionId:        tea.String(m.config.Region),
+		ResourceGroupId: lo.EmptyableToPtr(c.config.ResourceGroupId),
+		RegionId:        tea.String(c.config.Region),
 	}
-	describeServerCertificatesResp, err := m.sdkClient.DescribeServerCertificates(describeServerCertificatesReq)
-	m.logger.Debug("sdk request 'slb.DescribeServerCertificates'", slog.Any("request", describeServerCertificatesReq), slog.Any("response", describeServerCertificatesResp))
+	describeServerCertificatesResp, err := c.sdkClient.DescribeServerCertificates(describeServerCertificatesReq)
+	c.logger.Debug("sdk request 'slb.DescribeServerCertificates'", slog.Any("request", describeServerCertificatesReq), slog.Any("response", describeServerCertificatesResp))
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute sdk request 'slb.DescribeServerCertificates': %w", err)
 	}
@@ -99,7 +99,7 @@ func (m *Certmgr) Upload(ctx context.Context, certPEM string, privkeyPEM string)
 			}
 
 			// 如果已存在相同证书，直接返回
-			m.logger.Info("ssl certificate already exists")
+			c.logger.Info("ssl certificate already exists")
 			return &certmgr.UploadResult{
 				CertId:   *certItem.ServerCertificateId,
 				CertName: *certItem.ServerCertificateName,
@@ -119,14 +119,14 @@ func (m *Certmgr) Upload(ctx context.Context, certPEM string, privkeyPEM string)
 	// 上传新证书
 	// REF: https://help.aliyun.com/zh/slb/classic-load-balancer/developer-reference/api-slb-2014-05-15-uploadservercertificate
 	uploadServerCertificateReq := &alislb.UploadServerCertificateRequest{
-		ResourceGroupId:       lo.EmptyableToPtr(m.config.ResourceGroupId),
-		RegionId:              tea.String(m.config.Region),
+		ResourceGroupId:       lo.EmptyableToPtr(c.config.ResourceGroupId),
+		RegionId:              tea.String(c.config.Region),
 		ServerCertificateName: tea.String(certName),
 		ServerCertificate:     tea.String(certPEM),
 		PrivateKey:            tea.String(privkeyPEM),
 	}
-	uploadServerCertificateResp, err := m.sdkClient.UploadServerCertificate(uploadServerCertificateReq)
-	m.logger.Debug("sdk request 'slb.UploadServerCertificate'", slog.Any("request", uploadServerCertificateReq), slog.Any("response", uploadServerCertificateResp))
+	uploadServerCertificateResp, err := c.sdkClient.UploadServerCertificate(uploadServerCertificateReq)
+	c.logger.Debug("sdk request 'slb.UploadServerCertificate'", slog.Any("request", uploadServerCertificateReq), slog.Any("response", uploadServerCertificateResp))
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute sdk request 'slb.UploadServerCertificate': %w", err)
 	}
@@ -135,6 +135,10 @@ func (m *Certmgr) Upload(ctx context.Context, certPEM string, privkeyPEM string)
 		CertId:   *uploadServerCertificateResp.Body.ServerCertificateId,
 		CertName: certName,
 	}, nil
+}
+
+func (c *Certmgr) Replace(ctx context.Context, certIdOrName string, certPEM, privkeyPEM string) (*certmgr.OperateResult, error) {
+	return nil, certmgr.ErrUnsupported
 }
 
 func createSDKClient(accessKeyId, accessKeySecret, region string) (*internal.SlbClient, error) {

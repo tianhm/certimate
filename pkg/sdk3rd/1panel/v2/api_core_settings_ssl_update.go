@@ -1,11 +1,11 @@
-package onepanelv2
+package v2
 
 import (
 	"context"
 	"net/http"
 )
 
-type UpdateCoreSettingsSSLRequest struct {
+type CoreSettingsSSLUpdateRequest struct {
 	Cert        string `json:"cert"`
 	Key         string `json:"key"`
 	SSLType     string `json:"sslType"`
@@ -14,15 +14,15 @@ type UpdateCoreSettingsSSLRequest struct {
 	AutoRestart string `json:"autoRestart"`
 }
 
-type UpdateCoreSettingsSSLResponse struct {
+type CoreSettingsSSLUpdateResponse struct {
 	apiResponseBase
 }
 
-func (c *Client) UpdateCoreSettingsSSL(req *UpdateCoreSettingsSSLRequest) (*UpdateCoreSettingsSSLResponse, error) {
-	return c.UpdateCoreSettingsSSLWithContext(context.Background(), req)
+func (c *Client) CoreSettingsSSLUpdate(req *CoreSettingsSSLUpdateRequest) (*CoreSettingsSSLUpdateResponse, error) {
+	return c.CoreSettingsSSLUpdateWithContext(context.Background(), req)
 }
 
-func (c *Client) UpdateCoreSettingsSSLWithContext(ctx context.Context, req *UpdateCoreSettingsSSLRequest) (*UpdateCoreSettingsSSLResponse, error) {
+func (c *Client) CoreSettingsSSLUpdateWithContext(ctx context.Context, req *CoreSettingsSSLUpdateRequest) (*CoreSettingsSSLUpdateResponse, error) {
 	httpreq, err := c.newRequest(http.MethodPost, "/core/settings/ssl/update")
 	if err != nil {
 		return nil, err
@@ -31,7 +31,7 @@ func (c *Client) UpdateCoreSettingsSSLWithContext(ctx context.Context, req *Upda
 		httpreq.SetContext(ctx)
 	}
 
-	result := &UpdateCoreSettingsSSLResponse{}
+	result := &CoreSettingsSSLUpdateResponse{}
 	if _, err := c.doRequestWithResult(httpreq, result); err != nil {
 		return result, err
 	}

@@ -5,18 +5,18 @@ import (
 
 	"github.com/certimate-go/certimate/internal/domain"
 	"github.com/certimate-go/certimate/pkg/core/deployer"
-	"github.com/certimate-go/certimate/pkg/core/deployer/providers/safeline"
+	safelinesite "github.com/certimate-go/certimate/pkg/core/deployer/providers/safeline-site"
 	xmaps "github.com/certimate-go/certimate/pkg/utils/maps"
 )
 
 func init() {
-	Registries.MustRegister(domain.DeploymentProviderTypeSafeLine, func(options *ProviderFactoryOptions) (deployer.Provider, error) {
+	Registries.MustRegister(domain.DeploymentProviderTypeSafeLineSite, func(options *ProviderFactoryOptions) (deployer.Provider, error) {
 		credentials := domain.AccessConfigForSafeLine{}
 		if err := xmaps.Populate(options.ProviderAccessConfig, &credentials); err != nil {
 			return nil, fmt.Errorf("failed to populate provider access config: %w", err)
 		}
 
-		provider, err := safeline.NewDeployer(&safeline.DeployerConfig{
+		provider, err := safelinesite.NewDeployer(&safelinesite.DeployerConfig{
 			ServerUrl:                credentials.ServerUrl,
 			ApiToken:                 credentials.ApiToken,
 			AllowInsecureConnections: credentials.AllowInsecureConnections,

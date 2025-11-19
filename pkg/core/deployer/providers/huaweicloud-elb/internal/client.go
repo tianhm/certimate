@@ -66,16 +66,6 @@ func (c *ElbClient) ShowLoadBalancer(request *model.ShowLoadBalancerRequest) (*m
 	}
 }
 
-func (c *ElbClient) UpdateCertificate(request *model.UpdateCertificateRequest) (*model.UpdateCertificateResponse, error) {
-	requestDef := hwelb.GenReqDefForUpdateCertificate()
-
-	if resp, err := c.HcClient.Sync(request, requestDef); err != nil {
-		return nil, err
-	} else {
-		return resp.(*model.UpdateCertificateResponse), nil
-	}
-}
-
 func (c *ElbClient) UpdateListener(request *model.UpdateListenerRequest) (*model.UpdateListenerResponse, error) {
 	requestDef := hwelb.GenReqDefForUpdateListener()
 

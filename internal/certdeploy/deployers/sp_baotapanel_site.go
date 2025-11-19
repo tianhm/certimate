@@ -24,7 +24,6 @@ func init() {
 			ApiKey:                   credentials.ApiKey,
 			AllowInsecureConnections: credentials.AllowInsecureConnections,
 			SiteType:                 xmaps.GetOrDefaultString(options.ProviderExtendedConfig, "siteType", "other"),
-			SiteName:                 xmaps.GetString(options.ProviderExtendedConfig, "siteName"),
 			SiteNames:                lo.Filter(strings.Split(xmaps.GetString(options.ProviderExtendedConfig, "siteNames"), ";"), func(s string, _ int) bool { return s != "" }),
 		})
 		return provider, err

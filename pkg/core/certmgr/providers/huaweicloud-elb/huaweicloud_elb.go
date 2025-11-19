@@ -66,7 +66,7 @@ func (m *Certmgr) SetLogger(logger *slog.Logger) {
 	}
 }
 
-func (m *Certmgr) Upload(ctx context.Context, certPEM string, privkeyPEM string) (*certmgr.UploadResult, error) {
+func (m *Certmgr) Upload(ctx context.Context, certPEM, privkeyPEM string) (*certmgr.UploadResult, error) {
 	// 查询已有证书，避免重复上传
 	// REF: https://support.huaweicloud.com/api-elb/ListCertificates.html
 	listCertificatesMarker := (*string)(nil)
@@ -143,6 +143,27 @@ func (m *Certmgr) Upload(ctx context.Context, certPEM string, privkeyPEM string)
 		CertId:   createCertificateResp.Certificate.Id,
 		CertName: createCertificateResp.Certificate.Name,
 	}, nil
+}
+
+func (m *Certmgr) Replace(ctx context.Context, certIdOrName string, certPEM, privkeyPEM string) (*certmgr.OperateResult, error) {
+	// 更新证书
+	// REF: https://support.huaweicloud.com/api-elb/UpdateCertificate.html
+	updateCertificateReq := &hcelbmodel.UpdateCertificateRequest{
+		CertificateId: certIdOrName,
+		Body: &hcelbmodel.UpdateCertificateRequestBody{
+			Certificate: &hcelbmodel.UpdateCertificateOption{
+				Certificate: lo.ToPtr(certPEM),
+				PrivateKey:  lo.ToPtr(privkeyPEM),
+			},
+		},
+	}
+	updateCertificateResp, err := m.sdkClient.UpdateCertificate(updateCertificateReq)
+	m.logger.Debug("sdk request 'elb.UpdateCertificate'", slog.Any("request", updateCertificateReq), slog.Any("response", updateCertificateResp))
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute sdk request 'elb.UpdateCertificate': %w", err)
+	}
+
+	return &certmgr.OperateResult{}, nil
 }
 
 func createSDKClient(accessKeyId, secretAccessKey, region string) (*internal.ElbClient, error) {

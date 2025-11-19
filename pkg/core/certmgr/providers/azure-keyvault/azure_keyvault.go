@@ -64,7 +64,7 @@ func (m *Certmgr) SetLogger(logger *slog.Logger) {
 	}
 }
 
-func (m *Certmgr) Upload(ctx context.Context, certPEM string, privkeyPEM string) (*certmgr.UploadResult, error) {
+func (m *Certmgr) Upload(ctx context.Context, certPEM, privkeyPEM string) (*certmgr.UploadResult, error) {
 	// 解析证书内容
 	certX509, err := xcert.ParseCertificateFromPEM(certPEM)
 	if err != nil {
@@ -167,6 +167,58 @@ func (m *Certmgr) Upload(ctx context.Context, certPEM string, privkeyPEM string)
 		CertId:   string(*importCertificateResp.ID),
 		CertName: certName,
 	}, nil
+}
+
+func (m *Certmgr) Replace(ctx context.Context, certIdOrName string, certPEM, privkeyPEM string) (*certmgr.OperateResult, error) {
+	// 解析证书内容
+	certX509, err := xcert.ParseCertificateFromPEM(certPEM)
+	if err != nil {
+		return nil, err
+	}
+
+	// 转换证书格式
+	certPFX, err := xcert.TransformCertificateFromPEMToPFX(certPEM, privkeyPEM, "")
+	if err != nil {
+		return nil, fmt.Errorf("failed to transform certificate from PEM to PFX: %w", err)
+	}
+
+	// 获取证书
+	// REF: https://learn.microsoft.com/en-us/rest/api/keyvault/certificates/get-certificate/get-certificate
+	getCertificateResp, err := m.sdkClient.GetCertificate(ctx, certIdOrName, "", nil)
+	m.logger.Debug("sdk request 'keyvault.GetCertificate'", slog.String("request.certificateName", certIdOrName), slog.Any("response", getCertificateResp))
+	if err != nil {
+		var respErr *azcore.ResponseError
+		if !errors.As(err, &respErr) || (respErr.ErrorCode != "ResourceNotFound" && respErr.ErrorCode != "CertificateNotFound") {
+			return nil, fmt.Errorf("failed to execute sdk request 'keyvault.GetCertificate': %w", err)
+		}
+	} else {
+		// 如果已存在相同证书，直接返回
+		if xcert.EqualCertificatesFromPEM(certPEM, string(getCertificateResp.CER)) {
+			return &certmgr.OperateResult{}, nil
+		}
+	}
+
+	// 导入证书
+	// REF: https://learn.microsoft.com/en-us/rest/api/keyvault/certificates/import-certificate/import-certificate
+	importCertificateParams := azcertificates.ImportCertificateParameters{
+		Base64EncodedCertificate: to.Ptr(base64.StdEncoding.EncodeToString(certPFX)),
+		CertificatePolicy: &azcertificates.CertificatePolicy{
+			SecretProperties: &azcertificates.SecretProperties{
+				ContentType: to.Ptr("application/x-pkcs12"),
+			},
+		},
+		Tags: map[string]*string{
+			"certimate/cert-cn": to.Ptr(certX509.Subject.CommonName),
+			"certimate/cert-sn": to.Ptr(certX509.SerialNumber.Text(16)),
+		},
+	}
+	importCertificateResp, err := m.sdkClient.ImportCertificate(ctx, certIdOrName, importCertificateParams, nil)
+	m.logger.Debug("sdk request 'keyvault.ImportCertificate'", slog.String("request.certificateName", certIdOrName), slog.Any("request.parameters", importCertificateParams), slog.Any("response", importCertificateResp))
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute sdk request 'keyvault.ImportCertificate': %w", err)
+	}
+
+	return &certmgr.OperateResult{}, nil
 }
 
 func createSDKClient(tenantId, clientId, clientSecret, cloudName, keyvaultName string) (*azcertificates.Client, error) {

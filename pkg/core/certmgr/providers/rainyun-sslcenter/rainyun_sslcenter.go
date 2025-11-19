@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strconv"
 	"strings"
 
 	"github.com/samber/lo"
@@ -52,7 +53,7 @@ func (m *Certmgr) SetLogger(logger *slog.Logger) {
 	}
 }
 
-func (m *Certmgr) Upload(ctx context.Context, certPEM string, privkeyPEM string) (*certmgr.UploadResult, error) {
+func (m *Certmgr) Upload(ctx context.Context, certPEM, privkeyPEM string) (*certmgr.UploadResult, error) {
 	// 避免重复上传
 	if res, err := m.tryFindCert(ctx, certPEM); err != nil {
 		return nil, err
@@ -81,6 +82,27 @@ func (m *Certmgr) Upload(ctx context.Context, certPEM string, privkeyPEM string)
 	} else {
 		return res, nil
 	}
+}
+
+func (m *Certmgr) Replace(ctx context.Context, certIdOrName string, certPEM, privkeyPEM string) (*certmgr.OperateResult, error) {
+	certId, err := strconv.ParseInt(certIdOrName, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
+	// SSL 证书替换操作
+	// REF: https://s.apifox.cn/a4595cc8-44c5-4678-a2a3-eed7738dab03/api-69943049
+	sslCenterUpdateReq := &rainyunsdk.SslCenterUpdateRequest{
+		Cert: certPEM,
+		Key:  privkeyPEM,
+	}
+	sslCenterUpdateResp, err := m.sdkClient.SslCenterUpdate(certId, sslCenterUpdateReq)
+	m.logger.Debug("sdk request 'sslcenter.Update'", slog.Int64("certId", certId), slog.Any("request", sslCenterUpdateReq), slog.Any("response", sslCenterUpdateResp))
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute sdk request 'sslcenter.Update': %w", err)
+	}
+
+	return &certmgr.OperateResult{}, nil
 }
 
 func (m *Certmgr) tryFindCert(ctx context.Context, certPEM string) (*certmgr.UploadResult, error) {

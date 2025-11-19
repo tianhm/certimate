@@ -75,7 +75,7 @@ func (d *Deployer) SetLogger(logger *slog.Logger) {
 	d.sdkCertmgr.SetLogger(logger)
 }
 
-func (d *Deployer) Deploy(ctx context.Context, certPEM string, privkeyPEM string) (*deployer.DeployResult, error) {
+func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*deployer.DeployResult, error) {
 	// 根据部署资源类型决定部署方式
 	switch d.config.ResourceType {
 	case RESOURCE_TYPE_DOMAIN:
@@ -95,7 +95,7 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM string, privkeyPEM string
 	return &deployer.DeployResult{}, nil
 }
 
-func (d *Deployer) deployToDomain(ctx context.Context, certPEM string, privkeyPEM string) error {
+func (d *Deployer) deployToDomain(ctx context.Context, certPEM, privkeyPEM string) error {
 	if d.config.InstanceId == 0 {
 		return fmt.Errorf("config `instanceId` is required")
 	}
@@ -127,21 +127,17 @@ func (d *Deployer) deployToDomain(ctx context.Context, certPEM string, privkeyPE
 	return nil
 }
 
-func (d *Deployer) deployToCertificate(ctx context.Context, certPEM string, privkeyPEM string) error {
+func (d *Deployer) deployToCertificate(ctx context.Context, certPEM, privkeyPEM string) error {
 	if d.config.CertificateId == 0 {
 		return errors.New("config `certificateId` is required")
 	}
 
-	// SSL 证书替换操作
-	// REF: https://s.apifox.cn/a4595cc8-44c5-4678-a2a3-eed7738dab03/api-69943049
-	sslCenterUpdateReq := &rainyunsdk.SslCenterUpdateRequest{
-		Cert: certPEM,
-		Key:  privkeyPEM,
-	}
-	sslCenterUpdateResp, err := d.sdkClient.SslCenterUpdate(d.config.CertificateId, sslCenterUpdateReq)
-	d.logger.Debug("sdk request 'sslcenter.Update'", slog.Int64("certId", d.config.CertificateId), slog.Any("request", sslCenterUpdateReq), slog.Any("response", sslCenterUpdateResp))
+	// 替换证书
+	opres, err := d.sdkCertmgr.Replace(ctx, fmt.Sprintf("%d", d.config.CertificateId), certPEM, privkeyPEM)
 	if err != nil {
-		return fmt.Errorf("failed to execute sdk request 'sslcenter.Update': %w", err)
+		return fmt.Errorf("failed to replace certificate file: %w", err)
+	} else {
+		d.logger.Info("ssl certificate replaced", slog.Any("result", opres))
 	}
 
 	return nil

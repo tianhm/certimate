@@ -58,7 +58,7 @@ func (m *Certmgr) SetLogger(logger *slog.Logger) {
 	}
 }
 
-func (m *Certmgr) Upload(ctx context.Context, certPEM string, privkeyPEM string) (*certmgr.UploadResult, error) {
+func (m *Certmgr) Upload(ctx context.Context, certPEM, privkeyPEM string) (*certmgr.UploadResult, error) {
 	// 解析证书内容
 	certX509, err := xcert.ParseCertificateFromPEM(certPEM)
 	if err != nil {
@@ -149,6 +149,30 @@ func (m *Certmgr) Upload(ctx context.Context, certPEM string, privkeyPEM string)
 	return &certmgr.UploadResult{
 		CertId: aws.ToString(importCertificateResp.CertificateArn),
 	}, nil
+}
+
+func (m *Certmgr) Replace(ctx context.Context, certIdOrName string, certPEM, privkeyPEM string) (*certmgr.OperateResult, error) {
+	// 提取服务器证书
+	serverCertPEM, intermediaCertPEM, err := xcert.ExtractCertificatesFromPEM(certPEM)
+	if err != nil {
+		return nil, fmt.Errorf("failed to extract certs: %w", err)
+	}
+
+	// 导入证书
+	// REF: https://docs.aws.amazon.com/en_us/acm/latest/APIReference/API_ImportCertificate.html
+	importCertificateReq := &awsacm.ImportCertificateInput{
+		CertificateArn:   aws.String(certIdOrName),
+		Certificate:      ([]byte)(serverCertPEM),
+		CertificateChain: ([]byte)(intermediaCertPEM),
+		PrivateKey:       ([]byte)(privkeyPEM),
+	}
+	importCertificateResp, err := m.sdkClient.ImportCertificate(ctx, importCertificateReq)
+	m.logger.Debug("sdk request 'acm.ImportCertificate'", slog.Any("request", importCertificateReq), slog.Any("response", importCertificateResp))
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute sdk request 'acm.ImportCertificate': %w", err)
+	}
+
+	return &certmgr.OperateResult{}, nil
 }
 
 func createSDKClient(accessKeyId, secretAccessKey, region string) (*awsacm.Client, error) {

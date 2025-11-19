@@ -1,5 +1,5 @@
 import { getI18n, useTranslation } from "react-i18next";
-import { Form, Input } from "antd";
+import { Form, Input, Select } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
@@ -18,6 +18,21 @@ const BizDeployNodeConfigFieldsProviderBaotaPanelGoSite = () => {
   return (
     <>
       <Form.Item
+        name={[parentNamePath, "siteType"]}
+        initialValue={initialValues.siteType}
+        label={t("workflow_node.deploy.form.baotapanel_site_type.label")}
+        rules={[formRule]}
+      >
+        <Select
+          options={["php", "java", "asp", "go", "python", "nodejs", "proxy", "general"].map((s) => ({
+            value: s,
+            label: t(`workflow_node.deploy.form.baotapanelgo_site_type.option.${s}.label`),
+          }))}
+          placeholder={t("workflow_node.deploy.form.shared_resource_type.placeholder")}
+        />
+      </Form.Item>
+
+      <Form.Item
         name={[parentNamePath, "siteName"]}
         initialValue={initialValues.siteName}
         label={t("workflow_node.deploy.form.baotapanelgo_site_name.label")}
@@ -32,6 +47,7 @@ const BizDeployNodeConfigFieldsProviderBaotaPanelGoSite = () => {
 
 const getInitialValues = (): Nullish<z.infer<ReturnType<typeof getSchema>>> => {
   return {
+    siteType: "php",
     siteName: "",
   };
 };
@@ -40,6 +56,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
   const { t } = i18n;
 
   return z.object({
+    siteType: z.string().nonempty(t("workflow_node.deploy.form.baotapanelgo_site_type.placeholder")),
     siteName: z.string().nonempty(t("workflow_node.deploy.form.baotapanelgo_site_name.placeholder")),
   });
 };

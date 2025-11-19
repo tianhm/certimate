@@ -24,6 +24,8 @@ type DeployerConfig struct {
 	ApiKey string `json:"apiKey"`
 	// 是否允许不安全的连接。
 	AllowInsecureConnections bool `json:"allowInsecureConnections,omitempty"`
+	// 网站类型。
+	SiteType string `json:"siteType"`
 	// 网站名称。
 	SiteName string `json:"siteName,omitempty"`
 }
@@ -35,6 +37,8 @@ type Deployer struct {
 }
 
 var _ deployer.Provider = (*Deployer)(nil)
+
+var projectTypesInIIS = []string{"php", "asp", "aspx"}
 
 func NewDeployer(config *DeployerConfig) (*Deployer, error) {
 	if config == nil {
@@ -66,7 +70,7 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*dep
 		return nil, errors.New("config `siteName` is required")
 	}
 
-	// 设置站点 SSL 证书
+	// 获取面板配置
 	panelGetConfigReq := &btsdk.PanelGetConfigRequest{}
 	panelGetConfigResp, err := d.sdkClient.PanelGetConfig(panelGetConfigReq)
 	d.logger.Debug("sdk request 'bt.PanelGetConfig'", slog.Any("request", panelGetConfigReq), slog.Any("response", panelGetConfigResp))
@@ -74,13 +78,17 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*dep
 		return nil, fmt.Errorf("failed to execute sdk request 'bt.PanelGetConfig': %w", err)
 	}
 
-	// 获取网站 ID
-	siteId, err := d.findSiteIdByName(ctx, d.config.SiteName)
+	// 获取网站
+	siteData, err := d.findSiteIdByName(ctx, d.config.SiteType, d.config.SiteName)
 	if err != nil {
 		return nil, err
 	}
 
-	if panelGetConfigResp.Site != nil && strings.EqualFold(panelGetConfigResp.Site.WebServer, "iis") {
+	// 根据网站部署证书
+	// 服务器为 IIS、且网站类型为 PHP/.NET/Node/Proxy，需上传 PFX 格式证书
+	pfxRequried := lo.Contains(projectTypesInIIS, siteData.ProjectType) &&
+		panelGetConfigResp.Site != nil && strings.EqualFold(panelGetConfigResp.Site.WebServer, "iis")
+	if pfxRequried {
 		// 转换证书格式
 		certPFXPassword := "certimate"
 		certPFX, err := xcert.TransformCertificateFromPEMToPFX(certPEM, privkeyPEM, certPFXPassword)
@@ -109,7 +117,7 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*dep
 
 		// 服务器为 IIS，设置网站 SSL
 		siteSetSitePFXSSLReq := &btsdk.SiteSetSitePFXSSLRequest{
-			SiteId:   lo.ToPtr(siteId),
+			SiteId:   lo.ToPtr(siteData.Id),
 			PFX:      lo.ToPtr(fmt.Sprintf("%s/%s", certPFXPath, certPFXFileName)),
 			Password: lo.ToPtr(certPFXPassword),
 		}
@@ -121,7 +129,7 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*dep
 	} else {
 		// 服务器非 IIS，设置网站 SSL
 		siteSetSiteSSLReq := &btsdk.SiteSetSiteSSLRequest{
-			SiteId: lo.ToPtr(siteId),
+			SiteId: lo.ToPtr(siteData.Id),
 			Status: lo.ToPtr(true),
 			Key:    lo.ToPtr(privkeyPEM),
 			Cert:   lo.ToPtr(certPEM),
@@ -136,43 +144,80 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*dep
 	return &deployer.DeployResult{}, nil
 }
 
-func (d *Deployer) findSiteIdByName(ctx context.Context, siteName string) (int32, error) {
-	// 查询网站列表
-	datalistGetDataListPage := 1
-	datalistGetDataListLimit := 10
-	for {
-		select {
-		case <-ctx.Done():
-			return 0, ctx.Err()
-		default:
-		}
-
-		datalistGetDataListReq := &btsdk.DatalistGetDataListRequest{
-			Table:        lo.ToPtr("sites"),
-			SearchString: lo.ToPtr(d.config.SiteName),
-			Page:         lo.ToPtr(int32(datalistGetDataListPage)),
-			Limit:        lo.ToPtr(int32(datalistGetDataListLimit)),
-		}
-		datalistGetDataListResp, err := d.sdkClient.DatalistGetDataList(datalistGetDataListReq)
-		d.logger.Debug("sdk request 'bt.DatalistGetDataList'", slog.Any("request", datalistGetDataListReq), slog.Any("response", datalistGetDataListResp))
-		if err != nil {
-			return 0, fmt.Errorf("failed to execute sdk request 'bt.DatalistGetDataList': %w", err)
-		}
-
-		for _, siteItem := range datalistGetDataListResp.Data {
-			if strings.EqualFold(siteItem.Name, d.config.SiteName) {
-				return siteItem.Id, nil
+func (d *Deployer) findSiteIdByName(ctx context.Context, siteType string, siteName string) (*btsdk.SiteData, error) {
+	if siteType == "" || lo.Contains(projectTypesInIIS, siteType) {
+		// 查询网站列表
+		datalistGetDataListPage := 1
+		datalistGetDataListLimit := 10
+		for {
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			default:
 			}
-		}
 
-		if len(datalistGetDataListResp.Data) < datalistGetDataListLimit {
-			break
-		}
+			datalistGetDataListReq := &btsdk.DatalistGetDataListRequest{
+				Table:        lo.ToPtr("sites"),
+				SearchString: lo.ToPtr(siteName),
+				Page:         lo.ToPtr(int32(datalistGetDataListPage)),
+				Limit:        lo.ToPtr(int32(datalistGetDataListLimit)),
+			}
+			datalistGetDataListResp, err := d.sdkClient.DatalistGetDataList(datalistGetDataListReq)
+			d.logger.Debug("sdk request 'bt.DatalistGetDataList'", slog.Any("request", datalistGetDataListReq), slog.Any("response", datalistGetDataListResp))
+			if err != nil {
+				return nil, fmt.Errorf("failed to execute sdk request 'bt.DatalistGetDataList': %w", err)
+			}
 
-		datalistGetDataListPage++
+			for _, siteItem := range datalistGetDataListResp.Data {
+				if strings.EqualFold(siteItem.Name, siteName) {
+					return siteItem, nil
+				}
+			}
+
+			if len(datalistGetDataListResp.Data) < datalistGetDataListLimit {
+				break
+			}
+
+			datalistGetDataListPage++
+		}
+	} else {
+		// 查询网站列表
+		siteGetProjectListPage := 1
+		siteGetProjectListLimit := 10
+		for {
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			default:
+			}
+
+			siteGetProjectListReq := &btsdk.SiteGetProjectListRequest{
+				SearchType:   lo.ToPtr(siteType),
+				SearchString: lo.ToPtr(siteName),
+				Page:         lo.ToPtr(int32(siteGetProjectListPage)),
+				Limit:        lo.ToPtr(int32(siteGetProjectListLimit)),
+			}
+			siteGetProjectListResp, err := d.sdkClient.SiteGetProjectList(siteGetProjectListReq)
+			d.logger.Debug("sdk request 'bt.SiteGetProjectList'", slog.Any("request", siteGetProjectListReq), slog.Any("response", siteGetProjectListResp))
+			if err != nil {
+				return nil, fmt.Errorf("failed to execute sdk request 'bt.SiteGetProjectList': %w", err)
+			}
+
+			for _, siteItem := range siteGetProjectListResp.Data {
+				if strings.EqualFold(siteItem.Name, siteName) {
+					return siteItem, nil
+				}
+			}
+
+			if len(siteGetProjectListResp.Data) < siteGetProjectListLimit {
+				break
+			}
+
+			siteGetProjectListPage++
+		}
 	}
 
-	return 0, fmt.Errorf("could not find site '%s'", siteName)
+	return nil, fmt.Errorf("could not find site '%s'", siteName)
 }
 
 func createSDKClient(serverUrl, apiKey string, skipTlsVerify bool) (*btsdk.Client, error) {

@@ -20,6 +20,7 @@ func init() {
 			ServerUrl:                credentials.ServerUrl,
 			ApiKey:                   credentials.ApiKey,
 			AllowInsecureConnections: credentials.AllowInsecureConnections,
+			SiteType:                 xmaps.GetString(options.ProviderExtendedConfig, "siteType"),
 			SiteName:                 xmaps.GetString(options.ProviderExtendedConfig, "siteName"),
 		})
 		return provider, err

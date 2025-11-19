@@ -40,11 +40,11 @@ const BizDeployNodeConfigFieldsProviderBaotaPanelSite = () => {
         rules={[formRule]}
       >
         <Select
-          options={[SITE_TYPE_PHP, SITE_TYPE_PHP].map((s) => ({
+          options={[SITE_TYPE_PHP, SITE_TYPE_OTHER].map((s) => ({
             value: s,
             label: t(`workflow_node.deploy.form.baotapanel_site_type.option.${s}.label`),
           }))}
-          placeholder={t("workflow_node.deploy.form.shared_resource_type.placeholder")}
+          placeholder={t("workflow_node.deploy.form.baotapanel_site_type.placeholder")}
         />
       </Form.Item>
 

@@ -1,4 +1,4 @@
-package onepanelv2
+package v2
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-type UpdateHttpsConfRequest struct {
+type WebsiteHttpsPostRequest struct {
 	WebsiteID       int64    `json:"websiteId"`
 	Enable          bool     `json:"enable"`
 	Type            string   `json:"type"`
@@ -22,15 +22,15 @@ type UpdateHttpsConfRequest struct {
 	Hsts            bool     `json:"hsts"`
 }
 
-type UpdateHttpsConfResponse struct {
+type WebsiteHttpsPostResponse struct {
 	apiResponseBase
 }
 
-func (c *Client) UpdateHttpsConf(websiteId int64, req *UpdateHttpsConfRequest) (*UpdateHttpsConfResponse, error) {
-	return c.UpdateHttpsConfWithContext(context.Background(), websiteId, req)
+func (c *Client) WebsiteHttpsPost(websiteId int64, req *WebsiteHttpsPostRequest) (*WebsiteHttpsPostResponse, error) {
+	return c.WebsiteHttpsPostConfWithContext(context.Background(), websiteId, req)
 }
 
-func (c *Client) UpdateHttpsConfWithContext(ctx context.Context, websiteId int64, req *UpdateHttpsConfRequest) (*UpdateHttpsConfResponse, error) {
+func (c *Client) WebsiteHttpsPostConfWithContext(ctx context.Context, websiteId int64, req *WebsiteHttpsPostRequest) (*WebsiteHttpsPostResponse, error) {
 	if websiteId == 0 {
 		return nil, fmt.Errorf("sdkerr: unset websiteId")
 	}
@@ -44,7 +44,7 @@ func (c *Client) UpdateHttpsConfWithContext(ctx context.Context, websiteId int64
 		httpreq.SetContext(ctx)
 	}
 
-	result := &UpdateHttpsConfResponse{}
+	result := &WebsiteHttpsPostResponse{}
 	if _, err := c.doRequestWithResult(httpreq, result); err != nil {
 		return result, err
 	}

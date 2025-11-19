@@ -1,4 +1,4 @@
-package onepanel
+package v2
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-type GetWebsiteSSLResponse struct {
+type WebsiteSSLGetResponse struct {
 	apiResponseBase
 
 	Data *struct {
@@ -25,11 +25,11 @@ type GetWebsiteSSLResponse struct {
 	} `json:"data,omitempty"`
 }
 
-func (c *Client) GetWebsiteSSL(sslId int64) (*GetWebsiteSSLResponse, error) {
-	return c.GetWebsiteSSLWithContext(context.Background(), sslId)
+func (c *Client) WebsiteSSLGet(sslId int64) (*WebsiteSSLGetResponse, error) {
+	return c.WebsiteSSLGetWithContext(context.Background(), sslId)
 }
 
-func (c *Client) GetWebsiteSSLWithContext(ctx context.Context, sslId int64) (*GetWebsiteSSLResponse, error) {
+func (c *Client) WebsiteSSLGetWithContext(ctx context.Context, sslId int64) (*WebsiteSSLGetResponse, error) {
 	if sslId == 0 {
 		return nil, fmt.Errorf("sdkerr: unset sslId")
 	}
@@ -41,7 +41,7 @@ func (c *Client) GetWebsiteSSLWithContext(ctx context.Context, sslId int64) (*Ge
 		httpreq.SetContext(ctx)
 	}
 
-	result := &GetWebsiteSSLResponse{}
+	result := &WebsiteSSLGetResponse{}
 	if _, err := c.doRequestWithResult(httpreq, result); err != nil {
 		return result, err
 	}

@@ -20,7 +20,7 @@ var (
 )
 
 func init() {
-	argsPrefix := "CERTIMATE_SSLDEPLOYER_SAFELINE_"
+	argsPrefix := "SAFELINE_"
 
 	flag.StringVar(&fInputCertPath, argsPrefix+"INPUTCERTPATH", "", "")
 	flag.StringVar(&fInputKeyPath, argsPrefix+"INPUTKEYPATH", "", "")
@@ -33,11 +33,11 @@ func init() {
 Shell command to run this test:
 
 	go test -v ./safeline_test.go -args \
-	--CERTIMATE_SSLDEPLOYER_SAFELINE_INPUTCERTPATH="/path/to/your-input-cert.pem" \
-	--CERTIMATE_SSLDEPLOYER_SAFELINE_INPUTKEYPATH="/path/to/your-input-key.pem" \
-	--CERTIMATE_SSLDEPLOYER_SAFELINE_SERVERURL="http://127.0.0.1:9443" \
-	--CERTIMATE_SSLDEPLOYER_SAFELINE_APITOKEN="your-api-token" \
-	--CERTIMATE_SSLDEPLOYER_SAFELINE_CERTIFICATEID="your-certificate-id"
+	--SAFELINE_INPUTCERTPATH="/path/to/your-input-cert.pem" \
+	--SAFELINE_INPUTKEYPATH="/path/to/your-input-key.pem" \
+	--SAFELINE_SERVERURL="http://127.0.0.1:9443" \
+	--SAFELINE_APITOKEN="your-api-token" \
+	--SAFELINE_CERTIFICATEID="your-certificate-id"
 */
 func TestDeploy(t *testing.T) {
 	flag.Parse()

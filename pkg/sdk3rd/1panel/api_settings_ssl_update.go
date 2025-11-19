@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-type UpdateSettingsSSLRequest struct {
+type SettingsSSLUpdateRequest struct {
 	Cert        string `json:"cert"`
 	Key         string `json:"key"`
 	SSLType     string `json:"sslType"`
@@ -14,15 +14,15 @@ type UpdateSettingsSSLRequest struct {
 	AutoRestart string `json:"autoRestart"`
 }
 
-type UpdateSettingsSSLResponse struct {
+type SettingsSSLUpdateResponse struct {
 	apiResponseBase
 }
 
-func (c *Client) UpdateSettingsSSL(req *UpdateSettingsSSLRequest) (*UpdateSettingsSSLResponse, error) {
-	return c.UpdateSettingsSSLWithContext(context.Background(), req)
+func (c *Client) SettingsSSLUpdate(req *SettingsSSLUpdateRequest) (*SettingsSSLUpdateResponse, error) {
+	return c.SettingsSSLUpdateWithContext(context.Background(), req)
 }
 
-func (c *Client) UpdateSettingsSSLWithContext(ctx context.Context, req *UpdateSettingsSSLRequest) (*UpdateSettingsSSLResponse, error) {
+func (c *Client) SettingsSSLUpdateWithContext(ctx context.Context, req *SettingsSSLUpdateRequest) (*SettingsSSLUpdateResponse, error) {
 	httpreq, err := c.newRequest(http.MethodPost, "/settings/ssl/update")
 	if err != nil {
 		return nil, err
@@ -31,7 +31,7 @@ func (c *Client) UpdateSettingsSSLWithContext(ctx context.Context, req *UpdateSe
 		httpreq.SetContext(ctx)
 	}
 
-	result := &UpdateSettingsSSLResponse{}
+	result := &SettingsSSLUpdateResponse{}
 	if _, err := c.doRequestWithResult(httpreq, result); err != nil {
 		return result, err
 	}

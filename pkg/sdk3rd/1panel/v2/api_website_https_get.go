@@ -1,4 +1,4 @@
-package onepanelv2
+package v2
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-type GetHttpsConfResponse struct {
+type WebsiteHttpsGetResponse struct {
 	apiResponseBase
 
 	Data *struct {
@@ -18,11 +18,11 @@ type GetHttpsConfResponse struct {
 	} `json:"data,omitempty"`
 }
 
-func (c *Client) GetHttpsConf(websiteId int64) (*GetHttpsConfResponse, error) {
-	return c.GetHttpsConfWithContext(context.Background(), websiteId)
+func (c *Client) WebsiteHttpsGet(websiteId int64) (*WebsiteHttpsGetResponse, error) {
+	return c.WebsiteHttpsGetWithContext(context.Background(), websiteId)
 }
 
-func (c *Client) GetHttpsConfWithContext(ctx context.Context, websiteId int64) (*GetHttpsConfResponse, error) {
+func (c *Client) WebsiteHttpsGetWithContext(ctx context.Context, websiteId int64) (*WebsiteHttpsGetResponse, error) {
 	if websiteId == 0 {
 		return nil, fmt.Errorf("sdkerr: unset websiteId")
 	}
@@ -34,7 +34,7 @@ func (c *Client) GetHttpsConfWithContext(ctx context.Context, websiteId int64) (
 		httpreq.SetContext(ctx)
 	}
 
-	result := &GetHttpsConfResponse{}
+	result := &WebsiteHttpsGetResponse{}
 	if _, err := c.doRequestWithResult(httpreq, result); err != nil {
 		return result, err
 	}

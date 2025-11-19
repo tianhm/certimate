@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	provider "github.com/certimate-go/certimate/pkg/core/certmgr/providers/1panel-ssl"
+	provider "github.com/certimate-go/certimate/pkg/core/certmgr/providers/1panel"
 )
 
 var (
@@ -21,7 +21,7 @@ var (
 )
 
 func init() {
-	argsPrefix := "CERTIMATE_SSLMANAGER_1PANELSSL_"
+	argsPrefix := "1PANEL_"
 
 	flag.StringVar(&fInputCertPath, argsPrefix+"INPUTCERTPATH", "", "")
 	flag.StringVar(&fInputKeyPath, argsPrefix+"INPUTKEYPATH", "", "")
@@ -33,12 +33,12 @@ func init() {
 /*
 Shell command to run this test:
 
-	go test -v ./1panel_ssl_test.go -args \
-	--CERTIMATE_SSLMANAGER_1PANELSSL_INPUTCERTPATH="/path/to/your-input-cert.pem" \
-	--CERTIMATE_SSLMANAGER_1PANELSSL_INPUTKEYPATH="/path/to/your-input-key.pem" \
-	--CERTIMATE_SSLMANAGER_1PANELSSL_SERVERURL="http://127.0.0.1:20410" \
-	--CERTIMATE_SSLMANAGER_1PANELSSL_APIVERSION="v1" \
-	--CERTIMATE_SSLMANAGER_1PANELSSL_APIKEY="your-api-key"
+	go test -v ./1panel_test.go -args \
+	--1PANEL_INPUTCERTPATH="/path/to/your-input-cert.pem" \
+	--1PANEL_INPUTKEYPATH="/path/to/your-input-key.pem" \
+	--1PANEL_SERVERURL="http://127.0.0.1:20410" \
+	--1PANEL_APIVERSION="v1" \
+	--1PANEL_APIKEY="your-api-key"
 */
 func TestDeploy(t *testing.T) {
 	flag.Parse()

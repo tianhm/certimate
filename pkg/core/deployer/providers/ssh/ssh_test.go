@@ -23,7 +23,7 @@ var (
 )
 
 func init() {
-	argsPrefix := "CERTIMATE_SSLDEPLOYER_SSH_"
+	argsPrefix := "SSH_"
 
 	flag.StringVar(&fInputCertPath, argsPrefix+"INPUTCERTPATH", "", "")
 	flag.StringVar(&fInputKeyPath, argsPrefix+"INPUTKEYPATH", "", "")
@@ -39,14 +39,14 @@ func init() {
 Shell command to run this test:
 
 	go test -v ./ssh_test.go -args \
-	--CERTIMATE_SSLDEPLOYER_SSH_INPUTCERTPATH="/path/to/your-input-cert.pem" \
-	--CERTIMATE_SSLDEPLOYER_SSH_INPUTKEYPATH="/path/to/your-input-key.pem" \
-	--CERTIMATE_SSLDEPLOYER_SSH_SSHHOST="localhost" \
-	--CERTIMATE_SSLDEPLOYER_SSH_SSHPORT=22 \
-	--CERTIMATE_SSLDEPLOYER_SSH_SSHUSERNAME="root" \
-	--CERTIMATE_SSLDEPLOYER_SSH_SSHPASSWORD="password" \
-	--CERTIMATE_SSLDEPLOYER_SSH_OUTPUTCERTPATH="/path/to/your-output-cert.pem" \
-	--CERTIMATE_SSLDEPLOYER_SSH_OUTPUTKEYPATH="/path/to/your-output-key.pem"
+	--SSH_INPUTCERTPATH="/path/to/your-input-cert.pem" \
+	--SSH_INPUTKEYPATH="/path/to/your-input-key.pem" \
+	--SSH_SSHHOST="localhost" \
+	--SSH_SSHPORT=22 \
+	--SSH_SSHUSERNAME="root" \
+	--SSH_SSHPASSWORD="password" \
+	--SSH_OUTPUTCERTPATH="/path/to/your-output-cert.pem" \
+	--SSH_OUTPUTKEYPATH="/path/to/your-output-key.pem"
 */
 func TestDeploy(t *testing.T) {
 	flag.Parse()

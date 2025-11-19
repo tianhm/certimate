@@ -5,12 +5,13 @@ import (
 	"net/http"
 )
 
-type SearchWebsiteSSLRequest struct {
-	Page     int32 `json:"page"`
-	PageSize int32 `json:"pageSize"`
+type WebsiteSSLSearchRequest struct {
+	Domain   string `json:"domain"`
+	Page     int32  `json:"page"`
+	PageSize int32  `json:"pageSize"`
 }
 
-type SearchWebsiteSSLResponse struct {
+type WebsiteSSLSearchResponse struct {
 	apiResponseBase
 
 	Data *struct {
@@ -28,11 +29,11 @@ type SearchWebsiteSSLResponse struct {
 	} `json:"data,omitempty"`
 }
 
-func (c *Client) SearchWebsiteSSL(req *SearchWebsiteSSLRequest) (*SearchWebsiteSSLResponse, error) {
-	return c.SearchWebsiteSSLWithContext(context.Background(), req)
+func (c *Client) WebsiteSSLSearch(req *WebsiteSSLSearchRequest) (*WebsiteSSLSearchResponse, error) {
+	return c.WebsiteSSLSearchWithContext(context.Background(), req)
 }
 
-func (c *Client) SearchWebsiteSSLWithContext(ctx context.Context, req *SearchWebsiteSSLRequest) (*SearchWebsiteSSLResponse, error) {
+func (c *Client) WebsiteSSLSearchWithContext(ctx context.Context, req *WebsiteSSLSearchRequest) (*WebsiteSSLSearchResponse, error) {
 	httpreq, err := c.newRequest(http.MethodPost, "/websites/ssl/search")
 	if err != nil {
 		return nil, err
@@ -41,7 +42,7 @@ func (c *Client) SearchWebsiteSSLWithContext(ctx context.Context, req *SearchWeb
 		httpreq.SetContext(ctx)
 	}
 
-	result := &SearchWebsiteSSLResponse{}
+	result := &WebsiteSSLSearchResponse{}
 	if _, err := c.doRequestWithResult(httpreq, result); err != nil {
 		return result, err
 	}

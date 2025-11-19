@@ -18,7 +18,7 @@ var (
 )
 
 func init() {
-	argsPrefix := "CERTIMATE_SSLMANAGER_BAISHANCDN_"
+	argsPrefix := "BAISHANCDN_"
 
 	flag.StringVar(&fInputCertPath, argsPrefix+"INPUTCERTPATH", "", "")
 	flag.StringVar(&fInputKeyPath, argsPrefix+"INPUTKEYPATH", "", "")
@@ -29,9 +29,9 @@ func init() {
 Shell command to run this test:
 
 	go test -v ./baishan_cdn_test.go -args \
-	--CERTIMATE_SSLMANAGER_BAISHANCDN_INPUTCERTPATH="/path/to/your-input-cert.pem" \
-	--CERTIMATE_SSLMANAGER_BAISHANCDN_INPUTKEYPATH="/path/to/your-input-key.pem" \
-	--CERTIMATE_SSLMANAGER_BAISHANCDN_APITOKEN="your-api-token"
+	--BAISHANCDN_INPUTCERTPATH="/path/to/your-input-cert.pem" \
+	--BAISHANCDN_INPUTKEYPATH="/path/to/your-input-key.pem" \
+	--BAISHANCDN_APITOKEN="your-api-token"
 */
 func TestDeploy(t *testing.T) {
 	flag.Parse()

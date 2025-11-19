@@ -1,11 +1,11 @@
-package onepanelv2
+package onepanel
 
 import (
 	"context"
 	"net/http"
 )
 
-type UploadWebsiteSSLRequest struct {
+type WebsiteSSLUploadRequest struct {
 	SSLID           int64  `json:"sslID"`
 	Type            string `json:"type"`
 	Certificate     string `json:"certificate"`
@@ -15,15 +15,15 @@ type UploadWebsiteSSLRequest struct {
 	Description     string `json:"description"`
 }
 
-type UploadWebsiteSSLResponse struct {
+type WebsiteSSLUploadResponse struct {
 	apiResponseBase
 }
 
-func (c *Client) UploadWebsiteSSL(req *UploadWebsiteSSLRequest) (*UploadWebsiteSSLResponse, error) {
-	return c.UploadWebsiteSSLWithContext(context.Background(), req)
+func (c *Client) WebsiteSSLUpload(req *WebsiteSSLUploadRequest) (*WebsiteSSLUploadResponse, error) {
+	return c.WebsiteSSLUploadWithContext(context.Background(), req)
 }
 
-func (c *Client) UploadWebsiteSSLWithContext(ctx context.Context, req *UploadWebsiteSSLRequest) (*UploadWebsiteSSLResponse, error) {
+func (c *Client) WebsiteSSLUploadWithContext(ctx context.Context, req *WebsiteSSLUploadRequest) (*WebsiteSSLUploadResponse, error) {
 	httpreq, err := c.newRequest(http.MethodPost, "/websites/ssl/upload")
 	if err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func (c *Client) UploadWebsiteSSLWithContext(ctx context.Context, req *UploadWeb
 		httpreq.SetContext(ctx)
 	}
 
-	result := &UploadWebsiteSSLResponse{}
+	result := &WebsiteSSLUploadResponse{}
 	if _, err := c.doRequestWithResult(httpreq, result); err != nil {
 		return result, err
 	}

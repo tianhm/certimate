@@ -85,8 +85,10 @@ func (c *Certmgr) Upload(ctx context.Context, certPEM, privkeyPEM string) (*cert
 	}
 
 	if describeServerCertificatesResp.Body.ServerCertificates != nil && describeServerCertificatesResp.Body.ServerCertificates.ServerCertificate != nil {
-		fingerprint := sha256.Sum256(certX509.Raw)
-		fingerprintHex := hex.EncodeToString(fingerprint[:])
+		sha256Fingerprint := sha256.Sum256(certX509.Raw)
+		sha256FingerprintHex := hex.EncodeToString(sha256Fingerprint[:])
+		sha1Fingerprint := sha1.Sum(certX509.Raw)
+		sha1FingerprintHex := hex.EncodeToString(sha1Fingerprint[:])
 		for _, certItem := range describeServerCertificatesResp.Body.ServerCertificates.ServerCertificate {
 			if tea.Int32Value(certItem.IsAliCloudCertificate) != 0 {
 				continue
@@ -94,7 +96,8 @@ func (c *Certmgr) Upload(ctx context.Context, certPEM, privkeyPEM string) (*cert
 			if !strings.EqualFold(certX509.Subject.CommonName, tea.StringValue(certItem.CommonName)) {
 				continue
 			}
-			if !strings.EqualFold(fingerprintHex, strings.ReplaceAll(tea.StringValue(certItem.Fingerprint), ":", "")) {
+			if !strings.EqualFold(sha256FingerprintHex, strings.ReplaceAll(tea.StringValue(certItem.Fingerprint), ":", "")) &&
+				!strings.EqualFold(sha1FingerprintHex, strings.ReplaceAll(tea.StringValue(certItem.Fingerprint), ":", "")) {
 				continue
 			}
 

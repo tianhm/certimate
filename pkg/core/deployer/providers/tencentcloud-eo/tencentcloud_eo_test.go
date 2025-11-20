@@ -62,6 +62,7 @@ func TestDeploy(t *testing.T) {
 			ZoneId:             fZoneId,
 			DomainMatchPattern: provider.DOMAIN_MATCH_PATTERN_EXACT,
 			Domains:            strings.Split(fDomains, ";"),
+			EnableMultipleSSL:  true,
 		})
 		if err != nil {
 			t.Errorf("err: %+v", err)

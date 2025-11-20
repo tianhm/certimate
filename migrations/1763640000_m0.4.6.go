@@ -35,7 +35,7 @@ func init() {
 						{
 							if nodeCfg["providerConfig"] != nil {
 								providerCfg := nodeCfg["providerConfig"].(map[string]any)
-								if providerCfg["websiteId"] != nil && providerCfg["websiteId"] != "" {
+								if providerCfg["websiteId"] != nil && providerCfg["websiteId"].(string) != "" {
 									providerCfg["websiteMatchPattern"] = "specified"
 									nodeCfg["providerConfig"] = providerCfg
 
@@ -76,7 +76,7 @@ func init() {
 						{
 							if nodeCfg["providerConfig"] != nil {
 								providerCfg := nodeCfg["providerConfig"].(map[string]any)
-								if providerCfg["siteName"] != nil && providerCfg["siteName"] != "" {
+								if providerCfg["siteNames"] == nil || providerCfg["siteNames"].(string) == "" {
 									providerCfg["siteType"] = "php"
 									providerCfg["siteNames"] = providerCfg["siteName"]
 									delete(providerCfg, "siteName")
@@ -123,7 +123,9 @@ func init() {
 
 					case "safeline":
 						{
-							node.Data["provider"] = "safeline-site"
+							nodeCfg["provider"] = "safeline-site"
+
+							node.Data["config"] = nodeCfg
 							_changed = true
 							return
 						}

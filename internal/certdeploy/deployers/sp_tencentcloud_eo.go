@@ -26,6 +26,7 @@ func init() {
 			ZoneId:             xmaps.GetString(options.ProviderExtendedConfig, "zoneId"),
 			DomainMatchPattern: xmaps.GetString(options.ProviderExtendedConfig, "domainMatchPattern"),
 			Domains:            lo.Filter(strings.Split(xmaps.GetString(options.ProviderExtendedConfig, "domains"), ";"), func(s string, _ int) bool { return s != "" }),
+			EnableMultipleSSL:  xmaps.GetBool(options.ProviderExtendedConfig, "enableMultipleSSL"),
 		})
 		return provider, err
 	})

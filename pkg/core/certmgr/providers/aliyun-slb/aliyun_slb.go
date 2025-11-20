@@ -2,6 +2,7 @@ package aliyunslb
 
 import (
 	"context"
+	"crypto/sha1"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -85,23 +86,27 @@ func (c *Certmgr) Upload(ctx context.Context, certPEM, privkeyPEM string) (*cert
 	}
 
 	if describeServerCertificatesResp.Body.ServerCertificates != nil && describeServerCertificatesResp.Body.ServerCertificates.ServerCertificate != nil {
-		sha256Fingerprint := sha256.Sum256(certX509.Raw)
-		sha256FingerprintHex := hex.EncodeToString(sha256Fingerprint[:])
-		sha1Fingerprint := sha1.Sum(certX509.Raw)
-		sha1FingerprintHex := hex.EncodeToString(sha1Fingerprint[:])
+		fingerprintSha256 := sha256.Sum256(certX509.Raw)
+		fingerprintSha256Hex := hex.EncodeToString(fingerprintSha256[:])
+		fingerprintSha1 := sha1.Sum(certX509.Raw)
+		fingerprintSha1Hex := hex.EncodeToString(fingerprintSha1[:])
 		for _, certItem := range describeServerCertificatesResp.Body.ServerCertificates.ServerCertificate {
 			if tea.Int32Value(certItem.IsAliCloudCertificate) != 0 {
 				continue
 			}
+
+			// 对比证书通用名称
 			if !strings.EqualFold(certX509.Subject.CommonName, tea.StringValue(certItem.CommonName)) {
 				continue
 			}
-			if !strings.EqualFold(sha256FingerprintHex, strings.ReplaceAll(tea.StringValue(certItem.Fingerprint), ":", "")) &&
-				!strings.EqualFold(sha1FingerprintHex, strings.ReplaceAll(tea.StringValue(certItem.Fingerprint), ":", "")) {
+
+			// 对比证书 SHA-1 或 SHA-256 摘要
+			oldFingerprint := strings.ReplaceAll(tea.StringValue(certItem.Fingerprint), ":", "")
+			if !strings.EqualFold(fingerprintSha256Hex, oldFingerprint) && !strings.EqualFold(fingerprintSha1Hex, oldFingerprint) {
 				continue
 			}
 
-			// 如果已存在相同证书，直接返回
+			// 如果以上信息都一致，则视为已存在相同证书，直接返回
 			c.logger.Info("ssl certificate already exists")
 			return &certmgr.UploadResult{
 				CertId:   *certItem.ServerCertificateId,

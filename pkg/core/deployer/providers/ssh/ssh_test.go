@@ -65,10 +65,12 @@ func TestDeploy(t *testing.T) {
 		}, "\n"))
 
 		provider, err := provider.NewDeployer(&provider.DeployerConfig{
-			SshHost:        fSshHost,
-			SshPort:        int32(fSshPort),
-			SshUsername:    fSshUsername,
-			SshPassword:    fSshPassword,
+			ServerConfig: provider.ServerConfig{
+				SshHost:     fSshHost,
+				SshPort:     int32(fSshPort),
+				SshUsername: fSshUsername,
+				SshPassword: fSshPassword,
+			},
 			OutputFormat:   provider.OUTPUT_FORMAT_PEM,
 			OutputCertPath: fOutputCertPath,
 			OutputKeyPath:  fOutputKeyPath,

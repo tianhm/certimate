@@ -134,7 +134,6 @@
   "workflow_node.apply.form.skip_before_expiry_days.prefix": "If the last certificate expiration time exceeds",
   "workflow_node.apply.form.skip_before_expiry_days.suffix": ", skip to re-apply.",
   "workflow_node.apply.form.skip_before_expiry_days.unit": "days",
-  "workflow_node.apply.form.skip_before_expiry_days.tooltip": "Be careful not to exceed the validity period limit of the issued certificate, otherwise the certificate may never be renewed.",
 
   "workflow_node.upload.label": "Upload certificate",
   "workflow_node.upload.default_name": "Uploading",

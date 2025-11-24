@@ -73,9 +73,15 @@ func (ne *bizApplyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 	lastOutput, lastCertificate, err := ne.getLastOutputArtifacts(execCtx)
 	if err != nil {
 		return execRes, err
-	} else if lastCertificate != nil {
-		ne.setOuputsOfResult(execCtx, execRes, lastCertificate, false)
-		ne.setVariablesOfResult(execCtx, execRes, lastCertificate)
+	} else {
+		if lastOutput != nil {
+			ne.logger.Info(fmt.Sprintf("found last workflow run #%s", lastOutput.RunId))
+		}
+
+		if lastCertificate != nil {
+			ne.setOuputsOfResult(execCtx, execRes, lastCertificate, false)
+			ne.setVariablesOfResult(execCtx, execRes, lastCertificate)
+		}
 	}
 
 	// 检测是否可以跳过本次执行
@@ -136,7 +142,7 @@ func (ne *bizApplyNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeExe
 }
 
 func (ne *bizApplyNodeExecutor) getLastOutputArtifacts(execCtx *NodeExecutionContext) (*domain.WorkflowOutput, *domain.Certificate, error) {
-	lastOutput, err := ne.wfoutputRepo.GetByNodeId(execCtx.ctx, execCtx.Node.Id)
+	lastOutput, err := ne.wfoutputRepo.GetByWorkflowIdAndNodeId(execCtx.ctx, execCtx.WorkflowId, execCtx.Node.Id)
 	if err != nil && !domain.IsRecordNotFoundError(err) {
 		return nil, nil, fmt.Errorf("failed to get last output record of node #%s: %w", execCtx.Node.Id, err)
 	}

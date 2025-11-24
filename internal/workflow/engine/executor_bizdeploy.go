@@ -1,4 +1,4 @@
-﻿package engine
+package engine
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"maps"
 	"strings"
 
-	"github.com/certimate-go/certimate/internal/certdeploy"
+	"github.com/certimate-go/certimate/internal/certmgmt"
 	"github.com/certimate-go/certimate/internal/domain"
 	"github.com/certimate-go/certimate/internal/repository"
 )
@@ -89,8 +89,8 @@ func (ne *bizDeployNodeExecutor) Execute(execCtx *NodeExecutionContext) (*NodeEx
 	}
 
 	// 部署证书
-	deployer := certdeploy.NewClient(certdeploy.WithLogger(ne.logger))
-	deployReq := &certdeploy.DeployCertificateRequest{
+	deployer := certmgmt.NewClient(certmgmt.WithLogger(ne.logger))
+	deployReq := &certmgmt.DeployCertificateRequest{
 		Provider:               nodeCfg.Provider,
 		ProviderAccessConfig:   providerAccessConfig,
 		ProviderExtendedConfig: nodeCfg.ProviderConfig,

@@ -44,7 +44,7 @@ func TestDeploy(t *testing.T) {
 			fmt.Sprintf("APITOKEN: %v", fApiToken),
 		}, "\n"))
 
-		provider, err := provider.NewDeployer(&provider.DeployerConfig{
+		provider, err := provider.NewCertmgr(&provider.CertmgrConfig{
 			ApiToken: fApiToken,
 		})
 		if err != nil {

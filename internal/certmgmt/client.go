@@ -1,4 +1,4 @@
-﻿package certdeploy
+package certmgmt
 
 import (
 	"log/slog"

@@ -1,4 +1,4 @@
-﻿package certapply
+package certacme
 
 import (
 	"context"
@@ -18,7 +18,7 @@ import (
 	"github.com/go-acme/lego/v4/log"
 	"github.com/samber/lo"
 
-	"github.com/certimate-go/certimate/internal/certapply/certifiers"
+	"github.com/certimate-go/certimate/internal/certacme/certifiers"
 	"github.com/certimate-go/certimate/internal/domain"
 )
 
@@ -198,44 +198,4 @@ func (c *ACMEClient) sendObtainCertificateRequest(request *ObtainCertificateRequ
 		ACMECertStableUrl:    resp.CertStableURL,
 		ARIReplaced:          req.ReplacesCertID != "",
 	}, nil
-}
-
-type RevokeCertificateRequest struct {
-	Certificate string
-}
-
-type RevokeCertificateResponse struct{}
-
-func (c *ACMEClient) RevokeCertificate(ctx context.Context, request *RevokeCertificateRequest) (*RevokeCertificateResponse, error) {
-	type result struct {
-		res *RevokeCertificateResponse
-		err error
-	}
-
-	done := make(chan result, 1)
-
-	go func() {
-		res, err := c.sendRevokeCertificateRequest(request)
-		done <- result{res, err}
-	}()
-
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	case r := <-done:
-		return r.res, r.err
-	}
-}
-
-func (c *ACMEClient) sendRevokeCertificateRequest(request *RevokeCertificateRequest) (*RevokeCertificateResponse, error) {
-	if request == nil {
-		return nil, errors.New("the request is nil")
-	}
-
-	err := c.client.Certificate.Revoke([]byte(request.Certificate))
-	if err != nil {
-		return nil, err
-	}
-
-	return &RevokeCertificateResponse{}, nil
 }

@@ -1,4 +1,4 @@
-﻿package certifiers
+package certifiers
 
 import (
 	"fmt"

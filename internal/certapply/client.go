@@ -1,4 +1,4 @@
-﻿package certapply
+package certapply
 
 import (
 	"errors"

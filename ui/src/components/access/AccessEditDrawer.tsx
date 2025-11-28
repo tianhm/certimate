@@ -101,7 +101,7 @@ const AccessEditDrawer = ({ afterSubmit, mode, data, loading, trigger, usage, ..
       afterSubmit?.(formValues);
       setOpen(false);
     } catch (err) {
-      notification.error({ message: t("common.text.request_error"), description: getErrMsg(err) });
+      notification.error({ title: t("common.text.request_error"), description: getErrMsg(err) });
 
       throw err;
     } finally {
@@ -129,7 +129,7 @@ const AccessEditDrawer = ({ afterSubmit, mode, data, loading, trigger, usage, ..
       await notifyTest({ provider: fieldProvider, accessId: data!.id });
       message.success(t("common.text.operation_succeeded"));
     } catch (err) {
-      notification.error({ message: t("common.text.request_error"), description: getErrMsg(err) });
+      notification.error({ title: t("common.text.request_error"), description: getErrMsg(err) });
     } finally {
       setIsTesting(false);
     }

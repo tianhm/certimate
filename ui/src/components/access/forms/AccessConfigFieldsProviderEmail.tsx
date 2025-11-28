@@ -65,10 +65,7 @@ const AccessConfigFormFieldsProviderEmail = () => {
               label={t("access.form.shared_allow_insecure_conns.label")}
               rules={[formRule]}
             >
-              <Switch
-                checkedChildren={t("access.form.shared_allow_insecure_conns.switch.on")}
-                unCheckedChildren={t("access.form.shared_allow_insecure_conns.switch.off")}
-              />
+              <Switch />
             </Form.Item>
           </div>
         </Show>

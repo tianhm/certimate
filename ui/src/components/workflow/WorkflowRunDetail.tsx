@@ -287,7 +287,14 @@ const WorkflowRunLogs = ({ runId, runStatus }: { runId: string; runStatus: strin
           group.records
             .map((record) => {
               const datetime = dayjs(record.timestamp).format("YYYY-MM-DDTHH:mm:ss.SSSZ");
-              const level = record.level;
+              const level =
+                record.level < WorkflowLogLevel.Info
+                  ? "DBUG"
+                  : record.level < WorkflowLogLevel.Warn
+                    ? "INFO"
+                    : record.level < WorkflowLogLevel.Error
+                      ? "WARN"
+                      : "ERRO";
               const message = record.message;
               const data = record.data && Object.keys(record.data).length > 0 ? JSON.stringify(record.data) : "";
               return `[${datetime}] [${level}] ${escape(message)} ${escape(data)}`.trim();

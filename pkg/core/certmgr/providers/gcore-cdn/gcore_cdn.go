@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/G-Core/gcorelabscdn-go/gcore/provider"
+	gcore "github.com/G-Core/gcorelabscdn-go/gcore/provider"
 	"github.com/G-Core/gcorelabscdn-go/sslcerts"
 
 	"github.com/certimate-go/certimate/pkg/core/certmgr"
@@ -83,9 +83,9 @@ func createSDKClient(apiToken string) (*sslcerts.Service, error) {
 		return nil, errors.New("invalid gcore api token")
 	}
 
-	requester := provider.NewClient(
+	requester := gcore.NewClient(
 		gcoresdk.BASE_URL,
-		provider.WithSigner(gcoresdk.NewAuthRequestSigner(apiToken)),
+		gcore.WithSigner(gcoresdk.NewAuthRequestSigner(apiToken)),
 	)
 	service := sslcerts.NewService(requester)
 	return service, nil

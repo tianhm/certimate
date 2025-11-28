@@ -1,11 +1,11 @@
-package certdeploy
+package certmgmt
 
 import (
 	"context"
 	"errors"
 	"fmt"
 
-	"github.com/certimate-go/certimate/internal/certdeploy/deployers"
+	"github.com/certimate-go/certimate/internal/certmgmt/deployers"
 	"github.com/certimate-go/certimate/internal/domain"
 )
 

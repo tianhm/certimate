@@ -22,7 +22,7 @@ import { acmeDns01ProvidersMap, acmeHttp01ProvidersMap, caProvidersMap } from "@
 import { type WorkflowNodeConfigForBizApply, defaultNodeConfigForBizApply } from "@/domain/workflow";
 import { useAntdForm, useZustandShallowSelector } from "@/hooks";
 import { useAccessesStore } from "@/stores/access";
-import { useContactEmailsStore } from "@/stores/contact";
+import { useContactEmailsStore } from "@/stores/settings";
 import { getErrMsg } from "@/utils/error";
 import { validDomainName, validIPv4Address, validIPv6Address } from "@/utils/validators";
 

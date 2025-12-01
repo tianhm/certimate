@@ -14,8 +14,8 @@ import { COLLECTION_NAME_SETTINGS, getPocketBase } from "./_pocketbase";
 
 interface SettingsContentMap {
   [SETTINGS_NAMES.EMAILS]: EmailsSettingsContent;
-  [SETTINGS_NAMES.SSL_PROVIDER]: SSLProviderSettingsContent;
   [SETTINGS_NAMES.PERSISTENCE]: PersistenceSettingsContent;
+  [SETTINGS_NAMES.SSL_PROVIDER]: SSLProviderSettingsContent;
 }
 
 export const get = async <K extends SettingsNames | string, T extends NonNullable<unknown>>(

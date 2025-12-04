@@ -5,7 +5,7 @@
   "provider.35cn": "三五互联",
   "provider.acmeca": "ACME 自定义 CA 端点",
   "provider.acmedns": "ACME-DNS",
-  "provider.acmehttpreq": "ACME 自定义 HTTP 端点",
+  "provider.acmehttpreq": "ACME 自定义端点",
   "provider.actalisssl": "Actalis SSL",
   "provider.akamai": "Akamai",
   "provider.akamai.cdn": "Akamai - 内容分发网络 CDN",

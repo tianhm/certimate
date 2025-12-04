@@ -1,6 +1,6 @@
 import { getI18n, useTranslation } from "react-i18next";
-import { IconChevronDown } from "@tabler/icons-react";
-import { Button, Form, Input, Select, Switch } from "antd";
+import { IconBulb, IconChevronDown } from "@tabler/icons-react";
+import { Button, Divider, Form, Input, Popover, Select, Space, Switch } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
@@ -27,9 +27,9 @@ const initPresetScript = (
 # 脚本参考 https://github.com/catchdave/ssl-certs/blob/main/replace_synology_ssl_certs.sh
 
 # 请将以下变量替换为实际值
-$tmpFullchainPath = "${params?.certPath || "<your-fullchain-cert-path>"}" # 证书文件路径（与表单中保持一致）
-$tmpCertPath = "${params?.certPathForServerOnly || "<your-server-cert-path>"}" # 服务器证书文件路径（与表单中保持一致）
-$tmpKeyPath = "${params?.keyPath || "<your-key-path>"}" # 私钥文件路径（与表单中保持一致）
+$tmpFullchainPath = "\${CERTIMATE_DEPLOYER_CMDVAR_CERTIFICATE_PATH}" # 证书文件路径（与表单中保持一致）
+$tmpCertPath = "\${CERTIMATE_DEPLOYER_CMDVAR_CERTIFICATE_SERVER_PATH}" # 服务器证书文件路径（与表单中保持一致）
+$tmpKeyPath = "\${CERTIMATE_DEPLOYER_CMDVAR_PRIVATEKEY_PATH}" # 私钥文件路径（与表单中保持一致）
 
 DEBUG=1
 error_exit() { echo "[ERROR] $1"; exit 1; }
@@ -106,9 +106,9 @@ info "Completed"
 
 # 请将以下变量替换为实际值
 # 飞牛证书实际存放路径请在 \`/usr/trim/etc/network_cert_all.conf\` 中查看，注意不要修改文件名
-$tmpFullchainPath = "${params?.certPath || "<your-fullchain-cert-path>"}" # 证书文件路径（与表单中保持一致）
-$tmpCertPath = "${params?.certPathForServerOnly || "<your-server-cert-path>"}" # 服务器证书文件路径（与表单中保持一致）
-$tmpKeyPath = "${params?.keyPath || "<your-key-path>"}" # 私钥文件路径（与表单中保持一致）
+$tmpFullchainPath = "\${CERTIMATE_DEPLOYER_CMDVAR_CERTIFICATE_PATH}" # 证书文件路径（与表单中保持一致）
+$tmpCertPath = "\${CERTIMATE_DEPLOYER_CMDVAR_CERTIFICATE_SERVER_PATH}" # 服务器证书文件路径（与表单中保持一致）
+$tmpKeyPath = "\${CERTIMATE_DEPLOYER_CMDVAR_PRIVATEKEY_PATH}" # 私钥文件路径（与表单中保持一致）
 $fnFullchainPath = "/usr/trim/var/trim_connect/ssls/example.com/1234567890/fullchain.crt" # 飞牛证书文件路径
 $fnCertPath = "/usr/trim/var/trim_connect/ssls/example.com/1234567890/example.com.crt" # 飞牛服务器证书文件路径
 $fnKeyPath = "/usr/trim/var/trim_connect/ssls/example.com/1234567890/example.com.key" # 飞牛私钥文件路径
@@ -140,8 +140,8 @@ systemctl restart trim_nginx.service
 # 注意仅支持替换证书，需本身已开启过一次 HTTPS
 
 # 请将以下变量替换为实际值
-$tmpFullchainPath = "${params?.certPath || "<your-fullchain-cert-path>"}" # 证书文件路径（与表单中保持一致）
-$tmpKeyPath = "${params?.keyPath || "<your-key-path>"}" # 私钥文件路径（与表单中保持一致）
+$tmpFullchainPath = "\${CERTIMATE_DEPLOYER_CMDVAR_CERTIFICATE_PATH}"}" # 证书文件路径（与表单中保持一致）
+$tmpKeyPath = "\${CERTIMATE_DEPLOYER_CMDVAR_PRIVATEKEY_PATH}" # 私钥文件路径（与表单中保持一致）
 
 # 复制文件
 cp -rf "$tmpFullchainPath" /etc/stunnel/backup.cert
@@ -258,6 +258,16 @@ const BizDeployNodeConfigFieldsProviderSSH = () => {
 
   return (
     <>
+      <Form.Item
+        name={[parentNamePath, "useSCP"]}
+        initialValue={initialValues.useSCP}
+        label={t("workflow_node.deploy.form.ssh_use_scp.label")}
+        rules={[formRule]}
+        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.ssh_use_scp.tooltip") }}></span>}
+      >
+        <Switch />
+      </Form.Item>
+
       <Form.Item
         name={[parentNamePath, "format"]}
         initialValue={initialValues.format}
@@ -398,33 +408,40 @@ const BizDeployNodeConfigFieldsProviderSSH = () => {
 
       <Form.Item label={t("workflow_node.deploy.form.ssh_post_command.label")}>
         <div className="absolute -top-1.5 right-0 -translate-y-full">
-          <PresetScriptTemplatesPopselect
-            options={[
-              "sh_reload_nginx",
-              "sh_replace_synologydsm_ssl",
-              "sh_replace_fnos_ssl",
-              "sh_replace_qnap_ssl",
-              "ps_binding_iis",
-              "ps_binding_netsh",
-              "ps_binding_rdp",
-            ].map((key) => ({
-              key,
-              label: t(`workflow_node.deploy.form.ssh_preset_scripts.${key}`),
-            }))}
-            trigger={["click"]}
-            onSelect={(key, template) => {
-              if (template) {
-                formInst.setFieldValue([parentNamePath, "postCommand"], template.command);
-              } else {
-                handlePresetPostScriptClick(key);
-              }
-            }}
-          >
-            <Button size="small" type="link">
-              {t("preset.dropdown.script.button")}
-              <IconChevronDown size="1.25em" />
-            </Button>
-          </PresetScriptTemplatesPopselect>
+          <Space align="center" separator={<Divider orientation="vertical" />} size={0}>
+            <Popover content={<div dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.shared_script_command.vartips") }} />} mouseEnterDelay={1}>
+              <Button color="default" size="small" variant="link">
+                <IconBulb size="1.25em" />
+              </Button>
+            </Popover>
+            <PresetScriptTemplatesPopselect
+              options={[
+                "sh_reload_nginx",
+                "sh_replace_synologydsm_ssl",
+                "sh_replace_fnos_ssl",
+                "sh_replace_qnap_ssl",
+                "ps_binding_iis",
+                "ps_binding_netsh",
+                "ps_binding_rdp",
+              ].map((key) => ({
+                key,
+                label: t(`workflow_node.deploy.form.ssh_preset_scripts.${key}`),
+              }))}
+              trigger={["click"]}
+              onSelect={(key, template) => {
+                if (template) {
+                  formInst.setFieldValue([parentNamePath, "postCommand"], template.command);
+                } else {
+                  handlePresetPostScriptClick(key);
+                }
+              }}
+            >
+              <Button size="small" type="link">
+                {t("preset.dropdown.script.button")}
+                <IconChevronDown size="1.25em" />
+              </Button>
+            </PresetScriptTemplatesPopselect>
+          </Space>
         </div>
         <Form.Item name={[parentNamePath, "postCommand"]} initialValue={initialValues.postCommand} noStyle rules={[formRule]}>
           <CodeInput
@@ -435,16 +452,6 @@ const BizDeployNodeConfigFieldsProviderSSH = () => {
             placeholder={t("workflow_node.deploy.form.ssh_post_command.placeholder")}
           />
         </Form.Item>
-      </Form.Item>
-
-      <Form.Item
-        name={[parentNamePath, "useSCP"]}
-        initialValue={initialValues.useSCP}
-        label={t("workflow_node.deploy.form.ssh_use_scp.label")}
-        rules={[formRule]}
-        tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.deploy.form.ssh_use_scp.tooltip") }}></span>}
-      >
-        <Switch />
       </Form.Item>
     </>
   );
@@ -463,6 +470,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
 
   return z
     .object({
+      useSCP: z.boolean().nullish(),
       format: z.literal([FORMAT_PEM, FORMAT_PFX, FORMAT_JKS], t("workflow_node.deploy.form.ssh_format.placeholder")),
       keyPath: z
         .string()
@@ -492,7 +500,6 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
         .string()
         .max(20480, t("common.errmsg.string_max", { max: 20480 }))
         .nullish(),
-      useSCP: z.boolean().nullish(),
     })
     .superRefine((values, ctx) => {
       switch (values.format) {

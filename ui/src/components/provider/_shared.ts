@@ -82,7 +82,7 @@ export const usePickerWrapperCols = (width: number) => {
     const wWidth = wrapperSize?.width ?? document.body.clientWidth - 256;
     const wCols = Math.floor(wWidth / width);
     return Math.min(9, Math.max(1, wCols));
-  }, [wrapperSize, width]);
+  }, [wrapperSize?.width, width]);
 
   return {
     wrapperElRef,

@@ -285,18 +285,12 @@ const WorkflowNew = () => {
       <div className="container">
         <div className="my-1.5">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-            <Card className="size-full" styles={{ body: { padding: "1rem 1.5rem" } }} variant="borderless">
+            <Card className="size-full" styles={{ body: { padding: "1rem 0.5rem" } }} variant="borderless">
               <div className="flex flex-col gap-3">
-                <Button
-                  className="border-none px-0 shadow-none"
-                  block
-                  icon={<IconSquarePlus2 size="1.25em" />}
-                  variant="solid"
-                  onClick={() => handleTemplateClick(TEMPLATE_KEY_BLANK)}
-                >
+                <Button block icon={<IconSquarePlus2 size="1.25em" />} type="text" onClick={() => handleTemplateClick(TEMPLATE_KEY_BLANK)}>
                   <div className="w-full text-left">{t("workflow.new.button.create")}</div>
                 </Button>
-                <Button className="border-none px-0 shadow-none" block icon={<IconCode size="1.25em" />} variant="solid" onClick={handleImportClick}>
+                <Button block icon={<IconCode size="1.25em" />} type="text" onClick={handleImportClick}>
                   <div className="w-full text-left">{t("workflow.new.button.import")}</div>
                 </Button>
               </div>

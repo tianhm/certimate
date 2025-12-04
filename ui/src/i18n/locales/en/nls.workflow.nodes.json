@@ -681,7 +681,7 @@
   "workflow_node.deploy.form.local_preset_scripts.option.sh_reload_nginx.label": "POSIX Bash - Reload nginx",
   "workflow_node.deploy.form.local_preset_scripts.option.ps_binding_iis.label": "PowerShell - Binding IIS",
   "workflow_node.deploy.form.local_preset_scripts.option.ps_binding_netsh.label": "PowerShell - Binding netsh",
-  "workflow_node.deploy.form.local_preset_scripts.option.ps_.label": "PowerShell - Binding RDP",
+  "workflow_node.deploy.form.local_preset_scripts.option.ps_binding_rdp.label": "PowerShell - Binding RDP",
   "workflow_node.deploy.form.netlify_site_id.label": "Netlify site ID",
   "workflow_node.deploy.form.netlify_site_id.placeholder": "Please enter Netlify site ID",
   "workflow_node.deploy.form.netlify_site_id.tooltip": "For more information, see <a href=\"https://docs.netlify.com/api/get-started/#get-site\" target=\"_blank\">https://docs.netlify.com/api/get-started/#get-site</a>",

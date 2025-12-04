@@ -18,7 +18,7 @@ export const useContactEmailsStore = create<ContactEmailsStore>((set, get) => {
     fetchEmails: async (refresh = true) => {
       if (!refresh) {
         if (get().loadedAtOnce) {
-          return;
+          return get().emails;
         }
       }
 
@@ -32,6 +32,8 @@ export const useContactEmailsStore = create<ContactEmailsStore>((set, get) => {
         fetcher = null;
         set({ loading: false });
       }
+
+      return get().emails;
     },
 
     setEmails: async (emails) => {

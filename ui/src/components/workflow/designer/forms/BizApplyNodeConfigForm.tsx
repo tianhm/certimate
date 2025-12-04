@@ -653,7 +653,9 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
 const InternalEmailInput = memo(
   ({ disabled, placeholder, ...props }: { disabled?: boolean; placeholder?: string; value?: string; onChange?: (value: string) => void }) => {
     const { emails, fetchEmails, removeEmail } = useContactEmailsStore();
-    useMount(() => fetchEmails(false));
+    useMount(() => {
+      fetchEmails(false);
+    });
 
     const [value, setValue] = useControllableValue<string>(props, {
       valuePropName: "value",

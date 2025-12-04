@@ -63,7 +63,7 @@ const AccessProviderPicker = ({
 
   const renderOption = (provider: AccessProvider) => {
     return (
-      <div className="size-full" key={provider.type}>
+      <div className="group/provider size-full" key={provider.type}>
         <Card
           className={mergeCls("size-full overflow-hidden shadow", provider.builtin ? "cursor-not-allowed" : void 0)}
           styles={{
@@ -82,12 +82,12 @@ const AccessProviderPicker = ({
           }}
         >
           <div className="flex size-full flex-col">
-            <div className="flex flex-1 gap-3">
-              <div>
-                <Avatar className="bg-stone-50" icon={<img src={provider.icon} />} shape="square" size={28} />
-              </div>
-              <div>
+            <div className="flex flex-1 justify-between gap-3">
+              <div className="flex-1">
                 <Typography.Text type={provider.builtin ? "secondary" : void 0}>{t(provider.name) || "\u00A0"}</Typography.Text>
+              </div>
+              <div className="transition-all group-hover/provider:scale-110">
+                <Avatar className="bg-stone-50" icon={<img src={provider.icon} />} shape="square" size={28} />
               </div>
             </div>
             <Show when={showOptionTagAnyhow}>

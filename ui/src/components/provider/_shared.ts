@@ -26,7 +26,9 @@ export const useSelectDataSource = <T extends Provider>({
   deps?: React.DependencyList;
 }) => {
   const { accesses, fetchAccesses } = useAccessesStore(useZustandShallowSelector(["accesses", "fetchAccesses"]));
-  useMount(() => fetchAccesses(false));
+  useMount(() => {
+    fetchAccesses(false);
+  });
 
   const filteredDataSource = useMemo(() => {
     return dataSource.filter((provider) => {
@@ -104,7 +106,9 @@ export const usePickerDataSource = <T extends Provider>({
   const { t } = useTranslation();
 
   const { accesses, fetchAccesses } = useAccessesStore(useZustandShallowSelector(["accesses", "fetchAccesses"]));
-  useMount(() => fetchAccesses(false));
+  useMount(() => {
+    fetchAccesses(false);
+  });
 
   const filteredDataSource = useMemo(() => {
     return dataSource

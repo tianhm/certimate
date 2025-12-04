@@ -231,7 +231,7 @@ const AccessConfigFormFieldsProviderWebhook = ({ usage = "none" }: AccessConfigF
                 items: [
                   {
                     key: "certimate",
-                    label: "Certimate",
+                    label: t("access.form.webhook_preset_data.common"),
                     onClick: handlePresetDataForDeploymentClick,
                   },
                 ],
@@ -239,7 +239,7 @@ const AccessConfigFormFieldsProviderWebhook = ({ usage = "none" }: AccessConfigF
               trigger={["click"]}
             >
               <Button size="small" type="link">
-                {t("access.form.webhook_preset_data.button")}
+                {t("access.form.webhook_preset_data")}
                 <IconChevronDown size="1.25em" />
               </Button>
             </Dropdown>
@@ -268,14 +268,14 @@ const AccessConfigFormFieldsProviderWebhook = ({ usage = "none" }: AccessConfigF
               menu={{
                 items: ["bark", "ntfy", "gotify", "pushover", "pushplus", "serverchan3", "serverchanturbo", "common"].map((key) => ({
                   key,
-                  label: <span dangerouslySetInnerHTML={{ __html: t(`access.form.webhook_preset_data.option.${key}.label`) }}></span>,
+                  label: <span dangerouslySetInnerHTML={{ __html: t(`access.form.webhook_preset_data.${key}`) }}></span>,
                   onClick: () => handlePresetDataForNotificationClick(key),
                 })),
               }}
               trigger={["click"]}
             >
               <Button size="small" type="link">
-                {t("access.form.webhook_preset_data.button")}
+                {t("access.form.webhook_preset_data")}
                 <IconChevronDown size="1.25em" />
               </Button>
             </Dropdown>
@@ -318,9 +318,9 @@ const getInitialValues = ({ usage = "none" }: { usage?: "deployment" | "notifica
     data: JSON.stringify(
       usage === "deployment"
         ? {
-            name: "${DOMAINS}",
-            cert: "${CERTIFICATE}",
-            privkey: "${PRIVATE_KEY}",
+            name: "${CERTIMATE_DEPLOYER_COMMONNAME}",
+            cert: "${CERTIMATE_DEPLOYER_CERTIFICATE}",
+            privkey: "${CERTIMATE_DEPLOYER_PRIVATEKEY}",
           }
         : usage === "notification"
           ? {

@@ -1,10 +1,11 @@
 import { getI18n, useTranslation } from "react-i18next";
 import { IconChevronDown } from "@tabler/icons-react";
-import { Button, Dropdown, Form, Input, Select } from "antd";
+import { Button, Form, Input, Select } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
 import CodeInput from "@/components/CodeInput";
+import PresetScriptTemplatesPopselect from "@/components/preset/PresetScriptTemplatesPopselect";
 import Show from "@/components/Show";
 import Tips from "@/components/Tips";
 import { CERTIFICATE_FORMATS } from "@/domain/certificate";
@@ -339,21 +340,25 @@ const BizDeployNodeConfigFieldsProviderLocal = () => {
 
       <Form.Item label={t("workflow_node.deploy.form.local_pre_command.label")}>
         <div className="absolute -top-1.5 right-0 -translate-y-full">
-          <Dropdown
-            menu={{
-              items: ["sh_backup_files", "ps_backup_files"].map((key) => ({
-                key,
-                label: t(`workflow_node.deploy.form.local_preset_scripts.option.${key}.label`),
-                onClick: () => handlePresetPreScriptClick(key),
-              })),
-            }}
+          <PresetScriptTemplatesPopselect
+            options={["sh_backup_files", "ps_backup_files"].map((key) => ({
+              key,
+              label: t(`workflow_node.deploy.form.local_preset_scripts.${key}`),
+            }))}
             trigger={["click"]}
+            onSelect={(key, template) => {
+              if (template) {
+                formInst.setFieldValue([parentNamePath, "preCommand"], template.command);
+              } else {
+                handlePresetPreScriptClick(key);
+              }
+            }}
           >
             <Button size="small" type="link">
-              {t("workflow_node.deploy.form.local_preset_scripts.button")}
+              {t("preset.dropdown.script.button")}
               <IconChevronDown size="1.25em" />
             </Button>
-          </Dropdown>
+          </PresetScriptTemplatesPopselect>
         </div>
         <Form.Item name={[parentNamePath, "preCommand"]} initialValue={initialValues.preCommand} noStyle rules={[formRule]}>
           <CodeInput
@@ -368,21 +373,26 @@ const BizDeployNodeConfigFieldsProviderLocal = () => {
 
       <Form.Item label={t("workflow_node.deploy.form.local_post_command.label")}>
         <div className="absolute -top-1.5 right-0 -translate-y-full">
-          <Dropdown
-            menu={{
-              items: ["sh_reload_nginx", "ps_binding_iis", "ps_binding_netsh", "ps_binding_rdp"].map((key) => ({
-                key,
-                label: t(`workflow_node.deploy.form.local_preset_scripts.option.${key}.label`),
-                onClick: () => handlePresetPostScriptClick(key),
-              })),
-            }}
+          <PresetScriptTemplatesPopselect
+            options={["sh_reload_nginx", "ps_binding_iis", "ps_binding_netsh", "ps_binding_rdp"].map((key) => ({
+              key,
+              label: t(`workflow_node.deploy.form.local_preset_scripts.${key}`),
+              onClick: () => handlePresetPostScriptClick(key),
+            }))}
             trigger={["click"]}
+            onSelect={(key, template) => {
+              if (template) {
+                formInst.setFieldValue([parentNamePath, "postCommand"], template.command);
+              } else {
+                handlePresetPostScriptClick(key);
+              }
+            }}
           >
             <Button size="small" type="link">
-              {t("workflow_node.deploy.form.local_preset_scripts.button")}
+              {t("preset.dropdown.script.button")}
               <IconChevronDown size="1.25em" />
             </Button>
-          </Dropdown>
+          </PresetScriptTemplatesPopselect>
         </div>
         <Form.Item name={[parentNamePath, "postCommand"]} initialValue={initialValues.postCommand} noStyle rules={[formRule]}>
           <CodeInput

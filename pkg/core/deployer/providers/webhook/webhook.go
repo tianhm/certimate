@@ -143,6 +143,14 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*dep
 			return nil, fmt.Errorf("failed to unmarshal webhook data: %w", err)
 		}
 
+		replaceJsonValueRecursively(webhookData, "${CERTIMATE_DEPLOYER_COMMONNAME}", certX509.Subject.CommonName)
+		replaceJsonValueRecursively(webhookData, "${CERTIMATE_DEPLOYER_SUBJECTALTNAMES}", strings.Join(certX509.DNSNames, ";"))
+		replaceJsonValueRecursively(webhookData, "${CERTIMATE_DEPLOYER_CERTIFICATE}", certPEM)
+		replaceJsonValueRecursively(webhookData, "${CERTIMATE_DEPLOYER_CERTIFICATE_SERVER}", serverCertPEM)
+		replaceJsonValueRecursively(webhookData, "${CERTIMATE_DEPLOYER_CERTIFICATE_INTERMEDIA}", intermediaCertPEM)
+		replaceJsonValueRecursively(webhookData, "${CERTIMATE_DEPLOYER_PRIVATEKEY}", privkeyPEM)
+
+		// 兼容旧版变量
 		replaceJsonValueRecursively(webhookData, "${DOMAIN}", certX509.Subject.CommonName)
 		replaceJsonValueRecursively(webhookData, "${DOMAINS}", strings.Join(certX509.DNSNames, ";"))
 		replaceJsonValueRecursively(webhookData, "${CERTIFICATE}", certPEM)

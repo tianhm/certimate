@@ -25,5 +25,10 @@
   "preset.form.notification_message.label": "通知内容",
   "preset.form.notification_message.placeholder": "请输入通知内容",
   "preset.form.script_command.label": "脚本命令",
-  "preset.form.script_command.placeholder": "请输入脚本命令"
+  "preset.form.script_command.placeholder": "请输入脚本命令",
+
+  "preset.dropdown.notification.button": "使用预设通知",
+  "preset.dropdown.script.button": "使用预设脚本",
+  "preset.dropdown.option_group.builtin": "内置模板",
+  "preset.dropdown.option_group.custom": "自定义模板"
 }

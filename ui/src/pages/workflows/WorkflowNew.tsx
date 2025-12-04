@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { IconArrowRight, IconCode, IconSquarePlus2 } from "@tabler/icons-react";
+import { IconArrowRight, IconSquarePlus2, IconUpload } from "@tabler/icons-react";
 import { App, Button, Card, Spin, Typography } from "antd";
 
 import Show from "@/components/Show";
@@ -290,7 +290,7 @@ const WorkflowNew = () => {
                 <Button block icon={<IconSquarePlus2 size="1.25em" />} type="text" onClick={() => handleTemplateClick(TEMPLATE_KEY_BLANK)}>
                   <div className="w-full text-left">{t("workflow.new.button.create")}</div>
                 </Button>
-                <Button block icon={<IconCode size="1.25em" />} type="text" onClick={handleImportClick}>
+                <Button block icon={<IconUpload size="1.25em" />} type="text" onClick={handleImportClick}>
                   <div className="w-full text-left">{t("workflow.new.button.import")}</div>
                 </Button>
               </div>

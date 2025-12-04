@@ -127,6 +127,10 @@ func (n *Notifier) Notify(ctx context.Context, subject string, message string) (
 			return nil, fmt.Errorf("failed to unmarshal webhook data: %w", err)
 		}
 
+		replaceJsonValueRecursively(webhookData, "${CERTIMATE_NOTIFIER_SUBJECT}", subject)
+		replaceJsonValueRecursively(webhookData, "${CERTIMATE_NOTIFIER_MESSAGE}", message)
+
+		// 兼容旧版变量
 		replaceJsonValueRecursively(webhookData, "${SUBJECT}", subject)
 		replaceJsonValueRecursively(webhookData, "${MESSAGE}", message)
 

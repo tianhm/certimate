@@ -25,5 +25,10 @@
   "preset.form.notification_message.label": "Notification message",
   "preset.form.notification_message.placeholder": "Please enter notification message",
   "preset.form.script_command.label": "Script command",
-  "preset.form.script_command.placeholder": "Please enter script command"
+  "preset.form.script_command.placeholder": "Please enter script command",
+
+  "preset.dropdown.notification.button": "Use preset notification",
+  "preset.dropdown.script.button": "Use preset script",
+  "preset.dropdown.option_group.builtin": "Built-in templates",
+  "preset.dropdown.option_group.custom": "Customized templates"
 }

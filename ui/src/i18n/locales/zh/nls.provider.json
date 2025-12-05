@@ -80,6 +80,7 @@
   "provider.digitalocean": "DigitalOcean",
   "provider.dingtalkbot": "钉钉群机器人",
   "provider.discordbot": "Discord 机器人",
+  "provider.dnsexit": "DNSExit",
   "provider.dnsla": "DNS.LA",
   "provider.dnsmadeeasy": "DNS Made Easy",
   "provider.dogecloud": "多吉云",

@@ -11,12 +11,12 @@ import { z } from "zod";
 import { validatePrivateKey } from "@/api/certificates";
 import AccessEditDrawer from "@/components/access/AccessEditDrawer";
 import AccessSelect from "@/components/access/AccessSelect";
+import FileTextInput from "@/components/FileTextInput";
 import MultipleSplitValueInput from "@/components/MultipleSplitValueInput";
 import ACMEDns01ProviderSelect from "@/components/provider/ACMEDns01ProviderSelect";
 import ACMEHttp01ProviderSelect from "@/components/provider/ACMEHttp01ProviderSelect";
 import CAProviderSelect from "@/components/provider/CAProviderSelect";
 import Show from "@/components/Show";
-import FileTextInput from "@/components/FileTextInput";
 import { type AccessModel } from "@/domain/access";
 import { acmeDns01ProvidersMap, acmeHttp01ProvidersMap, caProvidersMap } from "@/domain/provider";
 import { type WorkflowNodeConfigForBizApply, defaultNodeConfigForBizApply } from "@/domain/workflow";
@@ -524,7 +524,9 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
               allowClear
               options={["classic", "tlsserver", "shortlived"].map((s) => ({ value: s }))}
               placeholder={t("workflow_node.apply.form.acme_profile.placeholder")}
-              filterOption={(inputValue, option) => option!.value.toLowerCase().includes(inputValue.toLowerCase())}
+              showSearch={{
+                filterOption: (inputValue, option) => option!.value.toLowerCase().includes(inputValue.toLowerCase()),
+              }}
             />
           </Form.Item>
         </div>

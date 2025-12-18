@@ -90,15 +90,6 @@ const CAProviderSelect = ({ showAvailability, showDefault, onFilter, ...props }:
   return (
     <Select
       {...props}
-      filterOption={(inputValue, option) => {
-        if (option?.value === "") return true;
-        if (!option) return false;
-        if (!option.label) return false;
-        if (!option.value) return false;
-
-        const value = inputValue.toLowerCase();
-        return String(option.value).toLowerCase().includes(value) || String(option.label).toLowerCase().includes(value);
-      }}
       labelRender={({ value }) => {
         if (value != null && value !== "") {
           return renderOption(value as string);
@@ -107,9 +98,20 @@ const CAProviderSelect = ({ showAvailability, showDefault, onFilter, ...props }:
         return <span style={{ color: themeToken.colorTextPlaceholder }}>{props.placeholder}</span>;
       }}
       options={options}
-      optionFilterProp={void 0}
       optionLabelProp={void 0}
       optionRender={(option) => renderOption(option.data.value as string)}
+      showSearch={{
+        filterOption: (inputValue, option) => {
+          if (option?.value === "") return true; // 始终显示系统默认项
+
+          if (!option) return false;
+          if (!option.label) return false;
+          if (!option.value) return false;
+
+          const value = inputValue.toLowerCase();
+          return String(option.value).toLowerCase().includes(value) || String(option.label).toLowerCase().includes(value);
+        },
+      }}
       value={value}
       onChange={handleChange}
       onSelect={handleChange}

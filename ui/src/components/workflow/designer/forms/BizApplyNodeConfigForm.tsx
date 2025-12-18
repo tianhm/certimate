@@ -510,7 +510,29 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
             rules={[formRule]}
             tooltip={<span dangerouslySetInnerHTML={{ __html: t("workflow_node.apply.form.preferred_chain.tooltip") }}></span>}
           >
-            <Input allowClear placeholder={t("workflow_node.apply.form.preferred_chain.placeholder")} />
+            <AutoComplete
+              allowClear
+              options={[
+                {
+                  ca: "Let's Encrypt",
+                  roots: ["ISRG", "ISRG Root X1", "ISRG Root X2"],
+                },
+                {
+                  ca: "Google Trust Services",
+                  roots: ["GTS", "GTS Root R1", "GTS Root R2", "GTS Root R3", "GTS Root R4", "GlobalSign", "GlobalSign R4"],
+                },
+              ].map((e) => ({
+                label: e.ca,
+                options: e.roots.map((s) => ({
+                  label: s,
+                  value: s,
+                })),
+              }))}
+              placeholder={t("workflow_node.apply.form.preferred_chain.placeholder")}
+              showSearch={{
+                filterOption: (inputValue, option) => "value" in option! && String(option.value).toLowerCase().includes(inputValue.toLowerCase()),
+              }}
+            />
           </Form.Item>
 
           <Form.Item
@@ -522,10 +544,21 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
           >
             <AutoComplete
               allowClear
-              options={["classic", "tlsserver", "shortlived"].map((s) => ({ value: s }))}
+              options={[
+                {
+                  ca: "Let's Encrypt",
+                  profiles: ["classic", "tlsserver", "shortlived"],
+                },
+              ].map((e) => ({
+                label: e.ca,
+                options: e.profiles.map((s) => ({
+                  label: s,
+                  value: s,
+                })),
+              }))}
               placeholder={t("workflow_node.apply.form.acme_profile.placeholder")}
               showSearch={{
-                filterOption: (inputValue, option) => option!.value.toLowerCase().includes(inputValue.toLowerCase()),
+                filterOption: (inputValue, option) => "value" in option! && String(option.value).toLowerCase().includes(inputValue.toLowerCase()),
               }}
             />
           </Form.Item>
@@ -715,13 +748,14 @@ const InternalEmailInput = memo(
         backfill
         defaultValue={value}
         disabled={disabled}
-        filterOption
         options={options}
         placeholder={placeholder}
-        showSearch
+        showSearch={{
+          filterOption: true,
+          onSearch: handleSearch,
+        }}
         value={value}
         onChange={handleChange}
-        onSearch={handleSearch}
       />
     );
   }

@@ -1,9 +1,11 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useControllableValue } from "ahooks";
+import { useControllableValue, useMount } from "ahooks";
 import { Avatar, Select, Typography, theme } from "antd";
 
 import { type CAProvider, caProvidersMap } from "@/domain/provider";
+import { useZustandShallowSelector } from "@/hooks";
+import { useSSLProviderSettingsStore } from "@/stores/settings";
 
 import { type SharedSelectProps, useSelectDataSource } from "./_shared";
 
@@ -17,12 +19,20 @@ const CAProviderSelect = ({ showAvailability, showDefault, onFilter, ...props }:
 
   const { token: themeToken } = theme.useToken();
 
+  const { settings: sslProviderSettings, loadSettings: loadSSLProviderSettings } = useSSLProviderSettingsStore(
+    useZustandShallowSelector(["settings", "loadSettings"])
+  );
+  useMount(() => loadSSLProviderSettings(false));
+
   const [value, setValue] = useControllableValue<string | undefined>(props, {
     valuePropName: "value",
     defaultValuePropName: "defaultValue",
     trigger: "onChange",
   });
 
+  const defaultCAProvider = useMemo(() => {
+    return caProvidersMap.get(sslProviderSettings.provider);
+  }, [sslProviderSettings]);
   const dataSources = useSelectDataSource({
     dataSource: Array.from(caProvidersMap.values()),
     filters: [onFilter!],
@@ -54,22 +64,27 @@ const CAProviderSelect = ({ showAvailability, showDefault, onFilter, ...props }:
       },
     ].filter((group) => group.options.length > 0);
 
-    const temp = showAvailability
+    return showAvailability
       ? showDefault
         ? [{ label: t("provider.text.default_group"), options: [defaultOption] }, ...groupOptions]
         : groupOptions
       : showDefault
         ? [defaultOption, ...plainOptions]
         : plainOptions;
-
-    return temp;
   }, [showAvailability, showDefault, dataSources]);
 
   const renderOption = (key: string) => {
     if (key === "") {
       return (
-        <div className="truncate">
-          <Typography.Text ellipsis>{showAvailability ? t("provider.text.default_ca_in_group") : t("provider.text.default_ca")}</Typography.Text>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1 truncate">
+            <Typography.Text ellipsis>{showAvailability ? t("provider.text.default_ca_in_group") : t("provider.text.default_ca")}</Typography.Text>
+          </div>
+          {defaultCAProvider && (
+            <Typography.Text className="text-xs" type="secondary" ellipsis>
+              {t(defaultCAProvider.name)}
+            </Typography.Text>
+          )}
         </div>
       );
     }

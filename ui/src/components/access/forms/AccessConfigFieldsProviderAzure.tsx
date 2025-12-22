@@ -3,6 +3,7 @@ import { AutoComplete, Form, Input } from "antd";
 import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
+import { matchSearchOption } from "@/utils/search";
 import { useFormNestedFieldsContext } from "./_context";
 
 const AccessConfigFormFieldsProviderAzure = () => {
@@ -78,7 +79,7 @@ const AccessConfigFormFieldsProviderAzure = () => {
           options={["public", "azureusgovernment", "azurechina"].map((value) => ({ value }))}
           placeholder={t("access.form.azure_cloud_name.placeholder")}
           showSearch={{
-            filterOption: (inputValue, option) => option!.value.toLowerCase().includes(inputValue.toLowerCase()),
+            filterOption: (inputValue, option) => matchSearchOption(inputValue, option!),
           }}
         />
       </Form.Item>

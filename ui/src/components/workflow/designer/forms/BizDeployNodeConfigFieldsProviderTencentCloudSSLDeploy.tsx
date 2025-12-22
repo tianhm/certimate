@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import MultipleSplitValueInput from "@/components/MultipleSplitValueInput";
 import Tips from "@/components/Tips";
+import { matchSearchOption } from "@/utils/search";
 
 import { useFormNestedFieldsContext } from "./_context";
 
@@ -56,7 +57,9 @@ const BizDeployNodeConfigFieldsProviderTencentCloudSSLDeploy = () => {
         <AutoComplete
           options={["apigateway", "cdn", "clb", "cos", "ddos", "lighthouse", "live", "tcb", "teo", "tke", "tse", "vod", "waf"].map((value) => ({ value }))}
           placeholder={t("workflow_node.deploy.form.tencentcloud_ssldeploy_resource_product.placeholder")}
-          filterOption={(inputValue, option) => option!.value.toLowerCase().includes(inputValue.toLowerCase())}
+          showSearch={{
+            filterOption: (inputValue, option) => matchSearchOption(inputValue, option!),
+          }}
         />
       </Form.Item>
 

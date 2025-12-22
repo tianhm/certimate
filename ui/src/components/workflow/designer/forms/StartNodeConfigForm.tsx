@@ -11,7 +11,7 @@ import Show from "@/components/Show";
 import Tips from "@/components/Tips";
 import { WORKFLOW_TRIGGERS, type WorkflowNodeConfigForStart, type WorkflowTriggerType, defaultNodeConfigForStart } from "@/domain/workflow";
 import { useAntdForm } from "@/hooks";
-import { getNextCronExecutions, validCronExpression } from "@/utils/cron";
+import { getNextCronExecutions, validateCronExpression } from "@/utils/cron";
 
 import { NodeFormContextProvider } from "./_context";
 import { NodeType } from "../nodes/typings";
@@ -134,12 +134,12 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
 
   return z
     .object({
-      trigger: z.string(t("workflow_node.start.form.trigger.placeholder")).nonempty(t("workflow_node.start.form.trigger.placeholder")),
+      trigger: z.string().nonempty(t("workflow_node.start.form.trigger.placeholder")),
       triggerCron: z.string().nullish(),
     })
     .superRefine((values, ctx) => {
       if (values.trigger === WORKFLOW_TRIGGERS.SCHEDULED) {
-        if (!validCronExpression(values.triggerCron!)) {
+        if (!validateCronExpression(values.triggerCron!)) {
           ctx.addIssue({
             code: "custom",
             message: t("workflow_node.start.form.trigger_cron.errmsg.invalid"),

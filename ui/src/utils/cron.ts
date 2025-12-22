@@ -1,6 +1,6 @@
 ﻿import { CronExpressionParser } from "cron-parser";
 
-export const validCronExpression = (expr: string): boolean => {
+export const validateCronExpression = (expr: string): boolean => {
   try {
     CronExpressionParser.parse(expr);
 
@@ -21,7 +21,7 @@ export const validCronExpression = (expr: string): boolean => {
 };
 
 export const getNextCronExecutions = (expr: string, times = 1): Date[] => {
-  if (!validCronExpression(expr)) return [];
+  if (!validateCronExpression(expr)) return [];
 
   const now = new Date();
   const cron = CronExpressionParser.parse(expr, { currentDate: now });

@@ -4,6 +4,7 @@ import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
 import Show from "@/components/Show";
+import { matchSearchOption } from "@/utils/search";
 
 import { useFormNestedFieldsContext } from "./_context";
 
@@ -30,7 +31,7 @@ const AccessConfigFormFieldsProviderOVHcloud = () => {
           options={["ovh-eu", "ovh-us", "ovh-ca"].map((value) => ({ value }))}
           placeholder={t("access.form.ovhcloud_endpoint.placeholder")}
           showSearch={{
-            filterOption: (inputValue, option) => option!.value.toLowerCase().includes(inputValue.toLowerCase()),
+            filterOption: (inputValue, option) => matchSearchOption(inputValue, option!),
           }}
         />
       </Form.Item>

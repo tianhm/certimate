@@ -6,12 +6,13 @@ import { createSchemaFieldRule } from "antd-zod";
 import { z } from "zod";
 
 import { validateCertificate, validatePrivateKey } from "@/api/certificates";
-import Show from "@/components/Show";
 import FileTextInput from "@/components/FileTextInput";
+import Show from "@/components/Show";
 import Tips from "@/components/Tips";
 import { type WorkflowNodeConfigForBizUpload, defaultNodeConfigForBizUpload } from "@/domain/workflow";
 import { useAntdForm } from "@/hooks";
 import { getErrMsg } from "@/utils/error";
+import { isUrlWithHttpOrHttps } from "@/utils/validator";
 
 import { NodeFormContextProvider } from "./_context";
 import { NodeType } from "../nodes/typings";
@@ -245,7 +246,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
 
         case UPLOAD_SOURCE_URL:
           {
-            if (!z.url().safeParse(values.certificate).success) {
+            if (!isUrlWithHttpOrHttps(values.certificate)) {
               ctx.addIssue({
                 code: "custom",
                 message: t("workflow_node.upload.form.certificate_url.placeholder"),
@@ -253,7 +254,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
               });
             }
 
-            if (!z.url().safeParse(values.privateKey).success) {
+            if (!isUrlWithHttpOrHttps(values.privateKey)) {
               ctx.addIssue({
                 code: "custom",
                 message: t("workflow_node.upload.form.private_key_url.placeholder"),

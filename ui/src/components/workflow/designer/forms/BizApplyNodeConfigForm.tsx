@@ -24,7 +24,8 @@ import { useAntdForm, useZustandShallowSelector } from "@/hooks";
 import { useAccessesStore } from "@/stores/access";
 import { useContactEmailsStore } from "@/stores/settings";
 import { getErrMsg } from "@/utils/error";
-import { validDomainName, validIPv4Address, validIPv6Address } from "@/utils/validators";
+import { matchSearchOption } from "@/utils/search";
+import { isDomain, isIPv4, isIPv6 } from "@/utils/validator";
 
 import { FormNestedFieldsContextProvider, NodeFormContextProvider } from "./_context";
 import BizApplyNodeConfigFieldsProvider from "./BizApplyNodeConfigFieldsProvider";
@@ -530,7 +531,7 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
               }))}
               placeholder={t("workflow_node.apply.form.preferred_chain.placeholder")}
               showSearch={{
-                filterOption: (inputValue, option) => "value" in option! && String(option.value).toLowerCase().includes(inputValue.toLowerCase()),
+                filterOption: (inputValue, option) => matchSearchOption(inputValue, option!),
               }}
             />
           </Form.Item>
@@ -558,7 +559,7 @@ const BizApplyNodeConfigForm = ({ node, ...props }: BizApplyNodeConfigFormProps)
               }))}
               placeholder={t("workflow_node.apply.form.acme_profile.placeholder")}
               showSearch={{
-                filterOption: (inputValue, option) => "value" in option! && String(option.value).toLowerCase().includes(inputValue.toLowerCase()),
+                filterOption: (inputValue, option) => matchSearchOption(inputValue, option!),
               }}
             />
           </Form.Item>
@@ -860,22 +861,22 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
 
   return z
     .object({
-      domains: z.string(t("workflow_node.apply.form.domains.placeholder")).refine((v) => {
+      domains: z.string().refine((v) => {
         if (!v) return false;
         return String(v)
           .split(MULTIPLE_INPUT_SEPARATOR)
-          .every((e) => validDomainName(e, { allowWildcard: true }));
+          .every((e) => isDomain(e, { allowWildcard: true }));
       }, t("common.errmsg.domain_invalid")),
       contactEmail: z.email(t("common.errmsg.email_invalid")),
       challengeType: z.enum([CHALLENGE_TYPE_DNS01, CHALLENGE_TYPE_HTTP01], t("workflow_node.apply.form.challenge_type.placeholder")),
-      provider: z.string(t("workflow_node.apply.form.provider.placeholder")).nonempty(t("workflow_node.apply.form.provider.placeholder")),
-      providerAccessId: z.string(t("workflow_node.apply.form.provider_access.placeholder")).nullish(),
+      provider: z.string().nonempty(t("workflow_node.apply.form.provider.placeholder")),
+      providerAccessId: z.string().nullish(),
       providerConfig: z.any().nullish(),
       caProvider: z.string().nullish(),
       caProviderAccessId: z.string().nullish(),
       caProviderConfig: z.any().nullish(),
       keySource: z.enum([KEY_SOURCE_AUTO, KEY_SOURCE_REUSE, KEY_SOURCE_CUSTOM], t("workflow_node.apply.form.key_source.placeholder")),
-      keyAlgorithm: z.string(t("workflow_node.apply.form.key_algorithm.placeholder")).nonempty(t("workflow_node.apply.form.key_algorithm.placeholder")),
+      keyAlgorithm: z.string().nonempty(t("workflow_node.apply.form.key_algorithm.placeholder")),
       keyContent: z.string().nullish(),
       nameservers: z
         .string()
@@ -885,27 +886,19 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
 
           return String(v)
             .split(MULTIPLE_INPUT_SEPARATOR)
-            .every((e) => validIPv4Address(e) || validIPv6Address(e) || validDomainName(e));
+            .every((e) => isIPv4(e) || isIPv6(e) || isDomain(e));
         }, t("common.errmsg.host_invalid")),
       dnsPropagationWait: z.preprocess(
         (v) => (v == null || v === "" ? void 0 : Number(v)),
-        z
-          .number()
-          .int(t("workflow_node.apply.form.dns_propagation_wait.placeholder"))
-          .gte(0, t("workflow_node.apply.form.dns_propagation_wait.placeholder"))
-          .nullish()
+        z.number().int().gte(0, t("workflow_node.apply.form.dns_propagation_wait.placeholder")).nullish()
       ),
       dnsPropagationTimeout: z.preprocess(
         (v) => (v == null || v === "" ? void 0 : Number(v)),
-        z
-          .number()
-          .int(t("workflow_node.apply.form.dns_propagation_timeout.placeholder"))
-          .gte(1, t("workflow_node.apply.form.dns_propagation_timeout.placeholder"))
-          .nullish()
+        z.number().int().gte(1, t("workflow_node.apply.form.dns_propagation_timeout.placeholder")).nullish()
       ),
       dnsTTL: z.preprocess(
         (v) => (v == null || v === "" ? void 0 : Number(v)),
-        z.number().int(t("workflow_node.apply.form.dns_ttl.placeholder")).gte(1, t("workflow_node.apply.form.dns_ttl.placeholder")).nullish()
+        z.number().int().gte(1, t("workflow_node.apply.form.dns_ttl.placeholder")).nullish()
       ),
       validityLifetime: z
         .string()
@@ -918,10 +911,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
       acmeProfile: z.string().nullish(),
       disableFollowCNAME: z.boolean().nullish(),
       disableARI: z.boolean().nullish(),
-      skipBeforeExpiryDays: z.coerce
-        .number()
-        .int(t("workflow_node.apply.form.skip_before_expiry_days.placeholder"))
-        .positive(t("workflow_node.apply.form.skip_before_expiry_days.placeholder")),
+      skipBeforeExpiryDays: z.coerce.number().int().positive(),
     })
     .superRefine((values, ctx) => {
       if (values.domains) {

@@ -1,8 +1,8 @@
 import { startTransition, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { IconX } from "@tabler/icons-react";
+import { IconChevronDown, IconX } from "@tabler/icons-react";
 import { useControllableValue, useGetState } from "ahooks";
-import { App, Button, Drawer, Flex, Form } from "antd";
+import { App, Button, Drawer, Dropdown, Flex, Form, Space } from "antd";
 
 import { notifyTest } from "@/api/notify";
 import AccessProviderPicker from "@/components/provider/AccessProviderPicker";
@@ -55,19 +55,7 @@ const AccessEditDrawer = ({ afterSubmit, mode, data, loading, trigger, usage, ..
   const [formPending, setFormPending] = useState(false);
   const [formChanged, setFormChanged] = useState(false);
 
-  const fieldProvider = Form.useWatch<string>("provider", { form: formInst, preserve: true });
-
-  const [isTesting, setIsTesting] = useState(false);
-
-  const handleProviderPick = (value: string) => {
-    formInst.setFieldValue("provider", value);
-  };
-
-  const handleFormChange = () => {
-    setFormChanged(true);
-  };
-
-  const handleOkClick = async () => {
+  const submitForm = async () => {
     let formValues: AccessModel;
 
     setFormPending(true);
@@ -108,7 +96,6 @@ const AccessEditDrawer = ({ afterSubmit, mode, data, loading, trigger, usage, ..
       }
 
       afterSubmit?.(formValues);
-      setOpen(false);
     } catch (err) {
       notification.error({ title: t("common.text.request_error"), description: getErrMsg(err) });
 
@@ -116,6 +103,27 @@ const AccessEditDrawer = ({ afterSubmit, mode, data, loading, trigger, usage, ..
     } finally {
       setFormPending(false);
     }
+  };
+
+  const fieldProvider = Form.useWatch<string>("provider", { form: formInst, preserve: true });
+
+  const [isTesting, setIsTesting] = useState(false);
+
+  const handleProviderPick = (value: string) => {
+    formInst.setFieldValue("provider", value);
+  };
+
+  const handleFormChange = () => {
+    setFormChanged(true);
+  };
+
+  const handleOkClick = async () => {
+    await submitForm();
+    setOpen(false);
+  };
+
+  const handleOkAndContinueClick = async () => {
+    await submitForm();
   };
 
   const handleCancelClick = () => {
@@ -157,7 +165,7 @@ const AccessEditDrawer = ({ afterSubmit, mode, data, loading, trigger, usage, ..
           fieldProvider ? (
             <Flex className="px-2" justify="space-between">
               {usage === "notification" ? (
-                <Button disabled={mode !== "modify" || formChanged} loading={isTesting} onClick={handleTestPushClick}>
+                <Button className="max-sm:invisible" disabled={mode !== "modify" || formChanged} loading={isTesting} onClick={handleTestPushClick}>
                   {t("access.action.test_push.button")}
                 </Button>
               ) : (
@@ -167,9 +175,28 @@ const AccessEditDrawer = ({ afterSubmit, mode, data, loading, trigger, usage, ..
                 <Button disabled={isTesting} onClick={handleCancelClick}>
                   {t("common.button.cancel")}
                 </Button>
-                <Button disabled={isTesting} loading={formPending} type="primary" onClick={handleOkClick}>
-                  {mode === "modify" ? t("common.button.save") : t("common.button.submit")}
-                </Button>
+                <Space.Compact>
+                  <Button disabled={isTesting} loading={formPending} type="primary" onClick={handleOkClick}>
+                    {mode === "modify" ? t("common.button.save") : t("common.button.submit")}
+                  </Button>
+                  <Show when={mode === "modify"}>
+                    <Dropdown
+                      menu={{
+                        items: [
+                          {
+                            key: "save_and_continue",
+                            label: t("common.button.save_and_continue"),
+                            onClick: handleOkAndContinueClick,
+                          },
+                        ],
+                      }}
+                      placement="bottomRight"
+                      trigger={["click"]}
+                    >
+                      <Button disabled={formPending || isTesting} icon={<IconChevronDown size="1.25em" />} type="primary" />
+                    </Dropdown>
+                  </Show>
+                </Space.Compact>
               </Flex>
             </Flex>
           ) : (

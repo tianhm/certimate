@@ -13,6 +13,7 @@
   "common.button.reload": "重新加载",
   "common.button.reset": "重置",
   "common.button.save": "保存更改",
+  "common.button.save_and_continue": "保存并继续",
   "common.button.submit": "提交",
   "common.button.view": "查看",
 

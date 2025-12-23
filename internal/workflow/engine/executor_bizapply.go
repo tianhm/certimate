@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"maps"
 	"math"
-	"os"
 	"slices"
 	"strings"
 	"time"
@@ -24,15 +23,13 @@ import (
 	"github.com/certimate-go/certimate/internal/tools/mproc"
 	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
 	xcryptokey "github.com/certimate-go/certimate/pkg/utils/crypto/key"
+	xenv "github.com/certimate-go/certimate/pkg/utils/env"
 )
 
-var useMultiProc = true
+var envMultiProc = true
 
 func init() {
-	envMultiProc := os.Getenv("CERTIMATE_WORKFLOW_MULTIPROC")
-	if envMultiProc == "0" {
-		useMultiProc = false
-	}
+	envMultiProc = xenv.GetOrDefaultBool("CERTIMATE_WORKFLOW_MULTIPROC", true)
 }
 
 const (
@@ -362,7 +359,7 @@ func (ne *bizApplyNodeExecutor) executeObtain(execCtx *NodeExecutionContext, nod
 	}
 
 	// 如果启用多进程模式，发送指令
-	if useMultiProc {
+	if envMultiProc {
 		type InData struct {
 			Account *certacme.ACMEAccount              `json:"account,omitempty"`
 			Request *certacme.ObtainCertificateRequest `json:"request,omitempty"`

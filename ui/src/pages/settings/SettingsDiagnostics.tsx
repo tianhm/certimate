@@ -254,7 +254,6 @@ const SettingsDiagnosticsCrons = ({ className, style }: { className?: string; st
         renderItem={(record) => (
           <List.Item>
             <Tooltip
-              className="block xl:hidden"
               title={
                 <>
                   {t("settings.diagnostics.crons.props.next_trigger_time")}
@@ -265,7 +264,7 @@ const SettingsDiagnosticsCrons = ({ className, style }: { className?: string; st
               mouseEnterDelay={1}
               placement="topRight"
             >
-              <div className="flex w-full items-center justify-between gap-4 overflow-hidden">
+              <div className="flex w-full items-center justify-between gap-4 overflow-hidden xl:hidden">
                 <div className="flex-1 truncate">
                   <Typography.Text>{record.id}</Typography.Text>
                 </div>

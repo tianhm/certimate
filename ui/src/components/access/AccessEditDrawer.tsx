@@ -4,7 +4,7 @@ import { IconChevronDown, IconX } from "@tabler/icons-react";
 import { useControllableValue, useGetState } from "ahooks";
 import { App, Button, Drawer, Dropdown, Flex, Form, Space } from "antd";
 
-import { notifyTest } from "@/api/notify";
+import { testPushNotification } from "@/api/notifications";
 import AccessProviderPicker from "@/components/provider/AccessProviderPicker";
 import Show from "@/components/Show";
 import { type AccessModel } from "@/domain/access";
@@ -143,7 +143,7 @@ const AccessEditDrawer = ({ afterSubmit, mode, data, loading, trigger, usage, ..
     }
 
     try {
-      await notifyTest({ provider: fieldProvider, accessId: data!.id });
+      await testPushNotification({ provider: fieldProvider, accessId: data!.id });
       message.success(t("common.text.operation_succeeded"));
     } catch (err) {
       notification.error({ title: t("common.text.request_error"), description: getErrMsg(err) });

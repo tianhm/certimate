@@ -17,23 +17,23 @@ type certificateService interface {
 	ValidatePrivateKey(ctx context.Context, req *dtos.CertificateValidatePrivateKeyReq) (*dtos.CertificateValidatePrivateKeyResp, error)
 }
 
-type CertificateHandler struct {
+type CertificatesHandler struct {
 	service certificateService
 }
 
-func NewCertificateHandler(router *router.RouterGroup[*core.RequestEvent], service certificateService) {
-	handler := &CertificateHandler{
+func NewCertificatesHandler(router *router.RouterGroup[*core.RequestEvent], service certificateService) {
+	handler := &CertificatesHandler{
 		service: service,
 	}
 
 	group := router.Group("/certificates")
 	group.POST("/{certificateId}/archive", handler.archiveCertificate)
 	group.POST("/{certificateId}/revoke", handler.revokeCertificate)
-	group.POST("/validate/certificate", handler.validateCertificate)
-	group.POST("/validate/private-key", handler.validatePrivateKey)
+	group.POST("/pre-validate/certificate", handler.validateCertificate)
+	group.POST("/pre-validate/private-key", handler.validatePrivateKey)
 }
 
-func (handler *CertificateHandler) archiveCertificate(e *core.RequestEvent) error {
+func (handler *CertificatesHandler) archiveCertificate(e *core.RequestEvent) error {
 	req := &dtos.CertificateArchiveFileReq{}
 	req.CertificateId = e.Request.PathValue("certificateId")
 	if err := e.BindBody(req); err != nil {
@@ -48,7 +48,7 @@ func (handler *CertificateHandler) archiveCertificate(e *core.RequestEvent) erro
 	return resp.Ok(e, res)
 }
 
-func (handler *CertificateHandler) revokeCertificate(e *core.RequestEvent) error {
+func (handler *CertificatesHandler) revokeCertificate(e *core.RequestEvent) error {
 	req := &dtos.CertificateRevokeReq{}
 	req.CertificateId = e.Request.PathValue("certificateId")
 	if err := e.BindBody(req); err != nil {
@@ -63,7 +63,7 @@ func (handler *CertificateHandler) revokeCertificate(e *core.RequestEvent) error
 	return resp.Ok(e, res)
 }
 
-func (handler *CertificateHandler) validateCertificate(e *core.RequestEvent) error {
+func (handler *CertificatesHandler) validateCertificate(e *core.RequestEvent) error {
 	req := &dtos.CertificateValidateCertificateReq{}
 	if err := e.BindBody(req); err != nil {
 		return resp.Err(e, err)
@@ -77,7 +77,7 @@ func (handler *CertificateHandler) validateCertificate(e *core.RequestEvent) err
 	return resp.Ok(e, res)
 }
 
-func (handler *CertificateHandler) validatePrivateKey(e *core.RequestEvent) error {
+func (handler *CertificatesHandler) validatePrivateKey(e *core.RequestEvent) error {
 	req := &dtos.CertificateValidatePrivateKeyReq{}
 	if err := e.BindBody(req); err != nil {
 		return resp.Err(e, err)

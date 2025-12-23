@@ -50,7 +50,7 @@ export const validateCertificate = async (certificate: string) => {
     isValid: boolean;
     domains: string;
   };
-  const resp = await pb.send<BaseResponse<RespData>>(`/api/certificates/validate/certificate`, {
+  const resp = await pb.send<BaseResponse<RespData>>(`/api/certificates/pre-validate/certificate`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -74,7 +74,7 @@ export const validatePrivateKey = async (privateKey: string) => {
     isValid: boolean;
     keyAlgorithm: string;
   };
-  const resp = await pb.send<BaseResponse<RespData>>(`/api/certificates/validate/private-key`, {
+  const resp = await pb.send<BaseResponse<RespData>>(`/api/certificates/pre-validate/private-key`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

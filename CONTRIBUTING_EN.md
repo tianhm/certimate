@@ -26,7 +26,7 @@ Index:
 
 ### Prerequisites
 
-- Go 1.24+ (for backend code changes)
+- Go 1.25+ (for backend code changes)
 - Node.js 22.12+ (for frontend code changes)
 
 ### Backend Code

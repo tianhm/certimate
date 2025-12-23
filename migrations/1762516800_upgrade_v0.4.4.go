@@ -7,6 +7,10 @@ import (
 
 func init() {
 	m.Register(func(app core.App) error {
+		if _, err := app.FindFirstRecordByFilter("_migrations", "file='1762516800_app_v0.4.4.go'"); err != nil {
+			return nil
+		}
+
 		tracer := NewTracer("v0.4.4")
 		tracer.Printf("go ...")
 

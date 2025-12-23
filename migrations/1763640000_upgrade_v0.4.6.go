@@ -8,7 +8,11 @@ import (
 
 func init() {
 	m.Register(func(app core.App) error {
-		tracer := NewTracer("v0.4.5")
+		if _, err := app.FindFirstRecordByFilter("_migrations", "file='1763640000_m0.4.6.go'"); err != nil {
+			return nil
+		}
+
+		tracer := NewTracer("v0.4.6")
 		tracer.Printf("go ...")
 
 		// adapt to new workflow data structure
@@ -31,64 +35,103 @@ func init() {
 
 					provider := nodeCfg["provider"]
 					switch provider {
-					case "aliyun-waf":
+					case "1panel-site":
 						{
 							if nodeCfg["providerConfig"] != nil {
 								providerCfg := nodeCfg["providerConfig"].(map[string]any)
-								providerCfg["serviceType"] = "cname"
-								nodeCfg["providerConfig"] = providerCfg
+								if providerCfg["websiteId"] != nil && providerCfg["websiteId"].(string) != "" {
+									providerCfg["websiteMatchPattern"] = "specified"
+									nodeCfg["providerConfig"] = providerCfg
 
-								node.Data["config"] = nodeCfg
-								_changed = true
-								return
-							}
-						}
-
-					case "baishan-cdn":
-					case "ksyun-cdn":
-					case "rainyun-rcdn":
-						{
-							if nodeCfg["providerConfig"] != nil {
-								providerCfg := nodeCfg["providerConfig"].(map[string]any)
-								if providerCfg["certificateId"] != nil && providerCfg["certificateId"].(string) != "" {
-									providerCfg["resourceType"] = "certificate"
-								} else {
-									providerCfg["resourceType"] = "domain"
+									node.Data["config"] = nodeCfg
+									_changed = true
+									return
 								}
-								nodeCfg["providerConfig"] = providerCfg
-
-								node.Data["config"] = nodeCfg
-								_changed = true
-								return
 							}
 						}
 
-					case "tencentcloud-ssldeploy":
+					case "baotapanel-site":
 						{
 							if nodeCfg["providerConfig"] != nil {
 								providerCfg := nodeCfg["providerConfig"].(map[string]any)
-								providerCfg["resourceProduct"] = providerCfg["resourceType"]
-								delete(providerCfg, "resourceType")
-								nodeCfg["providerConfig"] = providerCfg
+								if providerCfg["siteType"] == nil || providerCfg["siteType"].(string) == "other" {
+									providerCfg["siteType"] = "any"
+									nodeCfg["providerConfig"] = providerCfg
 
-								node.Data["config"] = nodeCfg
-								_changed = true
-								return
+									node.Data["config"] = nodeCfg
+									_changed = true
+								}
+								if providerCfg["siteNames"] == nil || providerCfg["siteNames"].(string) == "" {
+									providerCfg["siteNames"] = providerCfg["siteName"]
+									delete(providerCfg, "siteName")
+									nodeCfg["providerConfig"] = providerCfg
+
+									node.Data["config"] = nodeCfg
+									_changed = true
+								}
+
+								if _changed {
+									return
+								}
 							}
 						}
 
-					case "tencentcloud-sslupdate":
+					case "baotapanelgo-site":
 						{
 							if nodeCfg["providerConfig"] != nil {
 								providerCfg := nodeCfg["providerConfig"].(map[string]any)
-								providerCfg["resourceProducts"] = providerCfg["resourceTypes"]
-								delete(providerCfg, "resourceTypes")
-								nodeCfg["providerConfig"] = providerCfg
+								if providerCfg["siteNames"] == nil || providerCfg["siteNames"].(string) == "" {
+									providerCfg["siteType"] = "php"
+									providerCfg["siteNames"] = providerCfg["siteName"]
+									delete(providerCfg, "siteName")
+									nodeCfg["providerConfig"] = providerCfg
 
-								node.Data["config"] = nodeCfg
-								_changed = true
-								return
+									node.Data["config"] = nodeCfg
+									_changed = true
+									return
+								}
 							}
+						}
+
+					case "baotawaf-site":
+						{
+							if nodeCfg["providerConfig"] != nil {
+								providerCfg := nodeCfg["providerConfig"].(map[string]any)
+								if providerCfg["siteNames"] == nil || providerCfg["siteNames"].(string) == "" {
+									providerCfg["siteNames"] = providerCfg["siteName"]
+									delete(providerCfg, "siteName")
+									nodeCfg["providerConfig"] = providerCfg
+
+									node.Data["config"] = nodeCfg
+									_changed = true
+									return
+								}
+							}
+						}
+
+					case "ratpanel-site":
+						{
+							if nodeCfg["providerConfig"] != nil {
+								providerCfg := nodeCfg["providerConfig"].(map[string]any)
+								if providerCfg["siteNames"] == nil || providerCfg["siteNames"].(string) == "" {
+									providerCfg["siteNames"] = providerCfg["siteName"]
+									delete(providerCfg, "siteName")
+									nodeCfg["providerConfig"] = providerCfg
+
+									node.Data["config"] = nodeCfg
+									_changed = true
+									return
+								}
+							}
+						}
+
+					case "safeline":
+						{
+							nodeCfg["provider"] = "safeline-site"
+
+							node.Data["config"] = nodeCfg
+							_changed = true
+							return
 						}
 					}
 				}
@@ -166,14 +209,6 @@ func init() {
 						tracer.Printf("record #%s in collection '%s' updated", record.Id, collection.Name)
 					}
 				}
-
-				if _, err := app.DB().NewQuery("UPDATE workflow SET graphDraft = REPLACE(graphDraft, '\"matchPattern\"', '\"domainMatchPattern\"')").Execute(); err != nil {
-					return err
-				}
-
-				if _, err := app.DB().NewQuery("UPDATE workflow SET graphContent = REPLACE(graphContent, '\"matchPattern\"', '\"domainMatchPattern\"')").Execute(); err != nil {
-					return err
-				}
 			}
 
 			// update collection `workflow_run`
@@ -223,20 +258,16 @@ func init() {
 						tracer.Printf("record #%s in collection '%s' updated", record.Id, collection.Name)
 					}
 				}
-
-				if _, err := app.DB().NewQuery("UPDATE workflow_run SET graph = REPLACE(graph, '\"matchPattern\"', '\"domainMatchPattern\"')").Execute(); err != nil {
-					return err
-				}
 			}
 
 			// update collection `workflow_output`
 			//   - migrate field `nodeConfig`
 			{
-				if _, err := app.DB().NewQuery("UPDATE workflow_output SET nodeConfig = REPLACE(nodeConfig, '\"matchPattern\"', '\"domainMatchPattern\"')").Execute(); err != nil {
+				if _, err := app.DB().NewQuery("UPDATE workflow_output SET nodeConfig = REPLACE(nodeConfig, '\"provider\":\"safeline\"', '\"provider\":\"safeline-site\"') WHERE nodeConfig LIKE '%\"provider\":\"safeline\"%'").Execute(); err != nil {
 					return err
 				}
 
-				if _, err := app.DB().NewQuery("UPDATE workflow_output SET nodeConfig = REPLACE(nodeConfig, '\"resourceType\"', '\"resourceProduct\"') WHERE nodeConfig LIKE '%\"provider\":\"tencentcloud-ssldeploy\"%' OR nodeConfig LIKE '%\"provider\":\"tencentcloud-sslupdate\"%'").Execute(); err != nil {
+				if _, err := app.DB().NewQuery("UPDATE workflow_output SET nodeConfig = REPLACE(nodeConfig, '\"siteName\":', '\"siteNames\":')").Execute(); err != nil {
 					return err
 				}
 			}

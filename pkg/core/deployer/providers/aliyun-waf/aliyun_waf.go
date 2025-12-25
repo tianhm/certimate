@@ -125,18 +125,16 @@ func (d *Deployer) deployToWAF3(ctx context.Context, certPEM, privkeyPEM string)
 		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
 	}
 
-	certId, ok := upres.ExtendedData["CertIdentifier"].(string)
-	if !ok || certId == "" {
-		return fmt.Errorf("invalid certificate identifier in upload response")
-	}
 	// 根据接入方式决定部署方式
 	switch d.config.ServiceType {
 	case SERVICE_TYPE_CLOUDRESOURCE:
+		certId := upres.ExtendedData["CertIdentifier"].(string)
 		if err := d.deployToWAF3WithCloudResource(ctx, certId); err != nil {
 			return err
 		}
 
 	case SERVICE_TYPE_CNAME:
+		certId := upres.ExtendedData["CertIdentifier"].(string)
 		if err := d.deployToWAF3WithCNAME(ctx, certId); err != nil {
 			return err
 		}
@@ -149,55 +147,22 @@ func (d *Deployer) deployToWAF3(ctx context.Context, certPEM, privkeyPEM string)
 }
 
 func (d *Deployer) deployToWAF3WithCloudResource(ctx context.Context, cloudCertId string) error {
-	// 参数校验
 	if d.config.ResourceProduct == "" {
 		return errors.New("config `resourceProduct` is required")
 	}
 	if d.config.ResourceId == "" {
 		return errors.New("config `resourceId` is required")
 	}
-	// 默认端口为 443
 	if d.config.ResourcePort == 0 {
-		d.config.ResourcePort = 443
+		return errors.New("config `resourcePort` is required")
 	}
 
-	// DescribeProductInstances
-	// 查询云产品实例列表，包含实例的基本信息和接入端口等信息。
-	// REF: https://www.alibabacloud.com/help/zh/waf/web-application-firewall-3-0/developer-reference/api-waf-openapi-2021-10-01-describeproductinstances
-	var resourceInstance *aliwaf.DescribeProductInstancesResponseBodyProductInstances
-	var resourceInstancePort *aliwaf.DescribeProductInstancesResponseBodyProductInstancesAccessPortAndProtocols
-	describeProductInstancesReq := &aliwaf.DescribeProductInstancesRequest{
-		ResourceManagerResourceGroupId: lo.EmptyableToPtr(d.config.ResourceGroupId),
-		RegionId:                       tea.String(d.config.Region),
-		InstanceId:                     tea.String(d.config.InstanceId),
-		ResourceProduct:                tea.String(d.config.ResourceProduct),
-		ResourceInstanceId:             tea.String(d.config.ResourceId),
-	}
-	describeProductInstancesResp, err := d.sdkClient.DescribeProductInstancesWithContext(ctx, describeProductInstancesReq, &dara.RuntimeOptions{})
-	d.logger.Debug("sdk request 'waf.DescribeProductInstances'", slog.Any("request", describeProductInstancesReq), slog.Any("response", describeProductInstancesResp))
-	if err != nil {
-		return fmt.Errorf("failed to execute sdk request 'waf.DescribeProductInstances': %w", err)
-	} else if len(describeProductInstancesResp.Body.ProductInstances) == 0 {
-		return fmt.Errorf("could not find waf '%s' cloud resource '%s %s'", d.config.InstanceId, d.config.ResourceProduct, d.config.ResourceId)
-	} else {
-		resourceInstance = describeProductInstancesResp.Body.ProductInstances[0]
-
-		resourceInstancePort, _ = lo.Find(resourceInstance.AccessPortAndProtocols, func(p *aliwaf.DescribeProductInstancesResponseBodyProductInstancesAccessPortAndProtocols) bool {
-			return tea.Int32Value(p.Port) == d.config.ResourcePort
-		})
-		if resourceInstancePort == nil {
-			return fmt.Errorf("could not find waf '%s' cloud resource '%s %s:%d'", d.config.InstanceId, d.config.ResourceProduct, d.config.ResourceId, d.config.ResourcePort)
-		}
-	}
-
-	// DescribeResourceInstanceCerts
-	// 查询云产品实例已同步的证书列表。
-	// 这个接口返回的证书列表里包含了所有已同步的证书信息，包括证书 ID、证书公共名称、过期时间等信息。
-	// 但是不会区分哪些是默认证书，哪些是扩展证书。
-	// 而且此接口可能会返回当前 WAF 下所有的证书，而不只是指定的的云实例使用的证书。
+	// 查询云产品实例已同步的证书列表
 	// REF: https://www.alibabacloud.com/help/zh/waf/web-application-firewall-3-0/developer-reference/api-waf-openapi-2021-10-01-describeresourceinstancecerts
-	var resourceInstanceCertificates = make([]*aliwaf.DescribeResourceInstanceCertsResponseBodyCerts, 0)
-
+	//
+	// 注意文档中描述为分页查询，但实际调用不支持分页
+	// https://github.com/certimate-go/certimate/issues/1122
+	var wafResourceInstanceCertificates []*aliwaf.DescribeResourceInstanceCertsResponseBodyCerts
 	describeResourceInstanceCertsReq := &aliwaf.DescribeResourceInstanceCertsRequest{
 		RegionId:                       tea.String(d.config.Region),
 		ResourceManagerResourceGroupId: lo.EmptyableToPtr(d.config.ResourceGroupId),
@@ -208,126 +173,123 @@ func (d *Deployer) deployToWAF3WithCloudResource(ctx context.Context, cloudCertI
 	d.logger.Debug("sdk request 'waf.DescribeResourceInstanceCerts'", slog.Any("request", describeResourceInstanceCertsReq), slog.Any("response", describeResourceInstanceCertsResp))
 	if err != nil {
 		return fmt.Errorf("failed to execute sdk request 'waf.DescribeResourceInstanceCerts': %w", err)
+	} else {
+		wafResourceInstanceCertificates = describeResourceInstanceCertsResp.Body.Certs
 	}
 
-	if describeResourceInstanceCertsResp.Body == nil {
-		return fmt.Errorf("describe waf %s cloud resource instance certificates response body is empty", d.config.InstanceId)
-	}
-
-	resourceInstanceCertificates = describeResourceInstanceCertsResp.Body.Certs
-	if len(resourceInstanceCertificates) == 0 {
-		return fmt.Errorf("describe waf %s cloud resource instance certificates response certs list is empty", d.config.InstanceId)
-	}
-
-	// DescribeCloudResourceAccessPortDetails
-	// 获取云产品实例的接入端口详情，包含证书列表、实例 ID 等信息。
+	// 获取云产品实例的接入端口详情
 	// REF: https://www.alibabacloud.com/help/zh/waf/web-application-firewall-3-0/developer-reference/api-waf-openapi-2021-10-01-describecloudresourceaccessportdetails
-	var cloudResourceAccessPortDetailsCertificates = make([]*aliwaf.DescribeCloudResourceAccessPortDetailsResponseBodyAccessPortDetailsCertificates, 0)
+	var wafCloudResourceCloudAccessPort *aliwaf.DescribeCloudResourceAccessPortDetailsResponseBodyAccessPortDetails
+	var wafCloudResourceCertificates []*aliwaf.DescribeCloudResourceAccessPortDetailsResponseBodyAccessPortDetailsCertificates
 	describeCloudResourceAccessPortDetailsRequest := &aliwaf.DescribeCloudResourceAccessPortDetailsRequest{
-		RegionId:           tea.String(d.config.Region),
-		InstanceId:         tea.String(d.config.InstanceId),
-		ResourceInstanceId: tea.String(d.config.ResourceId),
-		Port:               tea.String(fmt.Sprintf("%d", d.config.ResourcePort)),
+		RegionId:                       tea.String(d.config.Region),
+		ResourceManagerResourceGroupId: lo.EmptyableToPtr(d.config.ResourceGroupId),
+		InstanceId:                     tea.String(d.config.InstanceId),
+		ResourceInstanceId:             tea.String(d.config.ResourceId),
+		Port:                           tea.String(fmt.Sprintf("%d", d.config.ResourcePort)),
 	}
 	describeCloudResourceAccessPortDetailsResponse, err := d.sdkClient.DescribeCloudResourceAccessPortDetailsWithContext(ctx, describeCloudResourceAccessPortDetailsRequest, &dara.RuntimeOptions{})
 	d.logger.Debug("sdk request 'waf.DescribeCloudResourceAccessPortDetails'", slog.Any("request", describeCloudResourceAccessPortDetailsRequest), slog.Any("response", describeCloudResourceAccessPortDetailsResponse))
 	if err != nil {
 		return fmt.Errorf("failed to execute sdk request 'waf.DescribeCloudResourceAccessPortDetails': %w", err)
-	}
-
-	if describeCloudResourceAccessPortDetailsResponse.Body.AccessPortDetails == nil {
+	} else if len(describeCloudResourceAccessPortDetailsResponse.Body.AccessPortDetails) == 0 {
 		return fmt.Errorf("could not get access port details of waf '%s' cloud resource '%s %s:%d'", d.config.InstanceId, d.config.ResourceProduct, d.config.ResourceId, d.config.ResourcePort)
+	} else {
+		wafCloudResourceCloudAccessPort = describeCloudResourceAccessPortDetailsResponse.Body.AccessPortDetails[0]
+		wafCloudResourceCertificates = wafCloudResourceCloudAccessPort.Certificates
+		if len(wafCloudResourceCertificates) == 0 {
+			return fmt.Errorf("could not get access port certificates of waf '%s' cloud resource '%s %s:%d'", d.config.InstanceId, d.config.ResourceProduct, d.config.ResourceId, d.config.ResourcePort)
+		}
 	}
 
-	cloudResourceAccessPortDetailsCertificates = describeCloudResourceAccessPortDetailsResponse.Body.AccessPortDetails[0].Certificates
-	// 至少应该存在一张默认证书
-	if len(cloudResourceAccessPortDetailsCertificates) == 0 {
-		return fmt.Errorf("could not get certificates of waf '%s' cloud resource '%s %s:%d'", d.config.InstanceId, d.config.ResourceProduct, d.config.ResourceId, d.config.ResourcePort)
-	}
-
-	// 获取由 WAF 自动生成的 CloudResourceId，后续更新证书配置时需要用到
-	cloudResourceId := describeCloudResourceAccessPortDetailsResponse.Body.AccessPortDetails[0].CloudResourceId
-	if cloudResourceId == nil || tea.StringValue(cloudResourceId) == "" {
-		return fmt.Errorf("could not get cloud resource id of waf '%s' cloud resource '%s %s:%d'", d.config.InstanceId, d.config.ResourceProduct, d.config.ResourceId, d.config.ResourcePort)
-	}
-
-	// ModifyCloudResourceCert
-	// 更新证书配置
-	// REF: https://www.alibabacloud.com/help/zh/waf/web-application-firewall-3-0/developer-reference/api-waf-openapi-2021-10-01-modifycloudresourcecert
+	// 生成请求参数
 	modifyCloudResourceCertReq := &aliwaf.ModifyCloudResourceCertRequest{
 		RegionId:        tea.String(d.config.Region),
 		InstanceId:      tea.String(d.config.InstanceId),
-		CloudResourceId: cloudResourceId,
+		CloudResourceId: wafCloudResourceCloudAccessPort.CloudResourceId,
 	}
-
 	if d.config.Domain == "" {
-		// 没有指定扩展域名，只需替换默认证书
+		// 未指定扩展域名，只需替换默认证书
 		const certAppliedTypeDefault = "default"
 
-		// 从已有列表里找出默认证书 ID，替换为新的证书 ID，其他的扩展证书保持不变（如果有）
-		modifyCloudResourceCertReq.Certificates = lo.Map(cloudResourceAccessPortDetailsCertificates, func(c *aliwaf.DescribeCloudResourceAccessPortDetailsResponseBodyAccessPortDetailsCertificates, _ int) *aliwaf.ModifyCloudResourceCertRequestCertificates {
-			appliedType := tea.StringValue(c.AppliedType)
-			certId := tea.StringValue(c.CertificateId)
-			if appliedType == certAppliedTypeDefault {
-				certId = cloudCertId
+		// 已部署过，直接跳过更新
+		for _, certItem := range wafCloudResourceCertificates {
+			if tea.StringValue(certItem.AppliedType) == certAppliedTypeDefault &&
+				tea.StringValue(certItem.CertificateId) == cloudCertId {
+				return nil
 			}
+		}
+
+		// 移除原默认证书，添加新默认证书
+		modifyCloudResourceCertReq.Certificates = lo.Map(wafCloudResourceCertificates, func(c *aliwaf.DescribeCloudResourceAccessPortDetailsResponseBodyAccessPortDetailsCertificates, _ int) *aliwaf.ModifyCloudResourceCertRequestCertificates {
+			certId := tea.StringValue(c.CertificateId)
+			certType := tea.StringValue(c.AppliedType)
+
 			return &aliwaf.ModifyCloudResourceCertRequestCertificates{
 				CertificateId: tea.String(certId),
-				AppliedType:   tea.String(appliedType),
+				AppliedType:   tea.String(certType),
 			}
 		})
+		modifyCloudResourceCertReq.Certificates = lo.Filter(modifyCloudResourceCertReq.Certificates, func(c *aliwaf.ModifyCloudResourceCertRequestCertificates, _ int) bool {
+			certType := tea.StringValue(c.AppliedType)
+			if certType == certAppliedTypeDefault {
+				return false
+			}
+
+			return true
+		})
+		modifyCloudResourceCertReq.Certificates = append(modifyCloudResourceCertReq.Certificates, &aliwaf.ModifyCloudResourceCertRequestCertificates{
+			CertificateId: tea.String(cloudCertId),
+			AppliedType:   tea.String(certAppliedTypeDefault),
+		})
 	} else {
-		// 指定了扩展域名，如果已有就替换，没有就新增扩展证书
+		// 指定扩展域名，替换或新增扩展证书
 		const certAppliedTypeExtension = "extension"
 
-		// 先拿到当前实例已有的扩展证书的列表
-		// 构建新的证书列表，保留默认证书，处理扩展证书的替换或保留
-		var found bool
-		newCertificates := make([]*aliwaf.ModifyCloudResourceCertRequestCertificates, 0, len(cloudResourceAccessPortDetailsCertificates)+1)
-		for _, c := range cloudResourceAccessPortDetailsCertificates {
-			applied := tea.StringValue(c.AppliedType)
-			certId := tea.StringValue(c.CertificateId)
+		// 已部署过，直接跳过更新
+		for _, certItem := range wafCloudResourceCertificates {
+			if tea.StringValue(certItem.AppliedType) == certAppliedTypeExtension &&
+				tea.StringValue(certItem.CertificateId) == cloudCertId {
+				return nil
+			}
+		}
 
-			if applied == certAppliedTypeExtension {
-				// 从已同步的云产品实例全部证书列表里找到对应的证书，获取 CommonName
+		// 移除同 CommonName 的原扩展证书，添加新扩展证书
+		modifyCloudResourceCertReq.Certificates = lo.Map(wafCloudResourceCertificates, func(c *aliwaf.DescribeCloudResourceAccessPortDetailsResponseBodyAccessPortDetailsCertificates, _ int) *aliwaf.ModifyCloudResourceCertRequestCertificates {
+			certId := tea.StringValue(c.CertificateId)
+			certType := tea.StringValue(c.AppliedType)
+
+			return &aliwaf.ModifyCloudResourceCertRequestCertificates{
+				CertificateId: tea.String(certId),
+				AppliedType:   tea.String(certType),
+			}
+		})
+		modifyCloudResourceCertReq.Certificates = lo.Filter(modifyCloudResourceCertReq.Certificates, func(c *aliwaf.ModifyCloudResourceCertRequestCertificates, _ int) bool {
+			certId := tea.StringValue(c.CertificateId)
+			certType := tea.StringValue(c.AppliedType)
+			if certType == certAppliedTypeExtension {
+				if certId == cloudCertId {
+					return false
+				}
+
 				var certCommonName string
-				for _, rc := range resourceInstanceCertificates {
-					if tea.StringValue(rc.CertIdentifier) == certId {
-						certCommonName = tea.StringValue(rc.CommonName)
+				for _, r := range wafResourceInstanceCertificates {
+					if tea.StringValue(r.CertIdentifier) == certId {
+						certCommonName = tea.StringValue(r.CommonName)
 						break
 					}
 				}
 				if certCommonName == d.config.Domain {
-					// 找到和目标域名匹配的扩展证书，替换为新证书 ID
-					newCertificates = append(newCertificates, &aliwaf.ModifyCloudResourceCertRequestCertificates{
-						CertificateId: tea.String(cloudCertId),
-						AppliedType:   tea.String(certAppliedTypeExtension),
-					})
-					found = true
-				} else {
-					// 保留原来的扩展证书
-					newCertificates = append(newCertificates, &aliwaf.ModifyCloudResourceCertRequestCertificates{
-						CertificateId: c.CertificateId,
-						AppliedType:   c.AppliedType,
-					})
+					return false
 				}
-			} else {
-				// 默认证书保持不变
-				newCertificates = append(newCertificates, &aliwaf.ModifyCloudResourceCertRequestCertificates{
-					CertificateId: c.CertificateId,
-					AppliedType:   c.AppliedType,
-				})
 			}
-		}
-		if !found {
-			// 如果没有找到要替换的扩展证书，追加一个扩展证书
-			newCertificates = append(newCertificates, &aliwaf.ModifyCloudResourceCertRequestCertificates{
-				CertificateId: tea.String(cloudCertId),
-				AppliedType:   tea.String(certAppliedTypeExtension),
-			})
-		}
 
-		modifyCloudResourceCertReq.Certificates = newCertificates
+			return true
+		})
+		modifyCloudResourceCertReq.Certificates = append(modifyCloudResourceCertReq.Certificates, &aliwaf.ModifyCloudResourceCertRequestCertificates{
+			CertificateId: tea.String(cloudCertId),
+			AppliedType:   tea.String(certAppliedTypeExtension),
+		})
 	}
 
 	// 过滤掉不存在或已过期的证书，防止接口报错
@@ -336,7 +298,7 @@ func (d *Deployer) deployToWAF3WithCloudResource(ctx context.Context, cloudCertI
 			return true
 		}
 
-		resourceInstanceCert, _ := lo.Find(resourceInstanceCertificates, func(r *aliwaf.DescribeResourceInstanceCertsResponseBodyCerts) bool {
+		resourceInstanceCert, _ := lo.Find(wafResourceInstanceCertificates, func(r *aliwaf.DescribeResourceInstanceCertsResponseBodyCerts) bool {
 			cId := tea.StringValue(c.CertificateId)
 			rId := tea.StringValue(r.CertIdentifier)
 			return cId == rId || strings.Split(cId, "-")[0] == strings.Split(rId, "-")[0]
@@ -349,24 +311,14 @@ func (d *Deployer) deployToWAF3WithCloudResource(ctx context.Context, cloudCertI
 		return false
 	})
 
-	// 最后检查待更新的列表里是否存在默认证书，没有则退出，否则接口会报错
-	var hasDefaultCert bool
-	for _, c := range modifyCloudResourceCertReq.Certificates {
-		if tea.StringValue(c.AppliedType) == "default" {
-			hasDefaultCert = true
-			break
-		}
-	}
-	if !hasDefaultCert {
-		return fmt.Errorf("could not find valid default certificate to apply for waf '%s' cloud resource '%s %s:%d'", d.config.InstanceId, d.config.ResourceProduct, d.config.ResourceId, d.config.ResourcePort)
-	}
-
-	// 执行更新请求
+	// 修改云产品接入的证书
+	// REF: https://www.alibabacloud.com/help/zh/waf/web-application-firewall-3-0/developer-reference/api-waf-openapi-2021-10-01-modifycloudresourcecert
 	modifyCloudResourceCertResp, err := d.sdkClient.ModifyCloudResourceCertWithContext(ctx, modifyCloudResourceCertReq, &dara.RuntimeOptions{})
 	d.logger.Debug("sdk request 'waf.ModifyCloudResourceCert'", slog.Any("request", modifyCloudResourceCertReq), slog.Any("response", modifyCloudResourceCertResp))
 	if err != nil {
 		return fmt.Errorf("failed to execute sdk request 'waf.ModifyCloudResourceCert': %w", err)
 	}
+
 	return nil
 }
 

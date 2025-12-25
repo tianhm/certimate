@@ -97,7 +97,8 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
         .string()
         .nullish()
         .refine((v) => {
-          return !v || isDomain(v!);
+          if (!v) return true;
+          return isDomain(v);
         }, t("common.errmsg.domain_invalid")),
     })
     .superRefine((values, ctx) => {

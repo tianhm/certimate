@@ -222,17 +222,13 @@ func (d *Deployer) deployToWAF3WithCloudResource(ctx context.Context, cloudCertI
 
 		// 移除原默认证书，添加新默认证书
 		modifyCloudResourceCertReq.Certificates = lo.Map(wafCloudResourceCertificates, func(c *aliwaf.DescribeCloudResourceAccessPortDetailsResponseBodyAccessPortDetailsCertificates, _ int) *aliwaf.ModifyCloudResourceCertRequestCertificates {
-			certId := tea.StringValue(c.CertificateId)
-			certType := tea.StringValue(c.AppliedType)
-
 			return &aliwaf.ModifyCloudResourceCertRequestCertificates{
-				CertificateId: tea.String(certId),
-				AppliedType:   tea.String(certType),
+				CertificateId: c.CertificateId,
+				AppliedType:   c.AppliedType,
 			}
 		})
 		modifyCloudResourceCertReq.Certificates = lo.Filter(modifyCloudResourceCertReq.Certificates, func(c *aliwaf.ModifyCloudResourceCertRequestCertificates, _ int) bool {
-			certType := tea.StringValue(c.AppliedType)
-			if certType == certAppliedTypeDefault {
+			if tea.StringValue(c.AppliedType) == certAppliedTypeDefault {
 				return false
 			}
 
@@ -256,25 +252,20 @@ func (d *Deployer) deployToWAF3WithCloudResource(ctx context.Context, cloudCertI
 
 		// 移除同 CommonName 的原扩展证书，添加新扩展证书
 		modifyCloudResourceCertReq.Certificates = lo.Map(wafCloudResourceCertificates, func(c *aliwaf.DescribeCloudResourceAccessPortDetailsResponseBodyAccessPortDetailsCertificates, _ int) *aliwaf.ModifyCloudResourceCertRequestCertificates {
-			certId := tea.StringValue(c.CertificateId)
-			certType := tea.StringValue(c.AppliedType)
-
 			return &aliwaf.ModifyCloudResourceCertRequestCertificates{
-				CertificateId: tea.String(certId),
-				AppliedType:   tea.String(certType),
+				CertificateId: c.CertificateId,
+				AppliedType:   c.AppliedType,
 			}
 		})
 		modifyCloudResourceCertReq.Certificates = lo.Filter(modifyCloudResourceCertReq.Certificates, func(c *aliwaf.ModifyCloudResourceCertRequestCertificates, _ int) bool {
-			certId := tea.StringValue(c.CertificateId)
-			certType := tea.StringValue(c.AppliedType)
-			if certType == certAppliedTypeExtension {
-				if certId == cloudCertId {
+			if tea.StringValue(c.AppliedType) == certAppliedTypeExtension {
+				if tea.StringValue(c.CertificateId) == cloudCertId {
 					return false
 				}
 
 				var certCommonName string
 				for _, r := range wafResourceInstanceCertificates {
-					if tea.StringValue(r.CertIdentifier) == certId {
+					if tea.StringValue(c.CertificateId) == tea.StringValue(r.CertIdentifier) {
 						certCommonName = tea.StringValue(r.CommonName)
 						break
 					}

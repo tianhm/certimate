@@ -100,9 +100,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
     resourceProduct: z.string().nonempty(t("workflow_node.deploy.form.tencentcloud_ssldeploy_resource_product.placeholder")),
     resourceIds: z.string().refine((v) => {
       if (!v) return false;
-      return String(v)
-        .split(MULTIPLE_INPUT_SEPARATOR)
-        .every((e) => /^[A-Za-z0-9*._\-|]+$/.test(e));
+      return v.split(MULTIPLE_INPUT_SEPARATOR).every((e) => /^[A-Za-z0-9*._\-|]+$/.test(e));
     }, t("workflow_node.deploy.form.tencentcloud_ssldeploy_resource_ids.errmsg.invalid")),
   });
 };

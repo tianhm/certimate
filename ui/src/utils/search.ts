@@ -1,6 +1,6 @@
 ﻿export const matchSearchString = (keyword: string, candidate: string) => {
-  keyword = String(keyword).toLowerCase();
-  candidate = String(candidate).toLowerCase();
+  keyword = String(keyword ?? "").toLowerCase();
+  candidate = String(candidate ?? "").toLowerCase();
 
   if (keyword.length === 0) {
     return false;

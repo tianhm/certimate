@@ -1041,18 +1041,14 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
         .nullish()
         .refine((v) => {
           if (!v) return true;
-          return String(v)
-            .split(MULTIPLE_INPUT_SEPARATOR)
-            .every((e) => isDomain(e, { allowWildcard: true }));
+          return v.split(MULTIPLE_INPUT_SEPARATOR).every((e) => isDomain(e, { allowWildcard: true }));
         }, t("common.errmsg.domain_invalid")),
       ipaddrs: z
         .string()
         .nullish()
         .refine((v) => {
           if (!v) return true;
-          return String(v)
-            .split(MULTIPLE_INPUT_SEPARATOR)
-            .every((e) => isIPv4(e) || isIPv6(e));
+          return v.split(MULTIPLE_INPUT_SEPARATOR).every((e) => isIPv4(e) || isIPv6(e));
         }, t("common.errmsg.ip_invalid")),
       contactEmail: z.email(t("common.errmsg.email_invalid")),
       challengeType: z.enum([CHALLENGE_TYPE_DNS01, CHALLENGE_TYPE_HTTP01], t("workflow_node.apply.form.challenge_type.placeholder")),
@@ -1079,10 +1075,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
         .nullish()
         .refine((v) => {
           if (!v) return true;
-
-          return String(v)
-            .split(MULTIPLE_INPUT_SEPARATOR)
-            .every((e) => isHostname(e) || isDomain(e));
+          return v.split(MULTIPLE_INPUT_SEPARATOR).every((e) => isHostname(e) || isDomain(e));
         }, t("common.errmsg.host_invalid")),
       dnsPropagationWait: z.preprocess(
         (v) => (v == null || v === "" ? void 0 : Number(v)),
@@ -1137,7 +1130,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
         switch (values.challengeType) {
           case CHALLENGE_TYPE_DNS01:
             {
-              if (String(values.ipaddrs)) {
+              if (values.ipaddrs) {
                 ctx.addIssue({
                   code: "custom",
                   message: t("workflow_node.apply.form.challenge_type.errmsg.no_ip_in_dns01"),
@@ -1149,7 +1142,7 @@ const getSchema = ({ i18n = getI18n() }: { i18n?: ReturnType<typeof getI18n> }) 
 
           case CHALLENGE_TYPE_HTTP01:
             {
-              if (String(values.domains).includes("*")) {
+              if (values.domains && values.domains.includes("*")) {
                 ctx.addIssue({
                   code: "custom",
                   message: t("workflow_node.apply.form.challenge_type.errmsg.no_wildcard_in_http01"),

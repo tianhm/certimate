@@ -275,8 +275,8 @@ const InternalEditDrawer = ({
     })
     .superRefine((values, ctx) => {
       if (values.name) {
-        const name = String(values.name).trim();
-        const duplicatedCount = templates.filter((t) => String(t.name).trim() === name).length;
+        const name = values.name.trim();
+        const duplicatedCount = templates.filter((t) => t.name.trim() === name).length;
         if (duplicatedCount > (mode === "create" ? 0 : 1)) {
           ctx.addIssue({
             code: "custom",

@@ -854,7 +854,7 @@ const InternalIdentifierPicker = memo(({ disabled, onSelect }: { disabled?: bool
           ))}
         </div>
         <div className="mt-4 flex items-center justify-end gap-4">
-          <Button disabled={disabled} icon={<IconArrowRight size="1.25em" />} iconPlacement="end" type="primary" onClick={handleContinueClick}>
+          <Button disabled={!value || disabled} icon={<IconArrowRight size="1.25em" />} iconPlacement="end" type="primary" onClick={handleContinueClick}>
             {t("workflow_node.apply.form.identifier.continue.button")}
           </Button>
         </div>

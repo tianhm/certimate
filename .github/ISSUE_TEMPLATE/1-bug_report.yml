@@ -8,8 +8,6 @@ body:
   - type: markdown
     attributes:
       value: |
-        ## Welcome!
-
         **Before you submit the issue, please make sure of the following checklist**:
         1. Yes, I'm using the latest release and can reproduce the issue. Issues that are not in the latest version will be closed directly.
         2. Yes, I've searched for [existing issues](https://github.com/certimate-go/certimate/issues) (including closed ones) on GitHub and didn't find any similar.

@@ -1,7 +1,7 @@
 ﻿<!--
 
 IMPORTANT! Before opening a Pull Request:
-  - Please ensure you have read the `CONTRIBUTING_EN.md` in the repository first.
+  - Please ensure you have read the `CONTRIBUTING_EN.md` in the repository.
   - Please ensure you have opened an issue first, and got feedback from the maintainers.
   - Please ensure you are **NOT** fork within a GitHub organization, to [allowing edits by maintainers](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/allowing-changes-to-a-pull-request-branch-created-from-a-fork).
   - By submitting this pull request, you agree to license your contributions under the terms of the MIT License.

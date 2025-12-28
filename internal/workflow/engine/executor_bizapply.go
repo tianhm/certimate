@@ -22,7 +22,7 @@ import (
 	"github.com/certimate-go/certimate/internal/repository"
 	"github.com/certimate-go/certimate/internal/tools/mproc"
 	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
-	xcryptokey "github.com/certimate-go/certimate/pkg/utils/crypto/key"
+	xcertkey "github.com/certimate-go/certimate/pkg/utils/cert/key"
 	xenv "github.com/certimate-go/certimate/pkg/utils/env"
 )
 
@@ -243,7 +243,7 @@ func (ne *bizApplyNodeExecutor) executeObtain(execCtx *NodeExecutionContext, nod
 			if err != nil {
 				return nil, fmt.Errorf("could not parse custom private key: %w", err)
 			} else {
-				privkeyAlg, privkeySize, _ := xcryptokey.GetPrivateKeyAlgorithm(privkey)
+				privkeyAlg, privkeySize, _ := xcertkey.GetPrivateKeyAlgorithm(privkey)
 				switch privkeyAlg {
 				case x509.RSA:
 					if nodeCfg.KeyAlgorithm != fmt.Sprintf("RSA%d", privkeySize) {

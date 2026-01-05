@@ -86,6 +86,14 @@ func (d *Deployer) SetLogger(logger *slog.Logger) {
 }
 
 func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*deployer.DeployResult, error) {
+	// 上传证书
+	upres, err := d.sdkCertmgr.Upload(ctx, certPEM, privkeyPEM)
+	if err != nil {
+		return nil, fmt.Errorf("failed to upload certificate file: %w", err)
+	} else {
+		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
+	}
+
 	// 获取待部署的域名列表
 	var domains []string
 	switch d.config.DomainMatchPattern {
@@ -157,7 +165,7 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*dep
 			case <-ctx.Done():
 				return nil, ctx.Err()
 			default:
-				if err := d.updateDomainCertificate(ctx, domain, certPEM, privkeyPEM); err != nil {
+				if err := d.updateDomainCertificate(ctx, domain, upres.CertId, upres.CertName); err != nil {
 					errs = append(errs, err)
 				}
 			}

@@ -539,8 +539,6 @@ github.com/hashicorp/logutils v1.0.0/go.mod h1:QIAnNjmIWmVIIkWDTG1z5v++HQmx9WQRO
 github.com/hashicorp/mdns v1.0.1/go.mod h1:4gW7WsVCke5TE7EPeYliwHlRUyBtfCwuFwuMg2DmyNY=
 github.com/hashicorp/memberlist v0.2.2/go.mod h1:MS2lj3INKhZjWNqd3N0m3J+Jxf3DAOnAH9VT3Sh9MUE=
 github.com/hashicorp/serf v0.9.5/go.mod h1:UWDWwZeL5cuWDJdl0C6wrvrUwEqtQ4ZKBKKENpqIUyk=
-github.com/holubovskyi/apisix-client-go v1.4.1 h1:Z0Vqfubo0nleuChfLcsWLr/ZQ1J3+g4UMttfAx/8E9Y=
-github.com/holubovskyi/apisix-client-go v1.4.1/go.mod h1:MYo1juyaHbX6RWe9S3DoqWqL0Ko/2pr3ZpDQVNKVXqI=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
 github.com/huaweicloud/huaweicloud-sdk-go-v3 v0.1.181 h1:t0vgvyLg/WRUlXbhLqoSCdhdl1EHynroGJTmZ8SIThU=
 github.com/huaweicloud/huaweicloud-sdk-go-v3 v0.1.181/go.mod h1:M+yna96Fx9o5GbIUnF3OvVvQGjgfVSyeJbV9Yb1z/wI=

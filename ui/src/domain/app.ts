@@ -11,9 +11,9 @@ export let APP_DOCUMENT_URL = APP_DOCUMENT_URLBASE;
 
 i18next.on("languageChanged", (language) => {
   if (language.startsWith("en")) {
-    APP_DOCUMENT_URL = APP_DOCUMENT_URLBASE + "/en-US";
+    APP_DOCUMENT_URL = APP_DOCUMENT_URLBASE + "/en-US/";
   } else if (language.startsWith("zh")) {
-    APP_DOCUMENT_URL = APP_DOCUMENT_URLBASE + "/zh-CN";
+    APP_DOCUMENT_URL = APP_DOCUMENT_URLBASE + "/zh-CN/";
   } else {
     APP_DOCUMENT_URL = APP_DOCUMENT_URLBASE;
   }

@@ -6,12 +6,15 @@ export const APP_REPO_URL = "https://github.com/certimate-go/certimate";
 
 export const APP_DOWNLOAD_URL = APP_REPO_URL + "/releases";
 
-export let APP_DOCUMENT_URL = "https://docs.certimate.me";
+const APP_DOCUMENT_URLBASE = "https://docs.certimate.me";
+export let APP_DOCUMENT_URL = APP_DOCUMENT_URLBASE;
 
 i18next.on("languageChanged", (language) => {
-  if (language.startsWith("zh")) {
-    APP_DOCUMENT_URL = "https://docs.certimate.me";
+  if (language.startsWith("en")) {
+    APP_DOCUMENT_URL = APP_DOCUMENT_URLBASE + "/en-US";
+  } else if (language.startsWith("zh")) {
+    APP_DOCUMENT_URL = APP_DOCUMENT_URLBASE + "/zh-CN";
   } else {
-    APP_DOCUMENT_URL = "https://docs.certimate.me/en/";
+    APP_DOCUMENT_URL = APP_DOCUMENT_URLBASE;
   }
 });

@@ -70,8 +70,6 @@ docker run -d \
 
 </details>
 
-<br/>
-
 Visit `http://127.0.0.1:8090` in your browser.
 
 Default administrator account:

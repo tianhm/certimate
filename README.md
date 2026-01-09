@@ -85,9 +85,9 @@ For full documentation, please visit [docs.certimate.me](https://docs.certimate.
 
 Related articles:
 
-- [_Migrate to v0.4_](https://docs.certimate.me/en-US/docs/migrations/migrate-to-v0.4)
-- [_使用 CNAME 完成 ACME DNS-01 质询_](https://docs.certimate.me/en-US/blog/cname)
-- [_Why Certimate?_](https://docs.certimate.me/en-US/blog/why-certimate)
+> - [_Migrate to v0.4_](https://docs.certimate.me/en-US/docs/migrations/migrate-to-v0.4)
+> - [_使用 CNAME 完成 ACME DNS-01 质询_](https://docs.certimate.me/en-US/blog/cname)
+> - [_Why Certimate?_](https://docs.certimate.me/en-US/blog/why-certimate)
 
 ## 🖥️ Screenshot
 

@@ -83,11 +83,13 @@ docker run -d \
 
 请访问文档站 [docs.certimate.me](https://docs.certimate.me/) 以阅读使用手册。
 
+> （由于众所周知的原因，中国大陆用户可能需要 🪄 上网才能访问文档站。）
+
 相关文章：
 
-- [《升级指南：迁移到 v0.4》](https://docs.certimate.me/zh-CN/docs/migrations/migrate-to-v0.4)
-- [《使用 CNAME 完成 ACME DNS-01 质询》](https://docs.certimate.me/zh-CN/blog/cname)
-- [《Why Certimate?》](https://docs.certimate.me/zh-CN/blog/why-certimate)
+> - [《升级指南：迁移到 v0.4》](https://docs.certimate.me/zh-CN/docs/migrations/migrate-to-v0.4)
+> - [《使用 CNAME 完成 ACME DNS-01 质询》](https://docs.certimate.me/zh-CN/blog/cname)
+> - [《Why Certimate?》](https://docs.certimate.me/zh-CN/blog/why-certimate)
 
 ## 🖥️ 运行界面
 

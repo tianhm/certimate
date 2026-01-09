@@ -81,7 +81,7 @@ Work with Certimate right now. Or read other content in the documentation to lea
 
 ## 📄 Documentation
 
-For full documentation, please visit [docs.certimate.me](https://docs.certimate.me/en-US/).
+For full documentation, please visit [docs.certimate.me](https://docs.certimate.me/).
 
 Related articles:
 

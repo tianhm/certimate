@@ -81,7 +81,7 @@ docker run -d \
 
 ## 📄 使用手册
 
-请访问文档站 [docs.certimate.me](https://docs.certimate.me/zh-CN/) 以阅读使用手册。
+请访问文档站 [docs.certimate.me](https://docs.certimate.me/) 以阅读使用手册。
 
 相关文章：
 

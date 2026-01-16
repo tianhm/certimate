@@ -564,7 +564,7 @@
   "access.form.rfc2136_tsig_secret.placeholder": "Please enter TSIG authentication secret",
   "access.form.s3_endpoint.label": "Endpoint",
   "access.form.s3_endpoint.placeholder": "Please enter endpoint",
-  "access.form.s3_endpoint.help": "Note: If the protocol is not specified, <em>https://</em> is used by default.",
+  "access.form.s3_endpoint.help": "Notes: If the protocol is not specified, <em>https://</em> is used by default.",
   "access.form.s3_access_key.label": "Access key",
   "access.form.s3_access_key.placeholder": "Please enter access key",
   "access.form.s3_secret_key.label": "Secret key",

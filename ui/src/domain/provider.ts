@@ -107,6 +107,7 @@ export const ACCESS_PROVIDERS = Object.freeze({
   SPACESHIP: "spaceship",
   SSH: "ssh",
   SSLCOM: "sslcom",
+  SYNOLOGYDSM: "synologydsm",
   TECHNITIUMDNS: "technitiumdns",
   TELEGRAMBOT: "telegrambot",
   TENCENTCLOUD: "tencentcloud",
@@ -193,6 +194,7 @@ export const accessProvidersMap: Map<AccessProvider["type"] | string, AccessProv
       [ACCESS_PROVIDERS.PROXMOXVE, "provider.proxmoxve", "/imgs/providers/proxmoxve.svg", [ACCESS_USAGES.HOSTING]],
       [ACCESS_PROVIDERS.RATPANEL, "provider.ratpanel", "/imgs/providers/ratpanel.png", [ACCESS_USAGES.HOSTING]],
       [ACCESS_PROVIDERS.SAFELINE, "provider.safeline", "/imgs/providers/safeline.svg", [ACCESS_USAGES.HOSTING]],
+      [ACCESS_PROVIDERS.SYNOLOGYDSM, "provider.synologydsm", "/imgs/providers/synologydsm.png", [ACCESS_USAGES.HOSTING]],
 
       [ACCESS_PROVIDERS.AKAMAI, "provider.akamai", "/imgs/providers/akamai.svg", [ACCESS_USAGES.DNS]],
       [ACCESS_PROVIDERS.ARVANCLOUD, "provider.arvancloud", "/imgs/providers/arvancloud.svg", [ACCESS_USAGES.DNS]],
@@ -615,6 +617,7 @@ export const DEPLOYMENT_PROVIDERS = Object.freeze({
   RATPANEL_CONSOLE: `${ACCESS_PROVIDERS.RATPANEL}-console`,
   SAFELINE: `${ACCESS_PROVIDERS.SAFELINE}`,
   SSH: `${ACCESS_PROVIDERS.SSH}`,
+  SYNOLOGYDSM: `${ACCESS_PROVIDERS.SYNOLOGYDSM}`,
   TENCENTCLOUD_CDN: `${ACCESS_PROVIDERS.TENCENTCLOUD}-cdn`,
   TENCENTCLOUD_CLB: `${ACCESS_PROVIDERS.TENCENTCLOUD}-clb`,
   TENCENTCLOUD_COS: `${ACCESS_PROVIDERS.TENCENTCLOUD}-cos`,
@@ -796,6 +799,7 @@ export const deploymentProvidersMap: Map<DeploymentProvider["type"] | string, De
       [DEPLOYMENT_PROVIDERS.DOKPLOY, "provider.dokploy", DEPLOYMENT_CATEGORIES.WEBSITE],
       [DEPLOYMENT_PROVIDERS.NGINXPROXYMANAGER, "provider.nginxproxymanager", DEPLOYMENT_CATEGORIES.WEBSITE],
       [DEPLOYMENT_PROVIDERS.PROXMOXVE, "provider.proxmoxve", DEPLOYMENT_CATEGORIES.OTHER],
+      [DEPLOYMENT_PROVIDERS.SYNOLOGYDSM, "provider.synologydsm", DEPLOYMENT_CATEGORIES.OTHER],
     ] satisfies Array<[DeploymentProviderType, string, DeploymentCategoryType, "builtin"] | [DeploymentProviderType, string, DeploymentCategoryType]>
   ).map(([type, name, category, builtin]) => [
     type,

@@ -7,6 +7,7 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/certimate/certimate?style=flat)](https://hub.docker.com/r/certimate/certimate)
 [![Release](https://img.shields.io/github/v/release/certimate-go/certimate?style=flat&sort=semver)](https://github.com/certimate-go/certimate/releases)
 [![License](https://img.shields.io/github/license/certimate-go/certimate?style=flat)](https://mit-license.org/)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/certimate-go/certimate)
 
 </div>
 
@@ -118,7 +119,7 @@ Certimate 遵循 [MIT License](https://opensource.org/licenses/MIT) 开源协议
 ## 🌐 加入社群
 
 - [Telegram](https://t.me/+ZXphsppxUg41YmVl)
-- 微信群聊（超 200 人需邀请入群，可先加作者好友）
+- 微信群聊（因微信自身限制需群主邀请，可先加 [@usual2970](https://github.com/usual2970) 好友）
 
   <img src="https://i.imgur.com/8xwsLTA.png" width="200"/>
 

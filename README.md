@@ -7,6 +7,7 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/certimate/certimate?style=flat)](https://hub.docker.com/r/certimate/certimate)
 [![Release](https://img.shields.io/github/v/release/certimate-go/certimate?style=flat&sort=semver)](https://github.com/certimate-go/certimate/releases)
 [![License](https://img.shields.io/github/license/certimate-go/certimate?style=flat)](https://mit-license.org/)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg?label=DeepWiki)](https://deepwiki.com/certimate-go/certimate)
 
 </div>
 
@@ -116,9 +117,9 @@ This repository is available under the [MIT License](https://opensource.org/lice
 ## 🌐 Join the Community
 
 - [Telegram](https://t.me/+ZXphsppxUg41YmVl)
-- Wechat Group
+- Wechat Group (contact to the author [@usual2970](https://github.com/usual2970) to getting invitation)
 
-  <img src="https://i.imgur.com/zSHEoIm.png" width="200"/>
+  <img src="https://i.imgur.com/8xwsLTA.png" width="200"/>
 
 ## ⭐ Star History
 

@@ -1,4 +1,4 @@
-package rainyunrcdn_test
+package rainyunsslcenter_test
 
 import (
 	"context"
@@ -8,36 +8,30 @@ import (
 	"strings"
 	"testing"
 
-	provider "github.com/certimate-go/certimate/pkg/core/deployer/providers/rainyun-rcdn"
+	provider "github.com/certimate-go/certimate/pkg/core/deployer/providers/rainyun-sslcenter"
 )
 
 var (
 	fInputCertPath string
 	fInputKeyPath  string
 	fApiKey        string
-	fInstanceId    int64
-	fDomain        string
 )
 
 func init() {
-	argsPrefix := "RAINYUNRCDN_"
+	argsPrefix := "RAINYUNSSLCENTER_"
 
 	flag.StringVar(&fInputCertPath, argsPrefix+"INPUTCERTPATH", "", "")
 	flag.StringVar(&fInputKeyPath, argsPrefix+"INPUTKEYPATH", "", "")
 	flag.StringVar(&fApiKey, argsPrefix+"APIKEY", "", "")
-	flag.Int64Var(&fInstanceId, argsPrefix+"INSTANCEID", 0, "")
-	flag.StringVar(&fDomain, argsPrefix+"DOMAIN", "", "")
 }
 
 /*
 Shell command to run this test:
 
-	go test -v ./rainyun_rcdn_test.go -args \
+	go test -v ./rainyun_sslcenter_test.go -args \
 	--RAINYUNRCDN_INPUTCERTPATH="/path/to/your-input-cert.pem" \
 	--RAINYUNRCDN_INPUTKEYPATH="/path/to/your-input-key.pem" \
-	--RAINYUNRCDN_APIKEY="your-api-key" \
-	--RAINYUNRCDN_INSTANCEID="your-rcdn-instance-id" \
-	--RAINYUNRCDN_DOMAIN="example.com"
+	--RAINYUNRCDN_APIKEY="your-api-key"
 */
 func TestDeploy(t *testing.T) {
 	flag.Parse()
@@ -48,15 +42,10 @@ func TestDeploy(t *testing.T) {
 			fmt.Sprintf("INPUTCERTPATH: %v", fInputCertPath),
 			fmt.Sprintf("INPUTKEYPATH: %v", fInputKeyPath),
 			fmt.Sprintf("APIKEY: %v", fApiKey),
-			fmt.Sprintf("INSTANCEID: %v", fInstanceId),
-			fmt.Sprintf("DOMAIN: %v", fDomain),
 		}, "\n"))
 
 		provider, err := provider.NewDeployer(&provider.DeployerConfig{
-			ApiKey:             fApiKey,
-			InstanceId:         fInstanceId,
-			DomainMatchPattern: provider.DOMAIN_MATCH_PATTERN_EXACT,
-			Domain:             fDomain,
+			ApiKey: fApiKey,
 		})
 		if err != nil {
 			t.Errorf("err: %+v", err)

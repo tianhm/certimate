@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 	m "github.com/pocketbase/pocketbase/migrations"
 	"github.com/samber/lo"
@@ -18,7 +19,10 @@ import (
 
 func init() {
 	m.Register(func(app core.App) error {
-		if mr, _ := app.FindFirstRecordByFilter("_migrations", "file='1757476800_m0.4.0_migrate.go'"); mr != nil {
+		if err := app.DB().
+			NewQuery("SELECT (1) FROM _migrations WHERE file={:file} LIMIT 1").
+			Bind(dbx.Params{"file": "1757476800_m0.4.0_migrate.go"}).
+			One(&struct{}{}); err == nil {
 			return nil
 		}
 
@@ -1375,10 +1379,10 @@ func init() {
 				app.DB().NewQuery(`UPDATE workflow_run SET graph=REPLACE(graph, '"id":"_', '"id":"')`).Execute()
 
 				app.DB().NewQuery(`UPDATE workflow_output SET nodeId=SUBSTR(nodeId, 2) WHERE nodeId LIKE '-%'`).Execute()
-				app.DB().NewQuery(`UPDATE workflow_output SET nodeId=SUBSTR(nodeId, 2) WHERE nodeId LIKE '_%'`).Execute()
+				app.DB().NewQuery(`UPDATE workflow_output SET nodeId=SUBSTR(nodeId, 2) WHERE nodeId LIKE '\_%' ESCAPE '\'`).Execute()
 
 				app.DB().NewQuery(`UPDATE workflow_logs SET nodeId=SUBSTR(nodeId, 2) WHERE nodeId LIKE '-%'`).Execute()
-				app.DB().NewQuery(`UPDATE workflow_logs SET nodeId=SUBSTR(nodeId, 2) WHERE nodeId LIKE '_%'`).Execute()
+				app.DB().NewQuery(`UPDATE workflow_logs SET nodeId=SUBSTR(nodeId, 2) WHERE nodeId LIKE '\_%' ESCAPE '\'`).Execute()
 			}
 		}
 

@@ -253,6 +253,10 @@ type AccessConfigForFlexCDN struct {
 	AllowInsecureConnections bool   `json:"allowInsecureConnections,omitempty"`
 }
 
+type AccessConfigForFlyIO struct {
+	ApiToken string `json:"apiToken"`
+}
+
 type AccessConfigForGandinet struct {
 	PersonalAccessToken string `json:"personalAccessToken"`
 }

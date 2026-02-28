@@ -54,6 +54,7 @@ const (
 	AccessProviderTypeEmail               = AccessProviderType("email")
 	AccessProviderTypeFastly              = AccessProviderType("fastly") // Fastly（预留）
 	AccessProviderTypeFlexCDN             = AccessProviderType("flexcdn")
+	AccessProviderTypeFlyIO               = AccessProviderType("flyio")
 	AccessProviderTypeGandinet            = AccessProviderType("gandinet")
 	AccessProviderTypeGcore               = AccessProviderType("gcore")
 	AccessProviderTypeGlobalSignAtlas     = AccessProviderType("globalsignatlas")
@@ -303,6 +304,7 @@ const (
 	DeploymentProviderTypeDogeCloudCDN          = DeploymentProviderType(AccessProviderTypeDogeCloud + "-cdn")
 	DeploymentProviderTypeDokploy               = DeploymentProviderType(AccessProviderTypeDokploy)
 	DeploymentProviderTypeFlexCDN               = DeploymentProviderType(AccessProviderTypeFlexCDN)
+	DeploymentProviderTypeFlyIO                 = DeploymentProviderType(AccessProviderTypeFlyIO)
 	DeploymentProviderTypeGcoreCDN              = DeploymentProviderType(AccessProviderTypeGcore + "-cdn")
 	DeploymentProviderTypeGoEdge                = DeploymentProviderType(AccessProviderTypeGoEdge)
 	DeploymentProviderTypeHuaweiCloudCDN        = DeploymentProviderType(AccessProviderTypeHuaweiCloud + "-cdn")

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"strings"
 
 	"github.com/samber/lo"
 	veapig "github.com/volcengine/volcengine-go-sdk/service/apig"
@@ -16,7 +15,6 @@ import (
 	mcertmgr "github.com/certimate-go/certimate/pkg/core/certmgr/providers/volcengine-certcenter"
 	"github.com/certimate-go/certimate/pkg/core/deployer"
 	"github.com/certimate-go/certimate/pkg/core/deployer/providers/volcengine-apig/internal"
-	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
 	xcerthostname "github.com/certimate-go/certimate/pkg/utils/cert/hostname"
 )
 
@@ -126,8 +124,7 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*dep
 			}
 
 			domains := lo.Filter(domainCandidates, func(domainItem *veapig.ItemForListCustomDomainsOutput, _ int) bool {
-				return xcerthostname.IsMatch(d.config.Domain, lo.FromPtr(domainItem.Domain)) ||
-					strings.TrimPrefix(d.config.Domain, "*") == strings.TrimPrefix(lo.FromPtr(domainItem.Domain), "*")
+				return xcerthostname.IsMatch(d.config.Domain, lo.FromPtr(domainItem.Domain))
 			})
 			if len(domains) == 0 {
 				return nil, errors.New("could not find any domains matched by wildcard")
@@ -140,19 +137,13 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*dep
 
 	case DOMAIN_MATCH_PATTERN_CERTSAN:
 		{
-			certX509, err := xcert.ParseCertificateFromPEM(certPEM)
-			if err != nil {
-				return nil, err
-			}
-
 			domainCandidates, err := d.getAllDomains(ctx)
 			if err != nil {
 				return nil, err
 			}
 
 			domains := lo.Filter(domainCandidates, func(domainItem *veapig.ItemForListCustomDomainsOutput, _ int) bool {
-				return certX509.VerifyHostname(lo.FromPtr(domainItem.Domain)) == nil ||
-					strings.TrimPrefix(d.config.Domain, "*") == strings.TrimPrefix(lo.FromPtr(domainItem.Domain), "*")
+				return xcerthostname.IsMatchByCertificatePEM(certPEM, lo.FromPtr(domainItem.Domain))
 			})
 			if len(domains) == 0 {
 				return nil, errors.New("could not find any domains matched by certificate")

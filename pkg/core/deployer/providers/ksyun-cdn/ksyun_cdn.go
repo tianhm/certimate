@@ -14,7 +14,6 @@ import (
 	"github.com/samber/lo"
 
 	"github.com/certimate-go/certimate/pkg/core/deployer"
-	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
 	xcerthostname "github.com/certimate-go/certimate/pkg/utils/cert/hostname"
 )
 
@@ -126,18 +125,13 @@ func (d *Deployer) deployToDomain(ctx context.Context, certPEM, privkeyPEM strin
 
 	case DOMAIN_MATCH_PATTERN_CERTSAN:
 		{
-			certX509, err := xcert.ParseCertificateFromPEM(certPEM)
-			if err != nil {
-				return err
-			}
-
 			domainCandidates, err := d.getAllDomains(ctx)
 			if err != nil {
 				return err
 			}
 
 			domains = lo.Filter(domainCandidates, func(domain string, _ int) bool {
-				return certX509.VerifyHostname(domain) == nil
+				return xcerthostname.IsMatchByCertificatePEM(certPEM, domain)
 			})
 			if len(domains) == 0 {
 				return errors.New("could not find any domains matched by certificate")

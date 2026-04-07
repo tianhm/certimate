@@ -98,10 +98,6 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*dep
 				return nil, errors.New("config `domain` is required")
 			}
 
-			// "*.example.com" → ".example.com"，适配火山引擎 DCDN 要求的泛域名格式
-			domain := strings.TrimPrefix(d.config.Domain, "*")
-			domainIds = []string{domain}
-
 			domainCandidates, err := d.getAllDomains(ctx)
 			if err != nil {
 				return nil, err

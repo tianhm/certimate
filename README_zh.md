@@ -101,7 +101,7 @@ docker run -d \
 
 Certimate 是一个免费且开源的项目。我们欢迎任何人为 Certimate 做出贡献，以帮助改善 Certimate。包括但不限于：提交代码、反馈缺陷、交流想法，或分享你基于 Certimate 的使用案例。同时，我们也欢迎用户在个人博客或社交媒体上分享 Certimate。
 
-如果你想要贡献代码，请先阅读我们的[贡献指南](./CONTRIBUTING.md)。
+如果你想要贡献代码，请先阅读我们的[贡献指南](./CONTRIBUTING_zh.md)。
 
 请在 https://github.com/certimate-go/certimate 提交 [Issues](https://github.com/certimate-go/certimate/issues) 和 [Pull Requests](https://github.com/certimate-go/certimate/pulls)。
 

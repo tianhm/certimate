@@ -99,7 +99,7 @@ Related articles:
 
 Certimate is a free and open-source project, and your feedback and contributions are needed and always welcome. Contributions include but are not limited to: submitting code, reporting bugs, sharing ideas, or showcasing your use cases based on Certimate. We also encourage users to share Certimate on personal blogs or social media.
 
-For those who'd like to contribute code, see our [Contribution Guide](./CONTRIBUTING_EN.md).
+For those who'd like to contribute code, see our [Contribution Guide](./CONTRIBUTING.md).
 
 [Issues](https://github.com/certimate-go/certimate/issues) and [Pull Requests](https://github.com/certimate-go/certimate/pulls) are opened at https://github.com/certimate-go/certimate.
 

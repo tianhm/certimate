@@ -8,11 +8,18 @@ jobs:
   add-label:
     runs-on: ubuntu-latest
     permissions:
+      issues: write
       pull-requests: write
     steps:
       - name: Add waiting-for-review label
-        uses: actions-ecosystem/action-add-labels@v1
+        uses: actions/github-script@v8
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          labels: "pr: waiting for review"
-          number: ${{ github.event.pull_request.number }}
+          script: |
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              labels: ['pr: waiting for review'],
+            })
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

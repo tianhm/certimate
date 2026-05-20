@@ -137,6 +137,7 @@ jobs:
         env:
           CGO_ENABLED: 0
           GOOS: windows
+          GOEXPERIMENT: nodwarf5
         run: |
           mkdir -p dist/windows
           for ARCH in amd64 arm64 386; do

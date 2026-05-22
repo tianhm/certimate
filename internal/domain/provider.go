@@ -2,6 +2,10 @@ package domain
 
 type AccessProviderType string
 
+func (t AccessProviderType) String() string {
+	return string(t)
+}
+
 /*
 授权提供商类型常量值。
 
@@ -130,6 +134,10 @@ const (
 
 type CAProviderType string
 
+func (t CAProviderType) String() string {
+	return string(t)
+}
+
 /*
 证书颁发机构提供商常量值。
 短横线前的部分始终等于授权提供商类型。
@@ -152,6 +160,10 @@ const (
 )
 
 type ACMEDns01ProviderType string
+
+func (t ACMEDns01ProviderType) String() string {
+	return string(t)
+}
 
 /*
 ACME DNS-01 提供商常量值。
@@ -242,6 +254,10 @@ const (
 
 type ACMEHttp01ProviderType string
 
+func (t ACMEHttp01ProviderType) String() string {
+	return string(t)
+}
+
 /*
 ACME HTTP-01 提供商常量值。
 短横线前的部分始终等于授权提供商类型。
@@ -257,6 +273,10 @@ const (
 )
 
 type DeploymentProviderType string
+
+func (t DeploymentProviderType) String() string {
+	return string(t)
+}
 
 /*
 部署证书主机提供商常量值。
@@ -399,6 +419,10 @@ const (
 )
 
 type NotificationProviderType string
+
+func (t NotificationProviderType) String() string {
+	return string(t)
+}
 
 /*
 消息通知提供商常量值。

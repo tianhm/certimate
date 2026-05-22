@@ -496,6 +496,16 @@
       "placeholder": "请输入 DuckDNS Token",
       "tooltip": "这是什么？请参阅 <a href=\"https://www.duckdns.org/spec.jsp\" target=\"_blank\">https://www.duckdns.org/spec.jsp</a>"
     },
+    "dynadot_api_key": {
+      "label": "Dynadot API Key",
+      "placeholder": "请输入 Dynadot API Key",
+      "tooltip": "这是什么？请参阅 <a href=\"https://www.dynadot.com/zh/domain/api-document\" target=\"_blank\">https://www.dynadot.com/zh/domain/api-document</a>"
+    },
+    "dynadot_api_secret": {
+      "label": "Dynadot API Secret",
+      "placeholder": "请输入 Dynadot API Secret",
+      "tooltip": "这是什么？请参阅 <a href=\"https://www.dynadot.com/zh/domain/api-document\" target=\"_blank\">https://www.dynadot.com/zh/domain/api-document</a>"
+    },
     "dynu_api_key": {
       "label": "Dynu API Key",
       "placeholder": "请输入 Dynu API Key",

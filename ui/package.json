@@ -8,6 +8,23 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
+  "engineStrict": true,
+  "engines": {
+    "node": ">=24",
+    "npm": ">=11.10.0"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": ">=22",
+      "onFail": "error"
+    },
+    "packageManager": {
+      "name": "npm",
+      "version": ">=11.10.0",
+      "onFail": "error"
+    }
+  },
   "dependencies": {
     "@codemirror/lang-json": "^6.0.2",
     "@codemirror/lang-yaml": "^6.1.3",

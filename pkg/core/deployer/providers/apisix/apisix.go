@@ -111,7 +111,9 @@ func (d *Deployer) deployToCertificate(ctx context.Context, certPEM, privkeyPEM 
 }
 
 func createSDKClient(serverUrl, apiKey string, skipTlsVerify bool) (*apisixsdk.Client, error) {
-	client, err := apisixsdk.NewClient(serverUrl, apiKey)
+	client, err := apisixsdk.NewClient(serverUrl, 
+		apisixsdk.WithApiKey(apiKey),
+	)
 	if err != nil {
 		return nil, err
 	}

@@ -92,7 +92,7 @@ func (d *Deployer) SetLogger(logger *slog.Logger) {
 
 func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*DeployResult, error) {
 	// 提取服务器证书和中间证书
-	serverCertPEM, intermediaCertPEM, err := xcert.ExtractCertificatesFromPEM(certPEM)
+	serverCertPEM, issuerCertPEM, err := xcert.ExtractCertificatesFromPEM(certPEM)
 	if err != nil {
 		return nil, fmt.Errorf("failed to extract certs: %w", err)
 	}
@@ -129,7 +129,7 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*Dep
 			}
 
 			if d.config.ObjectKeyForCrtOnlyIntermedia != "" {
-				if err := s3Client.PutObjectString(ctx, d.config.Bucket, d.config.ObjectKeyForCrtOnlyIntermedia, intermediaCertPEM); err != nil {
+				if err := s3Client.PutObjectString(ctx, d.config.Bucket, d.config.ObjectKeyForCrtOnlyIntermedia, issuerCertPEM); err != nil {
 					return nil, fmt.Errorf("failed to upload intermedia certificate file: %w", err)
 				}
 				d.logger.Info("ssl intermedia certificate file uploaded", slog.String("bucket", d.config.Bucket), slog.String("object", d.config.ObjectKeyForCrtOnlyIntermedia))

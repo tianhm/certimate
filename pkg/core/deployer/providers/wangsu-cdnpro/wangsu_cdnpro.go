@@ -18,7 +18,7 @@ import (
 	"github.com/samber/lo"
 
 	"github.com/certimate-go/certimate/pkg/core"
-	wangsucdn "github.com/certimate-go/certimate/pkg/sdk3rd/wangsu/cdnpro"
+	wangsucdnpro "github.com/certimate-go/certimate/pkg/sdk3rd/wangsu/cdnpro"
 	xwait "github.com/certimate-go/certimate/pkg/utils/wait"
 )
 
@@ -52,7 +52,7 @@ type DeployerConfig struct {
 type Deployer struct {
 	config    *DeployerConfig
 	logger    *slog.Logger
-	sdkClient *wangsucdn.Client
+	sdkClient *wangsucdnpro.Client
 }
 
 var _ Provider = (*Deployer)(nil)
@@ -99,7 +99,7 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*Dep
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt private key: %w", err)
 	}
-	certificateNewVersionInfo := &wangsucdn.CertificateVersionInfo{
+	certificateNewVersionInfo := &wangsucdnpro.CertificateVersionInfo{
 		PrivateKey:  lo.ToPtr(encryptedPrivateKey),
 		Certificate: lo.ToPtr(certPEM),
 	}
@@ -116,7 +116,7 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*Dep
 	timestamp := time.Now().Unix()
 	if d.config.CertificateId == "" {
 		// 创建证书
-		createCertificateReq := &wangsucdn.CreateCertificateRequest{
+		createCertificateReq := &wangsucdnpro.CreateCertificateRequest{
 			Timestamp:  timestamp,
 			Name:       lo.ToPtr(fmt.Sprintf("certimate_%d", time.Now().UnixMilli())),
 			AutoRenew:  lo.ToPtr("Off"),
@@ -139,7 +139,7 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*Dep
 		wangsuCertVer = 1
 	} else {
 		// 更新证书
-		updateCertificateReq := &wangsucdn.UpdateCertificateRequest{
+		updateCertificateReq := &wangsucdnpro.UpdateCertificateRequest{
 			Timestamp:  timestamp,
 			Name:       lo.ToPtr(fmt.Sprintf("certimate_%d", time.Now().UnixMilli())),
 			AutoRenew:  lo.ToPtr("Off"),
@@ -169,10 +169,10 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*Dep
 	// 创建部署任务
 	// REF: https://www.wangsu.com/document/api-doc/27034
 	var wangsuTaskId string
-	createDeploymentTaskReq := &wangsucdn.CreateDeploymentTaskRequest{
+	createDeploymentTaskReq := &wangsucdnpro.CreateDeploymentTaskRequest{
 		Name:   lo.ToPtr(fmt.Sprintf("certimate_%d", time.Now().UnixMilli())),
 		Target: lo.ToPtr(d.config.Environment),
-		Actions: &[]wangsucdn.DeploymentTaskActionInfo{
+		Actions: &[]wangsucdnpro.DeploymentTaskActionInfo{
 			{
 				Action:        lo.ToPtr("deploy_cert"),
 				CertificateId: lo.ToPtr(wangsuCertId),
@@ -218,8 +218,15 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*Dep
 	return &DeployResult{}, nil
 }
 
-func createSDKClient(accessKeyId, accessKeySecret string) (*wangsucdn.Client, error) {
-	return wangsucdn.NewClient(accessKeyId, accessKeySecret)
+func createSDKClient(accessKeyId, accessKeySecret string) (*wangsucdnpro.Client, error) {
+	client, err := wangsucdnpro.NewClient(
+		wangsucdnpro.WithAkSk(accessKeyId, accessKeySecret),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }
 
 func encryptPrivateKey(privkeyPEM string, apiKey string, timestamp int64) (string, error) {

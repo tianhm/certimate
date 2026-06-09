@@ -73,7 +73,9 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 		return nil, fmt.Errorf("qingcloud: the configuration of the DNS provider is nil")
 	}
 
-	client, err := qingcloudsdk.NewClient(config.AccessKey, config.AccessSecret)
+	client, err := qingcloudsdk.NewClient(
+		qingcloudsdk.WithAkSk(config.AccessKey, config.AccessSecret),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("qingcloud: %w", err)
 	} else {

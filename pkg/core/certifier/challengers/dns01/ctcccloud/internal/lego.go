@@ -72,7 +72,9 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 		return nil, fmt.Errorf("ctyun: the configuration of the DNS provider is nil")
 	}
 
-	client, err := ctyundns.NewClient(config.AccessKeyId, config.SecretAccessKey)
+	client, err := ctyundns.NewClient(
+		ctyundns.WithAkSk(config.AccessKeyId, config.SecretAccessKey),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("ctyun: %w", err)
 	} else {

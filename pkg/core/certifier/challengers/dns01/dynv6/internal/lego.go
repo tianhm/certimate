@@ -72,7 +72,9 @@ func NewDNSProviderConfig(config *Config) (*DNSProvider, error) {
 		return nil, fmt.Errorf("dynv6: the configuration of the DNS provider is nil")
 	}
 
-	client, err := dynv6sdk.NewClient(config.HTTPToken)
+	client, err := dynv6sdk.NewClient(
+		dynv6sdk.WithHttpToken(config.HTTPToken),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("dynv6: %w", err)
 	} else {

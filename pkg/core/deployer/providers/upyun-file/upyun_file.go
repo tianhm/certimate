@@ -122,5 +122,12 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*Dep
 }
 
 func createSDKClient(username, password string) (*upyunsdk.Client, error) {
-	return upyunsdk.NewClient(username, password)
+	client, err := upyunsdk.NewClient(
+		upyunsdk.WithCredentials(username, password),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }

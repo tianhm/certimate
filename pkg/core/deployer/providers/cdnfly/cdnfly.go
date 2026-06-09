@@ -157,7 +157,9 @@ func (d *Deployer) deployToCertificate(ctx context.Context, certPEM, privkeyPEM 
 }
 
 func createSDKClient(serverUrl, apiKey, apiSecret string, skipTlsVerify bool) (*cdnflysdk.Client, error) {
-	client, err := cdnflysdk.NewClient(serverUrl, apiKey, apiSecret)
+	client, err := cdnflysdk.NewClient(serverUrl,
+		cdnflysdk.WithApiKey(apiKey, apiSecret),
+	)
 	if err != nil {
 		return nil, err
 	}

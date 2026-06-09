@@ -124,5 +124,12 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*Dep
 }
 
 func createSDKClient(accessKeyId, secretAccessKey string) (*ctyunfaas.Client, error) {
-	return ctyunfaas.NewClient(accessKeyId, secretAccessKey)
+	client, err := ctyunfaas.NewClient(
+		ctyunfaas.WithAkSk(accessKeyId, secretAccessKey),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }

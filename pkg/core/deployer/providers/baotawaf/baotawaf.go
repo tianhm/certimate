@@ -169,7 +169,9 @@ func (d *Deployer) updateSiteCertificate(ctx context.Context, siteName string, s
 }
 
 func createSDKClient(serverUrl, apiKey string, skipTlsVerify bool) (*btwafsdk.Client, error) {
-	client, err := btwafsdk.NewClient(serverUrl, apiKey)
+	client, err := btwafsdk.NewClient(serverUrl,
+		btwafsdk.WithApiKey(apiKey),
+	)
 	if err != nil {
 		return nil, err
 	}

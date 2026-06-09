@@ -62,7 +62,7 @@ func (s *CertificateService) DownloadCertificate(ctx context.Context, req *dtos.
 	switch req.FileFormat {
 	case "", domain.CertificateFormatTypePEM:
 		{
-			serverCertPEM, intermediaCertPEM, err := xcert.ExtractCertificatesFromPEM(certificate.Certificate)
+			serverCertPEM, issuerCertPEM, err := xcert.ExtractCertificatesFromPEM(certificate.Certificate)
 			if err != nil {
 				return nil, fmt.Errorf("failed to extract certs: %w", err)
 			}
@@ -101,7 +101,7 @@ func (s *CertificateService) DownloadCertificate(ctx context.Context, req *dtos.
 			if err != nil {
 				return nil, err
 			} else {
-				_, err = intermediaCertWriter.Write([]byte(intermediaCertPEM))
+				_, err = intermediaCertWriter.Write([]byte(issuerCertPEM))
 				if err != nil {
 					return nil, err
 				}

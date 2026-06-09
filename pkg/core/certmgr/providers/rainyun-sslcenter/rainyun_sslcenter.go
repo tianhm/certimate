@@ -184,5 +184,12 @@ func (c *Certmgr) tryGetResultIfCertExists(ctx context.Context, certPEM string) 
 }
 
 func createSDKClient(apiKey string) (*rainyunsdk.Client, error) {
-	return rainyunsdk.NewClient(apiKey)
+	client, err := rainyunsdk.NewClient(
+		rainyunsdk.WithApiKey(apiKey),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }

@@ -161,5 +161,12 @@ func (d *Deployer) deployToCertificate(ctx context.Context, certPEM, privkeyPEM 
 }
 
 func createSDKClient(apiToken string) (*baishansdk.Client, error) {
-	return baishansdk.NewClient(apiToken)
+	client, err := baishansdk.NewClient(
+		baishansdk.WithApiToken(apiToken),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }

@@ -109,7 +109,9 @@ func (d *Deployer) deployToCertificate(ctx context.Context, certPEM, privkeyPEM 
 }
 
 func createSDKClient(serverUrl, apiKey string, skipTlsVerify bool) (*samwafsdk.Client, error) {
-	client, err := samwafsdk.NewClient(serverUrl, apiKey)
+	client, err := samwafsdk.NewClient(serverUrl,
+		samwafsdk.WithApiKey(apiKey),
+	)
 	if err != nil {
 		return nil, err
 	}

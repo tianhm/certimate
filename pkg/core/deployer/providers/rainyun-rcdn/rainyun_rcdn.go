@@ -105,5 +105,12 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*Dep
 }
 
 func createSDKClient(apiKey string) (*rainyunsdk.Client, error) {
-	return rainyunsdk.NewClient(apiKey)
+	client, err := rainyunsdk.NewClient(
+		rainyunsdk.WithApiKey(apiKey),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }

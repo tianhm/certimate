@@ -165,7 +165,7 @@ func createSDKClient(serverUrl, authMethod, username, password, apiToken string,
 	case "", AUTH_METHOD_PASSWORD:
 		{
 			client, err = npmsdk.NewClient(serverUrl,
-				npmsdk.WithCredentials(username, password),
+				npmsdk.WithLogins(username, password),
 			)
 		}
 

@@ -262,7 +262,7 @@ func (d *Deployer) updateDomainCertificate(ctx context.Context, domain string, c
 
 func createSDKClient(username, password string) (*upyunsdk.Client, error) {
 	client, err := upyunsdk.NewClient(
-		upyunsdk.WithCredentials(username, password),
+		upyunsdk.WithLogins(username, password),
 	)
 	if err != nil {
 		return nil, err

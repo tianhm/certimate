@@ -151,7 +151,7 @@ func createSDKClient(serverUrl, apiVersion, apiRole, username, password string, 
 	if apiVersion == sdkVersionV3 && apiRole == sdkRoleClient {
 		// v3 版客户端
 		client, err := lecdnclientv3.NewClient(serverUrl,
-			lecdnclientv3.WithCredentials(username, password),
+			lecdnclientv3.WithLogins(username, password),
 		)
 		if err != nil {
 			return nil, err
@@ -165,7 +165,7 @@ func createSDKClient(serverUrl, apiVersion, apiRole, username, password string, 
 	} else if apiVersion == sdkVersionV3 && apiRole == sdkRoleMaster {
 		// v3 版主控端
 		client, err := lecdnmasterv3.NewClient(serverUrl,
-			lecdnmasterv3.WithCredentials(username, password),
+			lecdnmasterv3.WithLogins(username, password),
 		)
 		if err != nil {
 			return nil, err

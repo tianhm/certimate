@@ -118,7 +118,7 @@ func (c *Certmgr) Upload(ctx context.Context, certPEM, privkeyPEM string) (*Uplo
 
 			// 对比证书内容
 			getCertificateResp, err := c.sdkClient.GetCertificate(ctx, certItem.ID.Name(), certItem.ID.Version(), nil)
-			c.logger.Debug("sdk request 'keyvault.GetCertificate'", slog.String("request.certificateName", certItem.ID.Name()), slog.String("request.certificateVersion", certItem.ID.Version()), slog.Any("response", getCertificateResp))
+			c.logger.Debug("sdk request 'keyvault.GetCertificate'", slog.String("params.certificateName", certItem.ID.Name()), slog.String("params.certificateVersion", certItem.ID.Version()), slog.Any("response", getCertificateResp))
 			if err != nil {
 				return nil, fmt.Errorf("failed to execute sdk request 'keyvault.GetCertificate': %w", err)
 			} else {
@@ -162,7 +162,7 @@ func (c *Certmgr) Upload(ctx context.Context, certPEM, privkeyPEM string) (*Uplo
 		},
 	}
 	importCertificateResp, err := c.sdkClient.ImportCertificate(ctx, certName, importCertificateParams, nil)
-	c.logger.Debug("sdk request 'keyvault.ImportCertificate'", slog.String("request.certificateName", certName), slog.Any("request.parameters", importCertificateParams), slog.Any("response", importCertificateResp))
+	c.logger.Debug("sdk request 'keyvault.ImportCertificate'", slog.String("params.certificateName", certName), slog.Any("request", importCertificateParams), slog.Any("response", importCertificateResp))
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute sdk request 'keyvault.ImportCertificate': %w", err)
 	}
@@ -189,7 +189,7 @@ func (c *Certmgr) Replace(ctx context.Context, certIdOrName string, certPEM, pri
 	// 获取证书
 	// REF: https://learn.microsoft.com/en-us/rest/api/keyvault/certificates/get-certificate/get-certificate
 	getCertificateResp, err := c.sdkClient.GetCertificate(ctx, certIdOrName, "", nil)
-	c.logger.Debug("sdk request 'keyvault.GetCertificate'", slog.String("request.certificateName", certIdOrName), slog.Any("response", getCertificateResp))
+	c.logger.Debug("sdk request 'keyvault.GetCertificate'", slog.String("params.certificateName", certIdOrName), slog.Any("response", getCertificateResp))
 	if err != nil {
 		var respErr *azcore.ResponseError
 		if !errors.As(err, &respErr) || (respErr.ErrorCode != "ResourceNotFound" && respErr.ErrorCode != "CertificateNotFound") {
@@ -217,7 +217,7 @@ func (c *Certmgr) Replace(ctx context.Context, certIdOrName string, certPEM, pri
 		},
 	}
 	importCertificateResp, err := c.sdkClient.ImportCertificate(ctx, certIdOrName, importCertificateParams, nil)
-	c.logger.Debug("sdk request 'keyvault.ImportCertificate'", slog.String("request.certificateName", certIdOrName), slog.Any("request.parameters", importCertificateParams), slog.Any("response", importCertificateResp))
+	c.logger.Debug("sdk request 'keyvault.ImportCertificate'", slog.String("params.certificateName", certIdOrName), slog.Any("request", importCertificateParams), slog.Any("response", importCertificateResp))
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute sdk request 'keyvault.ImportCertificate': %w", err)
 	}

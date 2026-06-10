@@ -330,7 +330,7 @@ func (d *Deployer) updateHostCertificate(ctx context.Context, cloudHostType stri
 				CertificateId: lo.ToPtr(cloudCertId),
 			}
 			nginxUpdateProxyHostResp, err := d.sdkClient.NginxUpdateProxyHostWithContext(ctx, cloudHostId, nginxUpdateProxyHostReq)
-			d.logger.Debug("sdk request 'nginx.UpdateProxyHost'", slog.Int64("request.hostId", cloudHostId), slog.Any("request", nginxUpdateProxyHostReq), slog.Any("response", nginxUpdateProxyHostResp))
+			d.logger.Debug("sdk request 'nginx.UpdateProxyHost'", slog.Int64("params.hostId", cloudHostId), slog.Any("request", nginxUpdateProxyHostReq), slog.Any("response", nginxUpdateProxyHostResp))
 			if err != nil {
 				return fmt.Errorf("failed to execute sdk request 'nginx.UpdateProxyHost': %w", err)
 			}
@@ -342,7 +342,7 @@ func (d *Deployer) updateHostCertificate(ctx context.Context, cloudHostType stri
 				CertificateId: lo.ToPtr(cloudCertId),
 			}
 			nginxUpdateRedirectionHostResp, err := d.sdkClient.NginxUpdateRedirectionHostWithContext(ctx, cloudHostId, nginxUpdateRedirectionHostReq)
-			d.logger.Debug("sdk request 'nginx.UpdateRedirectionHost'", slog.Int64("request.hostId", cloudHostId), slog.Any("request", nginxUpdateRedirectionHostReq), slog.Any("response", nginxUpdateRedirectionHostResp))
+			d.logger.Debug("sdk request 'nginx.UpdateRedirectionHost'", slog.Int64("params.hostId", cloudHostId), slog.Any("request", nginxUpdateRedirectionHostReq), slog.Any("response", nginxUpdateRedirectionHostResp))
 			if err != nil {
 				return fmt.Errorf("failed to execute sdk request 'nginx.UpdateRedirectionHost': %w", err)
 			}
@@ -354,7 +354,7 @@ func (d *Deployer) updateHostCertificate(ctx context.Context, cloudHostType stri
 				CertificateId: lo.ToPtr(cloudCertId),
 			}
 			nginxUpdateStreamResp, err := d.sdkClient.NginxUpdateStreamWithContext(ctx, cloudHostId, nginxUpdateStreamReq)
-			d.logger.Debug("sdk request 'nginx.UpdateStream'", slog.Int64("request.hostId", cloudHostId), slog.Any("request", nginxUpdateStreamReq), slog.Any("response", nginxUpdateStreamResp))
+			d.logger.Debug("sdk request 'nginx.UpdateStream'", slog.Int64("params.hostId", cloudHostId), slog.Any("request", nginxUpdateStreamReq), slog.Any("response", nginxUpdateStreamResp))
 			if err != nil {
 				return fmt.Errorf("failed to execute sdk request 'nginx.UpdateStream': %w", err)
 			}
@@ -366,7 +366,7 @@ func (d *Deployer) updateHostCertificate(ctx context.Context, cloudHostType stri
 				CertificateId: lo.ToPtr(cloudCertId),
 			}
 			nginxUpdateDeadHostResp, err := d.sdkClient.NginxUpdateDeadHostWithContext(ctx, cloudHostId, nginxUpdateDeadHostReq)
-			d.logger.Debug("sdk request 'nginx.UpdateDeadHost'", slog.Int64("request.hostId", cloudHostId), slog.Any("request", nginxUpdateDeadHostReq), slog.Any("response", nginxUpdateDeadHostResp))
+			d.logger.Debug("sdk request 'nginx.UpdateDeadHost'", slog.Int64("params.hostId", cloudHostId), slog.Any("request", nginxUpdateDeadHostReq), slog.Any("response", nginxUpdateDeadHostResp))
 			if err != nil {
 				return fmt.Errorf("failed to execute sdk request 'nginx.UpdateDeadHost': %w", err)
 			}

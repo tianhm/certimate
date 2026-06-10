@@ -136,7 +136,7 @@ func (c *Certmgr) Replace(ctx context.Context, certIdOrName string, certPEM, pri
 		{
 			// 获取证书详情
 			websiteSSLGetResp, err := sdkClient.WebsiteSSLGetWithContext(ctx, sslId)
-			c.logger.Debug("sdk request 'WebsiteSSLGet'", slog.Int64("sslId", sslId), slog.Any("response", websiteSSLGetResp))
+			c.logger.Debug("sdk request 'WebsiteSSLGet'", slog.Int64("params.sslId", sslId), slog.Any("response", websiteSSLGetResp))
 			if err != nil {
 				return nil, fmt.Errorf("failed to execute sdk request 'WebsiteSSLGet': %w", err)
 			}
@@ -160,7 +160,7 @@ func (c *Certmgr) Replace(ctx context.Context, certIdOrName string, certPEM, pri
 		{
 			// 获取证书详情
 			websiteSSLGetResp, err := sdkClient.WebsiteSSLGetWithContext(ctx, sslId)
-			c.logger.Debug("sdk request 'WebsiteSSLGet'", slog.Any("sslId", sslId), slog.Any("response", websiteSSLGetResp))
+			c.logger.Debug("sdk request 'WebsiteSSLGet'", slog.Int64("params.sslId", sslId), slog.Any("response", websiteSSLGetResp))
 			if err != nil {
 				return nil, fmt.Errorf("failed to execute sdk request 'WebsiteSSLGet': %w", err)
 			}

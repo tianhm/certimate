@@ -109,7 +109,7 @@ func (d *Deployer) deployToCertificate(ctx context.Context, certPEM, privkeyPEM 
 				AutoRenewal: false,
 			}
 			updateSSLCertResp, err := sdkClient.UpdateCertificateWithContext(ctx, d.config.CertificateId, updateSSLCertReq)
-			d.logger.Debug("sdk request 'UpdateCertificate'", slog.Int64("certId", d.config.CertificateId), slog.Any("request", updateSSLCertReq), slog.Any("response", updateSSLCertResp))
+			d.logger.Debug("sdk request 'UpdateCertificate'", slog.Int64("params.certId", d.config.CertificateId), slog.Any("request", updateSSLCertReq), slog.Any("response", updateSSLCertResp))
 			if err != nil {
 				return fmt.Errorf("failed to execute sdk request 'UpdateCertificate': %w", err)
 			}
@@ -127,7 +127,7 @@ func (d *Deployer) deployToCertificate(ctx context.Context, certPEM, privkeyPEM 
 				AutoRenewal: false,
 			}
 			updateSSLCertResp, err := sdkClient.UpdateCertificateWithContext(ctx, d.config.CertificateId, updateSSLCertReq)
-			d.logger.Debug("sdk request 'UpdateCertificate'", slog.Int64("certId", d.config.CertificateId), slog.Any("request", updateSSLCertReq), slog.Any("response", updateSSLCertResp))
+			d.logger.Debug("sdk request 'UpdateCertificate'", slog.Int64("params.certId", d.config.CertificateId), slog.Any("request", updateSSLCertReq), slog.Any("response", updateSSLCertResp))
 			if err != nil {
 				return fmt.Errorf("failed to execute sdk request 'UpdateCertificate': %w", err)
 			}

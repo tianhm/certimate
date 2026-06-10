@@ -11,7 +11,7 @@ type NginxUpdateStreamRequest struct {
 }
 
 type NginxUpdateStreamResponse struct {
-	StreamHostRecord
+	StreamHost
 }
 
 func (c *Client) NginxUpdateStream(hostId int64, req *NginxUpdateStreamRequest) (*NginxUpdateStreamResponse, error) {

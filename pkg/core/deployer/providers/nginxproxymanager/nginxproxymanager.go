@@ -158,13 +158,13 @@ func (d *Deployer) deployToHost(ctx context.Context, certPEM, privkeyPEM string)
 			}
 
 			hostIds = lo.Map(
-				lo.Filter(hostCandidates, func(hostItem *npmsdk.HostRecord, _ int) bool {
+				lo.Filter(hostCandidates, func(hostItem *npmsdk.Host, _ int) bool {
 					return len(hostItem.DomainNames) > 0 &&
 						lo.EveryBy(hostItem.DomainNames, func(domain string) bool {
 							return certX509.VerifyHostname(domain) == nil
 						})
 				}),
-				func(hostItem *npmsdk.HostRecord, _ int) int64 {
+				func(hostItem *npmsdk.Host, _ int) int64 {
 					return hostItem.Id
 				},
 			)
@@ -174,7 +174,7 @@ func (d *Deployer) deployToHost(ctx context.Context, certPEM, privkeyPEM string)
 
 			// 跳过已部署过的主机
 			hostIds = lo.Filter(hostIds, func(hostId int64, _ int) bool {
-				hostInfo, _ := lo.Find(hostCandidates, func(hostItem *npmsdk.HostRecord) bool {
+				hostInfo, _ := lo.Find(hostCandidates, func(hostItem *npmsdk.Host) bool {
 					return hostId == hostItem.Id
 				})
 				if hostInfo != nil {
@@ -252,8 +252,8 @@ func (d *Deployer) deployToCertificate(ctx context.Context, certPEM, privkeyPEM 
 	return nil
 }
 
-func (d *Deployer) getAllHosts(ctx context.Context, cloudHostType string) ([]*npmsdk.HostRecord, error) {
-	var hosts []*npmsdk.HostRecord
+func (d *Deployer) getAllHosts(ctx context.Context, cloudHostType string) ([]*npmsdk.Host, error) {
+	var hosts []*npmsdk.Host
 	switch cloudHostType {
 	case HOST_TYPE_PROXY:
 		{
@@ -264,9 +264,9 @@ func (d *Deployer) getAllHosts(ctx context.Context, cloudHostType string) ([]*np
 				return nil, fmt.Errorf("failed to execute sdk request 'nginx.ListProxyHosts': %w", err)
 			}
 
-			hosts = make([]*npmsdk.HostRecord, 0, len(*nginxListProxyHostsResp))
+			hosts = make([]*npmsdk.Host, 0, len(*nginxListProxyHostsResp))
 			for _, hostItem := range *nginxListProxyHostsResp {
-				hosts = append(hosts, &hostItem.HostRecord)
+				hosts = append(hosts, &hostItem.Host)
 			}
 		}
 
@@ -279,9 +279,9 @@ func (d *Deployer) getAllHosts(ctx context.Context, cloudHostType string) ([]*np
 				return nil, fmt.Errorf("failed to execute sdk request 'nginx.ListRedirectionHosts': %w", err)
 			}
 
-			hosts = make([]*npmsdk.HostRecord, 0, len(*nginxListRedirectionHostsResp))
+			hosts = make([]*npmsdk.Host, 0, len(*nginxListRedirectionHostsResp))
 			for _, hostItem := range *nginxListRedirectionHostsResp {
-				hosts = append(hosts, &hostItem.HostRecord)
+				hosts = append(hosts, &hostItem.Host)
 			}
 		}
 
@@ -294,9 +294,9 @@ func (d *Deployer) getAllHosts(ctx context.Context, cloudHostType string) ([]*np
 				return nil, fmt.Errorf("failed to execute sdk request 'nginx.ListStreams': %w", err)
 			}
 
-			hosts = make([]*npmsdk.HostRecord, 0, len(*nginxListStreamsResp))
+			hosts = make([]*npmsdk.Host, 0, len(*nginxListStreamsResp))
 			for _, hostItem := range *nginxListStreamsResp {
-				hosts = append(hosts, &hostItem.HostRecord)
+				hosts = append(hosts, &hostItem.Host)
 			}
 		}
 
@@ -309,9 +309,9 @@ func (d *Deployer) getAllHosts(ctx context.Context, cloudHostType string) ([]*np
 				return nil, fmt.Errorf("failed to execute sdk request 'nginx.ListDeadHosts': %w", err)
 			}
 
-			hosts = make([]*npmsdk.HostRecord, 0, len(*nginxListDeadHostsResp))
+			hosts = make([]*npmsdk.Host, 0, len(*nginxListDeadHostsResp))
 			for _, hostItem := range *nginxListDeadHostsResp {
-				hosts = append(hosts, &hostItem.HostRecord)
+				hosts = append(hosts, &hostItem.Host)
 			}
 		}
 

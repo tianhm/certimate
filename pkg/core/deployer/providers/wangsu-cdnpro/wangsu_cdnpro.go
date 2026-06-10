@@ -99,7 +99,7 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*Dep
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt private key: %w", err)
 	}
-	certificateNewVersionInfo := &wangsucdnpro.CertificateVersionInfo{
+	certificateNewVersionInfo := &wangsucdnpro.CertificateVersion{
 		PrivateKey:  lo.ToPtr(encryptedPrivateKey),
 		Certificate: lo.ToPtr(certPEM),
 	}
@@ -172,7 +172,7 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*Dep
 	createDeploymentTaskReq := &wangsucdnpro.CreateDeploymentTaskRequest{
 		Name:   lo.ToPtr(fmt.Sprintf("certimate_%d", time.Now().UnixMilli())),
 		Target: lo.ToPtr(d.config.Environment),
-		Actions: &[]wangsucdnpro.DeploymentTaskActionInfo{
+		Actions: &[]wangsucdnpro.DeploymentTaskAction{
 			{
 				Action:        lo.ToPtr("deploy_cert"),
 				CertificateId: lo.ToPtr(wangsuCertId),

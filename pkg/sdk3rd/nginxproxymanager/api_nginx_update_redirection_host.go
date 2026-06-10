@@ -11,7 +11,7 @@ type NginxUpdateRedirectionHostRequest struct {
 }
 
 type NginxUpdateRedirectionHostResponse struct {
-	RedirectionHostRecord
+	RedirectionHost
 }
 
 func (c *Client) NginxUpdateRedirectionHost(hostId int64, req *NginxUpdateRedirectionHostRequest) (*NginxUpdateRedirectionHostResponse, error) {

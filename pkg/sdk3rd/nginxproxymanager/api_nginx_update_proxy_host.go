@@ -11,7 +11,7 @@ type NginxUpdateProxyHostRequest struct {
 }
 
 type NginxUpdateProxyHostResponse struct {
-	ProxyHostRecord
+	ProxyHost
 }
 
 func (c *Client) NginxUpdateProxyHost(hostId int64, req *NginxUpdateProxyHostRequest) (*NginxUpdateProxyHostResponse, error) {

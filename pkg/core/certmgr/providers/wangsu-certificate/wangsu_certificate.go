@@ -94,7 +94,7 @@ func (c *Certmgr) Upload(ctx context.Context, certPEM, privkeyPEM string) (*Uplo
 			// 如果以上信息都一致，则视为已存在相同证书，直接返回
 			c.logger.Info("ssl certificate already exists")
 			return &UploadResult{
-				CertId:   certItem.CertificateId,
+				CertId:   certItem.Id,
 				CertName: certItem.Name,
 			}, nil
 		}

@@ -10,9 +10,9 @@ import (
 type GetHostnameDetailResponse struct {
 	sdkResponseBase
 
-	Hostname             string                `json:"hostname"`
-	PropertyInProduction *HostnamePropertyInfo `json:"propertyInProduction,omitempty"`
-	PropertyInStaging    *HostnamePropertyInfo `json:"propertyInStaging,omitempty"`
+	Hostname             string            `json:"hostname"`
+	PropertyInProduction *HostnameProperty `json:"propertyInProduction,omitempty"`
+	PropertyInStaging    *HostnameProperty `json:"propertyInStaging,omitempty"`
 }
 
 func (c *Client) GetHostnameDetail(hostname string) (*GetHostnameDetailResponse, error) {

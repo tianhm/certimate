@@ -175,7 +175,7 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 	return d.config.PropagationTimeout, d.config.PollingInterval
 }
 
-func (d *DNSProvider) findZone(ctx context.Context, zoneName string) (*conohavpssdk.DnsDomainRecord, error) {
+func (d *DNSProvider) findZone(ctx context.Context, zoneName string) (*conohavpssdk.Domain, error) {
 	offset := 0
 	limit := 10
 	for {

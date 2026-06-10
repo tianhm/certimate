@@ -11,31 +11,31 @@ type sdkResponse interface {
 }
 
 type sdkResponseBase struct {
-	Errors   APIErrors    `json:"errors,omitempty"`
-	Messages []APIMessage `json:"messages,omitempty"`
-	Success  bool         `json:"success,omitempty"`
+	Errors   sdkAPIErrors    `json:"errors,omitempty"`
+	Messages []sdkAPIMessage `json:"messages,omitempty"`
+	Success  bool            `json:"success,omitempty"`
 }
 
-type APIMessage struct {
-	Code             int             `json:"code"`
-	Message          string          `json:"message"`
-	DocumentationURL string          `json:"documentation_url"`
-	ErrorChain       []APIErrorChain `json:"error_chain"`
-	Source           *APISource      `json:"source"`
+type sdkAPIMessage struct {
+	Code             int                `json:"code"`
+	Message          string             `json:"message"`
+	DocumentationURL string             `json:"documentation_url"`
+	ErrorChain       []sdkAPIErrorChain `json:"error_chain"`
+	Source           *sdkAPISource      `json:"source"`
 }
 
-type APIErrors []APIMessage
+type sdkAPIErrors []sdkAPIMessage
 
-type APIErrorChain struct {
+type sdkAPIErrorChain struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
 }
 
-type APISource struct {
+type sdkAPISource struct {
 	Pointer string `json:"pointer"`
 }
 
-func (e APIErrors) Error() string {
+func (e sdkAPIErrors) Error() string {
 	builder := &strings.Builder{}
 
 	for _, item := range e {
@@ -61,24 +61,3 @@ func (r *sdkResponseBase) GetSuccess() bool {
 }
 
 var _ sdkResponse = (*sdkResponseBase)(nil)
-
-type GeoRestriction struct {
-	Label string `json:"label"`
-}
-
-type CustomCertificate struct {
-	ID                 string           `json:"id"`
-	ZoneID             string           `json:"zone_id"`
-	BundleMethod       string           `json:"bundle_method"`
-	CustomCsrID        string           `json:"custom_csr_id"`
-	GeoRestrictions    []GeoRestriction `json:"geo_restrictions"`
-	Hosts              []string         `json:"hosts"`
-	Issuer             string           `json:"issuer"`
-	PolicyRestrictions string           `json:"policy_restrictions"`
-	Priority           float64          `json:"priority"`
-	Signature          string           `json:"signature"`
-	Status             string           `json:"status"`
-	ExpiresOn          string           `json:"expires_on"`
-	UploadedOn         string           `json:"uploaded_on"`
-	ModifiedOn         string           `json:"modified_on"`
-}

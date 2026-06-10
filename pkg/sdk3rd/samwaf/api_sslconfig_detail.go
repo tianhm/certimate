@@ -8,7 +8,7 @@ import (
 
 type SslConfigDetailResponse struct {
 	sdkResponseBase
-	Data *SslConfig `json:"data,omitempty"`
+	Data *SSLConfig `json:"data,omitempty"`
 }
 
 func (c *Client) SslConfigDetail(sslId string) (*SslConfigDetailResponse, error) {

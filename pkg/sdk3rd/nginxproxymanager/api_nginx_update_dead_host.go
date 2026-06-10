@@ -11,7 +11,7 @@ type NginxUpdateDeadHostRequest struct {
 }
 
 type NginxUpdateDeadHostResponse struct {
-	DeadHostRecord
+	DeadHost
 }
 
 func (c *Client) NginxUpdateDeadHost(hostId int64, req *NginxUpdateDeadHostRequest) (*NginxUpdateDeadHostResponse, error) {

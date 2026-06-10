@@ -93,7 +93,7 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*Dep
 	return &DeployResult{}, nil
 }
 
-func (d *Deployer) findSiteByName(ctx context.Context, siteName string) (*btwafsdk.SiteRecord, error) {
+func (d *Deployer) findSiteByName(ctx context.Context, siteName string) (*btwafsdk.SiteData, error) {
 	// 查询网站列表
 	getSiteListPage := 1
 	getSiteListPageSize := 100

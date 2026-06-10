@@ -10,14 +10,14 @@ import (
 type GetDeploymentTaskDetailResponse struct {
 	sdkResponseBase
 
-	Name           string                     `json:"name"`
-	Target         string                     `json:"target"`
-	Actions        []DeploymentTaskActionInfo `json:"actions"`
-	Status         string                     `json:"status"`
-	StatusDetails  string                     `json:"statusDetails"`
-	SubmissionTime string                     `json:"submissionTime"`
-	FinishTime     string                     `json:"finishTime"`
-	ApiRequestId   string                     `json:"apiRequestId"`
+	Name           string                 `json:"name"`
+	Target         string                 `json:"target"`
+	Actions        []DeploymentTaskAction `json:"actions"`
+	Status         string                 `json:"status"`
+	StatusDetails  string                 `json:"statusDetails"`
+	SubmissionTime string                 `json:"submissionTime"`
+	FinishTime     string                 `json:"finishTime"`
+	ApiRequestId   string                 `json:"apiRequestId"`
 }
 
 func (c *Client) GetDeploymentTaskDetail(deploymentTaskId string) (*GetDeploymentTaskDetailResponse, error) {

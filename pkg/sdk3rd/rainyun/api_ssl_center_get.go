@@ -9,7 +9,7 @@ import (
 type SslCenterGetResponse struct {
 	sdkResponseBase
 
-	Data *SslDetail `json:"data,omitempty"`
+	Data *SSLCertificateDetail `json:"data,omitempty"`
 }
 
 func (c *Client) SslCenterGet(sslId int64) (*SslCenterGetResponse, error) {

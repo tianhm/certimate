@@ -151,6 +151,7 @@
   "goedge": "GoEdge",
   "googlecloud": "Google Cloud",
   "googlecloud_dns": "Google Cloud - DNS",
+  "googlecloud_certificatemanager": "Google Cloud - Certificate Manager",
   "googletrustservices": "Google Trust Services",
   "hetzner": "Hetzner",
   "hostingde": "hosting.de",

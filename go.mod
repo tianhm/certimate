@@ -62,7 +62,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/sftp v1.13.10
 	github.com/pocketbase/dbx v1.12.0
-	github.com/pocketbase/pocketbase v0.39.2
+	github.com/pocketbase/pocketbase v0.39.3
 	github.com/povsister/scp v0.0.0-20250701154629-777cf82de5df
 	github.com/pquerna/otp v1.5.0
 	github.com/qiniu/go-sdk/v7 v7.26.12

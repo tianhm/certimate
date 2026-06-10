@@ -30,7 +30,7 @@ func (c *Client) NodeUploadCustomCertificateWithContext(ctx context.Context, nod
 	}
 
 	path := fmt.Sprintf("/nodes/%s/certificates/custom", node)
-	httpreq, err := c.newRequest(http.MethodPut, path)
+	httpreq, err := c.newRequest(http.MethodPost, path)
 	if err != nil {
 		return nil, err
 	} else {

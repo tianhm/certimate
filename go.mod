@@ -44,7 +44,6 @@ require (
 	github.com/baidubce/bce-sdk-go v0.9.268
 	github.com/byteplus-sdk/byteplus-go-sdk-v2 v1.0.66
 	github.com/byteplus-sdk/byteplus-sdk-golang v1.0.68
-	github.com/cloudflare/cloudflare-go/v7 v7.4.0
 	github.com/go-acme/lego/v5 v5.2.2
 	github.com/go-cmd/cmd v1.4.3
 	github.com/go-resty/resty/v2 v2.17.2
@@ -59,7 +58,6 @@ require (
 	github.com/minio/minio-go/v7 v7.2.0
 	github.com/mohuatech/mohuacloud-go-sdk v0.0.0-20251115182757-6fba4d0a4c47
 	github.com/pavlo-v-chernykh/keystore-go/v4 v4.5.0
-	github.com/pkg/errors v0.9.1
 	github.com/pkg/sftp v1.13.10
 	github.com/pocketbase/dbx v1.12.0
 	github.com/pocketbase/pocketbase v0.39.3
@@ -269,10 +267,10 @@ require (
 	github.com/nrdcg/namesilo v0.5.0 // indirect
 	github.com/openshift/gssapi v0.0.0-20161010215902-5fb4217df13b // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/spf13/afero v1.15.0 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
-	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/tinylib/msgp v1.6.4 // indirect
 	github.com/tjfoc/gmsm v1.4.1 // indirect
 	github.com/zeebo/xxh3 v1.1.0 // indirect

@@ -18,7 +18,7 @@ func (c *Client) SslCenterGet(sslId int64) (*SslCenterGetResponse, error) {
 
 func (c *Client) SslCenterGetWithContext(ctx context.Context, sslId int64) (*SslCenterGetResponse, error) {
 	if sslId == 0 {
-		return nil, fmt.Errorf("sdkerr: unset sslId")
+		return nil, fmt.Errorf("sdkerr: bad request: unset sslId")
 	}
 
 	httpreq, err := c.newRequest(http.MethodGet, fmt.Sprintf("/product/sslcenter/%d", sslId))

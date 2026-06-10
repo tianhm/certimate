@@ -17,7 +17,7 @@ func (c *Client) UpdateSSL(sslId string, req *UpdateSSLRequest) (*UpdateSSLRespo
 
 func (c *Client) UpdateSSLWithContext(ctx context.Context, sslId string, req *UpdateSSLRequest) (*UpdateSSLResponse, error) {
 	if sslId == "" {
-		return nil, fmt.Errorf("sdkerr: unset sslId")
+		return nil, fmt.Errorf("sdkerr: bad request: unset sslId")
 	}
 
 	httpreq, err := c.newRequest(http.MethodPut, fmt.Sprintf("/ssls/%s", url.PathEscape(sslId)))

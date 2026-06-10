@@ -26,7 +26,7 @@ func (c *Client) GetDeploymentTaskDetail(deploymentTaskId string) (*GetDeploymen
 
 func (c *Client) GetDeploymentTaskDetailWithContext(ctx context.Context, deploymentTaskId string) (*GetDeploymentTaskDetailResponse, error) {
 	if deploymentTaskId == "" {
-		return nil, fmt.Errorf("sdkerr: unset deploymentTaskId")
+		return nil, fmt.Errorf("sdkerr: bad request: unset deploymentTaskId")
 	}
 
 	httpreq, err := c.newRequest(http.MethodGet, fmt.Sprintf("/cdn/deploymentTasks/%s", url.PathEscape(deploymentTaskId)))

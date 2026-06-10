@@ -20,7 +20,7 @@ func (c *Client) NginxUpdateRedirectionHost(hostId int64, req *NginxUpdateRedire
 
 func (c *Client) NginxUpdateRedirectionHostWithContext(ctx context.Context, hostId int64, req *NginxUpdateRedirectionHostRequest) (*NginxUpdateRedirectionHostResponse, error) {
 	if hostId == 0 {
-		return nil, fmt.Errorf("sdkerr: unset hostId")
+		return nil, fmt.Errorf("sdkerr: bad request: unset hostId")
 	}
 
 	if err := c.ensureJwtTokenExists(); err != nil {

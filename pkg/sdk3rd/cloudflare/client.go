@@ -1,7 +1,6 @@
 package cloudflare
 
 import (
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -37,11 +36,6 @@ func NewClient(optFns ...OptionsFunc) (*Client, error) {
 
 func (c *Client) SetTimeout(timeout time.Duration) *Client {
 	c.rc.SetTimeout(timeout)
-	return c
-}
-
-func (c *Client) SetTLSConfig(config *tls.Config) *Client {
-	c.rc.SetTLSClientConfig(config)
 	return c
 }
 
@@ -94,8 +88,8 @@ func (c *Client) doRequestWithResult(req *resty.Request, res sdkResponse) (*rest
 		if err := json.Unmarshal(resp.Body(), &res); err != nil {
 			return resp, fmt.Errorf("sdkerr: failed to unmarshal response: %w (resp: %s)", err, resp.String())
 		} else {
-			if rErrors := res.GetErrors(); rErrors != nil {
-				return resp, fmt.Errorf("sdkerr: errors='%s'", rErrors.Error())
+			if err := res.GetAPIError(); err != nil {
+				return resp, fmt.Errorf("sdkerr: errors='%s'", err.Error())
 			}
 		}
 	}

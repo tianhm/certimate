@@ -26,7 +26,7 @@ func (c *Client) NodeUploadCustomCertificate(node string, req *NodeUploadCustomC
 
 func (c *Client) NodeUploadCustomCertificateWithContext(ctx context.Context, node string, req *NodeUploadCustomCertificateRequest) (*NodeUploadCustomCertificateResponse, error) {
 	if node == "" {
-		return nil, fmt.Errorf("sdkerr: unset node")
+		return nil, fmt.Errorf("sdkerr: bad request: unset node")
 	}
 
 	path := fmt.Sprintf("/nodes/%s/certificates/custom", node)

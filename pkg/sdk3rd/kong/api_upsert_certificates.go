@@ -17,7 +17,7 @@ func (c *Client) UpsertCertificate(certificateId string, req *UpsertCertificateR
 
 func (c *Client) UpsertCertificateWithContext(ctx context.Context, certificateId string, req *UpsertCertificateRequest) (*UpsertCertificateResponse, error) {
 	if certificateId == "" {
-		return nil, fmt.Errorf("sdkerr: unset certificateId")
+		return nil, fmt.Errorf("sdkerr: bad request: unset certificateId")
 	}
 
 	httpreq, err := c.newRequest(http.MethodPut, fmt.Sprintf("/certificates/%s", url.PathEscape(certificateId)))

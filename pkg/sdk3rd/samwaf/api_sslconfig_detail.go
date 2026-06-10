@@ -17,7 +17,7 @@ func (c *Client) SslConfigDetail(sslId string) (*SslConfigDetailResponse, error)
 
 func (c *Client) SslConfigDetailWithContext(ctx context.Context, sslId string) (*SslConfigDetailResponse, error) {
 	if sslId == "" {
-		return nil, fmt.Errorf("sdkerr: unset sslId")
+		return nil, fmt.Errorf("sdkerr: bad request: unset sslId")
 	}
 
 	httpreq, err := c.newRequest(http.MethodGet, "/sslconfig/detail")

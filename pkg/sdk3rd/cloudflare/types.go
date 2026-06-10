@@ -6,7 +6,7 @@ import (
 )
 
 type sdkResponse interface {
-	GetErrors() error
+	GetAPIError() error
 	GetSuccess() bool
 }
 
@@ -39,17 +39,17 @@ func (e sdkAPIErrors) Error() string {
 	builder := &strings.Builder{}
 
 	for _, item := range e {
-		fmt.Fprintf(builder, "%d: %s", item.Code, item.Message)
+		fmt.Fprintf(builder, "[%d] %s", item.Code, item.Message)
 
 		for _, link := range item.ErrorChain {
-			fmt.Fprintf(builder, "; %d: %s", link.Code, link.Message)
+			fmt.Fprintf(builder, "; [%d] %s", link.Code, link.Message)
 		}
 	}
 
-	return builder.String()
+	return strings.TrimSpace(builder.String())
 }
 
-func (r *sdkResponseBase) GetErrors() error {
+func (r *sdkResponseBase) GetAPIError() error {
 	if len(r.Errors) > 0 {
 		return r.Errors
 	}

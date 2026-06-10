@@ -21,7 +21,7 @@ func (c *Client) GetHostnameDetail(hostname string) (*GetHostnameDetailResponse,
 
 func (c *Client) GetHostnameDetailWithContext(ctx context.Context, hostname string) (*GetHostnameDetailResponse, error) {
 	if hostname == "" {
-		return nil, fmt.Errorf("sdkerr: unset hostname")
+		return nil, fmt.Errorf("sdkerr: bad request: unset hostname")
 	}
 
 	httpreq, err := c.newRequest(http.MethodGet, fmt.Sprintf("/cdn/hostnames/%s", url.PathEscape(hostname)))

@@ -44,7 +44,7 @@ type CertificateVersionIdentificationInfo struct {
 	Department              *string   `json:"department,omitempty"`
 	CommonName              *string   `json:"commonName,omitempty"`
 	Email                   *string   `json:"email,omitempty"`
-	SubjectAlternativeNames *[]string `json:"subjectAlternativeNames,omitempty"`
+	SubjectAlternativeNames []*string `json:"subjectAlternativeNames,omitempty"`
 }
 
 type HostnamePropertyInfo struct {

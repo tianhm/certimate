@@ -112,7 +112,7 @@ func (d *Deployer) deployToDomain(ctx context.Context, certPEM, privkeyPEM strin
 	// REF: https://portal.baishancloud.com/track/document/api/1/1065
 	getDomainConfigReq := &baishansdk.GetDomainConfigRequest{
 		Domains: lo.ToPtr(d.config.Domain),
-		Config:  lo.ToPtr([]string{"https"}),
+		Config:  []*string{lo.ToPtr("https")},
 	}
 	getDomainConfigResp, err := d.sdkClient.GetDomainConfigWithContext(ctx, getDomainConfigReq)
 	d.logger.Debug("sdk request 'cdn.GetDomainConfig'", slog.Any("request", getDomainConfigReq), slog.Any("response", getDomainConfigResp))

@@ -34,7 +34,7 @@ type SiteRecord struct {
 // }
 
 type SiteServerInfoMod struct {
-	ListenSSLPorts *[]string          `json:"listen_ssl_port,omitempty"`
+	ListenSSLPorts []*string          `json:"listen_ssl_port,omitempty"`
 	SSL            *SiteServerSSLInfo `json:"ssl,omitempty"`
 }
 

@@ -151,7 +151,7 @@ func (d *Deployer) updateSiteCertificate(ctx context.Context, siteName string, s
 		SiteId: lo.ToPtr(siteData.SiteId),
 		Type:   lo.ToPtr("openCert"),
 		Server: &btwafsdk.SiteServerInfoMod{
-			ListenSSLPorts: lo.ToPtr([]string{fmt.Sprintf("%d", d.config.SitePort)}),
+			ListenSSLPorts: []*string{lo.ToPtr(fmt.Sprintf("%d", d.config.SitePort))},
 			SSL: &btwafsdk.SiteServerSSLInfo{
 				IsSSL:      lo.ToPtr(int32(1)),
 				FullChain:  lo.ToPtr(certPEM),

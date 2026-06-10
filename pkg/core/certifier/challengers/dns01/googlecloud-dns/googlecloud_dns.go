@@ -10,7 +10,7 @@ import (
 	"google.golang.org/api/dns/v1"
 
 	"github.com/certimate-go/certimate/pkg/core"
-	gcpcred "github.com/certimate-go/certimate/pkg/sdk3rd/gcp/credential"
+	xgcp "github.com/certimate-go/certimate/pkg/utils/third-party/gcp"
 )
 
 type ChallengerConfig struct {
@@ -25,7 +25,7 @@ func NewChallenger(config *ChallengerConfig) (core.ACMEChallenger, error) {
 		return nil, fmt.Errorf("the configuration of the acme challenge provider is nil")
 	}
 
-	projectId, err := gcpcred.GetProjectIDFromServiceAccountKey(config.ServiceAccountKey)
+	projectId, err := xgcp.GetProjectIDFromServiceAccountKey(config.ServiceAccountKey)
 	if err != nil {
 		return nil, fmt.Errorf("googlecloud: %w", err)
 	} else if projectId != config.ProjectId {

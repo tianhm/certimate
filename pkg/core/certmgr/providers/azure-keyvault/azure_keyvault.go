@@ -14,8 +14,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates"
 
 	"github.com/certimate-go/certimate/pkg/core"
-	azenv "github.com/certimate-go/certimate/pkg/sdk3rd/azure/env"
 	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
+	xazure "github.com/certimate-go/certimate/pkg/utils/third-party/azure"
 )
 
 type (
@@ -231,7 +231,7 @@ const (
 )
 
 func createSDKClient(cloudName, tenantId, clientId, clientSecret, keyvaultName string) (*azcertificates.Client, error) {
-	env, err := azenv.GetCloudEnvConfiguration(cloudName)
+	env, err := xazure.GetCloudEnvConfiguration(cloudName)
 	if err != nil {
 		return nil, err
 	}
@@ -244,9 +244,9 @@ func createSDKClient(cloudName, tenantId, clientId, clientSecret, keyvaultName s
 	}
 
 	endpoint := fmt.Sprintf("https://%s.vault.azure.net", keyvaultName)
-	if azenv.IsUSGovernmentEnv(cloudName) {
+	if xazure.IsUSGovernmentEnv(cloudName) {
 		endpoint = fmt.Sprintf("https://%s.vault.usgovcloudapi.net", keyvaultName)
-	} else if azenv.IsChinaEnv(cloudName) {
+	} else if xazure.IsChinaEnv(cloudName) {
 		endpoint = fmt.Sprintf("https://%s.vault.azure.cn", keyvaultName)
 	}
 

@@ -13,7 +13,7 @@ import (
 
 	"github.com/certimate-go/certimate/pkg/core"
 	cmgrimpl "github.com/certimate-go/certimate/pkg/core/certmgr/providers/gcore-cdn"
-	gcoresdk "github.com/certimate-go/certimate/pkg/sdk3rd/gcore"
+	xgcore "github.com/certimate-go/certimate/pkg/utils/third-party/gcore"
 )
 
 type (
@@ -165,8 +165,8 @@ func createSDKClients(apiToken string) (*wSDKClients, error) {
 	}
 
 	requester := provider.NewClient(
-		gcoresdk.BASE_URL,
-		provider.WithSigner(gcoresdk.NewAuthRequestSigner(apiToken)),
+		xgcore.BASE_URL,
+		provider.WithSigner(xgcore.NewAuthRequestSigner(apiToken)),
 	)
 	resourcesSrv := resources.NewService(requester)
 	sslCertsSrv := sslcerts.NewService(requester)

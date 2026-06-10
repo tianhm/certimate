@@ -92,7 +92,7 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*Dep
 
 func createSDKClient(username, password string) (*unicloudsdk.Client, error) {
 	client, err := unicloudsdk.NewClient(
-		unicloudsdk.WithCredentials(username, password),
+		unicloudsdk.WithLogins(username, password),
 	)
 	if err != nil {
 		return nil, err

@@ -92,7 +92,7 @@ func (d *Deployer) deployToWebsite(ctx context.Context, certPEM, privkeyPEM stri
 		Key:            privkeyPEM,
 	}
 	provisionSiteTLSCertificateResp, err := d.sdkClient.ProvisionSiteTLSCertificateWithContext(ctx, d.config.SiteId, provisionSiteTLSCertificateReq)
-	d.logger.Debug("sdk request 'ProvisionSiteTLSCertificate'", slog.String("siteId", d.config.SiteId), slog.Any("request", provisionSiteTLSCertificateReq), slog.Any("response", provisionSiteTLSCertificateResp))
+	d.logger.Debug("sdk request 'ProvisionSiteTLSCertificate'", slog.String("params.siteId", d.config.SiteId), slog.Any("request", provisionSiteTLSCertificateReq), slog.Any("response", provisionSiteTLSCertificateResp))
 	if err != nil {
 		return fmt.Errorf("failed to execute sdk request 'ProvisionSiteTLSCertificate': %w", err)
 	}

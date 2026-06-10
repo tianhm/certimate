@@ -168,6 +168,14 @@ func (d *DNSProvider) CleanUp(ctx context.Context, domain, token, keyAuth string
 		return fmt.Errorf("conohavpsv3: error when delete record: %w", err)
 	}
 
+	d.zoneIDsMu.Lock()
+	delete(d.zoneIDs, authZone)
+	d.zoneIDsMu.Unlock()
+
+	d.recordIDsMu.Lock()
+	delete(d.recordIDs, token)
+	d.recordIDsMu.Unlock()
+
 	return nil
 }
 
@@ -175,7 +183,7 @@ func (d *DNSProvider) Timeout() (timeout, interval time.Duration) {
 	return d.config.PropagationTimeout, d.config.PollingInterval
 }
 
-func (d *DNSProvider) findZone(ctx context.Context, zoneName string) (*conohavpssdk.DnsDomainRecord, error) {
+func (d *DNSProvider) findZone(ctx context.Context, zoneName string) (*conohavpssdk.Domain, error) {
 	offset := 0
 	limit := 10
 	for {

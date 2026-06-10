@@ -11,8 +11,8 @@ import (
 	gcpoption "google.golang.org/api/option"
 
 	"github.com/certimate-go/certimate/pkg/core"
-	gcpcred "github.com/certimate-go/certimate/pkg/sdk3rd/gcp/credential"
 	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
+	xgcp "github.com/certimate-go/certimate/pkg/utils/third-party/gcp"
 )
 
 type (
@@ -63,7 +63,7 @@ func (c *Certmgr) SetLogger(logger *slog.Logger) {
 
 func (c *Certmgr) Upload(ctx context.Context, certPEM, privkeyPEM string) (*UploadResult, error) {
 	// 生成 GCP 所需的证书参数
-	gcpProject, err := gcpcred.GetProjectIDFromServiceAccountKey(c.config.ServiceAccountKey)
+	gcpProject, err := xgcp.GetProjectIDFromServiceAccountKey(c.config.ServiceAccountKey)
 	gcpLocation := "global"
 	gcpParent := fmt.Sprintf("projects/%s/locations/%s", gcpProject, gcpLocation)
 	if err != nil {

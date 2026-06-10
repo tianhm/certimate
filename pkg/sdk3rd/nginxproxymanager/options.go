@@ -8,7 +8,7 @@ type Options struct {
 
 type OptionsFunc func(*Options)
 
-func WithCredentials(username, password string) OptionsFunc {
+func WithLogins(username, password string) OptionsFunc {
 	return func(o *Options) {
 		o.Username = username
 		o.Password = password

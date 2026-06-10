@@ -156,6 +156,14 @@ func (d *DNSProvider) CleanUp(ctx context.Context, domain, token, keyAuth string
 		return fmt.Errorf("dynv6: error when delete record: %w", err)
 	}
 
+	d.zoneIDsMu.Lock()
+	delete(d.zoneIDs, authZone)
+	d.zoneIDsMu.Unlock()
+
+	d.recordIDsMu.Lock()
+	delete(d.recordIDs, token)
+	d.recordIDsMu.Unlock()
+
 	return nil
 }
 

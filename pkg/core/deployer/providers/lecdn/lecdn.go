@@ -109,7 +109,7 @@ func (d *Deployer) deployToCertificate(ctx context.Context, certPEM, privkeyPEM 
 				AutoRenewal: false,
 			}
 			updateSSLCertResp, err := sdkClient.UpdateCertificateWithContext(ctx, d.config.CertificateId, updateSSLCertReq)
-			d.logger.Debug("sdk request 'UpdateCertificate'", slog.Int64("certId", d.config.CertificateId), slog.Any("request", updateSSLCertReq), slog.Any("response", updateSSLCertResp))
+			d.logger.Debug("sdk request 'UpdateCertificate'", slog.Int64("params.certId", d.config.CertificateId), slog.Any("request", updateSSLCertReq), slog.Any("response", updateSSLCertResp))
 			if err != nil {
 				return fmt.Errorf("failed to execute sdk request 'UpdateCertificate': %w", err)
 			}
@@ -127,7 +127,7 @@ func (d *Deployer) deployToCertificate(ctx context.Context, certPEM, privkeyPEM 
 				AutoRenewal: false,
 			}
 			updateSSLCertResp, err := sdkClient.UpdateCertificateWithContext(ctx, d.config.CertificateId, updateSSLCertReq)
-			d.logger.Debug("sdk request 'UpdateCertificate'", slog.Int64("certId", d.config.CertificateId), slog.Any("request", updateSSLCertReq), slog.Any("response", updateSSLCertResp))
+			d.logger.Debug("sdk request 'UpdateCertificate'", slog.Int64("params.certId", d.config.CertificateId), slog.Any("request", updateSSLCertReq), slog.Any("response", updateSSLCertResp))
 			if err != nil {
 				return fmt.Errorf("failed to execute sdk request 'UpdateCertificate': %w", err)
 			}
@@ -151,7 +151,7 @@ func createSDKClient(serverUrl, apiVersion, apiRole, username, password string, 
 	if apiVersion == sdkVersionV3 && apiRole == sdkRoleClient {
 		// v3 版客户端
 		client, err := lecdnclientv3.NewClient(serverUrl,
-			lecdnclientv3.WithCredentials(username, password),
+			lecdnclientv3.WithLogins(username, password),
 		)
 		if err != nil {
 			return nil, err
@@ -165,7 +165,7 @@ func createSDKClient(serverUrl, apiVersion, apiRole, username, password string, 
 	} else if apiVersion == sdkVersionV3 && apiRole == sdkRoleMaster {
 		// v3 版主控端
 		client, err := lecdnmasterv3.NewClient(serverUrl,
-			lecdnmasterv3.WithCredentials(username, password),
+			lecdnmasterv3.WithLogins(username, password),
 		)
 		if err != nil {
 			return nil, err

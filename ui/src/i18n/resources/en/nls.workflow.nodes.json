@@ -1834,6 +1834,15 @@
         "placeholder": "Please enter LeCDN user ID",
         "tooltip": "You can find it on LeCDN dashboard. <br>Required when using administrator's authorization. It Must be the same as the user to which the certificate belongs."
       },
+      "linode_los_region_id": {
+        "label": "Linode region ID",
+        "placeholder": "Please enter Linode object storage region ID (e.g. us-east)",
+        "tooltip": "For more information, see <a href=\"https://techdocs.akamai.com/cloud-computing/docs/endpoint-types#supported-endpoint-types-by-region\" target=\"_blank\">https://techdocs.akamai.com/cloud-computing/docs/endpoint-types</a>"
+      },
+      "linode_los_bucket": {
+        "label": "Linode object storage bucket name",
+        "placeholder": "Please enter Linode object storage bucket name"
+      },
       "local": {
         "guide": "If you are running Certimate in Docker, the \"Local\" refers to the container rather than the host."
       },

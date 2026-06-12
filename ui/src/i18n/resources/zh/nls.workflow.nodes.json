@@ -1830,6 +1830,15 @@
         "placeholder": "请输入 LeCDN 客户 ID",
         "tooltip": "请登录 LeCDN 控制台查看。<br>使用的是系统管理员的授权信息时必填，需与证书所属客户相同。"
       },
+      "linode_los_region_id": {
+        "label": "Linode 服务区域 ID",
+        "placeholder": "请输入 Linode 对象存储区域 ID（例如：us-east）",
+        "tooltip": "这是什么？请参阅 <a href=\"https://techdocs.akamai.com/cloud-computing/docs/endpoint-types#supported-endpoint-types-by-region\" target=\"_blank\">https://techdocs.akamai.com/cloud-computing/docs/endpoint-types</a>"
+      },
+      "linode_los_bucket": {
+        "label": "Linode 对象存储桶名",
+        "placeholder": "请输入 Linode 对象存储桶名"
+      },
       "local": {
         "guide": "如果你正在使用 Docker 运行 Certimate，「本地」指的是容器内而非宿主机。"
       },

@@ -2784,7 +2784,7 @@
       "webhook_data": {
         "label": "Webhook data (Optional)",
         "placeholder": "Please enter Webhook data",
-        "help": "Notes: Leave it blank to use the default Webhook data provided by the credential.",
+        "help": "Notes: Leave it blank to use the default Webhook data provided by the selected credential.",
         "vartips": "Supported variables: <br><ol style=\"list-style: disc;\"><li><strong>${CERTIMATE_DEPLOYER_COMMONNAME}</strong>: <br>The primary domain or IP address of the certificate.</li><li><strong>${CERTIMATE_DEPLOYER_SUBJECTALTNAMES}</strong>: <br>The domains or IP addresses of the certificate, separated by semicolons.</li><li><strong>${CERTIMATE_DEPLOYER_CERTIFICATE}</strong>: <br>The PEM format content of the certificate file.</li><li><strong>${CERTIMATE_DEPLOYER_CERTIFICATE_SERVER}</strong>: <br>The PEM format content of the server certificate file.</li><li><strong>${CERTIMATE_DEPLOYER_CERTIFICATE_INTERMEDIA}</strong>: <br>The PEM format content of the intermediate CA certificate file.</li><li><strong>${CERTIMATE_DEPLOYER_PRIVATEKEY}</strong>: <br>The PEM format content of the private key file.</li></ol>"
       },
       "webhook_timeout": {
@@ -2890,7 +2890,7 @@
       "discordbot_channel_id": {
         "label": "Discord channel ID (Optional)",
         "placeholder": "Please enter Discord channel ID",
-        "help": "Notes: Leave it blank to use the default channel ID provided by the credential."
+        "help": "Notes: Leave it blank to use the default channel ID provided by the selected credential."
       },
       "email_format": {
         "label": "Message format (Optional)",
@@ -2909,15 +2909,20 @@
         "placeholder": "Please enter receiver email address",
         "help": "Notes: Leave it blank to use the default receiver email address provided by the selected credential."
       },
+      "matrix_room_id": {
+        "label": "Matrix room ID (Optional)",
+        "placeholder": "Please enter Matrix room ID",
+        "help": "Notes: Leave it blank to use the default room ID provided by the selected credential."
+      },
       "mattermost_channel_id": {
         "label": "Mattermost channel ID (Optional)",
         "placeholder": "Please enter Mattermost channel ID",
-        "help": "Notes: Leave it blank to use the default channel ID provided by the credential."
+        "help": "Notes: Leave it blank to use the default channel ID provided by the selected credential."
       },
       "slackbot_channel_id": {
         "label": "Slack channel ID (Optional)",
         "placeholder": "Please enter Slack channel ID",
-        "help": "Notes: Leave it blank to use the default channel ID provided by the credential."
+        "help": "Notes: Leave it blank to use the default channel ID provided by the selected credential."
       },
       "telegrambot_chat_id": {
         "label": "Telegram chat ID (Optional)",
@@ -2927,7 +2932,7 @@
       "webhook_data": {
         "label": "Webhook data (Optional)",
         "placeholder": "Please enter Webhook data",
-        "help": "Notes: Leave it blank to use the default Webhook data provided by the credential.",
+        "help": "Notes: Leave it blank to use the default Webhook data provided by the selected credential.",
         "vartips": "Supported variables: <br><ol style=\"list-style: disc;\"><li><strong>${CERTIMATE_NOTIFIER_SUBJECT}</strong>: <br>The subject of notification.</li><li><strong>${CERTIMATE_NOTIFIER_MESSAGE}</strong>: <br>The message of notification.</li></ol>"
       },
       "webhook_timeout": {

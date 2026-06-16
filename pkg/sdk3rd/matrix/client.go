@@ -44,7 +44,7 @@ func NewClient(serverUrl string, optFns ...OptionsFunc) (*Client, error) {
 		SetBaseURL(strings.TrimSuffix(baseUrl, "/")).
 		SetHeader("Authorization", "Bearer "+opts.AccessToken).
 		SetHeader("Content-Type", "application/json").
-		SetHeader("User-Agent", app.AppUserAgent).
+		SetHeader("User-Agent", app.AppUserAgent)
 	if err := client.probeVersions(); err != nil {
 		return nil, err
 	}

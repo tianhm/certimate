@@ -30,7 +30,7 @@ Index:
 >
 > ```bash
 > # Option 1: Direct recursive pull during cloning
-> > git clone --recurse-submodules https://github.com/certimate-go/certimate.git
+> git clone --recurse-submodules https://github.com/certimate-go/certimate.git
 >
 > # Option 2: Clone first, then initialize
 > git clone https://github.com/certimate-go/certimate.git

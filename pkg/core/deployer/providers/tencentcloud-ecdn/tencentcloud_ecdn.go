@@ -261,7 +261,7 @@ func (d *Deployer) updateDomainCertificate(ctx context.Context, domain string, c
 
 	domainConfig := describeDomainsConfigResp.Response.Domains[0]
 	if domainConfig.Https != nil && domainConfig.Https.CertInfo != nil && domainConfig.Https.CertInfo.CertId != nil && *domainConfig.Https.CertInfo.CertId == cloudCertId {
-		// 已部署过此域名，跳过
+		// 已部署过，直接返回
 		return nil
 	}
 

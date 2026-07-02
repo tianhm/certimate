@@ -105,7 +105,7 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*Dep
 
 	// 避免多次部署，否则会报错 https://github.com/certimate-go/certimate/issues/897#issuecomment-3182904098
 	if bind, _ := d.checkIsBind(ctx, upres.CertId); bind {
-		d.logger.Info("no need to update cos custom domain certificate")
+		d.logger.Info("no need to deploy cos custom domain certificate")
 		return &DeployResult{}, nil
 	}
 

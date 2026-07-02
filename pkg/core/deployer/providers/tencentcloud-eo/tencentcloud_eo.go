@@ -109,7 +109,7 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*Dep
 		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
 	}
 
-	// 获取全部可部署的域名信息
+	// 获取全部可部署的域名列表
 	domainsInZone, err := d.getAllDomainsInZone(ctx, d.config.ZoneId)
 	if err != nil {
 		return nil, err
@@ -166,27 +166,27 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*Dep
 		return nil, fmt.Errorf("unsupported domain match pattern: '%s'", d.config.DomainMatchPattern)
 	}
 
-	// 跳过已部署过的域名
-	domains = lo.Filter(domains, func(domain string, _ int) bool {
-		var deployed bool
-
-		domainInfo, _ := lo.Find(domainsInZone, func(domainInfo *tceo.AccelerationDomain) bool {
-			return domain == lo.FromPtr(domainInfo.DomainName)
-		})
-		if domainInfo != nil && domainInfo.Certificate != nil {
-			deployed = lo.SomeBy(domainInfo.Certificate.List, func(certInfo *tceo.CertificateInfo) bool {
-				return upres.CertId == lo.FromPtr(certInfo.CertId)
-			})
-		}
-
-		return !deployed
-	})
-
 	// 批量更新域名证书
 	if len(domains) == 0 {
 		d.logger.Info("no edgeone domains to deploy")
 	} else {
 		d.logger.Info("found edgeone domains to deploy", slog.Any("domains", domains))
+
+		// 跳过已部署过的域名
+		domains = lo.Filter(domains, func(domain string, _ int) bool {
+			var deployed bool
+
+			domainInfo, _ := lo.Find(domainsInZone, func(domainInfo *tceo.AccelerationDomain) bool {
+				return domain == lo.FromPtr(domainInfo.DomainName)
+			})
+			if domainInfo != nil && domainInfo.Certificate != nil {
+				deployed = lo.SomeBy(domainInfo.Certificate.List, func(certInfo *tceo.CertificateInfo) bool {
+					return upres.CertId == lo.FromPtr(certInfo.CertId)
+				})
+			}
+
+			return !deployed
+		})
 
 		// 配置域名证书
 		// REF: https://cloud.tencent.com/document/api/1552/80764

@@ -155,7 +155,7 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*Dep
 		certArn := upres.ExtendedData["Arn"].(string)
 		for _, certItem := range listenerInfo.Certificates {
 			if aws.ToString(certItem.CertificateArn) == certArn && aws.ToBool(certItem.IsDefault) {
-				d.logger.Info("no need to update alb listener default certificate")
+				d.logger.Info("no need to deploy alb listener default certificate")
 				return &DeployResult{}, nil
 			}
 		}
@@ -167,7 +167,7 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*Dep
 		certArn := upres.ExtendedData["Arn"].(string)
 		for _, certItem := range listenerInfo.Certificates {
 			if aws.ToString(certItem.CertificateArn) == certArn && !aws.ToBool(certItem.IsDefault) {
-				d.logger.Info("no need to add alb listener sni certificate")
+				d.logger.Info("no need to deploy alb listener sni certificate")
 				return &DeployResult{}, nil
 			}
 		}

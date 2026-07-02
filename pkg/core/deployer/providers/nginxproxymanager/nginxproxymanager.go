@@ -138,6 +138,12 @@ func (d *Deployer) deployToHost(ctx context.Context, certPEM, privkeyPEM string)
 		d.logger.Info("ssl certificate uploaded", slog.Any("result", upres))
 	}
 
+	// 获取全部可部署的主机列表
+	hostsByType, err := d.getAllHosts(ctx, d.config.HostType)
+	if err != nil {
+		return err
+	}
+
 	// 获取待部署的主机列表
 	var hostIds []int64
 	switch d.config.HostMatchPattern {
@@ -152,11 +158,7 @@ func (d *Deployer) deployToHost(ctx context.Context, certPEM, privkeyPEM string)
 
 	case HOST_MATCH_PATTERN_CERTSAN:
 		{
-			hostCandidates, err := d.getAllHosts(ctx, d.config.HostType)
-			if err != nil {
-				return err
-			}
-
+			hostCandidates := hostsByType
 			hostIds = lo.Map(
 				lo.Filter(hostCandidates, func(hostItem *npmsdk.Host, _ int) bool {
 					return len(hostItem.DomainNames) > 0 &&
@@ -171,18 +173,6 @@ func (d *Deployer) deployToHost(ctx context.Context, certPEM, privkeyPEM string)
 			if len(hostIds) == 0 {
 				return fmt.Errorf("could not find any hosts matched by certificate")
 			}
-
-			// 跳过已部署过的主机
-			hostIds = lo.Filter(hostIds, func(hostId int64, _ int) bool {
-				hostInfo, _ := lo.Find(hostCandidates, func(hostItem *npmsdk.Host) bool {
-					return hostId == hostItem.Id
-				})
-				if hostInfo != nil {
-					return strconv.FormatInt(hostInfo.CertificateId, 10) != upres.CertId
-				}
-
-				return true
-			})
 		}
 
 	default:
@@ -194,9 +184,21 @@ func (d *Deployer) deployToHost(ctx context.Context, certPEM, privkeyPEM string)
 		d.logger.Info("no hosts to deploy")
 	} else {
 		d.logger.Info("found hosts to deploy", slog.Any("hostIds", hostIds))
-		var errs []error
 
+		// 跳过已部署过的主机
 		certId, _ := strconv.ParseInt(upres.CertId, 10, 64)
+		hostIds = lo.Filter(hostIds, func(hostId int64, _ int) bool {
+			hostInfo, _ := lo.Find(hostsByType, func(hostItem *npmsdk.Host) bool {
+				return hostId == hostItem.Id
+			})
+			if hostInfo != nil {
+				return hostInfo.CertificateId != certId
+			}
+
+			return true
+		})
+
+		var errs []error
 		for i, hostId := range hostIds {
 			select {
 			case <-ctx.Done():

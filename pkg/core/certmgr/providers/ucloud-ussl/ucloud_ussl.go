@@ -208,7 +208,6 @@ func (c *Certmgr) tryGetResultIfCertExists(ctx context.Context, certPEM string) 
 					continue
 				}
 			default:
-				// 未知签名算法，跳过
 				continue
 			}
 

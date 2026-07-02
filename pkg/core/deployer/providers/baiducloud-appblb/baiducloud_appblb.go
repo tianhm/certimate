@@ -269,7 +269,7 @@ func (d *Deployer) updateHttpsListenerCertificate(ctx context.Context, cloudLoad
 	if d.config.Domain == "" {
 		// 未指定 SNI，只需部署到监听器
 		if lo.SomeBy(listenerInfo.CertIds, func(item string) bool { return item == cloudCertId }) {
-			d.logger.Info("no need to update appblb listener default certificate")
+			d.logger.Info("no need to deploy appblb listener default certificate")
 			return nil
 		}
 		return d.updateHttpsListenerDefaultCertificate(ctx, cloudLoadbalancerId, &listenerInfo, cloudCertId)

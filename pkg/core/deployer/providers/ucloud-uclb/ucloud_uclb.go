@@ -222,7 +222,7 @@ func (d *Deployer) updateVServerCertificate(ctx context.Context, cloudLoadbalanc
 		return fmt.Errorf("could not find uclb vserver '%s'", cloudVServerId)
 	}
 
-	// 跳过已部署过的 VServer
+	// 已部署过，直接返回
 	vserverInfo := describeVServerResp.DataSet[0]
 	if lo.SomeBy(vserverInfo.SSLSet, func(item ulb.ULBSSLSet) bool { return item.SSLId == cloudCertId }) {
 		return nil

@@ -215,10 +215,11 @@ func (d *Deployer) deployToWAF3WithCloudResource(ctx context.Context, cloudCertI
 		// 未指定扩展域名，只需替换默认证书
 		const certAppliedTypeDefault = "default"
 
-		// 已部署过，直接跳过更新
+		// 已部署过，直接返回
 		for _, certItem := range wafCloudResourceCertificates {
 			if tea.StringValue(certItem.AppliedType) == certAppliedTypeDefault &&
 				tea.StringValue(certItem.CertificateId) == cloudCertId {
+				d.logger.Info("no need to deploy waf default certificate")
 				return nil
 			}
 		}
@@ -245,10 +246,11 @@ func (d *Deployer) deployToWAF3WithCloudResource(ctx context.Context, cloudCertI
 		// 指定扩展域名，替换或新增扩展证书
 		const certAppliedTypeExtension = "extension"
 
-		// 已部署过，直接跳过更新
+		// 已部署过，直接返回
 		for _, certItem := range wafCloudResourceCertificates {
 			if tea.StringValue(certItem.AppliedType) == certAppliedTypeExtension &&
 				tea.StringValue(certItem.CertificateId) == cloudCertId {
+				d.logger.Info("no need to deploy waf extension certificate")
 				return nil
 			}
 		}

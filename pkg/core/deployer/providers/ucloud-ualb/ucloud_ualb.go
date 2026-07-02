@@ -223,14 +223,14 @@ func (d *Deployer) updateListenerCertificate(ctx context.Context, cloudLoadbalan
 	if d.config.Domain == "" {
 		// 未指定 SNI，只需部署到监听器
 		if lo.SomeBy(listenerInfo.Certificates, func(item ulb.Certificate) bool { return item.SSLId == cloudCertId && item.IsDefault }) {
-			d.logger.Info("no need to update alb listener default certificate")
+			d.logger.Info("no need to deploy alb listener default certificate")
 			return nil
 		}
 		return d.updateListenerDefaultCertificate(ctx, cloudLoadbalancerId, cloudListenerId, cloudCertId)
 	} else {
 		// 指定 SNI，需部署到扩展域名
 		if lo.SomeBy(listenerInfo.Certificates, func(item ulb.Certificate) bool { return item.SSLId == cloudCertId && !item.IsDefault }) {
-			d.logger.Info("no need to add alb listener sni certificate")
+			d.logger.Info("no need to deploy alb listener sni certificate")
 			return nil
 		}
 		return d.updateListenerSniCertificate(ctx, cloudLoadbalancerId, listenerInfo, cloudCertId)

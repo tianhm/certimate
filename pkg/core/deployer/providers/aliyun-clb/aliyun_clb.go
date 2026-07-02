@@ -232,7 +232,7 @@ func (d *Deployer) updateListenerCertificate(ctx context.Context, cloudLoadbalan
 	if d.config.Domain == "" {
 		// 未指定 SNI，只需部署到监听器
 		if tea.StringValue(describeLoadBalancerHTTPSListenerAttributeResp.Body.ServerCertificateId) == cloudCertId {
-			d.logger.Info("no need to update clb listener default certificate")
+			d.logger.Info("no need to deploy clb listener default certificate")
 			return nil
 		}
 		return d.updateListenerDefaultCertificate(ctx, cloudLoadbalancerId, cloudListenerPort, cloudCertId)
@@ -285,7 +285,7 @@ func (d *Deployer) updateListenerSniCertificate(ctx context.Context, cloudLoadba
 			}
 
 			if tea.StringValue(domainExtension.ServerCertificateId) == cloudCertId {
-				d.logger.Info("no need to add clb listener sni certificate")
+				d.logger.Info("no need to deploy clb listener sni certificate")
 				continue
 			}
 

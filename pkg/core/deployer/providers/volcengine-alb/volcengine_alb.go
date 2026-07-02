@@ -223,7 +223,7 @@ func (d *Deployer) updateListenerCertificate(ctx context.Context, cloudListenerI
 	if d.config.Domain == "" {
 		// 未指定 SNI，只需部署到监听器
 		if ve.StringValue(describeListenerAttributesResp.CertificateId) == cloudCertId {
-			d.logger.Info("no need to update alb listener default certificate")
+			d.logger.Info("no need to deploy alb listener default certificate")
 			return nil
 		}
 		return d.updateListenerDefaultCertificate(ctx, *describeListenerAttributesResp, cloudCertId)

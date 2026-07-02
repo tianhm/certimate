@@ -254,14 +254,14 @@ func (d *Deployer) updateListenerCertificate(ctx context.Context, cloudListenerI
 	if d.config.Domain == "" {
 		// 未指定 SNI，只需部署到默认证书
 		if lo.FromPtr(listenerInfo.DefaultTlsContainerId) == cloudCertId {
-			d.logger.Info("no need to update vlb default certificate")
+			d.logger.Info("no need to deploy vlb default certificate")
 			return nil
 		}
 		return d.updateListenerDefaultCertificate(ctx, *listenerInfo, cloudCertId)
 	} else {
 		// 指定 SNI，需部署到 SNI 证书
 		if lo.Contains(listenerInfo.SniContainerIdList, cloudCertId) {
-			d.logger.Info("no need to update vlb sni certificate")
+			d.logger.Info("no need to deploy vlb sni certificate")
 			return nil
 		}
 		return d.updateListenerSniCertificate(ctx, *listenerInfo, cloudCertId)

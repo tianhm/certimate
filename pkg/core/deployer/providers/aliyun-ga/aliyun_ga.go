@@ -247,7 +247,7 @@ func (d *Deployer) updateListenerCertificate(ctx context.Context, cloudAccelerat
 	if d.config.Domain == "" {
 		// 未指定 SNI，只需部署到监听器
 		if listenerDefaultCertificate != nil && tea.StringValue(listenerDefaultCertificate.CertificateId) == cloudCertId {
-			d.logger.Info("no need to update ga listener default certificate")
+			d.logger.Info("no need to deploy ga listener default certificate")
 			return nil
 		}
 		return d.updateListenerDefaultCertificate(ctx, cloudListenerId, cloudCertId)
@@ -256,7 +256,7 @@ func (d *Deployer) updateListenerCertificate(ctx context.Context, cloudAccelerat
 		if lo.SomeBy(listenerAdditionalCertificates, func(item *aliga.ListListenerCertificatesResponseBodyCertificates) bool {
 			return tea.StringValue(item.CertificateId) == cloudCertId
 		}) {
-			d.logger.Info("no need to add ga listener sni certificate")
+			d.logger.Info("no need to deploy ga listener sni certificate")
 			return nil
 		}
 

@@ -412,7 +412,7 @@ func (d *Deployer) updateListenerSniCertificate(ctx context.Context, cloudListen
 	// 关联监听和扩展证书
 	// REF: https://help.aliyun.com/zh/slb/application-load-balancer/developer-reference/api-alb-2020-06-16-associateadditionalcertificateswithlistener
 	if certificateIsAlreadyAssociated {
-		d.logger.Info("no need to add alb listener sni certificate")
+		d.logger.Info("no need to deploy alb listener sni certificate")
 		return nil
 	} else {
 		if err := d.waitForListenerReady(ctx, cloudListenerId); err != nil {

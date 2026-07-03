@@ -64,7 +64,7 @@ func NewDeployer(config *DeployerConfig) (*Deployer, error) {
 		AccessKeyId:     config.AccessKeyId,
 		AccessKeySecret: config.AccessKeySecret,
 		PoolId:          config.PoolId,
-		IsSNI:           config.Domain != "",
+		IsDefault:       config.Domain == "",
 	})
 	if err != nil {
 		return nil, fmt.Errorf("could not create certmgr: %w", err)

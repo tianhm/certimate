@@ -42,6 +42,7 @@ func TestProvider(t *testing.T) {
 			AccessKeyId:     fAccessKeyId,
 			AccessKeySecret: fAccessKeySecret,
 			PoolId:          fPoolId,
+			IsDefault:       true,
 		})
 		if err != nil {
 			t.Errorf("err: %+v", err)

@@ -29,8 +29,8 @@ type CertmgrConfig struct {
 	AccessKeySecret string `json:"accessKeySecret"`
 	// 移动云资源池 ID。
 	PoolId string `json:"poolId"`
-	// 是否是 SNI 证书。
-	IsSNI bool `json:"isSni,omitempty"`
+	// 是否设为默认证书。
+	IsDefault bool `json:"isDefault,omitempty"`
 }
 
 type Certmgr struct {
@@ -124,7 +124,7 @@ func (c *Certmgr) Upload(ctx context.Context, certPEM, privkeyPEM string) (*Uplo
 	createLoadbalanceCertificationReq := &model.CreateLoadbalanceCertificationRequest{
 		&model.CreateLoadbalanceCertificationBody{
 			Name:        lo.ToPtr(certName),
-			Type:        lo.ToPtr(lo.Ternary(c.config.IsSNI, model.CreateLoadbalanceCertificationBodyTypeEnumSni, model.CreateLoadbalanceCertificationBodyTypeEnumServer)),
+			Type:        lo.ToPtr(lo.Ternary(c.config.IsDefault, model.CreateLoadbalanceCertificationBodyTypeEnumServer, model.CreateLoadbalanceCertificationBodyTypeEnumSni)),
 			Description: lo.ToPtr("upload from Certimate"),
 			PublicKey:   lo.ToPtr(certPEM),
 			PrivateKey:  lo.ToPtr(privkeyPEM),

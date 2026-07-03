@@ -18,6 +18,7 @@ import (
 	"github.com/certimate-go/certimate/pkg/core"
 	cmgrimpl "github.com/certimate-go/certimate/pkg/core/certmgr/providers/aliyun-cas"
 	xcerthostname "github.com/certimate-go/certimate/pkg/utils/cert/hostname"
+	xalibabacloud "github.com/certimate-go/certimate/pkg/utils/third-party/alibabacloud"
 )
 
 type (
@@ -64,9 +65,7 @@ func NewDeployer(config *DeployerConfig) (*Deployer, error) {
 		AccessKeyId:     config.AccessKeyId,
 		AccessKeySecret: config.AccessKeySecret,
 		ResourceGroupId: config.ResourceGroupId,
-		Region: lo.
-			If(config.Region == "" || strings.HasPrefix(config.Region, "cn-"), "cn-hangzhou").
-			Else("ap-southeast-1"),
+		Region:          lo.Ternary(xalibabacloud.IsIntlRegion(config.Region), "ap-southeast-1", ""),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("could not create certmgr: %w", err)

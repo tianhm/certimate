@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"strings"
 	"time"
 
 	"github.com/samber/lo"
@@ -16,6 +15,7 @@ import (
 
 	"github.com/certimate-go/certimate/pkg/core"
 	cmgrimpl "github.com/certimate-go/certimate/pkg/core/certmgr/providers/tencentcloud-ssl"
+	xtencentcloud "github.com/certimate-go/certimate/pkg/utils/third-party/tencentcloud"
 	xwait "github.com/certimate-go/certimate/pkg/utils/wait"
 )
 
@@ -71,9 +71,7 @@ func NewDeployer(config *DeployerConfig) (*Deployer, error) {
 		SecretId:  config.SecretId,
 		SecretKey: config.SecretKey,
 		ProjectId: config.ProjectId,
-		Endpoint: lo.
-			If(strings.HasSuffix(config.Endpoint, "intl.tencentcloudapi.com"), "ssl.intl.tencentcloudapi.com"). // 国际站使用独立的接口端点
-			Else(""),
+		Endpoint:  lo.Ternary(xtencentcloud.IsIntlAPIEndpoint(config.Endpoint), "ssl.intl.tencentcloudapi.com", ""),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("could not create certmgr: %w", err)

@@ -132,6 +132,6 @@ Certimate 遵循 [MIT License](https://opensource.org/licenses/MIT) 开源协议
 
 ## ⭐ 星标趋势
 
-在 GitHub 上为 Certimate 添加 Star 星标关注，即可第一时间获取新版本发布通知。
+在 GitHub 上为 Certimate 添加 Star 星标关注，即可第一时间获取新版本发布通知！
 
-[![Stargazers over time](https://starchart.cc/certimate-go/certimate.svg?variant=adaptive)](https://starchart.cc/certimate-go/certimate)
+[![Stargazers over time](https://api.star-history.com/chart?repos=certimate-go/certimate&type=date&legend=top-left&sealed_token=rLTB29GcBiDpAWxCTl0wZkfywh8P5qGCguzjXbjkyXmQTY_xY-foF6gYzgn33aMVQ0swZy_EyQvX5BllE6WdLnmk12wQv9YMvKP5DEuf0jA5_cHLOfuCNwy8uuxFa6enyw84L8IbA4WKPzB5NtrRI3maREuYC7_QfWoK3BMEGaR92PqroLGkewjQu4y9)](https://www.star-history.com/?repos=certimate-go%2Fcertimate&type=date&legend=top-left)

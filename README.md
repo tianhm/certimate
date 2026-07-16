@@ -132,4 +132,12 @@ This repository is available under the [MIT License](https://opensource.org/lice
 
 Star Certificate on GitHub and be instantly notified of new releases!
 
-[![Stargazers over time](https://api.star-history.com/chart?repos=certimate-go/certimate&type=date&legend=top-left&sealed_token=rLTB29GcBiDpAWxCTl0wZkfywh8P5qGCguzjXbjkyXmQTY_xY-foF6gYzgn33aMVQ0swZy_EyQvX5BllE6WdLnmk12wQv9YMvKP5DEuf0jA5_cHLOfuCNwy8uuxFa6enyw84L8IbA4WKPzB5NtrRI3maREuYC7_QfWoK3BMEGaR92PqroLGkewjQu4y9)](https://www.star-history.com/?repos=certimate-go%2Fcertimate&type=date&legend=top-left)
+## Star History
+
+<a href="https://www.star-history.com/?repos=certimate-go%2Fcertimate&type=date&legend=bottom-right">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=certimate-go/certimate&type=date&theme=dark&legend=bottom-right&sealed_token=AgSJWuhVJZ3c0ObBtRjr082YXnvEJdtzvse3YxJGfkUtB4nEs9RrHwwf2u41HTSOt-pU-h4lfJXzTAvRMNwKlvdEPY_BoV935TmriioBUABY69Offs4Ze9_f5mv2QP5yD5m3e5tv-HkNrHnkVVzJ2uDmJQkt6ta9Mg90DogAf4FK1mva-dd3DqZVkbw1" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=certimate-go/certimate&type=date&legend=bottom-right&sealed_token=AgSJWuhVJZ3c0ObBtRjr082YXnvEJdtzvse3YxJGfkUtB4nEs9RrHwwf2u41HTSOt-pU-h4lfJXzTAvRMNwKlvdEPY_BoV935TmriioBUABY69Offs4Ze9_f5mv2QP5yD5m3e5tv-HkNrHnkVVzJ2uDmJQkt6ta9Mg90DogAf4FK1mva-dd3DqZVkbw1" />
+   <img alt="Stargazers over time" src="https://api.star-history.com/chart?repos=certimate-go/certimate&type=date&legend=bottom-right&sealed_token=AgSJWuhVJZ3c0ObBtRjr082YXnvEJdtzvse3YxJGfkUtB4nEs9RrHwwf2u41HTSOt-pU-h4lfJXzTAvRMNwKlvdEPY_BoV935TmriioBUABY69Offs4Ze9_f5mv2QP5yD5m3e5tv-HkNrHnkVVzJ2uDmJQkt6ta9Mg90DogAf4FK1mva-dd3DqZVkbw1" />
+ </picture>
+</a>

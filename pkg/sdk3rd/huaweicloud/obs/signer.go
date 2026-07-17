@@ -11,6 +11,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	xmaps "github.com/certimate-go/certimate/pkg/utils/maps"
 )
 
 type signer struct {
@@ -50,10 +52,7 @@ func (s *signer) Sign(req *http.Request) error {
 	if len(req.URL.Query()) > 0 {
 		query := req.URL.Query()
 
-		keys := make([]string, 0, len(query))
-		for key := range query {
-			keys = append(keys, key)
-		}
+		keys := xmaps.Keys(query)
 		sort.Strings(keys)
 
 		for i, key := range keys {

@@ -19,6 +19,7 @@ import (
 	"github.com/go-resty/resty/v2"
 
 	"github.com/certimate-go/certimate/internal/app"
+	xmaps "github.com/certimate-go/certimate/pkg/utils/maps"
 )
 
 type Client struct {
@@ -354,10 +355,7 @@ func (c *Client) ensureApiUserToken(ctx context.Context) error {
 }
 
 func generateSignature(params map[string]any, secret string) string {
-	keys := make([]string, 0, len(params))
-	for k := range params {
-		keys = append(keys, k)
-	}
+	keys := xmaps.Keys(params)
 	sort.Strings(keys)
 
 	canonicalStr := ""

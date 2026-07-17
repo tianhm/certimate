@@ -12,6 +12,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	xmaps "github.com/certimate-go/certimate/pkg/utils/maps"
 )
 
 type signer struct {
@@ -61,10 +63,7 @@ func (s *signer) Sign(req *http.Request) error {
 	params["Timestamp"] = timestamp
 	params["SignatureVersion"] = "1.0"
 	params["SignatureMethod"] = "HMAC-SHA256"
-	paramsKeys := make([]string, 0, len(params))
-	for k := range params {
-		paramsKeys = append(paramsKeys, k)
-	}
+	paramsKeys := xmaps.Keys(params)
 	sort.Strings(paramsKeys)
 
 	stringToSign := ""

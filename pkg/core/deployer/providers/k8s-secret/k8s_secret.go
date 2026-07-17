@@ -14,6 +14,7 @@ import (
 
 	"github.com/certimate-go/certimate/pkg/core"
 	xcert "github.com/certimate-go/certimate/pkg/utils/cert"
+	xmaps "github.com/certimate-go/certimate/pkg/utils/maps"
 )
 
 type (
@@ -141,14 +142,10 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*Dep
 	}
 	secretLabels := map[string]string{}
 	if d.config.SecretAnnotations != nil {
-		for k, v := range d.config.SecretAnnotations {
-			secretAnnotations[k] = v
-		}
+		xmaps.CopyTo(d.config.SecretAnnotations, secretAnnotations)
 	}
 	if d.config.SecretLabels != nil {
-		for k, v := range d.config.SecretLabels {
-			secretLabels[k] = v
-		}
+		xmaps.CopyTo(d.config.SecretLabels, secretLabels)
 	}
 
 	// 赋值 Secret 实例
@@ -156,16 +153,12 @@ func (d *Deployer) Deploy(ctx context.Context, certPEM, privkeyPEM string) (*Dep
 	if secretPayload.ObjectMeta.Annotations == nil {
 		secretPayload.ObjectMeta.Annotations = secretAnnotations
 	} else {
-		for k, v := range secretAnnotations {
-			secretPayload.ObjectMeta.Annotations[k] = v
-		}
+		xmaps.CopyTo(secretAnnotations, secretPayload.ObjectMeta.Annotations)
 	}
 	if secretPayload.ObjectMeta.Labels == nil {
 		secretPayload.ObjectMeta.Labels = secretLabels
 	} else {
-		for k, v := range secretLabels {
-			secretPayload.ObjectMeta.Labels[k] = v
-		}
+		xmaps.CopyTo(secretLabels, secretPayload.ObjectMeta.Labels)
 	}
 	if secretPayload.Data == nil {
 		secretPayload.Data = make(map[string][]byte)

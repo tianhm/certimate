@@ -52,6 +52,8 @@ export default defineConfig(({ command }) => {
   }
 
   return {
+    // 使用相对基础路径，让同一份构建产物可以部署在根路径或任意反向代理子路径下。
+    base: "./",
     define: {
       __APP_VERSION__: JSON.stringify(appVersion),
     },

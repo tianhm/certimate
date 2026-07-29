@@ -1,4 +1,4 @@
-import { resolveAppPath } from "@/utils/url";
+import { withBasePath } from "@/utils/url";
 
 interface BaseProvider<P> {
   type: P;
@@ -298,7 +298,7 @@ export const accessProvidersMap: Map<AccessProvider["type"] | string, AccessProv
     {
       type: type,
       name: name,
-      icon: resolveAppPath(icon),
+      icon: withBasePath(icon),
       usages: usages,
       builtin: builtin === "builtin",
     },

@@ -7,6 +7,14 @@ import reactHooksPlugin from "eslint-plugin-react-hooks";
 import reactRefreshPlugin from "eslint-plugin-react-refresh";
 import typescriptPlugin from "typescript-eslint";
 
+import noRootRelativeUrlRule from "./eslint-rules/no-root-relative-url.mjs";
+
+const certimatePlugin = {
+  rules: {
+    "no-root-relative-url": noRootRelativeUrlRule,
+  },
+};
+
 /**
  * @type {import("eslint").Linter.Config[]}
  */
@@ -134,6 +142,17 @@ export default defineConfig(
           allowConstantExport: true,
         },
       ],
+    },
+  },
+
+  // Certimate
+  {
+    name: "certimate",
+    plugins: {
+      certimate: certimatePlugin,
+    },
+    rules: {
+      "certimate/no-root-relative-url": "error",
     },
   },
 

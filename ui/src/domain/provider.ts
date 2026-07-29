@@ -1,3 +1,5 @@
+import { withBasePath } from "@/utils/url";
+
 interface BaseProvider<P> {
   type: P;
   name: string;
@@ -298,7 +300,7 @@ export const accessProvidersMap: Map<AccessProvider["type"] | string, AccessProv
     {
       type: type,
       name: name,
-      icon: icon,
+      icon: withBasePath(icon),
       usages: usages,
       builtin: builtin === "builtin",
     },

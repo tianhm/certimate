@@ -1,4 +1,4 @@
-const TARGET_ATTRIBUTES = new Set(["href", "src"]);
+const targetAttrs = ["href", "src"];
 
 const getStaticPrefix = (node) => {
   if (!node) {
@@ -21,27 +21,21 @@ const getStaticPrefix = (node) => {
 export default {
   meta: {
     type: "problem",
-    docs: {
-      description: "Disallow root-relative URLs in JSX href and src attributes",
-    },
-    messages: {
-      useBasePath: "Root-relative {{attribute}} bypasses the application base path. Wrap the URL with withBasePath().",
-    },
     schema: [],
   },
   create(context) {
     return {
       JSXAttribute(node) {
         const attribute = node.name.type === "JSXIdentifier" ? node.name.name : "";
-        if (!TARGET_ATTRIBUTES.has(attribute)) {
+        if (!targetAttrs.includes(attribute)) {
           return;
         }
 
         const value = node.value?.type === "JSXExpressionContainer" ? getStaticPrefix(node.value.expression) : getStaticPrefix(node.value);
-        if (value?.startsWith("/") && !value.startsWith("//")) {
+        if (!!value && value.startsWith("/") && !value.startsWith("//")) {
           context.report({
             node: node.value ?? node,
-            messageId: "useBasePath",
+            message: "Root-relative {{attribute}} bypasses the application base path. Wrap the URL with `withBasePath()` utility function.",
             data: { attribute },
           });
         }

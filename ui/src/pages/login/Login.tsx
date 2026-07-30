@@ -11,7 +11,6 @@ import AppLocale from "@/components/AppLocale";
 import AppTheme from "@/components/AppTheme";
 import AppVersion from "@/components/AppVersion";
 import { useAntdForm, useBrowserTheme } from "@/hooks";
-
 import { authWithPassword } from "@/repository/admin";
 import { unwrapErrMsg } from "@/utils/error";
 import { withBasePath } from "@/utils/url";

@@ -7,13 +7,7 @@ import reactHooksPlugin from "eslint-plugin-react-hooks";
 import reactRefreshPlugin from "eslint-plugin-react-refresh";
 import typescriptPlugin from "typescript-eslint";
 
-import noRootRelativeUrlRule from "./eslint-rules/no-root-relative-url.mjs";
-
-const certimatePlugin = {
-  rules: {
-    "no-root-relative-url": noRootRelativeUrlRule,
-  },
-};
+import noRootRelativeUrlRule from "./scripts/eslint/rules/no-root-relative-url.mjs";
 
 /**
  * @type {import("eslint").Linter.Config[]}
@@ -145,17 +139,6 @@ export default defineConfig(
     },
   },
 
-  // Certimate
-  {
-    name: "certimate",
-    plugins: {
-      certimate: certimatePlugin,
-    },
-    rules: {
-      "certimate/no-root-relative-url": "error",
-    },
-  },
-
   // TailwindCSS
   {
     name: "tailwindcss",
@@ -173,6 +156,21 @@ export default defineConfig(
       "better-tailwindcss": {
         entryPoint: "src/global.css",
       },
+    },
+  },
+
+  // Certimate
+  {
+    name: "certimate",
+    plugins: {
+      certimate: {
+        rules: {
+          "no-root-relative-url": noRootRelativeUrlRule,
+        },
+      },
+    },
+    rules: {
+      "certimate/no-root-relative-url": "error",
     },
   }
 );

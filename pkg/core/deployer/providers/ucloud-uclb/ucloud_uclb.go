@@ -263,14 +263,18 @@ func createSDKClient(privateKey, publicKey, projectId, endpoint, region string) 
 	}
 
 	cfg := ucloud.NewConfig()
-	cfg.ProjectId = projectId
-	cfg.Region = region
+	if projectId != "" {
+		cfg.ProjectId = projectId
+	}
 	if endpoint != "" {
 		if strings.Contains(endpoint, "://") {
 			cfg.BaseUrl = endpoint
 		} else {
 			cfg.BaseUrl = "https://" + endpoint
 		}
+	}
+	if region != "" {
+		cfg.Region = region
 	}
 
 	credential := auth.NewCredential()

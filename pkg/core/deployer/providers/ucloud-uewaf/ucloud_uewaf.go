@@ -107,7 +107,9 @@ func createSDKClient(privateKey, publicKey, projectId, endpoint string) (*ucloud
 	}
 
 	cfg := ucloud.NewConfig()
-	cfg.ProjectId = projectId
+	if projectId != "" {
+		cfg.ProjectId = projectId
+	}
 	if endpoint != "" {
 		if strings.Contains(endpoint, "://") {
 			cfg.BaseUrl = endpoint

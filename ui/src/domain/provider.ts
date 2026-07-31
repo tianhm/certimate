@@ -460,6 +460,8 @@ export const ACME_DNS01_PROVIDERS = Object.freeze({
   VULTR: `${ACCESS_PROVIDERS.VULTR}`,
   WESTCN: `${ACCESS_PROVIDERS.WESTCN}`,
   XINNET: `${ACCESS_PROVIDERS.XINNET}`,
+  YANDEXCLOUD: `${ACCESS_PROVIDERS.YANDEXCLOUD}`, // 兼容旧值，等同于 `YANDEXCLOUD_DNS`
+  YANDEXCLOUD_DNS: `${ACCESS_PROVIDERS.YANDEXCLOUD}-dns`,
 } as const);
 
 export type ACMEDns01ProviderType = (typeof ACME_DNS01_PROVIDERS)[keyof typeof ACME_DNS01_PROVIDERS];
@@ -525,6 +527,7 @@ export const acmeDns01ProvidersMap: Map<ACMEDns01Provider["type"] | string, ACME
       [ACME_DNS01_PROVIDERS.SPACESHIP, "provider.spaceship"],
       [ACME_DNS01_PROVIDERS.VERCEL, "provider.vercel"],
       [ACME_DNS01_PROVIDERS.VULTR, "provider.vultr"],
+      [ACME_DNS01_PROVIDERS.YANDEXCLOUD_DNS, "provider.yandexcloud_dns"],
       [ACME_DNS01_PROVIDERS.BAIDUCLOUD_DNS, "provider.baiducloud_dns"],
       [ACME_DNS01_PROVIDERS.CMCCCLOUD_DNS, "provider.cmcccloud_dns"],
       [ACME_DNS01_PROVIDERS.CTCCCLOUD_SMARTDNS, "provider.ctcccloud_smartdns"],

@@ -33,6 +33,7 @@ jobs:
             });
             core.setOutput("git_head_ref", pr.head.ref);
             core.setOutput("git_head_sha", pr.head.sha);
+            console.log(`git head ref: ${pr.head.ref}, sha: ${pr.head.sha}`);
     outputs:
       git_head_ref: ${{ steps.pr_details.outputs.git_head_ref }}
       git_head_sha: ${{ steps.pr_details.outputs.git_head_sha }}

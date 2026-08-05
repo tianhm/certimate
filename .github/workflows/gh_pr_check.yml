@@ -1,17 +1,38 @@
-﻿name: "GitHub Pull Requests Tester"
+﻿name: "GitHub Pull Requests Checker"
 
 on:
-  pull_request_target:
-    types:
-      - opened
-      - reopened
-      - ready_for_review
-    branches:
-      - 'main'
-      - 'next'
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: read
 
 jobs:
-  build-test:
+  pr-guard:
+    if: >
+      github.event.issue.pull_request &&
+      contains(fromJSON('["OWNER", "MEMBER"]'), github.event.comment.author_association) &&
+      startsWith(github.event.comment.body, '/pr-check')
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "Triggered by @${{ github.event.comment.user.login }}"
+          echo "On PR #${{ github.event.issue.number }}"
+      - name: Get PR head ref
+        id: pr
+        run: |
+          REF=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.issue.number }} \
+            --jq '.head.ref')
+          echo "head_ref=$REF" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    outputs:
+      head_ref: ${{ steps.pr.outputs.head_ref }}
+
+  compile-test:
+    name: "Compile Tests"
+    needs: pr-guard
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
@@ -20,6 +41,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
+          ref: ${{ needs.pr-guard.outputs.head_ref }}
           fetch-depth: 1
           persist-credentials: false
           submodules: true
@@ -49,6 +71,8 @@ jobs:
           go build -v -ldflags "-s -w" -trimpath -o ./dist/certimate ./
 
   unit-test:
+    name: "Unit Tests"
+    needs: pr-guard
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
@@ -57,6 +81,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
+          ref: ${{ needs.pr-guard.outputs.head_ref }}
           fetch-depth: 1
           persist-credentials: false
           submodules: true
@@ -120,12 +145,15 @@ jobs:
           }
         shell: pwsh
 
-  lint-test:
+  lint-format:
+    name: "Lint & Format"
+    needs: pr-guard
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v7
         with:
+          ref: ${{ needs.pr-guard.outputs.head_ref }}
           fetch-depth: 1
           persist-credentials: false
           submodules: true

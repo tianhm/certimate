@@ -16,11 +16,12 @@ jobs:
       startsWith(github.event.comment.body, '/pr-check')
     runs-on: ubuntu-latest
     steps:
-      - run: |
+      - name: Get PR head ref
+        run: |
           echo "Triggered by @${{ github.event.comment.user.login }}"
           echo "On PR #${{ github.event.issue.number }}"
       - name: Get PR head ref
-        id: pr
+        id: gitref
         run: |
           REF=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.issue.number }} \
             --jq '.head.ref')
@@ -28,7 +29,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     outputs:
-      head_ref: ${{ steps.pr.outputs.head_ref }}
+      head_ref: ${{ steps.gitref.outputs.head_ref }}
 
   compile-test:
     name: "Compile Tests"
@@ -182,7 +183,7 @@ jobs:
 
           if ! git diff --quiet; then
             echo "::error::Running 'eslint' resulted in changes, please format files and commit them:"
-            git diff --name-only --exit-code
+            git diff --exit-code
             exit 1
           fi
 
@@ -236,6 +237,6 @@ jobs:
 
           if ! git diff --quiet; then
             echo "::error::Running 'gofumpt' resulted in changes, please format files and commit them:"
-            git diff --name-only --exit-code
+            git diff --exit-code
             exit 1
           fi

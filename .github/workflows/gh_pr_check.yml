@@ -31,7 +31,6 @@ jobs:
               repo: context.repo.repo,
               pull_number: context.issue.number,
             });
-            echo "Git head: ref ${pr.head.ref}, sha ${pr.head.sha}";
             core.setOutput("git_head_ref", pr.head.ref);
             core.setOutput("git_head_sha", pr.head.sha);
     outputs:

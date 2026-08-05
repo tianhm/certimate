@@ -7,6 +7,7 @@ on:
 permissions:
   contents: read
   pull-requests: read
+  statuses: write
 
 jobs:
   pr-guard:
@@ -16,22 +17,28 @@ jobs:
       startsWith(github.event.comment.body, '/pr-check')
     runs-on: ubuntu-latest
     steps:
-      - name: Get PR head ref
+      - name: Log
         run: |
           echo "Triggered by @${{ github.event.comment.user.login }}"
           echo "On PR #${{ github.event.issue.number }}"
-      - name: Get PR head ref
-        id: gitref
-        run: |
-          REF=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.issue.number }} \
-            --jq '.head.ref')
-          echo "head_ref=$REF" >> "$GITHUB_OUTPUT"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get PR details
+        id: pr_details
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+            core.setOutput("git_head_ref", pr.head.ref);
+            core.setOutput("git_head_sha", pr.head.sha);
     outputs:
-      head_ref: ${{ steps.gitref.outputs.head_ref }}
+      git_head_ref: ${{ steps.pr_details.outputs.git_head_ref }}
+      git_head_sha: ${{ steps.pr_details.outputs.git_head_sha }}
 
   compile-test:
+    if: contains(github.event.comment.body, 'no-compile') != true
     name: "Compile Tests"
     needs: pr-guard
     strategy:
@@ -39,10 +46,25 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
+      - if: matrix.os == 'ubuntu-latest'
+        name: Initialize GitHub Actions status
+        uses: actions/github-script@v9
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: "${{ needs.pr-guard.outputs.git_head_sha }}",
+              state: "pending",
+              context: "pr-check/compile-test",
+              description: "Running...",
+              target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+            });
+
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          ref: ${{ needs.pr-guard.outputs.head_ref }}
+          ref: ${{ needs.pr-guard.outputs.git_head_ref }}
           fetch-depth: 1
           persist-credentials: false
           submodules: true
@@ -72,6 +94,7 @@ jobs:
           go build -v -ldflags "-s -w" -trimpath -o ./dist/certimate ./
 
   unit-test:
+    if: contains(github.event.comment.body, 'no-testing') != true
     name: "Unit Tests"
     needs: pr-guard
     strategy:
@@ -79,10 +102,25 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
+      - if: matrix.os == 'ubuntu-latest'
+        name: Initialize GitHub Actions status
+        uses: actions/github-script@v9
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: "${{ needs.pr-guard.outputs.git_head_sha }}",
+              state: "pending",
+              context: "pr-check/unit-test",
+              description: "Running...",
+              target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+            });
+
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          ref: ${{ needs.pr-guard.outputs.head_ref }}
+          ref: ${{ needs.pr-guard.outputs.git_head_ref }}
           fetch-depth: 1
           persist-credentials: false
           submodules: true
@@ -147,14 +185,30 @@ jobs:
         shell: pwsh
 
   lint-format:
+    if: contains(github.event.comment.body, 'no-linting') != true
     name: "Lint & Format"
     needs: pr-guard
     runs-on: ubuntu-latest
     steps:
+      - if: matrix.os == 'ubuntu-latest'
+        name: Initialize GitHub Actions status
+        uses: actions/github-script@v9
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: "${{ needs.pr-guard.outputs.git_head_sha }}",
+              state: "pending",
+              context: "pr-check/lint-format",
+              description: "Running...",
+              target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+            });
+
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          ref: ${{ needs.pr-guard.outputs.head_ref }}
+          ref: ${{ needs.pr-guard.outputs.git_head_ref }}
           fetch-depth: 1
           persist-credentials: false
           submodules: true
@@ -240,3 +294,55 @@ jobs:
             git diff --exit-code
             exit 1
           fi
+
+  ending:
+    name: "Ending"
+    needs: [pr-guard, compile-test, unit-test, lint-format]
+    if: always() && needs.pr-guard.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Compute overall state
+        id: state
+        run: |
+          # 最终状态：
+          #  - 任一失败 → failure
+          #  - 任一手动取消/超时 → cancelled
+          #  - 全部成功 → success
+          RESULTS="${{ needs.compile-test.result }} ${{ needs.unit-test.result }} ${{ needs.lint-format.result }}"
+          if echo "$RESULTS" | grep -q "failure\|error"; then
+            echo "state=failure" >> "$GITHUB_OUTPUT"
+          elif echo "$RESULTS" | grep -q "cancelled"; then
+            echo "state=cancelled" >> "$GITHUB_OUTPUT"
+          else
+            echo "state=success" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set GitHub Actions status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const jobs = [
+              { ctx: "pr-check/compile-test", result: "${{ needs.compile-test.result }}" },
+              { ctx: "pr-check/unit-test",    result: "${{ needs.unit-test.result }}" },
+              { ctx: "pr-check/lint-format",  result: "${{ needs.lint-format.result }}" },
+            ];
+            const states = {
+              "success": "success",
+              "failure": "failure",
+              "cancelled": "error"
+            };
+            for (const j of jobs) {
+              const state = states[j.result] || "error";
+              const desc  = state === "success" ? "Passed"
+                          : state === "failure" ? "Failed"
+                          : "Cancelled";
+              await github.rest.repos.createCommitStatus({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                sha: "${{ needs.pr-guard.outputs.git_head_sha }}",
+                state: state,
+                context: j.ctx,
+                description: desc,
+                target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              });
+            }

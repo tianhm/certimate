@@ -31,14 +31,18 @@ jobs:
               repo: context.repo.repo,
               pull_number: context.issue.number,
             });
+            echo "Git head: ref ${pr.head.ref}, sha ${pr.head.sha}";
             core.setOutput("git_head_ref", pr.head.ref);
             core.setOutput("git_head_sha", pr.head.sha);
     outputs:
       git_head_ref: ${{ steps.pr_details.outputs.git_head_ref }}
       git_head_sha: ${{ steps.pr_details.outputs.git_head_sha }}
+      no_compile: ${{ contains(github.event.comment.body, 'no-compile') }}
+      no_test: ${{ contains(github.event.comment.body, 'no-test') }}
+      no_lint: ${{ contains(github.event.comment.body, 'no-lint') }}
 
-  compile-test:
-    if: contains(github.event.comment.body, 'no-compile') != true
+  compile-build:
+    if: needs.pr-guard.outputs.no_compile != 'true'
     name: "Compile Tests"
     needs: pr-guard
     strategy:
@@ -56,7 +60,7 @@ jobs:
               repo: context.repo.repo,
               sha: "${{ needs.pr-guard.outputs.git_head_sha }}",
               state: "pending",
-              context: "pr-check/compile-test",
+              context: "pr-check/compile-build",
               description: "Running...",
               target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
             });
@@ -94,7 +98,7 @@ jobs:
           go build -v -ldflags "-s -w" -trimpath -o ./dist/certimate ./
 
   unit-test:
-    if: contains(github.event.comment.body, 'no-testing') != true
+    if: needs.pr-guard.outputs.no_test != 'true'
     name: "Unit Tests"
     needs: pr-guard
     strategy:
@@ -185,7 +189,7 @@ jobs:
         shell: pwsh
 
   lint-format:
-    if: contains(github.event.comment.body, 'no-linting') != true
+    if: needs.pr-guard.outputs.no_lint != 'true'
     name: "Lint & Format"
     needs: pr-guard
     runs-on: ubuntu-latest
@@ -297,7 +301,7 @@ jobs:
 
   ending:
     name: "Ending"
-    needs: [pr-guard, compile-test, unit-test, lint-format]
+    needs: [pr-guard, compile-build, unit-test, lint-format]
     if: always() && needs.pr-guard.result == 'success'
     runs-on: ubuntu-latest
     steps:
@@ -308,7 +312,7 @@ jobs:
           #  - 任一失败 → failure
           #  - 任一手动取消/超时 → cancelled
           #  - 全部成功 → success
-          RESULTS="${{ needs.compile-test.result }} ${{ needs.unit-test.result }} ${{ needs.lint-format.result }}"
+          RESULTS="${{ needs.compile-build.result }} ${{ needs.unit-test.result }} ${{ needs.lint-format.result }}"
           if echo "$RESULTS" | grep -q "failure\|error"; then
             echo "state=failure" >> "$GITHUB_OUTPUT"
           elif echo "$RESULTS" | grep -q "cancelled"; then
@@ -322,9 +326,21 @@ jobs:
         with:
           script: |
             const jobs = [
-              { ctx: "pr-check/compile-test", result: "${{ needs.compile-test.result }}" },
-              { ctx: "pr-check/unit-test",    result: "${{ needs.unit-test.result }}" },
-              { ctx: "pr-check/lint-format",  result: "${{ needs.lint-format.result }}" },
+              {
+                ctx: "pr-check/compile-build",
+                result: "${{ needs.compile-build.result }}",
+                skipped: "${{ needs.pr-guard.outputs.no_compile }}",
+              },
+              {
+                ctx: "pr-check/unit-test",
+                result: "${{ needs.unit-test.result }}",
+                skipped: "${{ needs.pr-guard.outputs.no_test }}",
+              },
+              {
+                ctx: "pr-check/lint-format",
+                result: "${{ needs.lint-format.result }}",
+                skipped: "${{ needs.pr-guard.outputs.no_lint }}",
+              },
             ];
             const states = {
               "success": "success",
@@ -332,6 +348,7 @@ jobs:
               "cancelled": "error"
             };
             for (const j of jobs) {
+              if (j.skipped === "true") continue;
               const state = states[j.result] || "error";
               const desc  = state === "success" ? "Passed"
                           : state === "failure" ? "Failed"

@@ -1,0 +1,188 @@
+﻿name: "GitHub Pull Requests Tester"
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - ready_for_review
+    branches:
+      - 'main'
+      - 'next'
+
+jobs:
+  build-test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          submodules: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: "go.mod"
+
+      - name: Check dependencies (Node.js)
+        run: |
+          npm --prefix=./ui ci
+
+      - name: Build (Node.js)
+        run: |
+          npm --prefix=./ui run build
+
+      - name: Check dependencies (Go)
+        run: |
+          go mod tidy --diff
+
+      - name: Build (Go)
+        env:
+          CGO_ENABLED: 0
+        run: |
+          go build -v -ldflags "-s -w" -trimpath -o ./dist/certimate ./
+
+  unit-test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          submodules: true
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: "go.mod"
+
+      - name: Run unit tests (Go)
+        run: |
+          # Exclude packages below:
+          MODULE=$(go list -m)
+          EXCLUDES=(
+            "${MODULE}/pkg/core/certmgr/providers/"
+            "${MODULE}/pkg/core/deployer/providers/"
+            "${MODULE}/pkg/core/notifier/providers/"
+            "${MODULE}/pkg/sdk3rd-forked/"
+            "${MODULE}/pkg/sdk3rd-trimmed/"
+          )
+
+          PKGS=$(go list ./...)
+          for ex in "${EXCLUDES[@]}"; do
+            PKGS=$(echo "$PKGS" | grep -v "^${ex}")
+          done
+
+          echo "Testing packages:"
+          echo "$PKGS"
+
+          if ! go test -race -v $PKGS; then
+            echo "::error::go test failed, please fix the issues above" >&2
+            exit 1
+          fi
+
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          submodules: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: "go.mod"
+
+      - name: Lint codes (Node.js)
+        run: |
+          cd ui
+          npm ci
+          npx eslint . --ext .js,.jsx,.ts,.tsx | grep "error"
+
+      - name: Format codes (Node.js)
+        run: |
+          cd ui
+          npm ci
+          npx eslint . --fix --ext .js,.jsx,.ts,.tsx
+
+          if ! git diff --quiet; then
+            echo "::error::eslint made changes, please format files and commit them:"
+            git diff --name-only --exit-code
+            exit 1
+          fi
+
+      - name: Lint codes (Go)
+        run: |
+          # Exclude paths below:
+          EXCLUDES=(
+            "./pkg/sdk3rd-forked/"
+            "./pkg/sdk3rd-trimmed/"
+          )
+
+          PKGS=$(go list ./... | grep -Ev $(IFS='|'; echo "${EXCLUDES[*]}"))
+          echo "Linting packages:"
+          echo "$PKGS"
+
+          if ! echo "$PKGS" | xargs go vet; then
+            echo "::error::go vet failed, please fix the issues above"
+            exit 1
+          fi
+
+      - name: Format codes (Go)
+        run: |
+          go install mvdan.cc/gofumpt@latest
+
+          # Exclude paths below:
+          EXCLUDES=(
+            "./pkg/sdk3rd-forked/"
+            "./pkg/sdk3rd-trimmed/"
+            "./ui/"
+            "./vendor/"
+          )
+
+          FIND_GO_FILES=()
+          for ex in "${EXCLUDES[@]}"; do
+            FIND_GO_FILES+=(-path "${ex}*" -prune -o)
+          done
+
+          GO_FILES="$(
+            find . \
+              "${FIND_GO_FILES[@]}" \
+              -type f -name "*.go" \
+              -print
+          )"
+
+          echo "Formatting files:"
+          echo "$GO_FILES"
+
+          echo "$GO_FILES" | while IFS= read -r f; do
+            gofumpt -l -w "$f"
+          done
+
+          if ! git diff --quiet; then
+            echo "::error::gofumpt made changes, please format files and commit them:"
+            git diff --name-only --exit-code
+            exit 1
+          fi

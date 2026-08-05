@@ -193,8 +193,7 @@ jobs:
     needs: pr-guard
     runs-on: ubuntu-latest
     steps:
-      - if: matrix.os == 'ubuntu-latest'
-        name: Initialize GitHub Actions status
+      - name: Initialize GitHub Actions status
         uses: actions/github-script@v9
         with:
           script: |

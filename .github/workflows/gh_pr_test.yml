@@ -51,7 +51,7 @@ jobs:
   unit-test:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -66,7 +66,8 @@ jobs:
         with:
           go-version-file: "go.mod"
 
-      - name: Run unit tests (Go)
+      - name: Run unit tests (Go, on Linux/macOS)
+        if: matrix.os != 'windows-latest'
         run: |
           # Exclude packages below:
           MODULE=$(go list -m)
@@ -87,9 +88,37 @@ jobs:
           echo "$PKGS"
 
           if ! go test -race -v $PKGS; then
-            echo "::error::go test failed, please fix the issues above" >&2
+            echo "::error::Failed to run 'go test', please fix the issues above." >&2
             exit 1
           fi
+
+      - name: Run unit tests (Go, on Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          # Exclude packages below:
+          $MODULE = go list -m
+          $EXCLUDES = @(
+            "$MODULE/pkg/core/certmgr/providers/"
+            "$MODULE/pkg/core/deployer/providers/"
+            "$MODULE/pkg/core/notifier/providers/"
+            "$MODULE/pkg/sdk3rd-forked/"
+            "$MODULE/pkg/sdk3rd-trimmed/"
+          )
+
+          $PKGS = go list ./...
+          foreach ($ex in $EXCLUDES) {
+            $PKGS = $PKGS | Where-Object { $_ -notmatch "^$ex" }
+          }
+
+          Write-Host "Testing packages:"
+          Write-Host ($PKGS -join "`n")
+
+          go test -race -v $PKGS
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "::error::Failed to run 'go test', please fix the issues above."
+            exit 1
+          }
+        shell: pwsh
 
   lint-test:
     runs-on: ubuntu-latest
@@ -124,7 +153,7 @@ jobs:
           npx eslint . --fix --ext .js,.jsx,.ts,.tsx
 
           if ! git diff --quiet; then
-            echo "::error::eslint made changes, please format files and commit them:"
+            echo "::error::Running 'eslint' resulted in changes, please format files and commit them:"
             git diff --name-only --exit-code
             exit 1
           fi
@@ -142,7 +171,7 @@ jobs:
           echo "$PKGS"
 
           if ! echo "$PKGS" | xargs go vet; then
-            echo "::error::go vet failed, please fix the issues above"
+            echo "::error::Failed to run 'go vet', please fix the issues above"
             exit 1
           fi
 
@@ -178,7 +207,7 @@ jobs:
           done
 
           if ! git diff --quiet; then
-            echo "::error::gofumpt made changes, please format files and commit them:"
+            echo "::error::Running 'gofumpt' resulted in changes, please format files and commit them:"
             git diff --name-only --exit-code
             exit 1
           fi

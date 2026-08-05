@@ -31,10 +31,12 @@ jobs:
               repo: context.repo.repo,
               pull_number: context.issue.number,
             });
+            core.setOutput("git_head_repo", pr.head.repo.full_name);
             core.setOutput("git_head_ref", pr.head.ref);
             core.setOutput("git_head_sha", pr.head.sha);
-            console.log(`git head ref: ${pr.head.ref}, sha: ${pr.head.sha}`);
+            console.log(`git head repo: ${pr.head.repo.full_name}, ref: ${pr.head.ref}, sha: ${pr.head.sha}`);
     outputs:
+      git_head_repo: ${{ steps.pr_details.outputs.git_head_repo }}
       git_head_ref: ${{ steps.pr_details.outputs.git_head_ref }}
       git_head_sha: ${{ steps.pr_details.outputs.git_head_sha }}
       no_compile: ${{ contains(github.event.comment.body, 'no-compile') }}
@@ -43,7 +45,6 @@ jobs:
 
   compile-build:
     if: needs.pr-guard.outputs.no_compile != 'true'
-    name: "Compile Tests"
     needs: pr-guard
     strategy:
       matrix:
@@ -68,7 +69,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          ref: ${{ needs.pr-guard.outputs.git_head_ref }}
+          ref: refs/pull/${{ github.event.issue.number }}/merge
           fetch-depth: 1
           persist-credentials: false
           submodules: true
@@ -99,7 +100,6 @@ jobs:
 
   unit-test:
     if: needs.pr-guard.outputs.no_test != 'true'
-    name: "Unit Tests"
     needs: pr-guard
     strategy:
       matrix:
@@ -124,7 +124,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          ref: ${{ needs.pr-guard.outputs.git_head_ref }}
+          ref: refs/pull/${{ github.event.issue.number }}/merge
           fetch-depth: 1
           persist-credentials: false
           submodules: true
@@ -190,7 +190,6 @@ jobs:
 
   lint-format:
     if: needs.pr-guard.outputs.no_lint != 'true'
-    name: "Lint & Format"
     needs: pr-guard
     runs-on: ubuntu-latest
     steps:
@@ -211,7 +210,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          ref: ${{ needs.pr-guard.outputs.git_head_ref }}
+          ref: refs/pull/${{ github.event.issue.number }}/merge
           fetch-depth: 1
           persist-credentials: false
           submodules: true
@@ -299,7 +298,6 @@ jobs:
           fi
 
   ending:
-    name: "Ending"
     needs: [pr-guard, compile-build, unit-test, lint-format]
     if: always() && needs.pr-guard.result == 'success'
     runs-on: ubuntu-latest

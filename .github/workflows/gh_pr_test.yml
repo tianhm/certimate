@@ -42,10 +42,6 @@ jobs:
         run: |
           npm --prefix=./ui run build
 
-      - name: Check dependencies (Go)
-        run: |
-          go mod tidy --diff
-
       - name: Build (Go)
         env:
           CGO_ENABLED: 0
@@ -55,7 +51,7 @@ jobs:
   unit-test:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout

@@ -1,6 +1,6 @@
-// A simple SDK client for Proxmox Virtual Environment.
-// API documentation: https://pve.proxmox.com/pve-docs/api-viewer/index.html
-package proxmoxve
+// A simple SDK client for Proxmox Backup Server.
+// API documentation: https://pbs.proxmox.com/docs/api-viewer/
+package proxmoxbs
 
 import (
 	"crypto/tls"
@@ -41,7 +41,7 @@ func NewClient(serverUrl string, optFns ...OptionsFunc) (*Client, error) {
 	httper := resty.New().
 		SetBaseURL(strings.TrimSuffix(serverUrl, "/")+"/api2/json").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", fmt.Sprintf("PVEAPIToken=%s=%s", opts.TokenId, opts.TokenSecret)).
+		SetHeader("Authorization", fmt.Sprintf("PBSAPIToken=%s:%s", opts.TokenId, opts.TokenSecret)).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("User-Agent", app.AppUserAgent)
 
